@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automatikteknikker</title>
+    <link rel="icon" href="Automatikteknikker.ico" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+        }
+        .counter-display {
+            font-size: 6rem;
+            font-weight: bold;
+            transition: all 0.2s;
+            text-align: center;
+            width: 100%;
+            display: block;
+        }
+        .positive {
+            color: #4ade80;
+        }
+        .negative {
+            color: #f87171;
+        }
+        .neutral {
+            color: #60a5fa;
+        }
+        .btn {
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .shortcut-hint {
+            opacity: 0.7;
+            font-size: 0.8rem;
+        }
+        .glow-animation {
+            animation: glow 0.5s ease-in-out;
+        }
+        @keyframes glow {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
+    <!-- Tilbage-knappen -->
+    <div class="fixed top-0 left-0 z-50 m-4">
+        <a href="index.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg shadow transition font-medium">
+            &larr; Tilbage
+        </a>
+    </div>
+
+    <div class="w-full text-center mb-8">
+        <h1 class="text-3xl font-bold mb-2">Blackjack Card Counter</h1>
+        <p class="text-gray-400">Brug mellemrum eller skift-tasten til at tælle</p>
+    </div>
+
+    <div class="bg-gray-800 rounded-xl p-8 shadow-xl max-w-md w-full">
+        <div id="counterDisplay" class="counter-display neutral mb-8">0</div>
+        
+        <div class="flex justify-between mb-6 gap-4">
+            <button id="decrementBtn" class="btn bg-red-500 hover:bg-red-600 text-white py-3 px-6 rounded-lg flex-1 flex flex-col items-center">
+                <span>-1</span>
+                <span class="shortcut-hint">(Shift)</span>
+            </button>
+            <button id="resetBtn" class="btn bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg flex-1">
+                Nulstil
+            </button>
+            <button id="incrementBtn" class="btn bg-green-500 hover:bg-green-600 text-white py-3 px-6 rounded-lg flex-1 flex flex-col items-center">
+                <span>+1</span>
+                <span class="shortcut-hint">(Space)</span>
+            </button>
+        </div>
+
+        <div p class="mt-1" id="historyText"></p>
+
+        <!-- Tælleguide -->
+        <div class="mt-6 text-sm text-gray-400 bg-gray-700 p-4 rounded-lg">
+            <h2 class="text-base font-semibold mb-2 text-white">Tælleguide (Hi-Lo System)</h2>
+            <ul class="list-disc list-inside space-y-1">
+                <li><span class="text-green-400 font-medium">Tæl +1</span> hvis det er <strong>2–6</strong></li>
+                <li><span class="text-blue-400 font-medium">Tæl 0</span> hvis det er <strong>7–9</strong></li>
+                <li><span class="text-red-400 font-medium">Tæl -1</span> hvis det er <strong>10, J, Q, K eller A</strong></li>
+            </ul>
+        </div>
+
+    </div>
+
+    <div class="mt-8 text-center text-gray-500 text-sm">
+        <p>Tryk på mellemrumstasten (space) for +1 | Tryk på skift-tasten (shift) for -1</p>
+    </div>
+
+    <script>
+        let count = 0;
+        const counterDisplay = document.getElementById('counterDisplay');
+        const currentValue = document.getElementById('currentValue');
+        const historyText = document.getElementById('historyText');
+        const incrementBtn = document.getElementById('incrementBtn');
+        const decrementBtn = document.getElementById('decrementBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const body = document.body;
+
+        function updateDisplay() {
+            counterDisplay.textContent = count;
+            currentValue.textContent = count;
+            
+            // Update display color based on value
+            if (count > 0) {
+                counterDisplay.className = 'counter-display positive';
+            } else if (count < 0) {
+                counterDisplay.className = 'counter-display negative';
+            } else {
+                counterDisplay.className = 'counter-display neutral';
+            }
+        }
+
+        function increment() {
+            count++;
+            updateDisplay();
+            counterDisplay.classList.add('glow-animation');
+            setTimeout(() => {
+                counterDisplay.classList.remove('glow-animation');
+            }, 500);
+        }
+
+        function decrement() {
+            count--;
+            updateDisplay();
+            counterDisplay.classList.add('glow-animation');
+            setTimeout(() => {
+                counterDisplay.classList.remove('glow-animation');
+            }, 500);
+        }
+
+        function resetCounter() {
+            count = 0;
+            updateDisplay();
+            // Visual feedback
+            body.style.backgroundColor = 'rgba(96, 165, 250, 0.1)';
+            setTimeout(() => {
+                body.style.backgroundColor = '';
+            }, 200);
+        }
+
+        // Button events
+        incrementBtn.addEventListener('click', increment);
+        decrementBtn.addEventListener('click', decrement);
+        resetBtn.addEventListener('click', resetCounter);
+
+        // Keyboard events
+        document.addEventListener('keydown', (event) => {
+            if (event.code === 'Space') {
+                event.preventDefault(); // Prevent space from scrolling page
+                increment();
+            } else if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
+                decrement();
+            }
+        });
+
+        // Initialize
+        updateDisplay();
+    </script>
+</body>
+</html>

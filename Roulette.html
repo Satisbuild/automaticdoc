@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <title>Automatikteknikker</title>
+  <link rel="icon" href="Automatikteknikker.ico" type="image/x-icon">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      text-align: center;
+      padding: 30px;
+      user-select: none;
+    }
+    h2 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      letter-spacing: 1.2px;
+    }
+    p {
+      color: #bbb;
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+    }
+    .roulette-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    .zero {
+      display: flex;
+      flex-direction: column;
+    }
+    .zero .number {
+      width: 60px;
+      height: 180px;
+      line-height: 180px;
+      border-radius: 10px;
+    }
+    .roulette-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 60px);
+      grid-template-rows: repeat(3, 60px);
+      gap: 6px;
+    }
+    .number {
+      width: 60px;
+      height: 60px;
+      line-height: 60px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    }
+    .number:hover {
+      transform: scale(1.08);
+      z-index: 10;
+      position: relative;
+    }
+    .red { background-color: #e74c3c; }
+    .black { background-color: #34495e; }
+    .green { background-color: #27ae60; }
+    .selected {
+      outline: 3px solid #f1c40f;
+      box-shadow: 0 0 15px 5px #f1c40f;
+    }
+    #result {
+      margin-top: 30px;
+      font-size: 20px;
+      background: #1e1e1e;
+      padding: 20px 30px;
+      border-radius: 15px;
+      display: inline-block;
+      box-shadow: 0 8px 20px rgba(241, 196, 15, 0.4);
+      max-width: 650px;
+      line-height: 1.4;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    #result strong {
+      color: #f1c40f;
+      font-size: 1.2rem;
+    }
+    .info {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #888;
+      font-style: italic;
+    }
+    .extra-bets {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 40px;
+    }
+    .bet-btn {
+      padding: 14px 28px;
+      font-size: 16px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      color: white;
+      font-weight: 700;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+      user-select: none;
+    }
+    .bet-btn:hover {
+      transform: scale(1.08);
+    }
+    .red-btn { background-color: #e74c3c; }
+    .black-btn { background-color: #34495e; }
+    .gray-btn { background-color: #7f8c8d; }
+    .green-btn { background-color: #16a085; }
+  </style>
+</head>
+<body>
+
+  <!-- Tilbage-knap med Tailwind -->
+  <div class="fixed top-0 left-0 z-50 m-4">
+    <a href="index.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg shadow transition font-medium">
+      &larr; Tilbage
+    </a>
+  </div>
+
+  <h2>Rouletteplade</h2>
+  <p>Klik på et tal eller <strong>Shift+klik</strong> for <strong>Mellem 2 tal</strong> </p>
+
+  <div class="roulette-container">
+    <div class="zero">
+      <div class="number green" data-number="0">0</div>
+    </div>
+    <div class="roulette-grid" id="grid"></div>
+  </div>
+
+  <div class="extra-bets">
+    <button class="bet-btn red-btn" onclick="selectSpecial('Rød', redNumbers, 1)">Rød (1:1)</button>
+    <button class="bet-btn black-btn" onclick="selectSpecial('Sort', blackNumbers, 1)">Sort (1:1)</button>
+    <button class="bet-btn gray-btn" onclick="selectSpecial('Lige', evenNumbers, 1)">Lige (1:1)</button>
+    <button class="bet-btn gray-btn" onclick="selectSpecial('Ulige', oddNumbers, 1)">Ulige (1:1)</button>
+    <button class="bet-btn gray-btn" onclick="selectSpecial('1–18', range(1, 18), 1)">1–18 (1:1)</button>
+    <button class="bet-btn gray-btn" onclick="selectSpecial('19–36', range(19, 36), 1)">19–36 (1:1)</button>
+    <button class="bet-btn green-btn" onclick="selectSpecial('1–12', range(1, 12), 2)">1–12 (2:1)</button>
+    <button class="bet-btn green-btn" onclick="selectSpecial('13–24', range(13, 24), 2)">13–24 (2:1)</button>
+    <button class="bet-btn green-btn" onclick="selectSpecial('25–36', range(25, 36), 2)">25–36 (2:1)</button>
+  </div>
+
+  <div id="result">Ingen valg endnu.</div>
+  <div class="info">Udgangspunkt <strong>100 kr</strong>.</div>
+
+<script>
+  const grid = document.getElementById('grid');
+  const result = document.getElementById('result');
+  const selected = [];
+  const betAmount = 100;
+
+  const redNumbers = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+  const blackNumbers = Array.from({length: 36}, (_, i) => i + 1).filter(n => !redNumbers.includes(n));
+  const evenNumbers = Array.from({length: 36}, (_, i) => i + 1).filter(n => n % 2 === 0);
+  const oddNumbers = Array.from({length: 36}, (_, i) => i + 1).filter(n => n % 2 === 1);
+
+  function range(start, end) {
+    return Array.from({length: end - start + 1}, (_, i) => start + i);
+  }
+
+  function getColor(num) {
+    if (num === 0) return 'green';
+    return redNumbers.includes(num) ? 'red' : 'black';
+  }
+
+  const positionMap = {};
+  for (let col=0; col<12; col++) {
+    for(let row=0; row<3; row++) {
+      const num = 3*col + (row+1);
+      positionMap[num] = {col, row};
+    }
+  }
+
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 12; col++) {
+      let num = 3 * col + (row + 1);
+      const div = document.createElement('div');
+      div.className = `number ${getColor(num)}`;
+      div.textContent = num;
+      div.dataset.number = num;
+
+      div.addEventListener('click', (e) => {
+        const clickedNum = parseInt(div.dataset.number);
+        if (e.shiftKey) {
+          if (selected.length === 1) {
+            const first = selected[0];
+            if (isAdjacent(first, clickedNum)) {
+              if (!selected.includes(clickedNum)) {
+                selected.push(clickedNum);
+                div.classList.add('selected');
+              }
+            } else {
+              alert('Split kan kun vælges mellem to tilstødende tal.');
+            }
+          } else {
+            alert('Split kan kun vælges mellem præcis 2 tal.');
+          }
+        } else {
+          clearSelection();
+          selected.push(clickedNum);
+          div.classList.add('selected');
+        }
+        updateResult();
+      });
+
+      grid.appendChild(div);
+    }
+  }
+
+  document.querySelector('.zero .number').addEventListener('click', (e) => {
+    if (!e.shiftKey) {
+      clearSelection();
+    }
+    if (!selected.includes(0)) {
+      selected.push(0);
+      e.target.classList.add('selected');
+    }
+    updateResult();
+  });
+
+  function clearSelection() {
+    document.querySelectorAll('.number').forEach(el => el.classList.remove('selected'));
+    selected.length = 0;
+  }
+
+  function isAdjacent(n1, n2) {
+    if (n1 === 0 || n2 === 0) return false;
+    const p1 = positionMap[n1];
+    const p2 = positionMap[n2];
+    if (!p1 || !p2) return false;
+
+    if (p1.col === p2.col && Math.abs(p1.row - p2.row) === 1) return true;
+    if (p1.row === p2.row && Math.abs(p1.col - p2.col) === 1) return true;
+    return false;
+  }
+
+  function updateResult() {
+    if (selected.length === 1) {
+      const payout = 35;
+      const win = betAmount * payout;
+      const total = win + betAmount;
+      result.innerHTML = `
+        Du har valgt <strong>${selected[0]}</strong>.<br>
+        Gevinst: <strong>${payout}:1</strong><br>
+        Du vinder <strong>${win} kr</strong> + får din indsats tilbage = <strong>${total} kr</strong>
+      `;
+    } else if (selected.length === 2) {
+      const payout = 17;
+      const win = betAmount * payout;
+      const total = win + betAmount;
+      result.innerHTML = `
+        Du har valgt Split mellem <strong>${selected[0]}</strong> og <strong>${selected[1]}</strong>.<br>
+        Gevinst: <strong>${payout}:1</strong><br>
+        Du vinder <strong>${win} kr</strong> + får din indsats tilbage = <strong>${total} kr</strong>
+      `;
+    } else if (selected.length > 2) {
+      result.textContent = `Du har valgt ${selected.length} tal.`;
+    } else {
+      result.textContent = 'Ingen valg endnu.';
+    }
+  }
+
+  function selectSpecial(label, numbers, payout) {
+    clearSelection();
+    numbers.forEach(n => {
+      selected.push(n);
+      const el = document.querySelector(`.number[data-number="${n}"]`);
+      if (el) el.classList.add('selected');
+    });
+    const win = betAmount * payout;
+    const total = win + betAmount;
+    result.innerHTML = `
+      Du har valgt <strong>${label}</strong>.<br>
+      Gevinst: <strong>${payout}:1</strong><br>
+      Du vinder <strong>${win} kr</strong> + får din indsats tilbage = <strong>${total} kr</strong>
+    `;
+  }
+</script>
+</body>
+</html>

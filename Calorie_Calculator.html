@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Automatikteknikker</title>
+  <link rel="icon" href="Automatikteknikker.ico" type="image/x-icon">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f5f5;
+    }
+    .calculator-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .input-section {
+      background-color: white;
+      padding: 30px;
+    }
+    .result-section {
+      background-color: #f8fafc;
+      padding: 30px;
+      border-left: 1px solid #e2e8f0;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #4a5568;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+    input:focus, select:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+      outline: none;
+    }
+    button {
+      background-color: #667eea;
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #5a67d8;
+    }
+    .result-card {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .result-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+    }
+    .result-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 5px;
+    }
+    .result-description {
+      color: #718096;
+      font-size: 14px;
+    }
+    .progress-container {
+      margin-top: 30px;
+    }
+    .progress-title {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .progress-bar {
+      height: 10px;
+      background-color: #edf2f7;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      border-radius: 5px;
+      transition: width 0.5s ease;
+    }
+    @media (max-width: 768px) {
+      .calculator-container {
+        flex-direction: column;
+      }
+      .result-section {
+        border-left: none;
+        border-top: 1px solid #e2e8f0;
+      }
+    }
+  </style>
+</head>
+<body class="py-10 px-4">
+  <div class="fixed top-0 left-0 z-50 m-4">
+    <a href="index.html" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg shadow transition font-medium">
+      &larr; Tilbage
+    </a>
+  </div>
+  <div class="calculator-container bg-white md:flex">
+    <div class="input-section md:w-1/2">
+      <h1 class="text-3xl font-bold text-indigo-700 mb-6">Kalorieberegner</h1>
+
+      <div class="form-group">
+        <label for="gender"><i class="fas fa-venus-mars mr-2"></i>Køn</label>
+        <select id="gender">
+          <option value="male">Mand</option>
+          <option value="female">Kvinde</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="age"><i class="fas fa-user mr-2"></i>Alder (år)</label>
+        <input type="number" id="age" required placeholder="Indtast din alder">
+      </div>
+
+      <div class="form-group">
+        <label for="height"><i class="fas fa-ruler-vertical mr-2"></i>Højde (cm)</label>
+        <input type="number" id="height" required placeholder="Indtast din højde">
+      </div>
+
+      <div class="form-group">
+        <label for="weight"><i class="fas fa-weight mr-2"></i>Nuværende vægt (kg)</label>
+        <input type="number" id="weight" required placeholder="Indtast din nuværende vægt">
+      </div>
+
+      <div class="form-group">
+        <label for="goalWeight"><i class="fas fa-bullseye mr-2"></i>Målvægt (kg)</label>
+        <input type="number" id="goalWeight" required placeholder="Indtast din målvægt">
+      </div>
+
+      <button id="calculateBtn" class="mt-4">
+        <i class="fas fa-calculator mr-2"></i> Beregn
+      </button>
+    </div>
+
+    <div class="result-section md:w-1/2">
+      <h2 class="text-2xl font-bold text-indigo-700 mb-6">Dine resultater</h2>
+      <div id="results" class="hidden">
+        <div class="result-card">
+          <div class="result-title">
+            <i class="fas fa-fire mr-2"></i> Basalstofskifte (BMR)
+          </div>
+          <div id="bmrResult" class="result-value">0 kcal</div>
+          <div class="result-description">Kalorier kroppen bruger i hvile</div>
+        </div>
+
+        <div class="result-card">
+          <div class="result-title">
+            <i class="fas fa-burn mr-2"></i> Samlet dagligt kalorieforbrug (TDEE)
+          </div>
+          <div id="tdeeResult" class="result-value">0 kcal</div>
+          <div class="result-description">Kalorier du forbrænder inklusive aktivitet</div>
+        </div>
+
+        <div class="result-card bg-indigo-50 border border-indigo-100">
+          <div class="result-title">
+            <i class="fas fa-bullseye mr-2"></i> Anbefalet dagligt kalorieindtag
+          </div>
+          <div id="calorieGoal" class="result-value text-indigo-700">0 kcal</div>
+          <div id="goalDescription" class="result-description">Baseret på dit vægtmål</div>
+        </div>
+
+        <div class="progress-container">
+          <div class="progress-title">
+            <span id="currentWeightDisplay" class="font-medium">0 kg</span>
+            <span id="goalWeightDisplay" class="font-medium">0 kg</span>
+          </div>
+          <div id="weightProgress" class="progress-bar">
+            <div class="progress-fill" style="width: 0%"></div>
+          </div>
+          <p id="weightDifference" class="text-sm text-gray-600 mt-2"></p>
+        </div>
+      </div>
+
+      <div id="emptyState" class="text-center py-10">
+        <i class="fas fa-calculator text-4xl text-gray-300 mb-3"></i>
+        <h3 class="text-lg font-medium text-gray-500">Dine resultater vil blive vist her</h3>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const calculateBtn = document.getElementById('calculateBtn');
+      const resultsDiv = document.getElementById('results');
+      const emptyState = document.getElementById('emptyState');
+
+      const genderInput = document.getElementById('gender');
+      const ageInput = document.getElementById('age');
+      const heightInput = document.getElementById('height');
+      const weightInput = document.getElementById('weight');
+      const goalWeightInput = document.getElementById('goalWeight');
+
+      const currentWeightDisplay = document.getElementById('currentWeightDisplay');
+      const goalWeightDisplay = document.getElementById('goalWeightDisplay');
+      const weightDifference = document.getElementById('weightDifference');
+      const bmrResult = document.getElementById('bmrResult');
+      const tdeeResult = document.getElementById('tdeeResult');
+      const calorieGoal = document.getElementById('calorieGoal');
+      const goalDescription = document.getElementById('goalDescription');
+
+      calculateBtn.addEventListener('click', function () {
+        const gender = genderInput.value;
+        const age = parseFloat(ageInput.value);
+        const height = parseFloat(heightInput.value);
+        const weight = parseFloat(weightInput.value);
+        const goalWeight = parseFloat(goalWeightInput.value);
+
+        if (!age || !height || !weight || !goalWeight) {
+          alert('Udfyld venligst alle felter');
+          return;
+        }
+
+        const aktivitetNiveau = 1.55;
+
+        let bmr = gender === 'male'
+          ? 10 * weight + 6.25 * height - 5 * age + 5
+          : 10 * weight + 6.25 * height - 5 * age - 161;
+        bmr = Math.round(bmr);
+
+        const tdee = Math.round(bmr * aktivitetNiveau);
+
+        const vaegtForskel = goalWeight - weight;
+        let justering = 0;
+        let maalType = 'bevare';
+
+        if (vaegtForskel < 0) {
+          justering = -500;
+          maalType = 'tabe';
+        } else if (vaegtForskel > 0) {
+          justering = 500;
+          maalType = 'tage på';
+        }
+
+        const anbefaletKalorieindtag = Math.round(tdee + justering);
+
+        currentWeightDisplay.textContent = `${weight} kg`;
+        goalWeightDisplay.textContent = `${goalWeight} kg`;
+
+        if (vaegtForskel < 0) {
+          weightDifference.textContent = `Du vil tabe ${Math.abs(vaegtForskel).toFixed(1)} kg`;
+        } else if (vaegtForskel > 0) {
+          weightDifference.textContent = `Du vil tage ${vaegtForskel.toFixed(1)} kg på`;
+        } else {
+          weightDifference.textContent = `Du er på din målvægt!`;
+        }
+
+        const progressPercentage = vaegtForskel !== 0 ? Math.min(100, (weight / goalWeight) * 100) : 100;
+        document.querySelector('.progress-fill').style.width = `${progressPercentage}%`;
+
+        bmrResult.textContent = `${bmr} kcal`;
+        tdeeResult.textContent = `${tdee} kcal`;
+        calorieGoal.textContent = `${anbefaletKalorieindtag} kcal/dag`;
+
+        goalDescription.textContent =
+          maalType === 'tabe'
+            ? `For at tabe dig (~0.5kg/uge), sigt efter dette kalorieindtag.`
+            : maalType === 'tage på'
+            ? `For at tage på (~0.5kg/uge), sigt efter dette kalorieindtag.`
+            : `For at bevare din vægt, sigt efter dette kalorieindtag.`;
+
+        resultsDiv.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+      });
+    });
+  </script>
+</body>
+</html>
