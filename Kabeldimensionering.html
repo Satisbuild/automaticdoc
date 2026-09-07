@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kabeldimensionering — DS/EN 60204-1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E4E8EB;
+  --paper:#FFFFFF;
+  --ink:#15191E;
+  --deep:#1B2B44;
+  --deep-2:#25405F;
+  --line:#B9C2CB;
+  --line-soft:#DDE3E8;
+  --pe:#C3D600;          /* grøn-gul, resultatfarve */
+  --l1:#6B4A2F;          /* brun */
+  --fejl:#A62B1F;
+  --muted:#5B6976;
+  --focus:#2E6FD9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+
+/* ---------- header ---------- */
+header{background:var(--deep);color:#EDF1F5;border-bottom:4px solid var(--pe)}
+.hwrap{max-width:1180px;margin:0 auto;padding:22px 20px 20px}
+h1{font-size:1.5rem;font-weight:600;letter-spacing:-.01em;margin:0}
+.sub{color:#9FB3C8;font-size:.86rem;margin:2px 0 16px}
+.formel{
+  font-family:"IBM Plex Mono",monospace;font-size:.95rem;color:#DDE6EF;
+  border-left:3px solid var(--pe);padding:6px 0 6px 12px;
+  display:flex;flex-wrap:wrap;gap:4px 26px;
+}
+.formel b{color:var(--pe);font-weight:500}
+
+/* ---------- layout ---------- */
+main{max-width:1180px;margin:0 auto;padding:24px 20px 60px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:22px;align-items:start}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+
+.panel{background:var(--paper);border:1px solid var(--line)}
+.panel + .panel{margin-top:16px}
+.panel h2{
+  font-size:.95rem;font-weight:600;margin:0;padding:12px 16px;
+  border-bottom:1px solid var(--line-soft);background:#F3F6F8;
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+}
+.panel h2 span{font-weight:400;color:var(--muted);font-size:.8rem}
+.body{padding:16px}
+
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+label{font-size:.82rem;color:var(--muted);font-weight:500}
+select,input[type=text],input[type=number]{
+  font:500 1rem/1.2 "IBM Plex Mono",monospace;
+  padding:9px 10px;background:#FBFCFD;color:var(--ink);
+  border:1.5px solid var(--line);border-radius:2px;width:100%;
+}
+select{font-family:"IBM Plex Sans",sans-serif;font-weight:500}
+select:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.hint{font-size:.76rem;color:var(--muted);margin-top:8px}
+.toggle{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--ink);font-weight:500;cursor:pointer}
+.toggle input{width:16px;height:16px;accent-color:var(--deep);margin:0}
+.collapsed{display:none}
+fieldset{border:0;margin:0;padding:0}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{
+  border:1.5px solid var(--line);background:#FBFCFD;padding:7px 12px;border-radius:2px;
+  font-size:.86rem;color:var(--ink);cursor:pointer;font-weight:500;
+}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg input:checked + span{color:#fff}
+.seg label:has(input:checked){background:var(--deep);border-color:var(--deep);color:#fff}
+.seg label:has(input:focus-visible){outline:2px solid var(--focus);outline-offset:1px}
+
+/* ---------- resultat ---------- */
+.result{background:var(--deep);color:#E9EFF5;border:1px solid var(--deep);position:sticky;top:16px}
+@media(max-width:900px){.result{position:static}}
+.result h2{background:var(--deep-2);color:#E9EFF5;border-bottom:1px solid #3A5677}
+.svar{padding:20px 18px 16px;border-bottom:1px solid #34506F}
+.svar .tal{font-family:"IBM Plex Mono",monospace;font-size:3.1rem;line-height:1;font-weight:500;color:var(--pe);letter-spacing:-.02em}
+.svar .tal small{font-size:1.2rem;letter-spacing:0}
+.svar .kilde{font-size:.82rem;color:#9FB3C8;margin-top:8px}
+.svar.ingen .tal{font-size:1.5rem;color:#F2B8B0}
+.lines{padding:14px 18px 18px;font-size:.86rem}
+.line{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dotted #3A5677}
+.line:last-child{border-bottom:0}
+.line span:first-child{color:#9FB3C8}
+.line span:last-child{font-family:"IBM Plex Mono",monospace;text-align:right}
+.ok{color:var(--pe)}
+.bad{color:#F2B8B0}
+.udregning{padding:0 18px 18px}
+.udregning pre{
+  font-family:"IBM Plex Mono",monospace;font-size:.78rem;line-height:1.6;
+  background:#152238;border:1px solid #34506F;padding:12px;margin:0;
+  white-space:pre-wrap;color:#CFDDEA;max-height:260px;overflow:auto;
+}
+button.copy{
+  margin-top:10px;width:100%;padding:10px;border:1.5px solid var(--pe);background:transparent;
+  color:var(--pe);font:600 .86rem/1 "IBM Plex Sans",sans-serif;border-radius:2px;cursor:pointer;
+}
+button.copy:hover{background:var(--pe);color:var(--deep)}
+.advarsel{margin:0 18px 16px;padding:10px 12px;background:#3A2320;border-left:3px solid var(--fejl);font-size:.82rem;color:#F5CFCA}
+
+/* ---------- tabeller ---------- */
+.tabs{display:flex;flex-wrap:wrap;gap:0;border-bottom:1px solid var(--line);margin-top:32px}
+.tabs button{
+  background:transparent;border:0;border-bottom:3px solid transparent;
+  padding:10px 14px;font:500 .88rem/1 "IBM Plex Sans",sans-serif;color:var(--muted);cursor:pointer;
+}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--l1)}
+.tabpanel{background:var(--paper);border:1px solid var(--line);border-top:0;padding:18px;overflow-x:auto}
+.tabpanel h3{margin:0 0 4px;font-size:.95rem;font-weight:600}
+.tabpanel p.note{margin:0 0 14px;font-size:.8rem;color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:.85rem;min-width:520px}
+th,td{border:1px solid var(--line-soft);padding:6px 9px;text-align:right}
+th{background:#F3F6F8;font-weight:600;text-align:center}
+td:first-child,th:first-child{text-align:left}
+tbody td{font-family:"IBM Plex Mono",monospace}
+.colhit{background:#F0F4D8}
+.rowhit td{background:#EDF2DA}
+.cellhit{background:var(--pe)!important;font-weight:600;box-shadow:inset 0 0 0 1px var(--deep)}
+.dim{color:#9AA6B2}
+footer{max-width:1180px;margin:0 auto;padding:0 20px 40px;font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <h1>Kabeldimensionering</h1>
+    <p class="sub">Maskininstallationer efter DS/EN 60204-1 — tabel 6, D.1, D.2, D.3 og tabel 5</p>
+    <div class="formel">
+      <div>Iz<b>korr</b> = Iz40 · kt · ks</div>
+      <div>Iz40<b>min</b> ≥ In / (kt · ks)</div>
+      <div>kontrol: Ib ≤ In &lt; Iz<b>korr</b></div>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="grid">
+
+  <!-- ============ INPUT ============ -->
+  <div>
+    <section class="panel">
+      <h2>Kreds og strømme</h2>
+      <div class="body">
+        <fieldset class="field" style="margin-bottom:14px">
+          <label>Kredstype</label>
+          <div class="seg" id="kredstype">
+            <label><input type="radio" name="kt" value="effekt" checked><span>Effektkreds, trefaset</span></label>
+            <label><input type="radio" name="kt" value="par"><span>Styrekreds / lederpar</span></label>
+          </div>
+        </fieldset>
+        <div class="row">
+          <div class="field">
+            <label for="ib">Ib — belastningsstrøm (A)</label>
+            <input type="text" id="ib" inputmode="decimal" value="14">
+          </div>
+          <div class="field">
+            <label for="in">In — beskyttelsens nominelle strøm (A)</label>
+            <input type="text" id="in" inputmode="decimal" value="16">
+          </div>
+        </div>
+        <p class="hint">Ib er motorens fuldlaststrøm eller den samlede belastningsstrøm. In er mærkestrømmen på sikring, motorværn eller indstillingen på termorelæet.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Installationsmetode <span>Fig. D.1</span></h2>
+      <div class="body">
+        <fieldset class="field">
+          <label>Sådan er kablet ført frem</label>
+          <div class="seg" id="metode">
+            <label><input type="radio" name="m" value="B1" checked><span>B1 — ledninger i rør/kanal</span></label>
+            <label><input type="radio" name="m" value="B2"><span>B2 — kabler i rør/kanal</span></label>
+            <label><input type="radio" name="m" value="C"><span>C — kabler på væg</span></label>
+            <label><input type="radio" name="m" value="E"><span>E — åben kabelbakke</span></label>
+          </div>
+        </fieldset>
+        <p class="hint" id="metodetekst"></p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Korrektionsfaktorer</h2>
+      <div class="body">
+        <div class="row">
+          <div class="field">
+            <label for="temp">Omgivelsestemperatur — kt (tabel D.1)</label>
+            <select id="temp">
+              <option value="30">30 °C — kt 1,15</option>
+              <option value="35">35 °C — kt 1,08</option>
+              <option value="40" selected>40 °C — kt 1,00</option>
+              <option value="45">45 °C — kt 0,91</option>
+              <option value="50">50 °C — kt 0,82</option>
+              <option value="55">55 °C — kt 0,71</option>
+              <option value="60">60 °C — kt 0,58</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ksmode">Grundlag for ks</label>
+            <select id="ksmode">
+              <option value="d2" selected>Tabel D.2 — flere kredse/kabler samlet</option>
+              <option value="d3">Tabel D.3 — flere ledere i ét kabel</option>
+              <option value="manuel">Indtast ks selv</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:14px" id="d2box">
+          <div class="field">
+            <label for="d2row">Placering af kablerne</label>
+            <select id="d2row">
+              <option value="b">B1 (kredse) og B2 (kabler)</option>
+              <option value="c">C — enkelt lag uden afstand</option>
+              <option value="e1">E — enkelt lag på perforeret bakke</option>
+              <option value="e23">E — 2 til 3 bakker over hinanden</option>
+              <option value="styre">Styrekredsepar ≤ 0,5 mm²</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="d2n">Antal belastede kredse/kabler</label>
+            <select id="d2n">
+              <option value="1" selected>1 — ingen reduktion</option>
+              <option value="2">2</option>
+              <option value="4">3 til 4</option>
+              <option value="6">5 til 6</option>
+              <option value="9">7 til 9</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row collapsed" style="margin-top:14px" id="d3box">
+          <div class="field">
+            <label for="d3n">Antal belastede ledere / lederpar i kablet</label>
+            <select id="d3n">
+              <option value="3" selected>op til 3 ledere</option>
+              <option value="5">4 til 5</option>
+              <option value="7">6 til 7</option>
+              <option value="10">8 til 10</option>
+              <option value="24">11 til 24</option>
+            </select>
+          </div>
+          <div class="field" style="justify-content:flex-end">
+            <p class="hint" style="margin:0">Gælder flerlederkabler op til 10 mm². Lederpar-kolonnen bruges automatisk ved styrekreds.</p>
+          </div>
+        </div>
+
+        <div class="row collapsed" style="margin-top:14px" id="manbox">
+          <div class="field">
+            <label for="ksman">ks</label>
+            <input type="text" id="ksman" inputmode="decimal" value="1,00">
+          </div>
+        </div>
+
+        <p class="hint">Ligger Ib under 30 % af Iz, behøver du ikke reducere for gruppering (note til D.1.3).</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Ekstra kontroller</h2>
+      <div class="body">
+        <label class="toggle"><input type="checkbox" id="brugT5" checked> Mindste tværsnit efter tabel 5</label>
+        <div class="row" style="margin-top:12px" id="t5box">
+          <div class="field">
+            <label for="t5plac">Placering og anvendelse</label>
+            <select id="t5plac">
+              <option value="ud_effekt_fast" selected>Uden for kapsling — effektkreds, fastgjort</option>
+              <option value="ud_effekt_bev">Uden for kapsling — effektkreds, hyppige bevægelser</option>
+              <option value="ud_styre">Uden for kapsling — styrekreds</option>
+              <option value="ud_data">Uden for kapsling — datakommunikation</option>
+              <option value="in_effekt">I kapsling — effektkreds, ikke bevægelig</option>
+              <option value="in_styre">I kapsling — styrekreds</option>
+              <option value="in_data">I kapsling — datakommunikation</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="t5leder">Ledertype</label>
+            <select id="t5leder">
+              <option value="fleks">Enkeltleder, fleksibel (klasse 5/6)</option>
+              <option value="massiv">Enkeltleder, massiv/flertrådet (klasse 1/2)</option>
+              <option value="to_skaerm">Flerleder, to ledere, skærmet</option>
+              <option value="to_ikke">Flerleder, to ledere, ikke skærmet</option>
+              <option value="tre" selected>Flerleder, tre eller flere ledere</option>
+            </select>
+          </div>
+        </div>
+
+        <label class="toggle" style="margin-top:18px"><input type="checkbox" id="brugSF"> Spændingsfald, højst 5 % (afsnit 12.5)</label>
+        <div class="row collapsed" style="margin-top:12px" id="sfbox">
+          <div class="field">
+            <label for="laengde">Kabellængde (m)</label>
+            <input type="text" id="laengde" inputmode="decimal" value="25">
+          </div>
+          <div class="field">
+            <label for="spaending">Netspænding</label>
+            <select id="spaending">
+              <option value="400|3">400 V, trefaset</option>
+              <option value="230|1">230 V, enfaset</option>
+              <option value="690|3">690 V, trefaset</option>
+              <option value="24|1">24 V DC / enfaset</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="cosfi">cos φ</label>
+            <input type="text" id="cosfi" inputmode="decimal" value="0,85">
+          </div>
+          <div class="field" style="justify-content:flex-end">
+            <p class="hint" style="margin:0">Regnet med kobber, ρ = 0,0225 Ω·mm²/m ved driftstemperatur. Kun ohmsk modstand.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ RESULTAT ============ -->
+  <section class="panel result" aria-live="polite">
+    <h2>Resultat <span id="resmetode"></span></h2>
+    <div class="svar" id="svar">
+      <div class="tal" id="svartal">—</div>
+      <div class="kilde" id="svarkilde"></div>
+    </div>
+    <div id="advarsel"></div>
+    <div class="lines" id="lines"></div>
+    <div class="udregning">
+      <pre id="udregning"></pre>
+      <button class="copy" id="copyBtn">Kopiér udregning</button>
+    </div>
+  </section>
+</div>
+
+<!-- ============ TABELLER ============ -->
+<div class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-tab="t6">Tabel 6 — strømværdier</button>
+  <button role="tab" aria-selected="false" data-tab="td1">Tabel D.1 — kt</button>
+  <button role="tab" aria-selected="false" data-tab="td2">Tabel D.2 — ks gruppering</button>
+  <button role="tab" aria-selected="false" data-tab="td3">Tabel D.3 — ks flerleder</button>
+  <button role="tab" aria-selected="false" data-tab="t5">Tabel 5 — mindste tværsnit</button>
+  <button role="tab" aria-selected="false" data-tab="td4">Tabel D.4 — lederklasser</button>
+</div>
+<div class="tabpanel" id="tabbody"></div>
+
+</main>
+
+<footer>
+  Værdierne er indtastet fra kompendiets tabeller (DS/EN 60204-1 / IEC 60364-5-52). Beregningen dækker overbelastningsbeskyttelse, mindste tværsnit og spændingsfald — ikke kortslutningsholdbarhed, udkoblingsbetingelse eller berøringsbeskyttelse. Kontrollér altid mod gældende udgave af standarden.
+</footer>
+
+<script>
+/* ---------------- data ---------------- */
+const T6 = [
+  {s:0.75, B1:8.6, B2:8.5, C:9.8, E:10.4},
+  {s:1.0,  B1:10.3,B2:10.1,C:11.7,E:12.4},
+  {s:1.5,  B1:13.5,B2:13.1,C:15.2,E:16.1},
+  {s:2.5,  B1:18.3,B2:17.4,C:21,  E:22},
+  {s:4,    B1:24,  B2:23,  C:28,  E:30},
+  {s:6,    B1:31,  B2:30,  C:36,  E:37},
+  {s:10,   B1:44,  B2:40,  C:50,  E:52},
+  {s:16,   B1:59,  B2:54,  C:66,  E:70},
+  {s:25,   B1:77,  B2:70,  C:84,  E:88},
+  {s:35,   B1:96,  B2:86,  C:104, E:110},
+  {s:50,   B1:117, B2:103, C:125, E:133},
+  {s:70,   B1:149, B2:130, C:160, E:171},
+  {s:95,   B1:180, B2:156, C:194, E:207},
+  {s:120,  B1:208, B2:179, C:225, E:240}
+];
+const T6PAR = [
+  {s:0.20, B1:null,B2:4.3, C:4.4, E:4.4},
+  {s:0.5,  B1:null,B2:7.5, C:7.5, E:7.8},
+  {s:0.75, B1:null,B2:9.0, C:9.5, E:10}
+];
+const KT = {30:1.15,35:1.08,40:1.00,45:0.91,50:0.82,55:0.71,60:0.58};
+const D2 = {
+  b:   {navn:"B1 (kredse) og B2 (kabler)",           v:{2:0.80,4:0.65,6:0.57,9:0.50}},
+  c:   {navn:"C — enkelt lag uden afstand",          v:{2:0.85,4:0.75,6:0.72,9:0.70}},
+  e1:  {navn:"E — enkelt lag på perforeret bakke",   v:{2:0.88,4:0.77,6:0.73,9:0.72}},
+  e23: {navn:"E — 2 til 3 bakker",                   v:{2:0.86,4:0.76,6:0.71,9:0.66}},
+  styre:{navn:"Styrekredsepar ≤ 0,5 mm²",            v:{2:0.76,4:0.57,6:0.48,9:0.40}}
+};
+const D3 = [
+  {n:1,  ledere:null, par:1.0},
+  {n:3,  ledere:1.0,  par:null},
+  {n:5,  ledere:0.75, par:0.39},
+  {n:7,  ledere:0.65, par:0.34},
+  {n:10, ledere:0.55, par:0.29},
+  {n:24, ledere:0.40, par:0.21}
+];
+const T5 = {
+  ud_effekt_fast:{navn:"Uden for kapsling, effektkreds, fastgjort", v:{fleks:1.0,massiv:1.5,to_skaerm:0.75,to_ikke:0.75,tre:0.75}},
+  ud_effekt_bev :{navn:"Uden for kapsling, effektkreds, hyppige bevægelser", v:{fleks:1.0,massiv:null,to_skaerm:0.75,to_ikke:0.75,tre:0.75}},
+  ud_styre      :{navn:"Uden for kapsling, styrekreds", v:{fleks:1.0,massiv:1.0,to_skaerm:0.2,to_ikke:0.5,tre:0.2}},
+  ud_data       :{navn:"Uden for kapsling, datakommunikation", v:{fleks:null,massiv:null,to_skaerm:null,to_ikke:null,tre:0.08}},
+  in_effekt     :{navn:"I kapsling, effektkreds, ikke bevægelig", v:{fleks:0.75,massiv:0.75,to_skaerm:0.75,to_ikke:0.75,tre:0.75}},
+  in_styre      :{navn:"I kapsling, styrekreds", v:{fleks:0.2,massiv:0.2,to_skaerm:0.2,to_ikke:0.2,tre:0.2}},
+  in_data       :{navn:"I kapsling, datakommunikation", v:{fleks:null,massiv:null,to_skaerm:null,to_ikke:null,tre:0.08}}
+};
+const METODETEKST = {
+  B1:"B1 — rør og kabelkanalsystemer, der holder og beskytter ledere eller enlederkabler.",
+  B2:"B2 — samme som B1, men med flerlederkabler i røret eller kanalen.",
+  C:"C — flerlederkabler i fri luft, vandret eller lodret på væggen uden afstand mellem kablerne.",
+  E:"E — flerlederkabler i fri luft, lagt i åbne kabelbakker."
+};
+const RHO = 0.0225;
+
+/* ---------------- hjælpere ---------------- */
+const $ = id => document.getElementById(id);
+const num = v => { const x = parseFloat(String(v).replace(',','.').trim()); return isFinite(x)?x:NaN; };
+const fmt = (x,d=2) => x===null||!isFinite(x) ? "—" : x.toLocaleString('da-DK',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmtS = x => x.toLocaleString('da-DK',{maximumFractionDigits:2});
+
+/* ---------------- beregning ---------------- */
+let sidste = {};
+
+function beregn(){
+  const par     = document.querySelector('input[name=kt]:checked').value === 'par';
+  const metode  = document.querySelector('input[name=m]:checked').value;
+  const Ib = num($('ib').value), In = num($('in').value);
+  const temp = +$('temp').value, kt = KT[temp];
+
+  // ks
+  const ksmode = $('ksmode').value;
+  let ks = 1, ksTekst = "ingen reduktion", d2hit=null, d3hit=null;
+  if(ksmode === 'd2'){
+    const r = $('d2row').value, n = +$('d2n').value;
+    if(n > 1){ ks = D2[r].v[n]; ksTekst = D2[r].navn + ", " + n + " kredse/kabler (tabel D.2)"; d2hit={r,n}; }
+    else { ksTekst = "1 kreds — tabel D.2 giver ingen reduktion"; }
+  } else if(ksmode === 'd3'){
+    const n = +$('d3n').value;
+    const rk = D3.find(x => x.n === n);
+    const v = par ? rk.par : rk.ledere;
+    if(v !== null){ ks = v; ksTekst = "op til " + n + (par?" lederpar":" belastede ledere") + " (tabel D.3)"; d3hit={n,par}; }
+  } else {
+    const v = num($('ksman').value); if(isFinite(v) && v>0){ ks = v; ksTekst = "indtastet manuelt"; }
+  }
+
+  const tabel = par ? T6PAR : T6;
+  const gyldigFejl = [];
+  if(!isFinite(Ib) || !isFinite(In)) gyldigFejl.push("Udfyld både Ib og In.");
+  if(isFinite(Ib) && isFinite(In) && Ib > In) gyldigFejl.push("Ib er større end In — beskyttelsen kobler ud under normal drift. Vælg en større In.");
+  if(par && metode === 'B1') gyldigFejl.push("Metode B1 er ikke brugbar for lederpar i tabel 6. Vælg B2, C eller E.");
+
+  const Izmin = In / (kt*ks);
+
+  // tværsnit ud fra strøm
+  let valgt = null;
+  for(const r of tabel){
+    const iz = r[metode];
+    if(iz === null || iz === undefined) continue;
+    if(iz*kt*ks >= In - 1e-9){ valgt = r; break; }
+  }
+
+  // tabel 5
+  let s5 = null, s5navn = "";
+  if($('brugT5').checked){
+    const p = $('t5plac').value, l = $('t5leder').value;
+    s5 = T5[p].v[l]; s5navn = T5[p].navn;
+    if(s5 === null) gyldigFejl.push("Tabel 5 tillader ikke den kombination af placering og ledertype.");
+  }
+
+  // spændingsfald
+  let sf = null;
+  if($('brugSF').checked && isFinite(Ib)){
+    const [U,faser] = $('spaending').value.split('|').map(Number);
+    const L = num($('laengde').value), cf = num($('cosfi').value);
+    if(isFinite(L) && isFinite(cf)){
+      const k = faser === 3 ? Math.sqrt(3)*cf : 2*cf;
+      const dU = s => k*Ib*L*RHO/s;
+      let sMin = null;
+      for(const r of tabel){ if(r[metode]==null) continue; if(dU(r.s)/U*100 <= 5){ sMin = r.s; break; } }
+      sf = {U, faser, L, cf, dU, sMin};
+    }
+  }
+
+  // endeligt tværsnit
+  let kandidater = [{s: valgt ? valgt.s : null, grund:"strømværdi"}];
+  if(s5) kandidater.push({s:s5, grund:"tabel 5"});
+  if(sf && sf.sMin) kandidater.push({s:sf.sMin, grund:"spændingsfald"});
+  const gyldige = kandidater.filter(k => k.s !== null);
+  let endelig = null, grund = "";
+  if(valgt && gyldige.length){
+    const maxS = Math.max(...gyldige.map(k => k.s));
+    endelig = maxS;
+    grund = gyldige.filter(k => k.s === maxS).map(k => k.grund).join(" og ");
+  }
+  // rund op til nærmeste tabelværdi hvis tabel 5 giver et krumt tal
+  if(endelig !== null){
+    const r = tabel.find(x => x.s >= endelig - 1e-9);
+    if(r) endelig = r.s;
+  }
+
+  const izTab   = valgt ? valgt[metode] : null;
+  const izKorr  = izTab !== null ? izTab*kt*ks : null;
+  const grænse  = izKorr !== null && Math.abs(izKorr - In) < 1e-9;
+  const okKontrol = izKorr !== null && isFinite(Ib) && isFinite(In) && Ib <= In && In < izKorr;
+
+  sidste = {par,metode,Ib,In,temp,kt,ks,ksTekst,Izmin,valgt,izTab,izKorr,endelig,grund,s5,s5navn,sf,gyldigFejl,okKontrol,grænse,d2hit,d3hit};
+  vis();
+  markerTabeller();
+}
+
+function vis(){
+  const d = sidste;
+  $('resmetode').textContent = "metode " + d.metode + " · " + d.temp + " °C";
+  $('metodetekst').textContent = METODETEKST[d.metode];
+
+  const svar = $('svar');
+  if(d.gyldigFejl.length && !d.valgt || !d.valgt){
+    svar.classList.add('ingen');
+    $('svartal').textContent = d.valgt ? "" : "Intet tværsnit passer";
+    $('svarkilde').textContent = d.valgt ? "" : "Tabel 6 rækker ikke til In = " + fmt(d.In,1) + " A med de valgte faktorer.";
+  } else {
+    svar.classList.remove('ingen');
+    $('svartal').innerHTML = fmtS(d.endelig) + ' <small>mm²</small>';
+    $('svarkilde').textContent = "Bestemt af " + d.grund + (d.endelig !== d.valgt.s ? " — strømværdien alene ville give " + fmtS(d.valgt.s) + " mm²" : "");
+  }
+
+  $('advarsel').innerHTML = d.gyldigFejl.length
+    ? '<div class="advarsel">' + d.gyldigFejl.join("<br>") + '</div>' : '';
+
+  const L = [];
+  const line = (a,b,cls) => L.push('<div class="line"><span>'+a+'</span><span'+(cls?' class="'+cls+'"':'')+'>'+b+'</span></div>');
+  line("kt (tabel D.1)", fmt(d.kt,2));
+  line("ks", fmt(d.ks,2));
+  line("Iz40 min = In / (kt · ks)", fmt(d.Izmin,1) + " A");
+  if(d.valgt){
+    line("Iz40 fra tabel 6", fmt(d.izTab,1) + " A");
+    line("Iz korrigeret", fmt(d.izKorr,1) + " A");
+    line("Kontrol: Ib ≤ In &lt; Iz korr",
+      (d.okKontrol ? "opfyldt" : d.grænse ? "grænsetilfælde" : "ikke opfyldt"),
+      d.okKontrol ? "ok" : "bad");
+  }
+  if(d.s5) line("Mindste tværsnit, tabel 5", fmtS(d.s5) + " mm²");
+  if(d.sf && d.endelig){
+    const p = d.sf.dU(d.endelig)/d.sf.U*100;
+    line("Spændingsfald ved " + fmtS(d.sf.L) + " m", fmt(p,2) + " %", p<=5?"ok":"bad");
+  }
+  $('lines').innerHTML = L.join("");
+
+  $('udregning').textContent = tekstUdregning(d);
+}
+
+function tekstUdregning(d){
+  if(!d.valgt) return "Ingen løsning med de valgte forudsætninger.\nIn = "+fmt(d.In,1)+" A kræver Iz40 ≥ "+fmt(d.Izmin,1)+" A, hvilket er ud over tabel 6 for metode "+d.metode+".";
+  const l = [];
+  l.push("KABELDIMENSIONERING — DS/EN 60204-1");
+  l.push("Kreds:            " + (d.par ? "styrekreds / lederpar" : "effektkreds, trefaset"));
+  l.push("Installation:     metode " + d.metode);
+  l.push("Ib = " + fmt(d.Ib,1) + " A     In = " + fmt(d.In,1) + " A");
+  l.push("");
+  l.push("kt = " + fmt(d.kt,2) + "   (" + d.temp + " °C, tabel D.1)");
+  l.push("ks = " + fmt(d.ks,2) + "   (" + d.ksTekst + ")");
+  l.push("");
+  l.push("Iz40 min ≥ In / (kt · ks)");
+  l.push("Iz40 min ≥ " + fmt(d.In,1) + " / (" + fmt(d.kt,2) + " · " + fmt(d.ks,2) + ") = " + fmt(d.Izmin,1) + " A");
+  l.push("");
+  l.push("Tabel 6, metode " + d.metode + ": nærmeste større er " + fmt(d.izTab,1) + " A  ->  " + fmtS(d.valgt.s) + " mm²");
+  l.push("Iz korr = " + fmt(d.izTab,1) + " · " + fmt(d.kt,2) + " · " + fmt(d.ks,2) + " = " + fmt(d.izKorr,1) + " A");
+  l.push("Kontrol: " + fmt(d.Ib,1) + " ≤ " + fmt(d.In,1) + " < " + fmt(d.izKorr,1) + "   " + (d.okKontrol ? "OK" : "IKKE OPFYLDT"));
+  if(d.s5){
+    l.push("");
+    l.push("Tabel 5, " + d.s5navn + ": mindst " + fmtS(d.s5) + " mm²");
+  }
+  if(d.sf){
+    const p = d.sf.dU(d.endelig)/d.sf.U*100;
+    l.push("");
+    l.push("Spændingsfald: " + fmtS(d.sf.L) + " m, " + d.sf.U + " V, cos fi " + fmt(d.sf.cf,2));
+    l.push("dU = " + fmt(p,2) + " % ved " + fmtS(d.endelig) + " mm²  (grænse 5 %)  " + (p<=5?"OK":"FOR STORT"));
+  }
+  l.push("");
+  l.push("VALGT TVÆRSNIT: " + fmtS(d.endelig) + " mm²  (bestemt af " + d.grund + ")");
+  return l.join("\n");
+}
+
+/* ---------------- tabelvisning ---------------- */
+let aktivTab = 't6';
+function tegnTab(){
+  const d = sidste, p = $('tabbody');
+  if(aktivTab === 't6'){
+    const rows = (d.par ? T6PAR : T6);
+    let h = '<h3>Tabel 6 — strømværdier Iz for PVC-isolerede kobberledere ved 40 °C</h3>'+
+            '<p class="note">Trefasede kredse. Den fremhævede celle er den værdi beregningen bruger.</p><table><thead><tr><th>mm²</th>'+
+            ['B1','B2','C','E'].map(m=>'<th class="'+(m===d.metode?'colhit':'')+'">'+m+'</th>').join('')+'</tr></thead><tbody>';
+    for(const r of rows){
+      const hit = d.valgt && d.valgt.s === r.s && (d.par === (rows===T6PAR));
+      h += '<tr class="'+(hit?'rowhit':'')+'"><td>'+fmtS(r.s)+'</td>';
+      for(const m of ['B1','B2','C','E']){
+        const v = r[m];
+        const cls = (hit && m===d.metode) ? 'cellhit' : (m===d.metode ? 'colhit':'');
+        h += '<td class="'+cls+'">'+(v===null?'<span class="dim">ikke brugbar</span>':fmt(v,1))+'</td>';
+      }
+      h += '</tr>';
+    }
+    h += '</tbody></table>';
+    p.innerHTML = h;
+  }
+  else if(aktivTab === 'td1'){
+    let h = '<h3>Tabel D.1 — temperaturkorrektionsfaktor kt</h3><p class="note">Tabel 6 gælder ved 40 °C. Ved anden omgivelsestemperatur ganges med kt. Maksimal ledertemperatur for PVC er 70 °C.</p><table><thead><tr><th>Omgivende lufttemperatur °C</th><th>kt</th></tr></thead><tbody>';
+    for(const t in KT) h += '<tr class="'+(+t===d.temp?'rowhit':'')+'"><td>'+t+'</td><td class="'+(+t===d.temp?'cellhit':'')+'">'+fmt(KT[t],2)+'</td></tr>';
+    p.innerHTML = h + '</tbody></table>';
+  }
+  else if(aktivTab === 'td2'){
+    const cols = [2,4,6,9];
+    let h = '<h3>Tabel D.2 — reduktionsfaktorer ks ved gruppering</h3><p class="note">Bruges når flere belastede kabler eller kredse ligger samlet. Ligger Ib under 30 % af Iz, behøver Iz ikke reduceres.</p><table><thead><tr><th>Installationsmetode</th>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>';
+    for(const k in D2){
+      const rh = d.d2hit && d.d2hit.r === k;
+      h += '<tr class="'+(rh?'rowhit':'')+'"><td>'+D2[k].navn+'</td>';
+      for(const c of cols){
+        const cls = (rh && d.d2hit.n === c) ? 'cellhit' : '';
+        h += '<td class="'+cls+'">'+fmt(D2[k].v[c],2)+'</td>';
+      }
+      h += '</tr>';
+    }
+    p.innerHTML = h + '</tbody></table>';
+  }
+  else if(aktivTab === 'td3'){
+    let h = '<h3>Tabel D.3 — reduktionsfaktorer ks ved flerlederkabler op til 10 mm²</h3><p class="note">Gælder flerlederkabler med ligeligt belastede ledere eller lederpar.</p><table><thead><tr><th>Antal belastede ledere/lederpar</th><th>Ledere &gt; 1 mm²</th><th>Lederpar 0,25 til 0,75 mm²</th></tr></thead><tbody>';
+    for(const r of D3){
+      const rh = d.d3hit && d.d3hit.n === r.n;
+      h += '<tr class="'+(rh?'rowhit':'')+'"><td>'+r.n+'</td>'+
+           '<td class="'+(rh && !d.d3hit.par?'cellhit':'')+'">'+(r.ledere===null?'<span class="dim">–</span>':fmt(r.ledere,2))+'</td>'+
+           '<td class="'+(rh && d.d3hit.par?'cellhit':'')+'">'+(r.par===null?'<span class="dim">–</span>':fmt(r.par,2))+'</td></tr>';
+    }
+    p.innerHTML = h + '</tbody></table>';
+  }
+  else if(aktivTab === 't5'){
+    const cols = [['fleks','Enkeltleder fleksibel, klasse 5/6'],['massiv','Enkeltleder massiv/flertrådet, klasse 1/2'],['to_skaerm','To ledere, skærmet'],['to_ikke','To ledere, ikke skærmet'],['tre','Tre eller flere ledere']];
+    const valgtP = $('brugT5').checked ? $('t5plac').value : null, valgtL = $('t5leder').value;
+    let h = '<h3>Tabel 5 — kobberlederes mindste tværsnitsareal</h3><p class="note">Alle tværsnit i mm².</p><table><thead><tr><th>Placering og anvendelse</th>'+cols.map(c=>'<th>'+c[1]+'</th>').join('')+'</tr></thead><tbody>';
+    for(const k in T5){
+      const rh = valgtP === k;
+      h += '<tr class="'+(rh?'rowhit':'')+'"><td>'+T5[k].navn+'</td>';
+      for(const c of cols){
+        const v = T5[k].v[c[0]];
+        h += '<td class="'+(rh && valgtL===c[0]?'cellhit':'')+'">'+(v===null?'<span class="dim">–</span>':fmtS(v))+'</td>';
+      }
+      h += '</tr>';
+    }
+    p.innerHTML = h + '</tbody></table>';
+  }
+  else {
+    p.innerHTML = '<h3>Tabel D.4 — klassifikation af ledere</h3><p class="note">Fra IEC 60228.</p><table><thead><tr><th>Klasse</th><th>Beskrivelse</th><th>Anvendelse</th></tr></thead><tbody>'+
+      '<tr><td>1</td><td>Massive kobber- eller aluminiumsledere</td><td>Faste installationer</td></tr>'+
+      '<tr><td>2</td><td>Flertrådede ledere af kobber eller aluminium</td><td>Faste installationer</td></tr>'+
+      '<tr><td>5</td><td>Fleksible flertrådede kobberledere</td><td>Maskininstallationer med vibrationer, forbindelse til bevægelige dele</td></tr>'+
+      '<tr><td>6</td><td>Fleksible flertrådede kobberledere, mere fleksible end klasse 5</td><td>Hyppige bevægelser</td></tr>'+
+      '</tbody></table>';
+  }
+}
+function markerTabeller(){ tegnTab(); }
+
+/* ---------------- events ---------------- */
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected','false'));
+  b.setAttribute('aria-selected','true');
+  aktivTab = b.dataset.tab; tegnTab();
+}));
+
+$('ksmode').addEventListener('change', e => {
+  $('d2box').classList.toggle('collapsed', e.target.value !== 'd2');
+  $('d3box').classList.toggle('collapsed', e.target.value !== 'd3');
+  $('manbox').classList.toggle('collapsed', e.target.value !== 'manuel');
+});
+$('brugT5').addEventListener('change', e => $('t5box').classList.toggle('collapsed', !e.target.checked));
+$('brugSF').addEventListener('change', e => $('sfbox').classList.toggle('collapsed', !e.target.checked));
+
+// installationsmetode foreslår automatisk den rigtige række i D.2
+document.querySelectorAll('input[name=m]').forEach(r => r.addEventListener('change', () => {
+  const m = document.querySelector('input[name=m]:checked').value;
+  $('d2row').value = (m === 'C') ? 'c' : (m === 'E') ? 'e1' : 'b';
+}));
+document.querySelectorAll('input[name=kt]').forEach(r => r.addEventListener('change', () => {
+  const par = document.querySelector('input[name=kt]:checked').value === 'par';
+  if(par){
+    if(document.querySelector('input[name=m]:checked').value === 'B1') document.querySelector('input[name=m][value=B2]').checked = true;
+    $('t5plac').value = 'in_styre';
+  } else if($('t5plac').value === 'in_styre'){ $('t5plac').value = 'ud_effekt_fast'; }
+}));
+
+$('copyBtn').addEventListener('click', async () => {
+  const t = $('udregning').textContent;
+  try{ await navigator.clipboard.writeText(t); }
+  catch{ const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  $('copyBtn').textContent = "Kopieret";
+  setTimeout(()=> $('copyBtn').textContent = "Kopiér udregning", 1400);
+});
+
+document.addEventListener('input', beregn);
+document.addEventListener('change', beregn);
+beregn();
+</script>
+</body>
+</html>
