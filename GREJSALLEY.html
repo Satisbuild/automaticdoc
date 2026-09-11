@@ -503,6 +503,15 @@
       ctx.fillStyle=COL.cyan; ctx.beginPath(); ctx.arc(-0.5*u,1.1*u,u*0.85,0,7); ctx.fill();
       ctx.fillStyle="rgba(255,255,255,.6)"; ctx.beginPath(); ctx.arc(-0.8*u,0.8*u,u*0.26,0,7); ctx.fill();
     }
+    else if(g==="ballz"){
+      [COL.cyan,COL.violet,COL.coral].forEach((c,i)=>{ ctx.fillStyle=c; roundRect(ctx,(-2.85+i*1.95)*u,-2.7*u,1.75*u,1.75*u,u*0.25); ctx.fill(); });
+      ctx.fillStyle=COL.bg; ctx.font=`bold ${s*0.12}px "DM Mono",monospace`; ctx.textAlign="center"; ctx.textBaseline="middle";
+      ["3","7","5"].forEach((n,i)=>ctx.fillText(n,(-1.975+i*1.95)*u,-1.8*u));
+      ctx.fillStyle=COL.ink;
+      for(let i=1;i<5;i++){ ctx.globalAlpha=1-i*0.16; ctx.beginPath(); ctx.arc(-0.2*u+i*0.42*u,2.3*u-i*0.72*u,u*0.13,0,7); ctx.fill(); }
+      ctx.globalAlpha=1; ctx.beginPath(); ctx.arc(-0.2*u,2.3*u,u*0.36,0,7); ctx.fill();
+      ctx.fillStyle="rgba(255,255,255,.18)"; ctx.fillRect(-3*u,2.75*u,6*u,u*0.12);
+    }
     else if(g==="hojlav"){ ctx.fillStyle="#f3ecff";roundRect(ctx,-2.7*u,-1.9*u,2.3*u,3.8*u,5);ctx.fill(); ctx.fillStyle="#2c2249";roundRect(ctx,0.4*u,-1.9*u,2.3*u,3.8*u,5);ctx.fill(); ctx.fillStyle=COL.coral;ctx.font=`bold ${s*0.17}px "DM Mono",monospace`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("?",1.55*u,0); ctx.fillStyle=COL.amber;ctx.fillText("Q",-1.55*u,0); }
     ctx.restore();
   }
@@ -2000,6 +2009,472 @@
 
       reset(); env.loop.start();
       return {};
+    }});
+
+  /* ---------------- BALLZ ---------------- */
+  G({ id:"ballz", name:"Ballz", tag:"arcade", isNew:true, w:294, h:511,
+    desc:"Aim once, fire the whole stream. Break the numbered bricks before they reach the floor.",
+    hint:"Drag to aim · ◀▶ + A to fire · ▼ recall · ▲ fast",
+    mount(env){
+      const {ctx,w,canvas}=env;
+      // the game world is 420 x 730 units, scaled down into the cabinet canvas
+      const COLS=7, NROWS=10, CELL=60, GAP=3, TOP=30;
+      const W=COLS*CELL, FLOOR_Y=TOP+NROWS*CELL, LAND_Y=FLOOR_Y+22, PLAY_H=FLOOR_Y+50;
+      const BAR_H=50, H=PLAY_H+BAR_H, K=w/W;
+      const R=8, SPEED=10, SUB=4, LAUNCH_GAP=4, MIN_A=0.14, MIN_VY=1.6, STEP=1/60;
+      const FONT='"Outfit", system-ui, sans-serif', MONO='"DM Mono", ui-monospace, monospace';
+      const BTN_RECALL={x:12, y:PLAY_H+8, w:140, h:34};
+      const BTN_FAST={x:W-12-112, y:PLAY_H+8, w:112, h:34};
+
+      const randInt=(a,b)=>a+rand(b-a+1);
+      const easeOut=t=>1-Math.pow(1-t,3);
+      const shuffle=arr=>{ for(let i=arr.length-1;i>0;i--){ const j=rand(i+1); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; };
+      const circle=(x,y,r)=>{ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); };
+      const inRect=(p,b,pad)=>p.x>=b.x-pad && p.x<=b.x+b.w+pad && p.y>=b.y-pad && p.y<=b.y+b.h+pad;
+      const brickHue=t=>(165-t*195+360)%360;   // low hp: teal, high hp: pink
+
+      let bricks,items,balls,drops,particles,pops;
+      let ballCount,launchX,nextLaunchX,round,gained,toLaunch,launchTimer,turnTicks;
+      let phase,shiftT,pendingOver,aimAngle,aiming,kbAim,overT,bestShown;
+      let coins=0, fast=false, time=0, acc=0, lastBreak=0, kbAngle=-Math.PI/2, statusTxt="";
+      const keys={left:false, right:false};
+
+      canvas.style.cursor="crosshair";
+
+      function reset(){
+        bricks=[]; items=[]; balls=[]; drops=[]; particles=[]; pops=[];
+        ballCount=1; launchX=W/2; nextLaunchX=null;
+        round=1; gained=0; toLaunch=0; launchTimer=0; turnTicks=0;
+        aimAngle=null; aiming=false; kbAim=false; overT=0; acc=0; bestShown=0;
+        spawnRow(1);
+        phase="advance"; shiftT=0; pendingOver=false;
+        statusTxt=""; env.score(1);
+      }
+      env.reset=reset;
+
+      function spawnRow(n){
+        const cols=shuffle([0,1,2,3,4,5,6]);
+        // every new row carries one +1 ball
+        items.push({c:cols.pop(), r:0, type:"ball"});
+        const maxB=Math.min(6, 3+Math.floor(n/6));
+        const minB=Math.min(maxB, 1+Math.floor(n/15));
+        const count=randInt(minB,maxB);
+        for(let i=0;i<count;i++){
+          const hp=(n>=5 && Math.random()<0.22) ? n*2 : n;
+          bricks.push({c:cols.pop(), r:0, hp, flash:0});
+        }
+        if(cols.length && Math.random()<0.3) items.push({c:cols.pop(), r:0, type:"coin"});
+      }
+
+      function startAim(){ phase="aim"; balls=[]; aimAngle=null; kbAim=false; }
+
+      function shoot(angle){
+        if(kbAim) kbAngle=angle;
+        phase="shoot"; aimAngle=angle; aiming=false; kbAim=false;
+        toLaunch=ballCount; launchTimer=0; nextLaunchX=null; gained=0; turnTicks=0;
+        balls=[];
+      }
+
+      function endTurn(){
+        ballCount+=gained; gained=0;
+        if(nextLaunchX!==null) launchX=nextLaunchX;
+        pendingOver=bricks.some(k=>k.r>=NROWS-1);
+        for(const k of bricks) k.r++;
+        for(const it of items) it.r++;
+        items=items.filter(it=>it.r<NROWS);
+        if(!pendingOver){ round++; spawnRow(round); env.score(round); }
+        phase="advance"; shiftT=0;
+      }
+
+      function gameOver(){
+        phase="over"; overT=0; aimAngle=null; aiming=false; kbAim=false;
+        env.saveHi(round); bestShown=env.hi();
+        env.sfx.over(); env.shake(8);
+      }
+
+      function recall(){
+        if(phase!=="shoot") return;
+        toLaunch=0;
+        if(nextLaunchX===null) nextLaunchX=launchX;
+        for(const b of balls) if(b.state==="fly"){ b.state="home"; b.fast=true; }
+        env.sfx.ui();
+      }
+
+      function toggleFast(){ fast=!fast; env.sfx.ui(); }
+
+      /* ---- physics ---- */
+      function hitBrick(i){
+        const k=bricks[i];
+        k.hp--; k.flash=1;
+        if(k.hp<=0){
+          burst(k); bricks.splice(i,1);
+          const now=performance.now();
+          if(now-lastBreak>70){ lastBreak=now; env.sfx.blip(); }
+        }
+      }
+
+      function collect(i){
+        const it=items[i];
+        const x=it.c*CELL+CELL/2, y=TOP+it.r*CELL+CELL/2;
+        if(it.type==="ball"){ gained++; drops.push({x,y,vy:-2}); pops.push({x,y,t:0,color:"245,239,255"}); env.sfx.ui(); }
+        else { coins++; pops.push({x,y,t:0,color:"255,194,75"}); env.sfx.blip(); }
+        items.splice(i,1);
+      }
+
+      function stepBall(b){
+        for(let s=0;s<SUB;s++){
+          b.x+=b.vx/SUB; b.y+=b.vy/SUB;
+          if(b.x<R){ b.x=R; b.vx=Math.abs(b.vx); }
+          else if(b.x>W-R){ b.x=W-R; b.vx=-Math.abs(b.vx); }
+          if(b.y<R){ b.y=R; b.vy=Math.abs(b.vy); }
+
+          for(let i=bricks.length-1;i>=0;i--){
+            const k=bricks[i];
+            const rx=k.c*CELL+GAP, ry=TOP+k.r*CELL+GAP, rs=CELL-2*GAP;
+            if(b.x+R<rx || b.x-R>rx+rs || b.y+R<ry || b.y-R>ry+rs) continue;
+            const cx=clamp(b.x,rx,rx+rs), cy=clamp(b.y,ry,ry+rs);
+            const dx=b.x-cx, dy=b.y-cy, d2=dx*dx+dy*dy;
+            if(d2>=R*R) continue;
+            let nx,ny;
+            if(d2<1e-9){
+              // ball centre is inside the brick: push out the shortest way
+              const l=b.x-rx, rr=rx+rs-b.x, t=b.y-ry, bt=ry+rs-b.y, m=Math.min(l,rr,t,bt);
+              if(m===l){ nx=-1; ny=0; b.x=rx-R; }
+              else if(m===rr){ nx=1; ny=0; b.x=rx+rs+R; }
+              else if(m===t){ nx=0; ny=-1; b.y=ry-R; }
+              else { nx=0; ny=1; b.y=ry+rs+R; }
+            } else {
+              const d=Math.sqrt(d2);
+              nx=dx/d; ny=dy/d; b.x=cx+nx*R; b.y=cy+ny*R;
+            }
+            const dot=b.vx*nx+b.vy*ny;
+            if(dot<0){ b.vx-=2*dot*nx; b.vy-=2*dot*ny; }
+            hitBrick(i);
+          }
+
+          for(let i=items.length-1;i>=0;i--){
+            const it=items[i];
+            const ix=it.c*CELL+CELL/2, iy=TOP+it.r*CELL+CELL/2, hr=it.type==="ball"?15:12;
+            const ddx=b.x-ix, ddy=b.y-iy;
+            if(ddx*ddx+ddy*ddy<(R+hr)*(R+hr)) collect(i);
+          }
+
+          if(b.vy>0 && b.y>=LAND_Y){
+            b.y=LAND_Y; b.state="home";
+            if(nextLaunchX===null) nextLaunchX=clamp(b.x,R,W-R);
+            return;
+          }
+        }
+        if(Math.abs(b.vy)<MIN_VY){
+          b.vy=b.vy<0?-MIN_VY:MIN_VY;
+          b.vx=(b.vx<0?-1:1)*Math.sqrt(SPEED*SPEED-MIN_VY*MIN_VY);
+        }
+      }
+
+      function moveHome(b){
+        const tx=nextLaunchX!==null?nextLaunchX:launchX;
+        const dx=tx-b.x, dy=LAND_Y-b.y, d=Math.hypot(dx,dy), sp=b.fast?26:12;
+        if(d<=sp){ b.x=tx; b.y=LAND_Y; }
+        else { b.x+=dx/d*sp; b.y+=dy/d*sp; }
+      }
+
+      function currentSpeed(){
+        if(phase!=="shoot") return 1;
+        let s=fast?2:1;
+        if(turnTicks>60*10) s=Math.max(s,2);
+        if(turnTicks>60*20) s=3;
+        return s;
+      }
+
+      function tick(){
+        if(phase==="shoot"){
+          turnTicks++;
+          if(toLaunch>0 && --launchTimer<=0){
+            balls.push({x:launchX, y:LAND_Y, vx:Math.cos(aimAngle)*SPEED, vy:Math.sin(aimAngle)*SPEED, state:"fly"});
+            toLaunch--; launchTimer=LAUNCH_GAP;
+          }
+        }
+        for(const b of balls){ if(b.state==="fly") stepBall(b); else moveHome(b); }
+        if(phase==="shoot" && toLaunch===0 && !balls.some(b=>b.state==="fly")) endTurn();
+      }
+
+      function effects(){
+        time++;
+        if(phase==="advance"){
+          shiftT+=1/14;
+          if(shiftT>=1){ shiftT=1; if(pendingOver) gameOver(); else startAim(); }
+        }
+        if(phase==="over") overT++;
+        if(phase==="aim" && !aiming && keys.left!==keys.right){
+          if(!kbAim){ kbAim=true; aimAngle=kbAngle; }
+          aimAngle=clamp(aimAngle+(keys.left?-0.022:0.022), -Math.PI+MIN_A, -MIN_A);
+        }
+        for(const k of bricks) k.flash=Math.max(0,k.flash-0.12);
+        for(let i=particles.length-1;i>=0;i--){
+          const p=particles[i];
+          p.x+=p.vx; p.y+=p.vy; p.vy+=0.18; p.life--;
+          if(p.life<=0) particles.splice(i,1);
+        }
+        for(let i=pops.length-1;i>=0;i--){ pops[i].t+=1/22; if(pops[i].t>=1) pops.splice(i,1); }
+        for(let i=drops.length-1;i>=0;i--){
+          const d=drops[i];
+          d.vy+=0.55; d.y+=d.vy;
+          if(d.y>=LAND_Y) drops.splice(i,1);
+        }
+      }
+
+      function burst(k){
+        const cx=k.c*CELL+CELL/2, cy=TOP+k.r*CELL+CELL/2, hue=brickHue(1);
+        for(let i=0;i<12 && particles.length<500;i++){
+          const a=Math.random()*Math.PI*2, s=1.5+Math.random()*3.5;
+          particles.push({
+            x:cx+(Math.random()-.5)*30, y:cy+(Math.random()-.5)*30,
+            vx:Math.cos(a)*s, vy:Math.sin(a)*s-1.5,
+            life:28+randInt(0,12), max:40, hue, size:4+Math.random()*4
+          });
+        }
+      }
+
+      /* ---- aiming ---- */
+      function brickHits(x,y){
+        for(const k of bricks){
+          const rx=k.c*CELL+GAP, ry=TOP+k.r*CELL+GAP, rs=CELL-2*GAP;
+          const cx=clamp(x,rx,rx+rs), cy=clamp(y,ry,ry+rs);
+          if((x-cx)**2+(y-cy)**2<R*R) return true;
+        }
+        return false;
+      }
+
+      function aimPath(angle){
+        const dx=Math.cos(angle), dy=Math.sin(angle);
+        let x=launchX, y=LAND_Y, dist=0;
+        while(dist<1100){
+          const nx=x+dx*4, ny=y+dy*4;
+          if(nx<R || nx>W-R || ny<R || brickHits(nx,ny)) break;
+          x=nx; y=ny; dist+=4;
+        }
+        return {x,y,dist};
+      }
+
+      function updateAim(p){
+        if(p.y>FLOOR_Y){ aimAngle=null; return; }   // drag below the line to cancel
+        let a=Math.atan2(p.y-LAND_Y, p.x-launchX);
+        if(a>-MIN_A && a<=Math.PI/2) a=-MIN_A;
+        else if(a>Math.PI/2 || a<-Math.PI+MIN_A) a=-Math.PI+MIN_A;
+        aimAngle=a;
+      }
+
+      const local=e=>{ const p=pointer(e,canvas); return {x:p.x/K, y:p.y/K}; };
+
+      env.on(canvas,"pointerdown",e=>{
+        const p=local(e);
+        if(phase==="over"){ if(overT>27) reset(); return; }
+        if(p.y>=PLAY_H){
+          if(inRect(p,BTN_RECALL,8)) recall();
+          else if(inRect(p,BTN_FAST,8)) toggleFast();
+          return;
+        }
+        if(phase!=="aim") return;
+        aiming=true; kbAim=false;
+        try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
+        updateAim(p);
+        e.preventDefault();
+      });
+      env.on(canvas,"pointermove",e=>{ if(aiming) updateAim(local(e)); });
+      env.on(canvas,"pointerup",e=>{
+        if(!aiming) return;
+        aiming=false;
+        updateAim(local(e));
+        if(phase==="aim" && aimAngle!==null) shoot(aimAngle);
+        else aimAngle=null;
+      });
+      env.on(canvas,"pointercancel",()=>{ aiming=false; aimAngle=null; });
+
+      env.on(window,"keydown",e=>{
+        const k=e.key.toLowerCase();
+        if(k==="arrowleft"||k==="a") keys.left=true;
+        else if(k==="arrowright"||k==="d") keys.right=true;
+        else if(k==="arrowdown"||k==="s") recall();
+        else if((k==="arrowup"||k==="w") && !e.repeat) toggleFast();
+        else if(k===" " && !e.repeat){
+          if(phase==="over"){ if(overT>27) reset(); }
+          else if(phase==="aim" && !aiming){
+            if(kbAim && aimAngle!==null) shoot(aimAngle);
+            else { kbAim=true; aimAngle=kbAngle; }
+          }
+        }
+        if(k.startsWith("arrow")||k===" ") e.preventDefault();
+      });
+      env.on(window,"keyup",e=>{
+        const k=e.key.toLowerCase();
+        if(k==="arrowleft"||k==="a") keys.left=false;
+        else if(k==="arrowright"||k==="d") keys.right=false;
+      });
+      env.on(window,"blur",()=>{ keys.left=false; keys.right=false; });
+
+      /* ---- drawing ---- */
+      function pill(b,label,on,enabled){
+        ctx.globalAlpha=enabled?1:0.38;
+        roundRect(ctx,b.x,b.y,b.w,b.h,b.h/2);
+        ctx.fillStyle=on?COL.amber:"#2a2049"; ctx.fill();
+        ctx.lineWidth=2; ctx.strokeStyle=on?COL.amber:COL.line; ctx.stroke();
+        ctx.fillStyle=on?"#2a1a00":COL.ink;
+        ctx.font=`500 16px ${MONO}`; ctx.textAlign="center"; ctx.textBaseline="middle";
+        ctx.fillText(label, b.x+b.w/2, b.y+b.h/2+1);
+        ctx.globalAlpha=1;
+      }
+
+      function draw(){
+        paintBg(ctx,w,env.h);
+        ctx.save();
+        ctx.scale(K,K);
+
+        // floor + control strip
+        ctx.fillStyle="rgba(0,0,0,.26)"; ctx.fillRect(0,FLOOR_Y,W,H-FLOOR_Y);
+        ctx.fillStyle="rgba(245,239,255,.16)"; ctx.fillRect(0,FLOOR_Y,W,2);
+        ctx.fillStyle="rgba(59,47,92,.9)"; ctx.fillRect(0,PLAY_H,W,1);
+
+        const off=phase==="advance" ? -(1-easeOut(shiftT))*CELL : 0;
+        ctx.save();
+        ctx.beginPath(); ctx.rect(0,0,W,PLAY_H); ctx.clip();   // keep the board out of the control strip
+
+        // warning when bricks sit in the last row
+        if(phase==="aim" && bricks.some(k=>k.r===NROWS-1)){
+          ctx.fillStyle=`rgba(255,77,109,${0.08+0.05*Math.sin(time*0.12)})`;
+          ctx.fillRect(0,TOP+(NROWS-1)*CELL,W,CELL);
+        }
+
+        // pickups
+        for(const it of items){
+          const x=it.c*CELL+CELL/2, y=TOP+it.r*CELL+CELL/2+off;
+          if(it.type==="ball"){
+            const pulse=1+0.1*Math.sin(time*0.12+it.c);
+            ctx.strokeStyle=COL.ink; ctx.lineWidth=3;
+            circle(x,y,13*pulse); ctx.stroke();
+            ctx.fillStyle=COL.ink; circle(x,y,5); ctx.fill();
+          } else {
+            ctx.strokeStyle=COL.amber; ctx.lineWidth=3.5;
+            circle(x,y,9); ctx.stroke();
+          }
+        }
+
+        // bricks
+        ctx.textAlign="center"; ctx.textBaseline="middle";
+        const denom=Math.max(2,round*2);
+        for(const k of bricks){
+          const x=k.c*CELL+GAP, y=TOP+k.r*CELL+GAP+off, s=CELL-2*GAP;
+          const hue=brickHue(Math.min(1,k.hp/denom));
+          ctx.fillStyle=`hsl(${hue},78%,${60+k.flash*22}%)`;
+          roundRect(ctx,x,y,s,s,7); ctx.fill();
+          const size=k.hp<100?24:k.hp<1000?20:16;
+          ctx.font=`700 ${size}px ${FONT}`;
+          ctx.fillStyle="rgba(19,14,31,.9)";
+          ctx.fillText(k.hp, x+s/2, y+s/2+1);
+        }
+
+        // particles
+        for(const p of particles){
+          ctx.globalAlpha=Math.max(0,p.life/p.max);
+          ctx.fillStyle=`hsl(${p.hue},78%,62%)`;
+          ctx.fillRect(p.x-p.size/2, p.y-p.size/2, p.size, p.size);
+        }
+        ctx.globalAlpha=1;
+        for(const p of pops){
+          ctx.strokeStyle=`rgba(${p.color},${1-p.t})`; ctx.lineWidth=3;
+          circle(p.x,p.y,12+p.t*22); ctx.stroke();
+        }
+
+        // aim line
+        if(phase==="aim" && (aiming||kbAim) && aimAngle!==null){
+          const p=aimPath(aimAngle), cx=Math.cos(aimAngle), cy=Math.sin(aimAngle);
+          ctx.fillStyle=COL.ink;
+          for(let d=24; d<p.dist-6; d+=17){
+            ctx.globalAlpha=1-(d/1100)*0.75;
+            circle(launchX+cx*d, LAND_Y+cy*d, 3); ctx.fill();
+          }
+          ctx.globalAlpha=0.55; ctx.strokeStyle=COL.ink; ctx.lineWidth=2;
+          circle(p.x,p.y,R); ctx.stroke();
+          ctx.globalAlpha=1;
+        }
+
+        // falling bonus balls + live balls
+        ctx.fillStyle=COL.ink;
+        for(const d of drops){ circle(d.x,d.y,R); ctx.fill(); }
+        for(const b of balls){ circle(b.x,b.y,R); ctx.fill(); }
+
+        const waiting=phase==="aim" || phase==="advance" || (phase==="shoot" && toLaunch>0);
+        if(waiting){
+          const shown=phase==="shoot"?toLaunch:ballCount, bx=launchX;
+          ctx.fillStyle=COL.ink; circle(bx,LAND_Y,R); ctx.fill();
+          ctx.font=`600 16px ${FONT}`; ctx.fillStyle="rgba(245,239,255,.85)"; ctx.textBaseline="middle";
+          if(bx>W-60){ ctx.textAlign="right"; ctx.fillText("x"+shown, bx-16, LAND_Y+1); }
+          else { ctx.textAlign="left"; ctx.fillText("x"+shown, bx+16, LAND_Y+1); }
+        }
+
+        if(phase==="shoot" && gained>0){
+          const gx=nextLaunchX!==null?nextLaunchX:launchX;
+          ctx.font=`700 16px ${FONT}`; ctx.fillStyle=COL.green; ctx.textAlign="center";
+          ctx.fillText("+"+gained, gx, LAND_Y-22);
+        }
+
+        if(round===1 && phase==="aim" && !aiming && !kbAim){
+          ctx.font=`500 18px ${FONT}`; ctx.fillStyle="rgba(245,239,255,.55)"; ctx.textAlign="center";
+          ctx.fillText("Drag to aim, release to fire", W/2, PLAY_H*0.62);
+        }
+
+        ctx.restore();
+
+        // control strip
+        pill(BTN_RECALL, "▼ RECALL", false, phase==="shoot");
+        pill(BTN_FAST, "▲ FAST", fast || currentSpeed()>1, true);
+        ctx.font=`600 18px ${FONT}`; ctx.fillStyle=COL.muted; ctx.textAlign="center"; ctx.textBaseline="middle";
+        ctx.fillText(ballCount===1?"1 ball":ballCount+" balls", W/2+13, PLAY_H+BAR_H/2+1);
+
+        // game over card
+        if(phase==="over" && overT>27){
+          ctx.globalAlpha=Math.min(1,(overT-27)/12);
+          ctx.fillStyle="rgba(9,6,15,.8)"; ctx.fillRect(0,0,W,H);
+          ctx.textAlign="center"; ctx.textBaseline="middle";
+          ctx.fillStyle=COL.coral; ctx.font='34px "Bungee", cursive';
+          ctx.fillText("GAME OVER", W/2, PLAY_H*0.34);
+          ctx.fillStyle=COL.ink; ctx.font=`700 116px ${FONT}`;
+          ctx.fillText(round, W/2, PLAY_H*0.5);
+          ctx.fillStyle=COL.muted; ctx.font=`500 19px ${MONO}`;
+          ctx.fillText("BEST "+bestShown, W/2, PLAY_H*0.63);
+          ctx.fillStyle=COL.amber;
+          ctx.fillText("A / tap to play again", W/2, PLAY_H*0.72);
+          ctx.globalAlpha=1;
+        }
+
+        ctx.restore();
+      }
+
+      function updateStatus(){
+        const s = phase==="over"
+          ? "Game over — A / tap to play again"
+          : (ballCount===1?"1 ball":ballCount+" balls")+" · "+coins+(coins===1?" coin":" coins")+(currentSpeed()>1?" · fast":"");
+        if(s!==statusTxt){ statusTxt=s; env.status(s); }
+      }
+
+      env.loop.fn=(dt)=>{
+        acc+=dt;
+        while(acc>=STEP){
+          const n=currentSpeed();
+          for(let i=0;i<n;i++) tick();
+          effects();
+          acc-=STEP;
+        }
+        draw();
+        updateStatus();
+      };
+
+      reset(); env.loop.start();
+      return {
+        destroy(){
+          canvas.style.cursor="";
+          if(phase!=="over" && round>1) env.saveHi(round);
+        }
+      };
     }});
 
   /* ============================ SHELL ============================ */
