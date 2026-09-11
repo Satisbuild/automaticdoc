@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Talsystemer – omregn mellem decimal, binær, hex og oktal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EAEFF3;
+    --sheet: #F8FAFC;
+    --ink: #14213D;
+    --muted: #5E6B80;
+    --grid: #DAE2E9;
+    --line: #B9C6D3;
+    --cobalt: #2B4FD8;
+    --cobalt-soft: #D5DEFA;
+    --error: #B42318;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+
+  body {
+    min-height: 100vh;
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 24px 24px;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 56px 20px 80px;
+  }
+
+  h1 {
+    margin: 0 0 10px;
+    font-size: clamp(2.25rem, 7vw, 3.25rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+  }
+
+  .lead {
+    margin: 0;
+    max-width: 54ch;
+    color: var(--muted);
+    font-size: 1.0625rem;
+  }
+
+  .sheet {
+    margin-top: 36px;
+    background: var(--sheet);
+    border: 1.5px solid var(--ink);
+    border-radius: 6px;
+  }
+
+  /* ---------- Felter ---------- */
+
+  .fields { border-bottom: 1.5px solid var(--ink); }
+
+  .row {
+    display: grid;
+    grid-template-columns: 9.5rem 1fr;
+    column-gap: 20px;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--grid);
+  }
+  .row:last-child { border-bottom: 0; }
+
+  .name { padding-top: 10px; font-weight: 500; }
+  .name label { cursor: pointer; }
+  .hint { display: block; color: var(--muted); font-size: 0.875rem; font-weight: 400; }
+
+  .base-picker { display: flex; align-items: center; gap: 8px; }
+  .base-picker input {
+    width: 4.25rem;
+    padding: 4px 6px;
+    font: 500 1rem var(--sans);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 4px;
+  }
+
+  .control { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+
+  textarea.num {
+    flex: 1;
+    min-width: 0;
+    height: 49px;
+    padding: 9px 12px;
+    font: 500 1.25rem/1.4 var(--mono);
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 4px;
+    resize: none;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+  textarea.num::placeholder { color: #A3AFBD; }
+  textarea.num:focus, .base-picker input:focus {
+    outline: none;
+    border-color: var(--cobalt);
+    box-shadow: 0 0 0 3px var(--cobalt-soft);
+  }
+
+  .copy {
+    flex: none;
+    min-width: 6.25rem;
+    height: 49px;
+    padding: 0 12px;
+    font: 500 0.875rem var(--sans);
+    color: var(--ink);
+    background: transparent;
+    border: 1.5px solid var(--line);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .copy:hover { border-color: var(--ink); }
+
+  .err {
+    grid-column: 2;
+    margin: 6px 0 0;
+    color: var(--error);
+    font-size: 0.875rem;
+  }
+  .err:empty { display: none; }
+
+  .row.invalid textarea.num { border-color: var(--error); box-shadow: none; }
+  .row.stale textarea.num, .bitgrid.stale { opacity: 0.45; }
+
+  /* ---------- Bits ---------- */
+
+  .bits-panel { padding: 22px 24px 24px; }
+
+  .bits-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px 28px;
+  }
+
+  .width-pick { display: flex; align-items: center; gap: 10px; }
+
+  .seg {
+    display: inline-flex;
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .seg button {
+    padding: 5px 11px;
+    font: 500 0.9375rem var(--sans);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    border-left: 1.5px solid var(--ink);
+    cursor: pointer;
+  }
+  .seg button:first-child { border-left: 0; }
+  .seg button[aria-pressed="true"] { color: var(--sheet); background: var(--ink); }
+  .seg button:disabled { color: var(--line); cursor: not-allowed; }
+  .seg button:focus-visible { outline: 2px solid var(--cobalt); outline-offset: -4px; }
+
+  .check { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+  .check input { width: 18px; height: 18px; margin: 0; accent-color: var(--cobalt); cursor: pointer; }
+
+  .bitgrid {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    gap: 16px 28px;
+    margin-top: 22px;
+  }
+  .bitgrid[hidden] { display: none; }
+
+  .byte { display: flex; gap: 3px; }
+  .byte .cell:nth-child(5) { margin-left: 9px; }
+
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+
+  .bit {
+    width: 32px;
+    height: 42px;
+    padding: 0;
+    font: 500 1.125rem var(--mono);
+    color: var(--muted);
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 80ms, color 80ms, border-color 80ms;
+  }
+  .bit:hover { border-color: var(--ink); }
+  .bit.on { color: #fff; background: var(--cobalt); border-color: var(--cobalt); }
+
+  .idx {
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+    line-height: 1;
+  }
+  .idx.sign { color: var(--cobalt); font-weight: 600; }
+
+  .bitinfo { margin: 18px 0 0; color: var(--muted); font-size: 0.9375rem; overflow-wrap: anywhere; }
+
+  .sheet-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 20px;
+    padding: 14px 24px;
+    border-top: 1.5px solid var(--ink);
+    color: var(--muted);
+    font-size: 0.9375rem;
+  }
+  .sheet-foot .check { color: var(--ink); }
+
+  button:focus-visible, .check input:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 720px) {
+    .bitgrid { grid-template-columns: max-content; }
+  }
+
+  @media (max-width: 560px) {
+    main { padding-top: 36px; }
+    .row { grid-template-columns: 1fr; padding: 16px; }
+    .name { padding: 0 0 8px; }
+    .err { grid-column: 1; }
+    .bits-panel { padding: 18px 16px 20px; }
+    .sheet-foot { padding: 14px 16px; }
+    .copy { min-width: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bit { transition: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Talsystemer</h1>
+    <p class="lead">Skriv et tal i et hvilket som helst felt, så regnes de andre om med det samme. Du kan også klikke på de enkelte bits for at slå dem til og fra.</p>
+  </header>
+
+  <section class="sheet">
+    <div class="fields">
+      <div class="row" data-base="10">
+        <div class="name"><label for="f10">Decimal</label><span class="hint">base 10</span></div>
+        <div class="control">
+          <textarea id="f10" class="num" rows="1" placeholder="fx 255" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+          <button type="button" class="copy">Kopiér</button>
+        </div>
+        <p class="err" aria-live="polite"></p>
+      </div>
+
+      <div class="row" data-base="2">
+        <div class="name"><label for="f2">Binær</label><span class="hint">base 2</span></div>
+        <div class="control">
+          <textarea id="f2" class="num" rows="1" placeholder="fx 1111 1111" inputmode="numeric" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+          <button type="button" class="copy">Kopiér</button>
+        </div>
+        <p class="err" aria-live="polite"></p>
+      </div>
+
+      <div class="row" data-base="16">
+        <div class="name"><label for="f16">Hexadecimal</label><span class="hint">base 16</span></div>
+        <div class="control">
+          <textarea id="f16" class="num" rows="1" placeholder="fx FF" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+          <button type="button" class="copy">Kopiér</button>
+        </div>
+        <p class="err" aria-live="polite"></p>
+      </div>
+
+      <div class="row" data-base="8">
+        <div class="name"><label for="f8">Oktal</label><span class="hint">base 8</span></div>
+        <div class="control">
+          <textarea id="f8" class="num" rows="1" placeholder="fx 377" inputmode="numeric" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+          <button type="button" class="copy">Kopiér</button>
+        </div>
+        <p class="err" aria-live="polite"></p>
+      </div>
+
+      <div class="row" data-base="custom">
+        <div class="name">
+          <div class="base-picker">
+            <label for="fcustom">Base</label>
+            <input id="customBase" type="number" min="2" max="36" value="36" aria-label="Vælg base mellem 2 og 36">
+          </div>
+          <span class="hint">vælg selv, 2 til 36</span>
+        </div>
+        <div class="control">
+          <textarea id="fcustom" class="num" rows="1" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+          <button type="button" class="copy">Kopiér</button>
+        </div>
+        <p class="err" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <div class="bits-panel">
+      <div class="bits-bar">
+        <div class="width-pick">
+          <span id="widthLabel">Bitbredde</span>
+          <div class="seg" role="group" aria-labelledby="widthLabel">
+            <button type="button" data-w="8">8</button>
+            <button type="button" data-w="16">16</button>
+            <button type="button" data-w="32">32</button>
+            <button type="button" data-w="64">64</button>
+            <button type="button" data-w="128">128</button>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="signed"> Med fortegn (toerkomplement)</label>
+      </div>
+      <div class="bitgrid" id="bitgrid"></div>
+      <p class="bitinfo" id="bitinfo" aria-live="polite"></p>
+    </div>
+
+    <div class="sheet-foot">
+      <label class="check"><input type="checkbox" id="group" checked> Gruppér cifre</label>
+      <span>Virker med hele tal i alle størrelser, også negative.</span>
+    </div>
+  </section>
+</main>
+ <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-900/40 py-8 text-center mt-12">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col items-center gap-3">
+            <div class="w-12 h-1 bg-blue-500 rounded-full mb-1"></div>
+            <p class="text-slate-300 text-sm">
+                Udviklet af <strong class="text-white font-semibold">Automatikteknikerne</strong>
+            </p>
+            <div class="flex items-center gap-2 text-xs text-slate-500 tracking-wide uppercase">
+                <span>⚙️ Automation</span>
+                <span>•</span>
+                <span>Teknik</span>
+                <span>•</span>
+                <span>Innovation</span>
+            </div>
+        </div>
+    </footer>
+<script>
+(() => {
+  const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
+  const WIDTHS = [8, 16, 32, 64, 128];
+  const MAX_BIT_VIEW = 128;
+  const GROUP_SIZE = { 2: 4, 8: 3, 10: 3, 16: 2 };
+  const PREFIX = { 2: '0b', 8: '0o', 16: '0x' };
+
+  const state = { value: 255n, signed: false, width: 8, manualWidth: 0, group: true };
+
+  const customBaseInput = document.getElementById('customBase');
+  const grid = document.getElementById('bitgrid');
+  const info = document.getElementById('bitinfo');
+  const signedBox = document.getElementById('signed');
+  const groupBox = document.getElementById('group');
+  const segButtons = [...document.querySelectorAll('.seg button')];
+
+  const clampBase = (n) => {
+    n = parseInt(n, 10);
+    return Number.isNaN(n) ? 36 : Math.min(36, Math.max(2, n));
+  };
+
+  const rows = [...document.querySelectorAll('.row')].map((row) => ({
+    row,
+    input: row.querySelector('textarea'),
+    err: row.querySelector('.err'),
+    copyBtn: row.querySelector('.copy'),
+    base: () => (row.dataset.base === 'custom' ? clampBase(customBaseInput.value) : Number(row.dataset.base)),
+  }));
+  const customRow = rows.find((f) => f.row.dataset.base === 'custom');
+
+  /* ---------- Omregning ---------- */
+
+  function allowedText(base) {
+    if (base === 2) return '0 og 1';
+    if (base <= 10) return `0 til ${base - 1}`;
+    if (base === 11) return '0 til 9 og A';
+    return `0 til 9 og A til ${DIGITS[base - 1].toUpperCase()}`;
+  }
+
+  function parse(raw, base) {
+    let s = raw.replace(/[\s_]/g, '').toLowerCase();
+    if (!s) return { empty: true };
+
+    let negative = false;
+    if (s[0] === '-' || s[0] === '\u2212') { negative = true; s = s.slice(1); }
+    else if (s[0] === '+') { s = s.slice(1); }
+
+    if (PREFIX[base] && s.startsWith(PREFIX[base])) s = s.slice(2);
+    if (!s) return { error: 'Skriv mindst ét ciffer.' };
+    if (/[.,]/.test(s)) return { error: 'Kun hele tal kan omregnes, så fjern komma eller punktum.' };
+
+    const B = BigInt(base);
+    let v = 0n;
+    for (const ch of s) {
+      const d = DIGITS.indexOf(ch);
+      if (d < 0 || d >= base) {
+        return { error: `„${ch.toUpperCase()}“ findes ikke i base ${base}. Brug ${allowedText(base)}.` };
+      }
+      v = v * B + BigInt(d);
+    }
+    return { value: negative ? -v : v };
+  }
+
+  function groupDigits(s, size) {
+    const parts = [];
+    for (let i = s.length; i > 0; i -= size) parts.unshift(s.slice(Math.max(0, i - size), i));
+    return parts.join(' ');
+  }
+
+  function formatValue(v, base) {
+    const negative = v < 0n;
+    let s = (negative ? -v : v).toString(base);
+    if (base > 10) s = s.toUpperCase();
+    const size = state.group ? GROUP_SIZE[base] : 0;
+    if (size) s = groupDigits(s, size);
+    return (negative ? '-' : '') + s;
+  }
+
+  /* ---------- Bitbredde og toerkomplement ---------- */
+
+  const bitLength = (n) => (n === 0n ? 0 : n.toString(2).length);
+
+  function fits(v, w, signed) {
+    const W = BigInt(w);
+    if (signed) {
+      const half = 1n << (W - 1n);
+      return v >= -half && v < half;
+    }
+    return v >= 0n && v < (1n << W);
+  }
+
+  function neededWidth(v, signed) {
+    for (const w of WIDTHS) if (fits(v, w, signed)) return w;
+    const bits = signed ? (v < 0n ? bitLength(-v - 1n) : bitLength(v)) + 1 : bitLength(v);
+    return Math.ceil(bits / 8) * 8;
+  }
+
+  function updateWidth() {
+    state.width = Math.max(neededWidth(state.value ?? 0n, state.signed), state.manualWidth);
+  }
+
+  const toPattern = (v, w) => (v < 0n ? (1n << BigInt(w)) + v : v);
+
+  function fromPattern(p, w, signed) {
+    const W = BigInt(w);
+    return signed && ((p >> (W - 1n)) & 1n) ? p - (1n << W) : p;
+  }
+
+  /* ---------- Visning ---------- */
+
+  function autosize(el) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 3 + 'px';
+  }
+
+  function clearMarks() {
+    rows.forEach((f) => { f.row.classList.remove('invalid', 'stale'); f.err.textContent = ''; });
+    grid.classList.remove('stale');
+  }
+
+  function render(skip) {
+    clearMarks();
+    rows.forEach((f) => {
+      if (f !== skip) f.input.value = state.value === null ? '' : formatValue(state.value, f.base());
+      autosize(f.input);
+    });
+    customRow.input.placeholder = `fx ${formatValue(255n, customRow.base())}`;
+    renderBits();
+  }
+
+  function buildGrid(W) {
+    grid.innerHTML = '';
+    grid.dataset.w = W;
+    for (let b = W / 8 - 1; b >= 0; b--) {
+      const byte = document.createElement('div');
+      byte.className = 'byte';
+      for (let k = 7; k >= 0; k--) {
+        const i = b * 8 + k;
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'bit';
+        btn.dataset.i = i;
+        const idx = document.createElement('span');
+        idx.className = 'idx';
+        idx.textContent = i;
+        idx.setAttribute('aria-hidden', 'true');
+        cell.append(btn, idx);
+        byte.append(cell);
+      }
+      grid.append(byte);
+    }
+  }
+
+  const da = (n) => n.toLocaleString('da-DK');
+
+  function renderBits() {
+    const v = state.value ?? 0n;
+    const W = state.width;
+    const need = neededWidth(v, state.signed);
+
+    signedBox.checked = state.signed;
+    segButtons.forEach((b) => {
+      const w = Number(b.dataset.w);
+      b.disabled = w < need;
+      b.setAttribute('aria-pressed', String(w === W));
+    });
+
+    if (W > MAX_BIT_VIEW) {
+      grid.hidden = true;
+      grid.dataset.w = '';
+      info.textContent = `Tallet fylder ${W} bits. Bitvisningen går op til ${MAX_BIT_VIEW} bits, men felterne ovenfor virker stadig.`;
+      return;
+    }
+    grid.hidden = false;
+    if (Number(grid.dataset.w) !== W) buildGrid(W);
+
+    const pattern = toPattern(v, W);
+    let ones = 0;
+    grid.querySelectorAll('.cell').forEach((cell) => {
+      const btn = cell.firstElementChild;
+      const i = Number(btn.dataset.i);
+      const on = ((pattern >> BigInt(i)) & 1n) === 1n;
+      if (on) ones++;
+      btn.textContent = on ? '1' : '0';
+      btn.classList.toggle('on', on);
+      btn.setAttribute('aria-pressed', String(on));
+      const isSign = state.signed && i === W - 1;
+      btn.setAttribute('aria-label', isSign ? `Bit ${i}, fortegnsbit` : `Bit ${i}`);
+      btn.title = isSign ? 'Fortegnsbit' : '';
+      cell.lastElementChild.classList.toggle('sign', isSign);
+    });
+
+    const BW = BigInt(W);
+    const lo = state.signed ? -(1n << (BW - 1n)) : 0n;
+    const hi = state.signed ? (1n << (BW - 1n)) - 1n : (1n << BW) - 1n;
+    const signText = state.signed ? 'med' : 'uden';
+    info.textContent =
+      `${W} bits ${signText} fortegn rummer ${da(lo)} til ${da(hi)}. ` +
+      `${ones} ${ones === 1 ? 'bit er' : 'bits er'} slået til.`;
+  }
+
+  /* ---------- Hændelser ---------- */
+
+  function onFieldInput(f) {
+    autosize(f.input);
+    const r = parse(f.input.value, f.base());
+
+    if (r.error) {
+      clearMarks();
+      f.row.classList.add('invalid');
+      f.err.textContent = r.error;
+      rows.forEach((o) => { if (o !== f) o.row.classList.add('stale'); });
+      grid.classList.add('stale');
+      return;
+    }
+
+    state.value = r.empty ? null : r.value;
+    if (state.value !== null && state.value < 0n) state.signed = true;
+    updateWidth();
+    render(f);
+  }
+
+  async function copyField(f) {
+    const text = f.input.value.replace(/\s/g, '');
+    if (!text) return;
+    let ok = true;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.append(ta);
+      ta.select();
+      ok = document.execCommand('copy');
+      ta.remove();
+    }
+    f.copyBtn.textContent = ok ? 'Kopieret' : 'Ikke kopieret';
+    clearTimeout(f.timer);
+    f.timer = setTimeout(() => { f.copyBtn.textContent = 'Kopiér'; }, 1500);
+  }
+
+  rows.forEach((f) => {
+    f.input.addEventListener('input', () => onFieldInput(f));
+    f.input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); f.input.blur(); }
+    });
+    f.input.addEventListener('blur', () => {
+      if (!f.row.classList.contains('invalid') && state.value !== null) {
+        f.input.value = formatValue(state.value, f.base());
+        autosize(f.input);
+      }
+    });
+    f.copyBtn.addEventListener('click', () => copyField(f));
+  });
+
+  function refreshCustom() {
+    if (customRow.row.classList.contains('invalid')) {
+      onFieldInput(customRow);
+      return;
+    }
+    customRow.input.value = state.value === null ? '' : formatValue(state.value, customRow.base());
+    customRow.input.placeholder = `fx ${formatValue(255n, customRow.base())}`;
+    autosize(customRow.input);
+  }
+  customBaseInput.addEventListener('input', refreshCustom);
+  customBaseInput.addEventListener('blur', () => {
+    customBaseInput.value = clampBase(customBaseInput.value);
+    refreshCustom();
+  });
+
+  grid.addEventListener('click', (e) => {
+    const btn = e.target.closest('.bit');
+    if (!btn) return;
+    const W = state.width;
+    const pattern = toPattern(state.value ?? 0n, W) ^ (1n << BigInt(btn.dataset.i));
+    state.value = fromPattern(pattern, W, state.signed);
+    state.manualWidth = W;
+    render(null);
+  });
+
+  signedBox.addEventListener('change', () => {
+    const W = state.width;
+    if (state.value !== null) {
+      const pattern = toPattern(state.value, W);
+      state.signed = signedBox.checked;
+      state.value = fromPattern(pattern, W, state.signed);
+    } else {
+      state.signed = signedBox.checked;
+    }
+    updateWidth();
+    render(null);
+  });
+
+  segButtons.forEach((b) => {
+    b.addEventListener('click', () => {
+      state.manualWidth = Number(b.dataset.w);
+      updateWidth();
+      render(null);
+    });
+  });
+
+  groupBox.addEventListener('change', () => {
+    state.group = groupBox.checked;
+    render(null);
+  });
+
+  window.addEventListener('resize', () => rows.forEach((f) => autosize(f.input)));
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => rows.forEach((f) => autosize(f.input)));
+  }
+
+  updateWidth();
+  render(null);
+})();
+
+</script>
+</body>
+
+</html>

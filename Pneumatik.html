@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pneumatik | Automatiktekniker Tool</title>
+    <style>
+        :root { --bg-color: #121212; --panel-color: #1e1e24; --accent-color: #007acc; --accent-hover: #005f9e; --text-main: #f5f5f5; --text-muted: #a0a0a0; --border-color: #333; --error-color: #cf6679; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; }
+        nav { background-color: var(--panel-color); border-bottom: 2px solid var(--accent-color); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: var(--text-main); text-decoration: none; }
+        .nav-links { list-style: none; display: flex; gap: 1.5rem; }
+        .nav-links a { color: var(--text-main); text-decoration: none; transition: color 0.3s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent-color); }
+        .hamburger { display: none; background: none; border: none; color: var(--text-main); font-size: 1.8rem; cursor: pointer; }
+        main { flex: 1; padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .page-header { margin-bottom: 2rem; text-align: center; }
+        .page-header h1 { font-size: 2.5rem; color: var(--accent-color); }
+        .page-header p { color: var(--text-muted); }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        footer { background-color: var(--panel-color); text-align: center; padding: 1.5rem; border-top: 1px solid var(--border-color); margin-top: auto; }
+        
+        .calc-card { background-color: var(--panel-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .calc-card h2 { margin-bottom: 1rem; color: var(--accent-color); }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.3rem; font-weight: 600; }
+        input { width: 100%; padding: 0.8rem; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px; font-size: 1rem; }
+        input:focus { outline: none; border-color: var(--accent-color); }
+        .btn { background-color: var(--accent-color); color: #fff; border: none; padding: 0.8rem 1.5rem; font-size: 1rem; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 1rem; }
+        .btn:hover { background-color: var(--accent-hover); }
+        .btn-secondary { background-color: var(--border-color); margin-top: 0.5rem; }
+        .btn-secondary:hover { background-color: #444; }
+        .result-box { margin-top: 1.5rem; padding: 1rem; background-color: rgba(0, 122, 204, 0.1); border-left: 4px solid var(--accent-color); display: none; }
+        .result-box.active { display: block; }
+        .formula-box { margin-top: 1rem; font-family: monospace; background: #000; padding: 0.8rem; border-radius: 4px; color: var(--text-muted); }
+        .error-msg { color: var(--error-color); font-size: 0.9rem; margin-top: 0.5rem; display: none; }
+        
+        @media (max-width: 768px) {
+            .nav-links { display: none; flex-direction: column; width: 100%; position: absolute; top: 100%; left: 0; background-color: var(--panel-color); padding: 1rem 0; border-bottom: 2px solid var(--accent-color); }
+            .nav-links.active { display: flex; }
+            .nav-links li { text-align: center; padding: 0.5rem 0; }
+            .hamburger { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+    <main>
+        <div class="page-header">
+            <h1>🔵 Pneumatik</h1>
+            <p>Beregn cylinderkraft, luftforbrug og bevægelsestid for trykluft.</p>
+        </div>
+
+        <div class="grid-container">
+            <!-- Cylinderkraft Dobbeltvirkende -->
+            <div class="calc-card">
+                <h2>Cylinderkraft (Træk/Tryk)</h2>
+                <div class="form-group"><label>Arbejdstryk (p) [bar]</label><input type="number" id="pne-p" placeholder="F.eks. 6"></div>
+                <div class="form-group"><label>Stempeldiameter (D) [mm]</label><input type="number" id="pne-d" placeholder="F.eks. 40"></div>
+                <div class="form-group"><label>Stempelstangsdiam. (d) [mm]</label><input type="number" id="pne-d-rod" placeholder="F.eks. 16"></div>
+                
+                <p id="err-kraft2" class="error-msg">Udfyld alle tre felter.</p>
+                <button class="btn" onclick="calcPneKraft()">Beregn Kraft</button>
+                <button class="btn btn-secondary" onclick="clearPneKraft()">Ryd</button>
+                
+                <div id="res-kraft2" class="result-box">
+                    <h3>Resultat:</h3>
+                    <p id="txt-kraft2"></p>
+                    <div class="formula-box" id="form-kraft2"></div>
+                </div>
+            </div>
+
+            <!-- Luftforbrug -->
+            <div class="calc-card">
+                <h2>Luftforbrug pr. cyklus</h2>
+                <div class="form-group"><label>Arbejdstryk (p) [bar]</label><input type="number" id="air-p" placeholder="F.eks. 6"></div>
+                <div class="form-group"><label>Cylinderdiameter [mm]</label><input type="number" id="air-d" placeholder="F.eks. 40"></div>
+                <div class="form-group"><label>Slaglængde [mm]</label><input type="number" id="air-s" placeholder="F.eks. 200"></div>
+                
+                <p id="err-air" class="error-msg">Udfyld alle felter.</p>
+                <button class="btn" onclick="calcAir()">Beregn Forbrug</button>
+                <button class="btn btn-secondary" onclick="clearAir()">Ryd</button>
+                
+                <div id="res-air" class="result-box">
+                    <h3>Resultat:</h3>
+                    <p id="txt-air"></p>
+                    <div class="formula-box" id="form-air"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+   <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-900/40 py-8 text-center mt-12">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col items-center gap-3">
+            <div class="w-12 h-1 bg-blue-500 rounded-full mb-1"></div>
+            <p class="text-slate-300 text-sm">
+                Udviklet af <strong class="text-white font-semibold">Automatikteknikerne</strong>
+            </p>
+            <div class="flex items-center gap-2 text-xs text-slate-500 tracking-wide uppercase">
+                <span>⚙️ Automation</span>
+                <span>•</span>
+                <span>Teknik</span>
+                <span>•</span>
+                <span>Innovation</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelector('.hamburger').addEventListener('click', () => { document.querySelector('.nav-links').classList.toggle('active'); });
+        const fmt = n => Math.round(n * 100) / 100;
+
+        function calcPneKraft() {
+            let p = parseFloat(document.getElementById('pne-p').value), d = parseFloat(document.getElementById('pne-d').value), dRod = parseFloat(document.getElementById('pne-d-rod').value);
+            if(isNaN(p) || isNaN(d) || isNaN(dRod)) { document.getElementById('err-kraft2').style.display = 'block'; return; }
+            document.getElementById('err-kraft2').style.display = 'none';
+
+            let aPush_mm2 = Math.PI * Math.pow(d/2, 2);
+            let aRod_mm2 = Math.PI * Math.pow(dRod/2, 2);
+            let aPull_mm2 = aPush_mm2 - aRod_mm2;
+
+            // F = (p * A) / 10 hvor p er bar, A er mm², for at få N
+            // Bemærk: Det antages her en teoretisk kraft, normalt fratrækkes 10% fjeder/friktionstap, men vi beregner teoretisk.
+            let fPush = (p * aPush_mm2) / 10; 
+            let fPull = (p * aPull_mm2) / 10;
+
+            document.getElementById('txt-kraft2').innerHTML = `Trykkraft (Ud): <strong>${fmt(fPush)} N</strong><br>Trækkraft (Ind): <strong>${fmt(fPull)} N</strong>`;
+            document.getElementById('form-kraft2').innerHTML = `Trykkraft = (p × A_stempel) / 10<br>Trækkraft = (p × (A_stempel - A_stang)) / 10`;
+            document.getElementById('res-kraft2').classList.add('active');
+        }
+        function clearPneKraft() { ['pne-p','pne-d','pne-d-rod'].forEach(id => document.getElementById(id).value=''); document.getElementById('res-kraft2').classList.remove('active'); }
+
+        function calcAir() {
+            let p = parseFloat(document.getElementById('air-p').value), d = parseFloat(document.getElementById('air-d').value), s = parseFloat(document.getElementById('air-s').value);
+            if(isNaN(p) || isNaN(d) || isNaN(s)) { document.getElementById('err-air').style.display = 'block'; return; }
+            document.getElementById('err-air').style.display = 'none';
+
+            let a_cm2 = (Math.PI * Math.pow(d/2, 2)) / 100;
+            let s_cm = s / 10;
+            let volume_liters = (a_cm2 * s_cm) / 1000; // Vol pr retning
+            let norm_liters = volume_liters * (p + 1); // p_abs = p_man + atmosfæretryk(1)
+            let cyklus_forbrug = norm_liters * 2; // Forbrug frem og tilbage (simplificeret)
+
+            document.getElementById('txt-air').innerHTML = `Luftforbrug pr. frem/tilbage cyklus:<br><strong>${fmt(cyklus_forbrug)} Nl (Normalliter)</strong>`;
+            document.getElementById('form-air').innerHTML = `V_cylinder = A(cm²) × s(cm) / 1000<br>Normalliter = V_cylinder × (p(bar) + 1)<br>Cyklus = Nl × 2 (frem+tilbage)`;
+            document.getElementById('res-air').classList.add('active');
+        }
+        function clearAir() { ['air-p','air-d','air-s'].forEach(id => document.getElementById(id).value=''); document.getElementById('res-air').classList.remove('active'); }
+    </script>
+</body>
+</html>

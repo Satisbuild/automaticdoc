@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motor-beregner | Automatiktekniker Tool</title>
+    <style>
+        /* Samme globale styles */
+        :root { --bg-color: #121212; --panel-color: #1e1e24; --accent-color: #007acc; --accent-hover: #005f9e; --text-main: #f5f5f5; --text-muted: #a0a0a0; --border-color: #333; --error-color: #cf6679; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; }
+        nav { background-color: var(--panel-color); border-bottom: 2px solid var(--accent-color); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: var(--text-main); text-decoration: none; }
+        .nav-links { list-style: none; display: flex; gap: 1.5rem; }
+        .nav-links a { color: var(--text-main); text-decoration: none; transition: color 0.3s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent-color); }
+        .hamburger { display: none; background: none; border: none; color: var(--text-main); font-size: 1.8rem; cursor: pointer; }
+        main { flex: 1; padding: 2rem; max-width: 800px; margin: 0 auto; width: 100%; }
+        .page-header { margin-bottom: 2rem; text-align: center; }
+        .page-header h1 { font-size: 2.5rem; color: var(--accent-color); }
+        .page-header p { color: var(--text-muted); }
+        footer { background-color: var(--panel-color); text-align: center; padding: 1.5rem; border-top: 1px solid var(--border-color); margin-top: auto; }
+        
+        .calc-card { background-color: var(--panel-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.3rem; font-weight: 600; }
+        input { width: 100%; padding: 0.8rem; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px; font-size: 1rem; }
+        input:focus { outline: none; border-color: var(--accent-color); }
+        .btn { background-color: var(--accent-color); color: #fff; border: none; padding: 0.8rem 1.5rem; font-size: 1rem; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 1rem; }
+        .btn:hover { background-color: var(--accent-hover); }
+        .btn-secondary { background-color: var(--border-color); margin-top: 0.5rem; }
+        .btn-secondary:hover { background-color: #444; }
+        .result-box { margin-top: 1.5rem; padding: 1rem; background-color: rgba(0, 122, 204, 0.1); border-left: 4px solid var(--accent-color); display: none; }
+        .result-box.active { display: block; }
+        .formula-box { margin-top: 1rem; font-family: monospace; background: #000; padding: 0.8rem; border-radius: 4px; color: var(--text-muted); white-space: pre-wrap; }
+        .error-msg { color: var(--error-color); font-size: 0.9rem; margin-top: 0.5rem; display: none; }
+        
+        @media (max-width: 768px) {
+            .nav-links { display: none; flex-direction: column; width: 100%; position: absolute; top: 100%; left: 0; background-color: var(--panel-color); padding: 1rem 0; border-bottom: 2px solid var(--accent-color); }
+            .nav-links.active { display: flex; }
+            .nav-links li { text-align: center; padding: 0.5rem 0; }
+            .hamburger { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+    <main>
+        <div class="page-header">
+            <h1>🔄 Motor-beregner</h1>
+            <p>Beregn mærkestrøm og moment for 3-fasede asynkronmotorer.</p>
+        </div>
+
+        <div class="calc-card">
+            <h2>Mærkepladedata</h2>
+            <div class="form-group"><label>Afgiven Motoreffekt (P) [kW]</label><input type="number" id="mot-p" placeholder="F.eks. 4.0"></div>
+            <div class="form-group"><label>Netspænding (U) [V]</label><input type="number" id="mot-u" placeholder="F.eks. 400"></div>
+            <div class="form-group"><label>Effektfaktor (cosφ)</label><input type="number" id="mot-cos" placeholder="F.eks. 0.82"></div>
+            <div class="form-group"><label>Virkningsgrad (η)</label><input type="number" id="mot-eta" placeholder="F.eks. 0.88 (eller 88%)"></div>
+            <div class="form-group"><label>Omdrejninger pr. min (RPM)</label><input type="number" id="mot-n" placeholder="F.eks. 1440"></div>
+
+            <p id="mot-error" class="error-msg">Udfyld alle felter.</p>
+
+            <button class="btn" onclick="calcMotor()">Beregn Motor</button>
+            <button class="btn btn-secondary" onclick="clearMotor()">Ryd</button>
+
+            <div id="mot-result" class="result-box">
+                <h3>Resultater:</h3>
+                <p id="mot-i"></p>
+                <p id="mot-m"></p>
+                <p id="mot-pin"></p>
+                <h4 style="margin-top:1rem;">Mellemregninger:</h4>
+                <div class="formula-box" id="mot-formula"></div>
+            </div>
+        </div>
+    </main>
+ <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-900/40 py-8 text-center mt-12">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col items-center gap-3">
+            <div class="w-12 h-1 bg-blue-500 rounded-full mb-1"></div>
+            <p class="text-slate-300 text-sm">
+                Udviklet af <strong class="text-white font-semibold">Automatikteknikerne</strong>
+            </p>
+            <div class="flex items-center gap-2 text-xs text-slate-500 tracking-wide uppercase">
+                <span>⚙️ Automation</span>
+                <span>•</span>
+                <span>Teknik</span>
+                <span>•</span>
+                <span>Innovation</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelector('.hamburger').addEventListener('click', () => { document.querySelector('.nav-links').classList.toggle('active'); });
+        const fmt = n => Math.round(n * 100) / 100;
+
+        function calcMotor() {
+            let pKw = parseFloat(document.getElementById('mot-p').value), u = parseFloat(document.getElementById('mot-u').value);
+            let cosfi = parseFloat(document.getElementById('mot-cos').value), eta = parseFloat(document.getElementById('mot-eta').value);
+            let n = parseFloat(document.getElementById('mot-n').value);
+
+            if(isNaN(pKw) || isNaN(u) || isNaN(cosfi) || isNaN(eta) || isNaN(n)) { document.getElementById('mot-error').style.display = 'block'; return; }
+            if(eta > 1) { eta = eta / 100; document.getElementById('mot-eta').value = eta; } // Ret 88 til 0.88 automatisk
+            document.getElementById('mot-error').style.display = 'none';
+
+            let pInW = (pKw * 1000) / eta;
+            let i = pInW / (Math.sqrt(3) * u * cosfi);
+            let m = (9550 * pKw) / n;
+
+            document.getElementById('mot-i').innerHTML = `Mærkestrøm (I): <strong>${fmt(i)} A</strong>`;
+            document.getElementById('mot-m').innerHTML = `Akselmoment (M): <strong>${fmt(m)} Nm</strong>`;
+            document.getElementById('mot-pin').innerHTML = `Elektrisk input: <strong>${fmt(pInW/1000)} kW</strong>`;
+
+            document.getElementById('mot-formula').innerHTML = 
+`Strøm (I):
+P_ind = (P_ud × 1000) / η = (${pKw} × 1000) / ${eta} = ${fmt(pInW)} W
+I = P_ind / (√3 × U × cosφ) = ${fmt(pInW)} / (1.732 × ${u} × ${cosfi}) = ${fmt(i)} A
+
+Moment (M):
+M = 9550 × P(kW) / n = 9550 × ${pKw} / ${n} = ${fmt(m)} Nm`;
+
+            document.getElementById('mot-result').classList.add('active');
+        }
+        function clearMotor() { ['mot-p','mot-u','mot-cos','mot-eta','mot-n'].forEach(id => document.getElementById(id).value = ''); document.getElementById('mot-result').classList.remove('active'); }
+    </script>
+</body>
+</html>

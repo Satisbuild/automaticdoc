@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El-beregner | Automatiktekniker Tool</title>
+    <style>
+        /* Samme globale styles som index.html */
+        :root { --bg-color: #121212; --panel-color: #1e1e24; --accent-color: #007acc; --accent-hover: #005f9e; --text-main: #f5f5f5; --text-muted: #a0a0a0; --border-color: #333; --error-color: #cf6679; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; }
+        nav { background-color: var(--panel-color); border-bottom: 2px solid var(--accent-color); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: var(--text-main); text-decoration: none; }
+        .nav-links { list-style: none; display: flex; gap: 1.5rem; }
+        .nav-links a { color: var(--text-main); text-decoration: none; transition: color 0.3s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent-color); }
+        .hamburger { display: none; background: none; border: none; color: var(--text-main); font-size: 1.8rem; cursor: pointer; }
+        main { flex: 1; padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .page-header { margin-bottom: 2rem; text-align: center; }
+        .page-header h1 { font-size: 2.5rem; color: var(--accent-color); }
+        .page-header p { color: var(--text-muted); }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        footer { background-color: var(--panel-color); text-align: center; padding: 1.5rem; border-top: 1px solid var(--border-color); margin-top: auto; }
+        footer p { color: var(--text-muted); font-size: 0.9rem; }
+        
+        /* Beregner Specifikke Styles */
+        .calc-card { background-color: var(--panel-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .calc-card h2 { margin-bottom: 1rem; color: var(--accent-color); }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.3rem; font-weight: 600; }
+        input, select { width: 100%; padding: 0.8rem; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px; font-size: 1rem; }
+        input:focus, select:focus { outline: none; border-color: var(--accent-color); }
+        .btn { background-color: var(--accent-color); color: #fff; border: none; padding: 0.8rem 1.5rem; font-size: 1rem; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 1rem; }
+        .btn:hover { background-color: var(--accent-hover); }
+        .btn-secondary { background-color: var(--border-color); margin-top: 0.5rem; }
+        .btn-secondary:hover { background-color: #444; }
+        .result-box { margin-top: 1.5rem; padding: 1rem; background-color: rgba(0, 122, 204, 0.1); border-left: 4px solid var(--accent-color); display: none; }
+        .result-box.active { display: block; }
+        .formula-box { margin-top: 1rem; font-family: monospace; background: #000; padding: 0.8rem; border-radius: 4px; color: var(--text-muted); }
+        .error-msg { color: var(--error-color); font-size: 0.9rem; margin-top: 0.5rem; display: none; }
+        
+        @media (max-width: 768px) {
+            .nav-links { display: none; flex-direction: column; width: 100%; position: absolute; top: 100%; left: 0; background-color: var(--panel-color); padding: 1rem 0; border-bottom: 2px solid var(--accent-color); }
+            .nav-links.active { display: flex; }
+            .nav-links li { text-align: center; padding: 0.5rem 0; }
+            .hamburger { display: block; }
+        }
+    </style>
+</head>
+<body>
+  
+    <main>
+        <div class="page-header">
+            <h1>⚡ El-beregner</h1>
+            <p>Beregn Ohms lov, effekt og energiforbrug.</p>
+        </div>
+
+        <div class="grid-container">
+            <!-- Ohms Lov -->
+            <div class="calc-card">
+                <h2>Ohms lov</h2>
+                <p style="margin-bottom:1rem; font-size:0.9rem; color:var(--text-muted);">Indtast to værdier, lad den tredje stå tom.</p>
+                <div class="form-group"><label>Spænding (U) [V]</label><input type="number" id="ohm-u" placeholder="F.eks. 24"></div>
+                <div class="form-group"><label>Strøm (I) [A]</label><input type="number" id="ohm-i" placeholder="F.eks. 2"></div>
+                <div class="form-group"><label>Modstand (R) [Ω]</label><input type="number" id="ohm-r" placeholder="F.eks. 12"></div>
+                <p id="ohm-error" class="error-msg">Indtast præcis to værdier.</p>
+                <button class="btn" onclick="calcOhm()">Beregn</button>
+                <button class="btn btn-secondary" onclick="clearOhm()">Ryd</button>
+                <div id="ohm-result" class="result-box">
+                    <h3>Resultat:</h3>
+                    <p id="ohm-text"></p>
+                    <div class="formula-box" id="ohm-formula"></div>
+                </div>
+            </div>
+
+            <!-- Effekt -->
+            <div class="calc-card">
+                <h2>Effekt</h2>
+                <div class="form-group">
+                    <label>System</label>
+                    <select id="power-type" onchange="toggleCos()">
+                        <option value="dc">DC (Jævnstrøm)</option>
+                        <option value="ac1">AC 1-faset</option>
+                        <option value="ac3">AC 3-faset</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Spænding (U) [V]</label><input type="number" id="pow-u" placeholder="F.eks. 400"></div>
+                <div class="form-group"><label>Strøm (I) [A]</label><input type="number" id="pow-i" placeholder="F.eks. 10"></div>
+                <div class="form-group" id="group-cos" style="display:none;"><label>Cosφ</label><input type="number" id="pow-cos" value="1"></div>
+                <p id="pow-error" class="error-msg">Udfyld alle felter.</p>
+                <button class="btn" onclick="calcPow()">Beregn Effekt</button>
+                <button class="btn btn-secondary" onclick="clearPow()">Ryd</button>
+                <div id="pow-result" class="result-box">
+                    <h3>Resultat:</h3>
+                    <p id="pow-text"></p>
+                    <div class="formula-box" id="pow-formula"></div>
+                </div>
+            </div>
+
+            <!-- Energi -->
+            <div class="calc-card">
+                <h2>Energiforbrug</h2>
+                <div class="form-group"><label>Effekt [kW]</label><input type="number" id="en-p" placeholder="F.eks. 2.5"></div>
+                <div class="form-group"><label>Driftstid [timer]</label><input type="number" id="en-t" placeholder="F.eks. 8"></div>
+                <div class="form-group"><label>Pris pr. kWh [DKK]</label><input type="number" id="en-pris" placeholder="F.eks. 2.25"></div>
+                <p id="en-error" class="error-msg">Udfyld effekt og driftstid.</p>
+                <button class="btn" onclick="calcEn()">Beregn Energi</button>
+                <button class="btn btn-secondary" onclick="clearEn()">Ryd</button>
+                <div id="en-result" class="result-box">
+                    <h3>Resultat:</h3>
+                    <p id="en-text"></p>
+                    <div class="formula-box" id="en-formula"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+     <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-900/40 py-8 text-center mt-12">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col items-center gap-3">
+            <div class="w-12 h-1 bg-blue-500 rounded-full mb-1"></div>
+            <p class="text-slate-300 text-sm">
+                Udviklet af <strong class="text-white font-semibold">Automatikteknikerne</strong>
+            </p>
+            <div class="flex items-center gap-2 text-xs text-slate-500 tracking-wide uppercase">
+                <span>⚙️ Automation</span>
+                <span>•</span>
+                <span>Teknik</span>
+                <span>•</span>
+                <span>Innovation</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelector('.hamburger').addEventListener('click', () => { document.querySelector('.nav-links').classList.toggle('active'); });
+        const fmt = n => Math.round(n * 100) / 100;
+
+        function calcOhm() {
+            let u = parseFloat(document.getElementById('ohm-u').value);
+            let i = parseFloat(document.getElementById('ohm-i').value);
+            let r = parseFloat(document.getElementById('ohm-r').value);
+            let count = [u, i, r].filter(n => !isNaN(n)).length;
+
+            if(count !== 2) { document.getElementById('ohm-error').style.display = 'block'; return; }
+            document.getElementById('ohm-error').style.display = 'none';
+
+            let txt = '', form = '';
+            if(isNaN(u)) { u = fmt(r*i); document.getElementById('ohm-u').value = u; txt = `Spænding (U): <strong>${u} V</strong>`; form = `U = R × I<br>U = ${r} × ${i} = ${u} V`; }
+            else if(isNaN(i)) { i = fmt(u/r); document.getElementById('ohm-i').value = i; txt = `Strøm (I): <strong>${i} A</strong>`; form = `I = U / R<br>I = ${u} / ${r} = ${i} A`; }
+            else if(isNaN(r)) { r = fmt(u/i); document.getElementById('ohm-r').value = r; txt = `Modstand (R): <strong>${r} Ω</strong>`; form = `R = U / I<br>R = ${u} / ${i} = ${r} Ω`; }
+
+            document.getElementById('ohm-text').innerHTML = txt; document.getElementById('ohm-formula').innerHTML = form;
+            document.getElementById('ohm-result').classList.add('active');
+        }
+        function clearOhm() { document.getElementById('ohm-u').value=''; document.getElementById('ohm-i').value=''; document.getElementById('ohm-r').value=''; document.getElementById('ohm-result').classList.remove('active'); }
+
+        function toggleCos() { document.getElementById('group-cos').style.display = document.getElementById('power-type').value === 'dc' ? 'none' : 'block'; }
+        
+        function calcPow() {
+            let type = document.getElementById('power-type').value, u = parseFloat(document.getElementById('pow-u').value), i = parseFloat(document.getElementById('pow-i').value), cos = parseFloat(document.getElementById('pow-cos').value) || 1;
+            if(isNaN(u) || isNaN(i) || (type !== 'dc' && isNaN(cos))) { document.getElementById('pow-error').style.display = 'block'; return; }
+            document.getElementById('pow-error').style.display = 'none';
+
+            let p = 0, form = '';
+            if(type==='dc'){ p = u*i; form = `P = U × I<br>P = ${u} × ${i} = ${fmt(p)} W`; }
+            else if(type==='ac1'){ p = u*i*cos; form = `P = U × I × cosφ<br>P = ${u} × ${i} × ${cos} = ${fmt(p)} W`; }
+            else if(type==='ac3'){ p = Math.sqrt(3)*u*i*cos; form = `P = √3 × U × I × cosφ<br>P = 1.732 × ${u} × ${i} × ${cos} = ${fmt(p)} W`; }
+
+            document.getElementById('pow-text').innerHTML = `Effekt: <strong>${fmt(p)} W</strong> (${fmt(p/1000)} kW)`;
+            document.getElementById('pow-formula').innerHTML = form; document.getElementById('pow-result').classList.add('active');
+        }
+        function clearPow() { document.getElementById('pow-u').value=''; document.getElementById('pow-i').value=''; document.getElementById('pow-cos').value='1'; document.getElementById('pow-result').classList.remove('active'); }
+
+        function calcEn() {
+            let p = parseFloat(document.getElementById('en-p').value), t = parseFloat(document.getElementById('en-t').value), pris = parseFloat(document.getElementById('en-pris').value);
+            if(isNaN(p) || isNaN(t)) { document.getElementById('en-error').style.display = 'block'; return; }
+            document.getElementById('en-error').style.display = 'none';
+
+            let kwh = p*t, prisTxt = !isNaN(pris) ? `<br>Pris: <strong>${fmt(kwh*pris)} DKK</strong>` : '';
+            document.getElementById('en-text').innerHTML = `Forbrug: <strong>${fmt(kwh)} kWh</strong>` + prisTxt;
+            document.getElementById('en-formula').innerHTML = `Energi = kW × timer<br>${p} × ${t} = ${fmt(kwh)} kWh`;
+            document.getElementById('en-result').classList.add('active');
+        }
+        function clearEn() { document.getElementById('en-p').value=''; document.getElementById('en-t').value=''; document.getElementById('en-pris').value=''; document.getElementById('en-result').classList.remove('active'); }
+    </script>
+</body>
+</html>

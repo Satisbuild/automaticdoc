@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydraulik | Automatiktekniker Tool</title>
+    <style>
+        :root { --bg-color: #121212; --panel-color: #1e1e24; --accent-color: #007acc; --accent-hover: #005f9e; --text-main: #f5f5f5; --text-muted: #a0a0a0; --border-color: #333; --error-color: #cf6679; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; }
+        nav { background-color: var(--panel-color); border-bottom: 2px solid var(--accent-color); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: var(--text-main); text-decoration: none; }
+        .nav-links { list-style: none; display: flex; gap: 1.5rem; }
+        .nav-links a { color: var(--text-main); text-decoration: none; transition: color 0.3s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent-color); }
+        .hamburger { display: none; background: none; border: none; color: var(--text-main); font-size: 1.8rem; cursor: pointer; }
+        main { flex: 1; padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .page-header { margin-bottom: 2rem; text-align: center; }
+        .page-header h1 { font-size: 2.5rem; color: var(--accent-color); }
+        .page-header p { color: var(--text-muted); }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        footer { background-color: var(--panel-color); text-align: center; padding: 1.5rem; border-top: 1px solid var(--border-color); margin-top: auto; }
+        
+        .calc-card { background-color: var(--panel-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .calc-card h2 { margin-bottom: 1rem; color: var(--accent-color); }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.3rem; font-weight: 600; }
+        input { width: 100%; padding: 0.8rem; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px; font-size: 1rem; }
+        input:focus { outline: none; border-color: var(--accent-color); }
+        .btn { background-color: var(--accent-color); color: #fff; border: none; padding: 0.8rem 1.5rem; font-size: 1rem; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 1rem; }
+        .btn:hover { background-color: var(--accent-hover); }
+        .btn-secondary { background-color: var(--border-color); margin-top: 0.5rem; }
+        .btn-secondary:hover { background-color: #444; }
+        .result-box { margin-top: 1.5rem; padding: 1rem; background-color: rgba(0, 122, 204, 0.1); border-left: 4px solid var(--accent-color); display: none; }
+        .result-box.active { display: block; }
+        .formula-box { margin-top: 1rem; font-family: monospace; background: #000; padding: 0.8rem; border-radius: 4px; color: var(--text-muted); }
+        .error-msg { color: var(--error-color); font-size: 0.9rem; margin-top: 0.5rem; display: none; }
+        
+        @media (max-width: 768px) {
+            .nav-links { display: none; flex-direction: column; width: 100%; position: absolute; top: 100%; left: 0; background-color: var(--panel-color); padding: 1rem 0; border-bottom: 2px solid var(--accent-color); }
+            .nav-links.active { display: flex; }
+            .nav-links li { text-align: center; padding: 0.5rem 0; }
+            .hamburger { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="index.html" class="logo">⚙ AUTOMATIKTEKNIKER TOOL</a>
+        <button class="hamburger">☰</button>
+        <ul class="nav-links">
+            <li><a href="index.html">Forside</a></li>
+            <li><a href="el.html">El</a></li>
+            <li><a href="motor.html">Motor</a></li>
+            <li><a href="hydraulik.html" class="active">Hydraulik</a></li>
+            <li><a href="pneumatik.html">Pneumatik</a></li>
+            <li><a href="plc.html">PLC</a></li>
+            <li><a href="produktion.html">Produktion</a></li>
+            <li><a href="enheder.html">Enheder</a></li>
+            <li><a href="fejlfinding.html">Fejlfinding</a></li>
+            <li><a href="io-generator.html">I/O</a></li>
+            <li><a href="sekvens.html">Sekvens</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <div class="page-header">
+            <h1>💧 Hydraulik</h1>
+            <p>Beregn cylinderkraft, hastighed og bevægelsestid.</p>
+        </div>
+
+        <div class="grid-container">
+            <!-- Cylinderkraft -->
+            <div class="calc-card">
+                <h2>Cylinderkraft (Fremad)</h2>
+                <div class="form-group"><label>Tryk (p) [bar]</label><input type="number" id="hyd-p" placeholder="F.eks. 150"></div>
+                <div class="form-group"><label>Cylinderdiameter (d) [mm]</label><input type="number" id="hyd-d" placeholder="F.eks. 50"></div>
+                <p id="err-kraft" class="error-msg">Udfyld begge felter.</p>
+                <button class="btn" onclick="calcKraft()">Beregn Kraft</button>
+                <button class="btn btn-secondary" onclick="clearKraft()">Ryd</button>
+                <div id="res-kraft" class="result-box">
+                    <h3>Resultat:</h3>
+                    <p id="txt-kraft"></p>
+                    <div class="formula-box" id="form-kraft"></div>
+                </div>
+            </div>
+
+            <!-- Hastighed -->
+            <div class="calc-card">
+                <h2>Cylinderhastighed</h2>
+                <div class="form-group"><label>Flow (Q) [l/min]</label><input type="number" id="hyd-q" placeholder="F.eks. 20"></div>
+                <div class="form-group"><label>Cylinderdiameter (d) [mm]</label><input type="number" id="hyd-d2" placeholder="F.eks. 50"></div>
+                <p id="err-hastighed" class="error-msg">Udfyld begge felter.</p>
+                <button class="btn" onclick="calcHastighed()">Beregn Hastighed</button>
+                <button class="btn btn-secondary" onclick="clearHastighed()">Ryd</button>
+                <div id="res-hastighed" class="result-box">
+                    <h3>Resultat:</h3>
+                    <p id="txt-hastighed"></p>
+                    <div class="formula-box" id="form-hastighed"></div>
+                </div>
+            </div>
+
+            <!-- Bevægelsestid -->
+            <div class="calc-card">
+                <h2>Bevægelsestid</h2>
+                <div class="form-group"><label>Slaglængde [mm]</label><input type="number" id="hyd-s" placeholder="F.eks. 500"></div>
+                <div class="form-group"><label>Hastighed [mm/s]</label><input type="number" id="hyd-v" placeholder="F.eks. 170"></div>
+                <p id="err-tid" class="error-msg">Udfyld begge felter.</p>
+                <button class="btn" onclick="calcTid()">Beregn Tid</button>
+                <button class="btn btn-secondary" onclick="clearTid()">Ryd</button>
+                <div id="res-tid" class="result-box">
+                    <h3>Resultat:</h3>
+                    <p id="txt-tid"></p>
+                    <div class="formula-box" id="form-tid"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-900/40 py-8 text-center mt-12">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col items-center gap-3">
+            <div class="w-12 h-1 bg-blue-500 rounded-full mb-1"></div>
+            <p class="text-slate-300 text-sm">
+                Udviklet af <strong class="text-white font-semibold">Automatikteknikerne</strong>
+            </p>
+            <div class="flex items-center gap-2 text-xs text-slate-500 tracking-wide uppercase">
+                <span>⚙️ Automation</span>
+                <span>•</span>
+                <span>Teknik</span>
+                <span>•</span>
+                <span>Innovation</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelector('.hamburger').addEventListener('click', () => { document.querySelector('.nav-links').classList.toggle('active'); });
+        const fmt = n => Math.round(n * 100) / 100;
+
+        function calcKraft() {
+            let p = parseFloat(document.getElementById('hyd-p').value), d = parseFloat(document.getElementById('hyd-d').value);
+            if(isNaN(p) || isNaN(d)) { document.getElementById('err-kraft').style.display = 'block'; return; }
+            document.getElementById('err-kraft').style.display = 'none';
+
+            let r = d / 2;
+            let a_mm2 = Math.PI * (r * r); // Areal i mm²
+            let a_cm2 = a_mm2 / 100; // Areal i cm²
+            let f_N = (p * a_mm2) / 10; // F = p(bar) * A(mm²) / 10
+
+            document.getElementById('txt-kraft').innerHTML = `Areal: <strong>${fmt(a_cm2)} cm²</strong><br>Kraft (F): <strong>${fmt(f_N)} N</strong> (${fmt(f_N/1000)} kN)`;
+            document.getElementById('form-kraft').innerHTML = `A = π × r²<br>A = 3.14 × (${d}/2)² = ${fmt(a_mm2)} mm²<br><br>F(N) = (p × A) / 10<br>F = (${p} × ${fmt(a_mm2)}) / 10 = ${fmt(f_N)} N`;
+            document.getElementById('res-kraft').classList.add('active');
+        }
+        function clearKraft() { document.getElementById('hyd-p').value=''; document.getElementById('hyd-d').value=''; document.getElementById('res-kraft').classList.remove('active'); }
+
+        function calcHastighed() {
+            let q = parseFloat(document.getElementById('hyd-q').value), d = parseFloat(document.getElementById('hyd-d2').value);
+            if(isNaN(q) || isNaN(d)) { document.getElementById('err-hastighed').style.display = 'block'; return; }
+            document.getElementById('err-hastighed').style.display = 'none';
+
+            let r = d / 2;
+            let a_mm2 = Math.PI * (r * r);
+            let v_mms = (q * 16666.67) / a_mm2; // 1 l/min = 16666.67 mm³/s
+
+            document.getElementById('txt-hastighed').innerHTML = `Hastighed (v): <strong>${fmt(v_mms)} mm/s</strong><br>(${fmt(v_mms/1000)} m/s)`;
+            document.getElementById('form-hastighed').innerHTML = `v = Q / A<br>Q konverteret = ${q} × 16666.67 mm³/s<br>v = ${fmt(q * 16666.67)} / ${fmt(a_mm2)} = ${fmt(v_mms)} mm/s`;
+            document.getElementById('res-hastighed').classList.add('active');
+        }
+        function clearHastighed() { document.getElementById('hyd-q').value=''; document.getElementById('hyd-d2').value=''; document.getElementById('res-hastighed').classList.remove('active'); }
+
+        function calcTid() {
+            let s = parseFloat(document.getElementById('hyd-s').value), v = parseFloat(document.getElementById('hyd-v').value);
+            if(isNaN(s) || isNaN(v) || v === 0) { document.getElementById('err-tid').style.display = 'block'; return; }
+            document.getElementById('err-tid').style.display = 'none';
+
+            let t = s / v;
+            document.getElementById('txt-tid').innerHTML = `Tid (t): <strong>${fmt(t)} sekunder</strong>`;
+            document.getElementById('form-tid').innerHTML = `t = s / v<br>t = ${s} / ${v} = ${fmt(t)} s`;
+            document.getElementById('res-tid').classList.add('active');
+        }
+        function clearTid() { document.getElementById('hyd-s').value=''; document.getElementById('hyd-v').value=''; document.getElementById('res-tid').classList.remove('active'); }
+    </script>
+</body>
+</html>
