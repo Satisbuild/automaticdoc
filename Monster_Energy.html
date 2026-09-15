@@ -2,18 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ULTRA CLICKER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg-dark:#0a0d12;
     --bg-panel:#12161d;
+    --bg-row:#161c26;
+    --line:#1e2530;
+    --line-2:#232b38;
     --silver:#d8dde3;
     --silver-dark:#9aa3ad;
     --ice:#8fd7e8;
     --ice-glow:#c7f3ff;
     --accent:#e8eef2;
     --gold:#ffcf5c;
-    --danger:#5a6472;
+    --gold-deep:#c9962a;
+    --muted:#5f6977;
+    --good:#7fe0a8;
+    --bad:#e08a97;
+    --display:'Barlow Condensed','Segoe UI',Arial,sans-serif;
   }
   *{box-sizing:border-box;}
   html,body{
@@ -26,10 +36,10 @@
     font-family:'Segoe UI', Arial, sans-serif;
     overflow:hidden;
   }
-  #app{
-    display:flex;
-    height:100%;
-  }
+  button{font-family:inherit;}
+  :focus-visible{outline:2px solid var(--ice);outline-offset:2px;}
+  #app{display:flex;height:100%;}
+
   /* ---------- LEFT: CLICK ZONE ---------- */
   #clickzone{
     flex:1.15;
@@ -38,268 +48,324 @@
     align-items:center;
     justify-content:center;
     position:relative;
-    border-right:1px solid #1e2530;
+    border-right:1px solid var(--line);
     user-select:none;
+    -webkit-user-select:none;
+    overflow:hidden;
+    min-width:0;
   }
+  #fizz{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
   #counterPanel{
     position:relative;
-    padding:22px 44px;
+    padding:18px 44px 16px;
     border-radius:20px;
     background:linear-gradient(160deg, rgba(28,36,48,0.75), rgba(15,20,28,0.85));
     border:1px solid rgba(143,215,232,0.25);
-    box-shadow:
-      0 0 0 1px rgba(255,255,255,0.03) inset,
-      0 8px 30px rgba(0,0,0,0.5),
-      0 0 40px rgba(79,184,212,0.08);
+    box-shadow:0 0 0 1px rgba(255,255,255,0.03) inset,0 8px 30px rgba(0,0,0,0.5),0 0 40px rgba(79,184,212,0.08);
     backdrop-filter:blur(6px);
-    margin-bottom:32px;
+    margin-bottom:14px;
     text-align:center;
     overflow:hidden;
+    min-width:300px;
   }
   #counterPanel::before{
-    content:'';
-    position:absolute;
-    top:-40%; left:-20%;
-    width:140%; height:180%;
+    content:'';position:absolute;top:-40%;left:-20%;width:140%;height:180%;
     background:conic-gradient(from 0deg, transparent, rgba(143,215,232,0.12), transparent 30%);
-    animation:sweep 6s linear infinite;
-    pointer-events:none;
+    animation:sweep 6s linear infinite;pointer-events:none;
   }
-  @keyframes sweep{
-    to{ transform:rotate(360deg); }
-  }
+  @keyframes sweep{to{transform:rotate(360deg);}}
   #counter{
     position:relative;
-    font-size:3.1rem;
+    font-family:var(--display);
+    font-size:3.6rem;
+    line-height:1;
     font-weight:800;
-    letter-spacing:1px;
     font-variant-numeric:tabular-nums;
     background:linear-gradient(90deg, #eaf7fb, #8fd7e8 40%, #c7f3ff 60%, #eaf7fb);
     background-size:220% auto;
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:transparent;
+    -webkit-background-clip:text;background-clip:text;color:transparent;
     animation:shimmer 4s linear infinite;
-    text-shadow:0 0 30px rgba(143,215,232,0.35);
     transition:transform 0.12s ease;
+    white-space:nowrap;
   }
-  @keyframes shimmer{
-    to{ background-position:-220% center; }
-  }
-  #counter.pulse{
-    transform:scale(1.06);
-  }
-  #unit{
-    -webkit-text-fill-color:initial;
-    background:none;
+  @keyframes shimmer{to{background-position:-220% center;}}
+  #counter.pulse{transform:scale(1.05);}
+  #counterUnit{
+    display:block;
+    font-family:var(--display);
+    font-size:0.95rem;
+    letter-spacing:5px;
     color:var(--ice-glow);
-    font-size:0.55em;
-    letter-spacing:4px;
-    vertical-align:middle;
-    margin-left:6px;
-    opacity:0.85;
+    opacity:0.8;
+    margin-top:2px;
+    position:relative;
   }
   #perSec{
-    position:relative;
-    color:var(--silver-dark);
-    margin-top:6px;
-    margin-bottom:0;
-    font-size:0.85rem;
-    letter-spacing:0.5px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:6px;
+    position:relative;color:var(--silver-dark);margin-top:8px;font-size:0.85rem;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    font-variant-numeric:tabular-nums;
   }
-  #perSec .bolt{
-    color:var(--gold);
-    filter:drop-shadow(0 0 4px rgba(255,207,92,0.6));
+  #perSec .bolt{color:var(--gold);filter:drop-shadow(0 0 4px rgba(255,207,92,0.6));}
+  #perSec .boosted{color:var(--gold);font-weight:700;}
+
+  #buffs{display:flex;gap:8px;min-height:34px;margin-bottom:6px;flex-wrap:wrap;justify-content:center;position:relative;z-index:2;}
+  .buff{
+    position:relative;overflow:hidden;
+    display:flex;align-items:center;gap:6px;
+    padding:5px 10px 7px;border-radius:8px;
+    background:rgba(255,207,92,0.1);border:1px solid rgba(255,207,92,0.45);
+    color:var(--gold);font-size:0.78rem;font-weight:700;white-space:nowrap;
   }
+  .buff small{color:#e9d9ad;font-weight:500;}
+  .buff .bar{position:absolute;left:0;bottom:0;height:2px;background:var(--gold);}
+
   #canWrap{
-    cursor:pointer;
-    transform:scale(1);
+    cursor:pointer;position:relative;z-index:2;
     transition:transform 0.08s ease;
     filter:drop-shadow(0 20px 40px rgba(0,0,0,0.6));
+    border-radius:24px;
+    -webkit-tap-highlight-color:transparent;
   }
-  #canWrap:active{
-    transform:scale(0.94) rotate(-1deg);
-  }
-  #hint{
-    margin-top:22px;
-    color:var(--danger);
-    font-size:0.8rem;
-    letter-spacing:0.5px;
-  }
-  #saveRow{
-    margin-top:14px;
-    display:flex;
-    gap:10px;
-    align-items:center;
-  }
-  #saveStatus{
-    font-size:0.72rem;
-    color:var(--silver-dark);
-    min-width:90px;
-  }
-  #resetBtn{
-    background:none;
-    border:1px solid #3a4250;
-    color:var(--danger);
-    font-size:0.7rem;
-    letter-spacing:1px;
-    padding:5px 10px;
-    border-radius:6px;
-    cursor:pointer;
-  }
-  #resetBtn:hover{
-    border-color:#c0596a;
-    color:#e08a97;
-  }
+  #canWrap:hover{transform:scale(1.02);}
+  #canWrap.squash{transform:scale(0.94) rotate(-1.5deg);}
+  #theCan{display:block;height:min(420px,48vh);width:auto;}
+  #hint{margin-top:16px;color:var(--muted);font-size:0.8rem;position:relative;z-index:2;}
+
   .floater{
-    position:absolute;
-    font-weight:700;
-    color:var(--ice-glow);
-    pointer-events:none;
+    position:absolute;z-index:5;
+    font-family:var(--display);font-weight:700;font-size:1.5rem;
+    color:var(--ice-glow);pointer-events:none;
     animation:floatUp 0.9s ease-out forwards;
-    text-shadow:0 0 6px rgba(143,215,232,0.6);
+    text-shadow:0 0 6px rgba(143,215,232,0.6);white-space:nowrap;
   }
+  .floater.gold{color:var(--gold);text-shadow:0 0 8px rgba(255,207,92,0.7);font-size:1.9rem;}
   @keyframes floatUp{
-    0%{opacity:1; transform:translateY(0) scale(1);}
-    100%{opacity:0; transform:translateY(-70px) scale(1.2);}
+    0%{opacity:1;transform:translate(-50%,0) scale(1);}
+    100%{opacity:0;transform:translate(-50%,-80px) scale(1.2);}
   }
+
+  /* golden can */
+  .goldenCan{
+    position:absolute;z-index:6;width:56px;height:108px;padding:0;border:none;background:none;cursor:pointer;
+    animation:goldIn 0.6s ease-out, goldBob 2.4s ease-in-out 0.6s infinite;
+    filter:drop-shadow(0 0 14px rgba(255,207,92,0.85));
+  }
+  .goldenCan svg{width:100%;height:100%;display:block;}
+  .goldenCan.leaving{transition:opacity 0.5s;opacity:0;}
+  @keyframes goldIn{from{opacity:0;transform:scale(0.3) rotate(-20deg);}to{opacity:1;transform:scale(1) rotate(0);}}
+  @keyframes goldBob{0%,100%{transform:translateY(0) rotate(-6deg);}50%{transform:translateY(-10px) rotate(6deg);}}
+
+  /* toasts */
+  #toasts{
+    position:absolute;right:16px;bottom:52px;z-index:8;
+    display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none;
+    max-width:min(340px,90%);
+  }
+  .toast{
+    background:rgba(18,22,29,0.95);border:1px solid var(--line-2);border-left:3px solid var(--ice);
+    padding:9px 13px;border-radius:8px;font-size:0.8rem;color:var(--accent);
+    box-shadow:0 6px 20px rgba(0,0,0,0.4);animation:toastIn 0.25s ease-out;
+  }
+  .toast b{display:block;font-size:0.85rem;margin-bottom:1px;}
+  .toast.gold{border-left-color:var(--gold);}
+  .toast.gold b{color:var(--gold);}
+  .toast.achToast b{color:var(--ice-glow);}
+  .toast.out{opacity:0;transition:opacity 0.4s;}
+  @keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  /* news ticker */
+  #ticker{
+    position:absolute;left:0;right:0;bottom:0;z-index:3;
+    padding:10px 18px;border-top:1px solid var(--line);
+    background:rgba(10,13,18,0.7);
+    color:var(--silver-dark);font-size:0.8rem;text-align:center;
+    min-height:38px;
+  }
+  #tickerText{transition:opacity 0.4s;}
+  #tickerText.hide{opacity:0;}
 
   /* ---------- RIGHT: SHOP ---------- */
   #shop{
-    flex:1;
-    max-width:420px;
-    display:flex;
-    flex-direction:column;
-    background:var(--bg-panel);
+    flex:1;max-width:440px;min-width:340px;
+    display:flex;flex-direction:column;background:var(--bg-panel);min-height:0;
   }
   #shopHeader{
-    padding:18px 20px 12px 20px;
-    border-bottom:1px solid #1e2530;
+    padding:16px 18px 12px;border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:flex-end;gap:10px;
   }
-  #shopHeader h1{
-    margin:0;
-    font-size:1.1rem;
-    letter-spacing:2px;
-    color:var(--silver);
-  }
-  #shopHeader p{
-    margin:4px 0 0 0;
-    font-size:0.75rem;
-    color:var(--danger);
-  }
-  #tabs{
-    display:flex;
-    border-bottom:1px solid #1e2530;
-  }
+  #shopHeader h1{margin:0;font-family:var(--display);font-size:1.5rem;font-weight:700;color:var(--silver);letter-spacing:1px;}
+  #completion{margin-top:6px;width:170px;}
+  #completion .track{height:4px;border-radius:2px;background:var(--line-2);overflow:hidden;}
+  #completion .fill{height:100%;background:linear-gradient(90deg,var(--ice),var(--gold));width:0;transition:width 0.4s;}
+  #completion span{font-size:0.72rem;color:var(--silver-dark);display:block;margin-top:4px;}
+  #saveStatus{font-size:0.72rem;color:var(--muted);transition:color 0.3s;}
+  #saveStatus.flash{color:var(--ice);}
+
+  #tabs{display:flex;border-bottom:1px solid var(--line);}
   .tabBtn{
-    flex:1;
-    padding:10px;
-    text-align:center;
-    background:none;
-    border:none;
-    color:var(--silver-dark);
-    font-size:0.8rem;
-    letter-spacing:1px;
-    cursor:pointer;
-    border-bottom:2px solid transparent;
+    flex:1;padding:11px 4px;text-align:center;background:none;border:none;
+    color:var(--silver-dark);font-size:0.82rem;cursor:pointer;
+    border-bottom:2px solid transparent;position:relative;
   }
-  .tabBtn.active{
-    color:var(--ice-glow);
-    border-bottom:2px solid var(--ice);
+  .tabBtn:hover{color:var(--accent);}
+  .tabBtn.active{color:var(--ice-glow);border-bottom-color:var(--ice);}
+  .tabBtn .dot{position:absolute;top:8px;margin-left:3px;width:6px;height:6px;border-radius:50%;background:var(--gold);display:none;}
+  .tabBtn.notify .dot{display:inline-block;}
+
+  .panel{flex:1;overflow-y:auto;padding:12px 12px 20px;min-height:0;}
+  .panel[hidden]{display:none;}
+  .sectionHead{display:flex;justify-content:space-between;align-items:center;margin:4px 2px 8px;gap:8px;}
+  .sectionHead h2{margin:0;font-family:var(--display);font-size:1.15rem;font-weight:600;color:var(--silver);}
+  .sectionHead .meta{font-size:0.72rem;color:var(--muted);}
+  .note{font-size:0.75rem;color:var(--silver-dark);margin:0 2px 10px;line-height:1.45;}
+
+  /* upgrade grid */
+  #upgradeGrid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;min-height:48px;}
+  #upgradeGrid .empty{font-size:0.75rem;color:var(--muted);padding:14px 4px;}
+  .tile{
+    width:46px;height:46px;border-radius:9px;position:relative;
+    border:1px solid var(--line-2);background:var(--bg-row);
+    font-size:1.35rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    opacity:0.45;transition:border-color 0.15s,opacity 0.2s,background 0.15s;padding:0;color:inherit;
   }
-  #list{
-    flex:1;
-    overflow-y:auto;
-    padding:12px;
+  .tile.can{opacity:1;border-color:rgba(255,207,92,0.55);}
+  .tile:hover{border-color:var(--ice);background:#1c2430;}
+  .tile .badge{
+    position:absolute;right:2px;bottom:1px;font-family:var(--display);font-size:0.72rem;font-weight:700;
+    color:var(--ice-glow);text-shadow:0 0 3px #000,0 0 3px #000;
   }
+  .tile.kind-flavor{border-radius:50%;}
+  .tile.selected{border-color:var(--ice);box-shadow:0 0 0 2px rgba(143,215,232,0.3);}
+
+  /* bulk controls */
+  #bulk{display:flex;gap:4px;}
+  .seg{display:flex;border:1px solid var(--line-2);border-radius:7px;overflow:hidden;}
+  .seg button{background:none;border:none;color:var(--silver-dark);font-size:0.72rem;padding:4px 8px;cursor:pointer;}
+  .seg button.on{background:#1f2a36;color:var(--ice-glow);}
+  .seg button.sellOn{background:#3a2228;color:var(--bad);}
+
+  /* producers */
   .item{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding:10px 12px;
-    margin-bottom:8px;
-    border-radius:10px;
-    border:1px solid #232b38;
-    background:#161c26;
-    cursor:pointer;
-    transition:background 0.15s, border-color 0.15s, opacity 0.2s ease;
+    display:flex;align-items:center;gap:12px;padding:9px 12px;margin-bottom:7px;border-radius:10px;
+    border:1px solid var(--line-2);background:var(--bg-row);cursor:pointer;width:100%;text-align:left;color:inherit;
+    transition:background 0.15s,border-color 0.15s,opacity 0.2s;position:relative;
   }
-  .item:hover:not(.disabled){
-    background:#1c2430;
-    border-color:var(--ice);
-  }
-  .item.disabled{
-    opacity:0.45;
-    cursor:default;
-  }
-  .itemIcon{
-    width:38px;
-    height:38px;
-    flex-shrink:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:1.3rem;
-  }
-  .itemInfo{flex:1;}
-  .itemName{
-    font-weight:700;
-    font-size:0.88rem;
-    color:var(--accent);
-  }
-  .itemDesc{
-    font-size:0.72rem;
-    color:var(--silver-dark);
-    margin-top:1px;
-  }
-  .itemRight{
-    text-align:right;
-    min-width:64px;
-  }
-  .itemCost{
-    font-size:0.82rem;
-    font-weight:700;
-    color:var(--gold);
-  }
+  .item:hover:not(.disabled){background:#1c2430;border-color:var(--ice);}
+  .item.disabled{opacity:0.45;cursor:default;}
+  .item.mystery{opacity:0.35;cursor:default;}
+  .item.mystery .itemIcon{filter:brightness(0);}
+  .item.faint{opacity:0.18;}
+  .itemIcon{width:38px;height:38px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;}
+  .itemInfo{flex:1;min-width:0;}
+  .itemName{font-weight:700;font-size:0.9rem;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .itemSub{font-size:0.74rem;color:var(--silver-dark);margin-top:2px;font-variant-numeric:tabular-nums;}
+  .itemSub .cost{color:var(--gold);font-weight:700;}
+  .itemSub .cost.no{color:var(--bad);}
+  .itemSub .refund{color:var(--good);font-weight:700;}
   .itemOwned{
-    font-size:0.72rem;
-    color:var(--silver-dark);
+    font-family:var(--display);font-size:2rem;font-weight:700;color:#3b4553;min-width:40px;text-align:right;
+    font-variant-numeric:tabular-nums;
   }
+  .best{
+    position:absolute;top:-7px;right:10px;font-size:0.62rem;font-weight:700;
+    background:var(--good);color:#0b1a12;padding:1px 6px;border-radius:5px;display:none;
+  }
+  .item.isBest .best{display:block;}
+
+  /* achievements */
+  #achGrid{display:flex;flex-wrap:wrap;gap:5px;}
+  .ach{
+    width:40px;height:40px;border-radius:8px;border:1px solid var(--line-2);background:var(--bg-row);
+    display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:default;padding:0;color:inherit;
+  }
+  .ach.locked{opacity:0.25;filter:grayscale(1);}
+  .ach.got{border-color:rgba(143,215,232,0.4);}
+
+  /* stats */
+  .statGroup{margin-bottom:16px;}
+  .statRow{display:flex;justify-content:space-between;gap:12px;font-size:0.82rem;padding:5px 2px;border-bottom:1px solid #1a2029;}
+  .statRow span:first-child{color:var(--silver-dark);}
+  .statRow span:last-child{font-variant-numeric:tabular-nums;text-align:right;}
+  .statRow.total span{color:var(--gold);font-weight:700;}
+  .btnRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  .btn{
+    background:#1a212b;border:1px solid var(--line-2);color:var(--accent);
+    font-size:0.8rem;padding:8px 12px;border-radius:8px;cursor:pointer;
+  }
+  .btn:hover:not(:disabled){border-color:var(--ice);}
+  .btn:disabled{opacity:0.4;cursor:default;}
+  .btn.danger{color:var(--bad);}
+  .btn.danger:hover{border-color:var(--bad);}
+  .btn.primary{background:linear-gradient(180deg,#ffd978,#e0a93a);color:#2a1d05;border-color:#ffd978;font-weight:700;}
+  #saveText{width:100%;height:70px;margin-top:8px;background:#0e1218;color:var(--silver-dark);border:1px solid var(--line-2);border-radius:8px;font-size:0.7rem;padding:8px;resize:vertical;}
+
+  /* legacy */
+  .legacyHero{
+    border:1px solid rgba(255,207,92,0.3);border-radius:12px;padding:14px;margin-bottom:14px;
+    background:linear-gradient(160deg,rgba(255,207,92,0.08),rgba(255,207,92,0.02));
+  }
+  .legacyHero .lvl{font-family:var(--display);font-size:2.4rem;font-weight:800;color:var(--gold);line-height:1;}
+  .legacyHero .lvlSub{font-size:0.8rem;color:#e9d9ad;margin-top:2px;}
+  .legacyHero .track{height:6px;border-radius:3px;background:rgba(0,0,0,0.35);margin:12px 0 6px;overflow:hidden;}
+  .legacyHero .fill{height:100%;background:var(--gold);width:0;}
+  .legacyHero .small{font-size:0.74rem;color:var(--silver-dark);line-height:1.45;}
+  .lrow{
+    display:flex;gap:12px;align-items:center;padding:10px 12px;margin-bottom:7px;border-radius:10px;
+    border:1px solid var(--line-2);background:var(--bg-row);width:100%;text-align:left;color:inherit;cursor:pointer;
+  }
+  .lrow:hover:not(:disabled){border-color:var(--gold);}
+  .lrow:disabled{opacity:0.45;cursor:default;}
+  .lrow.owned{border-color:rgba(255,207,92,0.35);opacity:1;cursor:default;}
+  .lrow .itemName{white-space:normal;}
+  .lrow .lcost{font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--gold);white-space:nowrap;}
+  .lrow.owned .lcost{color:var(--good);font-size:0.85rem;}
+
+  /* tooltip */
+  #tooltip{
+    position:fixed;z-index:60;max-width:300px;pointer-events:none;
+    background:#0e1319;border:1px solid #2c3644;border-radius:10px;padding:10px 12px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.55);font-size:0.78rem;color:var(--silver-dark);line-height:1.45;
+    display:none;
+  }
+  #tooltip .tName{font-weight:700;color:var(--accent);font-size:0.9rem;}
+  #tooltip .tCost{color:var(--gold);font-weight:700;float:right;margin-left:12px;}
+  #tooltip .tCost.no{color:var(--bad);}
+  #tooltip .tDesc{margin-top:4px;color:var(--silver);}
+  #tooltip .tLine{margin-top:4px;}
+  #tooltip .tLine b{color:var(--accent);font-weight:600;}
+  #tooltip .tFlavor{margin-top:6px;font-style:italic;color:var(--muted);}
+  #tooltip .tTap{margin-top:6px;color:var(--ice);}
+
+  /* modal */
+  #modal{position:fixed;inset:0;z-index:80;background:rgba(5,7,10,0.7);display:flex;align-items:center;justify-content:center;padding:20px;}
+  #modal[hidden]{display:none;}
+  #modalBox{background:var(--bg-panel);border:1px solid var(--line-2);border-radius:14px;padding:20px;max-width:380px;width:100%;}
+  #modalBox h3{margin:0 0 8px;font-family:var(--display);font-size:1.5rem;color:var(--silver);}
+  #modalBox p{margin:0 0 16px;font-size:0.85rem;color:var(--silver-dark);line-height:1.5;}
+
   ::-webkit-scrollbar{width:8px;}
   ::-webkit-scrollbar-thumb{background:#232b38;border-radius:4px;}
 
   #backBtn{
-    position:fixed;
-    top:16px;
-    left:16px;
-    z-index:50;
-    display:flex;
-    align-items:center;
-    gap:6px;
-    padding:8px 14px;
-    border-radius:999px;
-    background:rgba(18,22,29,0.85);
-    border:1px solid rgba(143,215,232,0.3);
-    color:var(--accent);
-    text-decoration:none;
-    font-size:0.8rem;
-    letter-spacing:0.5px;
-    backdrop-filter:blur(4px);
-    transition:border-color 0.15s, color 0.15s, transform 0.1s;
+    position:fixed;top:16px;left:16px;z-index:50;display:flex;align-items:center;gap:6px;
+    padding:8px 14px;border-radius:999px;background:rgba(18,22,29,0.85);
+    border:1px solid rgba(143,215,232,0.3);color:var(--accent);text-decoration:none;font-size:0.8rem;
+    backdrop-filter:blur(4px);transition:border-color 0.15s,color 0.15s,transform 0.1s;
   }
-  #backBtn:hover{
-    border-color:var(--ice);
-    color:var(--ice-glow);
-    transform:translateY(-1px);
+  #backBtn:hover{border-color:var(--ice);color:var(--ice-glow);transform:translateY(-1px);}
+  #backBtn svg{width:14px;height:14px;stroke:currentColor;}
+
+  @media (max-width:820px){
+    html,body{overflow:auto;height:auto;}
+    #app{flex-direction:column;height:auto;}
+    #clickzone{min-height:92vh;border-right:none;border-bottom:1px solid var(--line);padding:70px 0 60px;}
+    #shop{max-width:none;min-width:0;height:90vh;}
+    #theCan{height:min(340px,40vh);}
+    #counter{font-size:2.8rem;}
+    #counterPanel{min-width:0;padding:16px 28px 14px;}
   }
-  #backBtn svg{
-    width:14px;
-    height:14px;
-    stroke:currentColor;
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:0.001s !important;animation-iteration-count:1 !important;transition-duration:0.001s !important;}
   }
 </style>
 </head>
@@ -310,12 +376,15 @@
 </a>
 <div id="app">
 
-  <div id="clickzone">
+  <main id="clickzone">
+    <canvas id="fizz" aria-hidden="true"></canvas>
     <div id="counterPanel">
-      <div id="counter">0 <span id="unit">ENERGY</span></div>
-      <div id="perSec"><span class="bolt">⚡</span><span id="perSecText">0 energy / sec</span></div>
+      <div id="counter"><span id="counterNum">0</span></div>
+      <span id="counterUnit">energy</span>
+      <div id="perSec"><span class="bolt">⚡</span><span id="perSecText">0 per second</span></div>
     </div>
-    <div id="canWrap">
+    <div id="buffs" aria-live="polite"></div>
+    <div id="canWrap" role="button" tabindex="0" aria-label="Drink the can">
       <svg id="theCan" width="180" height="420" viewBox="0 0 180 420" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="0">
@@ -333,311 +402,1246 @@
             <stop offset="100%" stop-color="#e7ebee"/>
           </linearGradient>
         </defs>
-
-        <!-- lid -->
         <rect x="30" y="6" width="120" height="26" rx="10" fill="url(#capGrad)" stroke="#8b929a" stroke-width="1.5"/>
         <ellipse cx="90" cy="8" rx="60" ry="6" fill="#c7ccd1"/>
-
-        <!-- body -->
         <rect x="18" y="30" width="144" height="372" rx="20" fill="url(#bodyGrad)" stroke="#9aa3ad" stroke-width="2"/>
-
-        <!-- top ring -->
         <rect x="18" y="34" width="144" height="10" fill="#00000010"/>
-
-        <!-- ZERO SUGAR band -->
         <rect x="18" y="46" width="144" height="26" fill="#101317"/>
         <text x="90" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="15" fill="#ffffff" letter-spacing="2">ZERO SUGAR</text>
-
-        <!-- bolt mark (original, not brand logo) -->
         <g stroke="#0d0f12" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round">
           <path d="M55 105 L70 190 L85 150 L95 260"/>
           <path d="M90 105 L105 190 L120 150 L130 260"/>
           <path d="M125 105 L140 190 L150 150 L145 250" opacity="0.85"/>
         </g>
-
-        <!-- wordmark -->
         <text x="90" y="305" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="27" fill="#12151a" letter-spacing="1">COLD</text>
         <text x="90" y="330" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="15" fill="#4fb8d4" letter-spacing="4">ENERGY</text>
         <rect x="55" y="345" width="70" height="20" rx="4" fill="#101317"/>
         <text x="90" y="360" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="12" fill="#ffffff" letter-spacing="3">ULTRA</text>
-
-        <!-- bottom rim -->
         <rect x="18" y="392" width="144" height="10" fill="#00000012"/>
         <ellipse cx="90" cy="402" rx="72" ry="7" fill="#b9c0c6"/>
       </svg>
     </div>
-    <div id="hint">click the can</div>
-    <div id="saveRow">
-      <span id="saveStatus">progress saved</span>
-      <button id="resetBtn">RESET SAVE</button>
-    </div>
-  </div>
+    <div id="hint">Click the can. Watch for golden cans.</div>
+    <div id="toasts" aria-live="polite"></div>
+    <div id="ticker"><span id="tickerText"></span></div>
+  </main>
 
-  <div id="shop">
-    <div id="shopHeader">
-      <h1>SUPPLY CHAIN</h1>
-      <p>spend energy to make more energy</p>
-    </div>
-    <div id="tabs">
-      <button class="tabBtn active" data-tab="buildings">PRODUCERS</button>
-      <button class="tabBtn" data-tab="upgrades">UPGRADES</button>
-    </div>
-    <div id="list"></div>
-  </div>
+  <aside id="shop">
+    <header id="shopHeader">
+      <div>
+        <h1>Supply chain</h1>
+        <div id="completion"><div class="track"><div class="fill" id="completionFill"></div></div><span id="completionText">0% complete</span></div>
+      </div>
+      <span id="saveStatus">Saved</span>
+    </header>
+    <nav id="tabs">
+      <button class="tabBtn active" data-tab="store">Store</button>
+      <button class="tabBtn" data-tab="ach">Achievements<span class="dot"></span></button>
+      <button class="tabBtn" data-tab="stats">Stats</button>
+      <button class="tabBtn" data-tab="legacy">Legacy<span class="dot"></span></button>
+    </nav>
 
+    <section class="panel" id="tab-store">
+      <div class="sectionHead"><h2>Upgrades</h2><span class="meta" id="upMeta"></span></div>
+      <div id="upgradeGrid"></div>
+      <div class="sectionHead">
+        <h2>Producers</h2>
+        <div id="bulk">
+          <div class="seg" id="modeSeg"><button data-mode="buy" class="on">Buy</button><button data-mode="sell">Sell</button></div>
+          <div class="seg" id="amtSeg"><button data-amt="1" class="on">1</button><button data-amt="10">10</button><button data-amt="100">100</button></div>
+        </div>
+      </div>
+      <div id="buildingList"></div>
+    </section>
+
+    <section class="panel" id="tab-ach" hidden>
+      <div class="sectionHead"><h2>Achievements</h2><span class="meta" id="achMeta"></span></div>
+      <p class="note">Every achievement adds 4% chill. Chill does nothing on its own, but chill upgrades turn it into extra production.</p>
+      <div id="achGrid"></div>
+    </section>
+
+    <section class="panel" id="tab-stats" hidden>
+      <div id="statsBody"></div>
+      <div class="statGroup">
+        <div class="sectionHead"><h2>Save</h2></div>
+        <p class="note">Your progress saves automatically every 10 seconds. Export a save code to keep a backup or move it to another browser.</p>
+        <div class="btnRow">
+          <button class="btn" id="exportBtn">Export save</button>
+          <button class="btn" id="importBtn">Import save</button>
+          <button class="btn danger" id="resetBtn">Reset everything</button>
+        </div>
+        <textarea id="saveText" placeholder="Save code appears here. Paste a code here, then press Import save." spellcheck="false"></textarea>
+      </div>
+    </section>
+
+    <section class="panel" id="tab-legacy" hidden>
+      <div id="legacyHero"></div>
+      <div class="sectionHead"><h2>Legacy upgrades</h2><span class="meta" id="legacyMeta"></span></div>
+      <p class="note">Bought with legacy cans. These stay with you through every rebrand.</p>
+      <div id="legacyList"></div>
+    </section>
+  </aside>
 </div>
 
+<div id="tooltip" role="tooltip"></div>
+<div id="modal" hidden>
+  <div id="modalBox" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle"></h3>
+    <p id="modalText"></p>
+    <div class="btnRow">
+      <button class="btn" id="modalCancel">Cancel</button>
+      <button class="btn primary" id="modalOk">OK</button>
+    </div>
+  </div>
+</div>
 <script>
 (function(){
-  let energy = 0;
-  let clickPower = 1;
-  let perSec = 0;
-  let currentTab = 'buildings';
+'use strict';
 
-  const buildings = [
-    { id:'vend',   name:'Vending Machine',   desc:'A humble start.',        icon:'🥤', base:15,      rate:0.1,  owned:0 },
-    { id:'intern', name:'Intern Runner',     desc:'Fetches from the fridge.', icon:'🏃', base:100,     rate:1,    owned:0 },
-    { id:'truck',  name:'Delivery Truck',    desc:'Cases by the hour.',     icon:'🚚', base:1100,    rate:8,    owned:0 },
-    { id:'plant',  name:'Bottling Plant',    desc:'Cans off the line.',     icon:'🏭', base:12000,   rate:47,   owned:0 },
-    { id:'ware',   name:'Warehouse',         desc:'Pallets stacked high.',  icon:'📦', base:130000,  rate:260,  owned:0 },
-    { id:'dist',   name:'Distribution Hub',  desc:'Nationwide reach.',      icon:'🛰️', base:1400000, rate:1400, owned:0 },
-    { id:'sat',    name:'Orbital Dispenser', desc:'Energy, from space.',    icon:'🛸', base:2e7,      rate:26000,owned:0 },
-  ];
+/* =====================================================================
+   GAME DATA
+   The math, in short:
+   - Every producer costs 15% more than the last one you bought.
+   - Each new tier of producer costs ~12x more and makes ~6x more, so it
+     takes roughly twice as long to pay for itself. Stacking cheap
+     producers is good early, but their price climbs until the next tier
+     is the better deal.
+   - Every producer upgrade doubles that producer (x2).
+   - Flavor, chill and legacy bonuses multiply ALL production.
+   ===================================================================== */
 
-  const upgrades = [
-    { id:'grip',  name:'Better Grip',      desc:'Double click power.',       icon:'✋', cost:100,   applied:false, effect:()=>{clickPower*=2;} },
-    { id:'ice',   name:'Ice Cold Formula', desc:'Double click power again.', icon:'🧊', cost:1000,  applied:false, effect:()=>{clickPower*=2;} },
-    { id:'crate', name:'Bulk Crates',      desc:'Producers +25% output.',    icon:'🗃️', cost:5000,  applied:false, effect:()=>{applyProdBoost(1.25);} },
-    { id:'ads',   name:'Extreme Marketing',desc:'Producers +50% output.',    icon:'📣', cost:50000, applied:false, effect:()=>{applyProdBoost(1.5);} },
-    { id:'gold',  name:'Golden Can',       desc:'Click power x5.',           icon:'⭐', cost:250000,applied:false, effect:()=>{clickPower*=5;} },
-  ];
+const BUILDINGS = [
+  { id:'vend',    name:'Vending Machine',     plural:'Vending Machines',     icon:'🥤', base:15,      rate:0.1,    desc:'A humble start. Also powers the vending network.' },
+  { id:'intern',  name:'Intern Runner',       plural:'Intern Runners',       icon:'🏃', base:100,     rate:1,      desc:'Fetches cans from the office fridge.' },
+  { id:'truck',   name:'Delivery Truck',      plural:'Delivery Trucks',      icon:'🚚', base:1100,    rate:8,      desc:'Cases by the hour.' },
+  { id:'plant',   name:'Bottling Plant',      plural:'Bottling Plants',      icon:'🏭', base:12000,   rate:47,     desc:'Cans off the line, around the clock.' },
+  { id:'ware',    name:'Warehouse',           plural:'Warehouses',           icon:'📦', base:130000,  rate:260,    desc:'Pallets stacked to the ceiling.' },
+  { id:'dist',    name:'Distribution Hub',    plural:'Distribution Hubs',    icon:'🛰️', base:1.4e6,   rate:1400,   desc:'Nationwide reach.' },
+  { id:'lab',     name:'Flavor Lab',          plural:'Flavor Labs',          icon:'🧪', base:2e7,     rate:7800,   desc:'Scientists chasing the perfect fizz.' },
+  { id:'arena',   name:'Stadium Deal',        plural:'Stadium Deals',        icon:'🏟️', base:3.3e8,   rate:44000,  desc:'Every seat comes with a cooler.' },
+  { id:'sat',     name:'Orbital Dispenser',   plural:'Orbital Dispensers',   icon:'🛸', base:5.1e9,   rate:260000, desc:'Energy, from space.' },
+  { id:'cloud',   name:'Caffeine Cloud',      plural:'Caffeine Clouds',      icon:'🌩️', base:7.5e10,  rate:1.6e6,  desc:'Seeds storms that rain pure carbonation.' },
+  { id:'reactor', name:'Taurine Reactor',     plural:'Taurine Reactors',     icon:'⚛️', base:1e12,    rate:1e7,    desc:'Splits amino acids for raw power.' },
+  { id:'chrono',  name:'Chrono Fridge',       plural:'Chrono Fridges',       icon:'⏳', base:1.4e13,  rate:6.5e7,  desc:'Chills cans you have not drunk yet.' },
+  { id:'portal',  name:'Fizz Portal',         plural:'Fizz Portals',         icon:'🌀', base:1.7e14,  rate:4.3e8,  desc:'Imports cans from wetter dimensions.' },
+  { id:'star',    name:'Can Forge Star',      plural:'Can Forge Stars',      icon:'🌟', base:2.1e15,  rate:2.9e9,  desc:'A sun, hammered into aluminum.' },
+  { id:'hive',    name:'Hive Mind Crew',      plural:'Hive Mind Crews',      icon:'🧠', base:2.6e16,  rate:2.1e10, desc:'A billion minds, one craving.' },
+  { id:'multi',   name:'Multiverse Franchise',plural:'Multiverse Franchises',icon:'🪐', base:3.1e17,  rate:1.5e11, desc:'A store on every timeline.' },
+  { id:'tap',     name:'The Eternal Tap',     plural:'Eternal Taps',         icon:'🚰', base:7.1e19,  rate:1.1e12, desc:'Nobody remembers turning it on.' },
+];
+const BMAP = {}; BUILDINGS.forEach((b,i)=>{ b.index=i; BMAP[b.id]=b; });
 
-  let prodMultiplier = 1;
-  function applyProdBoost(mult){ prodMultiplier *= mult; }
+const TIER_REQ   = [1, 5, 25, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
+const TIER_COST  = [10, 50, 500, 5e4, 5e6, 5e8, 5e11, 5e14, 5e17, 5e20, 5e23, 5e26, 5e29];
+const TIER_WORDS = ['Reinforced','Chilled','Carbonated','Double-shot','Titanium','Cryogenic','Plasma-sealed','Quantum','Void-cooled','Celestial','Mythic','Cosmic','Absolute'];
 
-  const counterEl = document.getElementById('counter');
-  const unitEl = document.getElementById('unit');
-  const perSecTextEl = document.getElementById('perSecText');
-  const listEl = document.getElementById('list');
-  const canWrap = document.getElementById('canWrap');
-  const saveStatusEl = document.getElementById('saveStatus');
-  const resetBtn = document.getElementById('resetBtn');
+const UPGRADES = [];
+const add = u => UPGRADES.push(u);
 
-  const SAVE_KEY = 'ultraClickerSave';
+// click doublers
+[['grip','Better Grip','✋',100],['ice','Ice Cold Formula','🧊',500],['armor','Wrist Armor','🦾',10000]]
+  .forEach(([id,name,icon,cost])=>add({ id,name,icon,cost,kind:'clickx2', desc:'Clicks are twice as strong.' }));
 
-  function saveGame(){
-    try{
-      const data = {
-        energy,
-        clickPower,
-        prodMultiplier,
-        buildings: buildings.map(b=>({ id:b.id, owned:b.owned })),
-        upgrades: upgrades.map(u=>({ id:u.id, applied:u.applied }))
-      };
-      localStorage.setItem(SAVE_KEY, JSON.stringify(data));
-      if(saveStatusEl) saveStatusEl.textContent = 'progress saved';
-    }catch(err){
-      console.error('Save failed:', err);
-      if(saveStatusEl) saveStatusEl.textContent = 'save failed';
+// click % of production
+['Aluminum Knuckles','Titanium Fingertips','Ceramic Wristband','Carbon Tendons','Diamond Thumbs','Plasma Palms','Neutron Knuckles','Singularity Grip']
+  .forEach((name,i)=>add({ id:'pct'+i, name, icon:'👊', cost:[5e4,5e6,5e8,5e10,5e13,5e16,5e19,5e22][i], kind:'clickpct', value:0.01,
+    desc:'Each click also gives 1% of your energy per second.' }));
+
+// producer tiers
+BUILDINGS.forEach(b=>{
+  TIER_REQ.forEach((req,t)=>add({
+    id:`t_${b.id}_${t}`, name:`${TIER_WORDS[t]} ${b.plural}`, icon:b.icon, badge:t+1,
+    cost:b.base*TIER_COST[t], kind:'tier', building:b.id, tier:t, req,
+    desc:`${b.plural} are twice as efficient.`, unlockText:`Unlocked by owning ${req} ${req===1?b.name:b.plural}.`
+  }));
+});
+
+// vending network (like Cookie Clicker's "thousand fingers")
+[
+  { name:'Vending Network',     cost:1e5,  req:25,  value:0.1 },
+  { name:'Smart Coin Slots',    cost:1e7,  req:50,  value:5 },
+  { name:'Wireless Refills',    cost:1e8,  req:100, value:10 },
+  { name:'Machine Uprising',    cost:1e10, req:150, value:20 },
+  { name:'Dispenser Hivemind',  cost:1e13, req:200, value:20 },
+  { name:'Galactic Kiosks',     cost:1e16, req:250, value:20 },
+  { name:'Omnipresent Vending', cost:1e19, req:300, value:20 },
+].forEach((n,i)=>add({
+  id:'net'+i, name:n.name, icon:'📶', badge:i+1, cost:n.cost, kind:'network', level:i, req:n.req, value:n.value,
+  desc: i===0
+    ? 'Each Vending Machine and each click gains +0.1 energy for every other producer you own.'
+    : `Multiplies the vending network bonus by ${n.value}.`,
+  unlockText:`Unlocked by owning ${n.req} Vending Machines.`
+}));
+
+// flavors: global multipliers
+const FLAVORS = ['Arctic Mint','Citrus Static','Mango Thunder','Glacier Berry','Midnight Cola','Dragonfruit Drift','Peach Voltage','Lime Circuit','Frost Grape','Cherry Coil',
+  'Pineapple Pulse','Watermelon Wave','Yuzu Spark','Blackcurrant Blitz','Coconut Current','Lychee Lightning','Guava Gale','Passionfruit Plasma','Blood Orange Boost','Kiwi Kinetics',
+  'Pomegranate Pressure','Raspberry Reactor','Blueberry Blackout','Salted Caramel Surge','Vanilla Vortex','Cosmic Cream','Void Berry','Nebula Nectar','Quasar Quench','The Last Flavor'];
+const FL_ICONS = ['🌿','🍋','🥭','🫐','🥤','🐉','🍑','🍈','🍇','🍒','🍍','🍉','🍊','🫐','🥥','⚡','🍐','💜','🍊','🥝','🍎','🍓','🔵','🍯','🍦','🌌','🕳️','🌠','💫','👑'];
+FLAVORS.forEach((name,i)=>{
+  const pct = i<10 ? 0.10 : i<20 ? 0.15 : 0.20;
+  add({ id:'fl'+i, name, icon:FL_ICONS[i], cost:5e4*Math.pow(7,i), kind:'flavor', value:pct, desc:`All production +${Math.round(pct*100)}%.` });
+});
+
+// golden can upgrades
+add({ id:'gold0', name:'Shiny Aluminum', icon:'✨', cost:7.77e6,  kind:'goldfreq', req:7,  desc:'Golden cans appear twice as often and stay twice as long.', unlockText:'Unlocked by clicking 7 golden cans.' });
+add({ id:'gold1', name:'Mirror Finish',  icon:'🪞', cost:7.77e9,  kind:'goldfreq', req:27, desc:'Golden cans appear twice as often and stay twice as long.', unlockText:'Unlocked by clicking 27 golden cans.' });
+add({ id:'gold2', name:'Lucky Seal',     icon:'🍀', cost:7.77e12, kind:'golddur',  req:77, desc:'Golden can effects last twice as long.', unlockText:'Unlocked by clicking 77 golden cans.' });
+
+// chill: turns achievements into production
+[
+  { name:'Ice Cube Tray',   cost:9e6,  req:13,  k:0.10 },
+  { name:'Freezer Chest',   cost:9e9,  req:25,  k:0.125 },
+  { name:'Glacier Vault',   cost:9e13, req:50,  k:0.15 },
+  { name:'Frost Engine',    cost:9e17, req:75,  k:0.175 },
+  { name:'Permafrost Core', cost:9e21, req:100, k:0.20 },
+  { name:'Absolute Zero',   cost:9e25, req:125, k:0.20 },
+  { name:'Cryo Crown',      cost:9e29, req:150, k:0.20 },
+  { name:'Frozen Eternity', cost:9e33, req:175, k:0.20 },
+].forEach((c,i)=>add({
+  id:'chill'+i, name:c.name, icon:'❄️', badge:i+1, cost:c.cost, kind:'chill', req:c.req, value:c.k,
+  desc:`All production +${+(c.k*100).toFixed(1)}% for every 100% chill you have.`, unlockText:`Unlocked at ${c.req} achievements.`
+}));
+
+const UMAP = {}; UPGRADES.forEach(u=>UMAP[u.id]=u);
+
+const LEGACY = [
+  { id:'cold1',    name:'Cold Storage I',   icon:'🧊', cost:1,       desc:'While you are away, production runs at 25% instead of 10%.' },
+  { id:'muscle',   name:'Muscle Memory',    icon:'💪', cost:3,       desc:'Clicks are twice as strong, forever.' },
+  { id:'loyal',    name:'Brand Loyalty',    icon:'🏷️', cost:5,       desc:'All production +10%.' },
+  { id:'touch',    name:'Golden Touch',     icon:'✨', cost:7,       desc:'Golden cans appear 10% more often.' },
+  { id:'cold2',    name:'Cold Storage II',  icon:'🧊', cost:25,      req:'cold1', desc:'Away production runs at 50%.' },
+  { id:'formula',  name:'Secret Formula',   icon:'📜', cost:50,      desc:'All production +25%.' },
+  { id:'kit',      name:'Franchise Kit',    icon:'🎁', cost:150,     desc:'Start every run with 10 each of the first four producers.' },
+  { id:'shelf',    name:'Long Shelf Life',  icon:'📆', cost:333,     desc:'Golden can effects last 25% longer.' },
+  { id:'discount', name:'Bulk Suppliers',   icon:'🤝', cost:777,     desc:'Producers cost 5% less.' },
+  { id:'cold3',    name:'Cold Storage III', icon:'🧊', cost:1000,    req:'cold2', desc:'Away production runs at 90%, for up to 48 hours.' },
+  { id:'deep',     name:'Deep Freeze',      icon:'🥶', cost:2222,    desc:'Chill upgrades are 10% more effective.' },
+  { id:'recipe',   name:'Original Recipe',  icon:'🧾', cost:5000,    req:'formula', desc:'All production +50%.' },
+  { id:'destiny',  name:'Can of Destiny',   icon:'🔮', cost:25000,   req:'touch', desc:'Golden cans appear 15% more often, and Lucky Sips pay double.' },
+  { id:'eternal',  name:'Eternal Flavor',   icon:'♾️', cost:77777,   desc:'Each legacy level gives +1.5% production instead of +1%.' },
+  { id:'final',    name:'The Final Can',    icon:'🏆', cost:1000000, desc:'Doubles all production. This is the end of the game. You can keep playing.' },
+];
+const LMAP = {}; LEGACY.forEach(l=>LMAP[l.id]=l);
+
+/* ---------- ACHIEVEMENTS ---------- */
+const ACH = [];
+const ach = (id,name,desc,icon,test)=>ACH.push({id,name,desc,icon,test});
+
+const EARN_NAMES = ['First sip','Casual sipper','Regular','Buzzed','Wired','Jittery','Overcharged','Voltage junkie','Human battery','Walking power plant',
+  'Grid operator','Continental current','Planetary charge','Solar flare','Stellar output','Galactic surge','Cosmic current','Universal voltage','The big fizz',
+  'Heat death postponed','Energy itself'];
+const EARN_AT = [1,1e3,1e5,1e6,1e8,1e9,1e11,1e12,1e14,1e15,1e17,1e18,1e20,1e21,1e23,1e24,1e26,1e27,1e30,1e33,1e36];
+EARN_AT.forEach((n,i)=>ach('earn'+i, EARN_NAMES[i], `Make ${fmt(n)} energy in one run.`, '⚡', ()=>S.runEarned>=n));
+
+const EPS_NAMES = ['Trickle','Drip feed','Steady stream','Current','Surge','Torrent','Flood','Deluge','Tidal wave','Downpour','Cloudburst',
+  'Hurricane','Maelstrom','Jet stream','Solar wind','Plasma flow','Stellar stream','Galactic jet','Quasar beam','Cosmic river','Universal flow','Omnicurrent'];
+EPS_NAMES.forEach((name,i)=>{ const n=Math.pow(10,i); ach('eps'+i, name, `Reach ${fmt(n)} energy per second.`, '🌊', ()=>C.raw>=n); });
+
+[[1,'Pop the tab'],[100,'Tapper'],[1000,'Button masher'],[10000,'Carpal tunnel'],[50000,'Iron finger']]
+  .forEach(([n,name],i)=>ach('clk'+i, name, `Click the can ${fmt(n)} ${n===1?'time':'times'}.`, '👆', ()=>S.clicksAll>=n));
+['Hand crafted','Elbow grease','Artisan energy','Click master','Finger of fate','Tactile titan','Palm of power','Handmade horizon','The clicking hand']
+  .forEach((name,i)=>{ const n=Math.pow(10,3+2*i); ach('hand'+i, name, `Make ${fmt(n)} energy from clicking, in total.`, '✋', ()=>S.handmadeAll>=n); });
+
+const BCOUNTS = [1,25,50,100,150,200];
+BUILDINGS.forEach(b=>BCOUNTS.forEach((n,i)=>ach(`b_${b.id}_${i}`, n===1?`First ${b.name}`:`${n} ${b.plural}`,
+  `Own ${n} ${n===1?b.name:b.plural}.`, b.icon, ()=>(S.owned[b.id]||0)>=n)));
+
+[[100,'Small business'],[500,'Corporation'],[1000,'Conglomerate'],[2000,'Megacorp'],[4000,'Planet-sized payroll']]
+  .forEach(([n,name],i)=>ach('tot'+i, name, `Own ${fmt(n)} producers in total.`, '🏢', ()=>totalOwned()>=n));
+[[20,'Tinkerer'],[50,'Enhancer'],[100,'Augmenter'],[150,'Upgrade addict'],[200,'Fully loaded']]
+  .forEach(([n,name],i)=>ach('ups'+i, name, `Buy ${n} upgrades in one run.`, '🔧', ()=>Object.keys(S.upgrades).length>=n));
+[[1,'Golden sip'],[7,'Lucky can'],[27,'Gold rush'],[77,'Midas thirst'],[777,'Liquid gold']]
+  .forEach(([n,name],i)=>ach('gold'+i, name, `Click ${n} golden ${n===1?'can':'cans'}.`, '🌟', ()=>S.golden>=n));
+[[1,'Fresh label'],[5,'Rebrand veteran'],[10,'Serial rebrander'],[25,'Brand immortal']]
+  .forEach(([n,name],i)=>ach('reb'+i, name, `Rebrand ${n} ${n===1?'time':'times'}.`, '🏷️', ()=>S.rebrands>=n));
+[[1,'Legacy begins'],[100,'Heritage brand'],[1e4,'Dynasty'],[1e6,'Timeless']]
+  .forEach(([n,name],i)=>ach('lvl'+i, name, `Reach legacy level ${fmt(n)}.`, '👑', ()=>S.legacyLevel>=n));
+
+ach('sell',     'Sellout',       'Sell a producer.', '💸', ()=>S.flags.sold);
+ach('speed',    'Speed demon',   'Click 15 times within one second.', '💨', ()=>S.flags.speed);
+ach('double',   'Double chill',  'Have two golden can effects active at once.', '🎰', ()=>S.flags.double);
+ach('minimal',  'No machines needed', 'Make 1M energy in one run without buying a Vending Machine.', '🚫', ()=>S.runEarned>=1e6 && !S.flags.vendRun && !(S.owned.vend>0));
+ach('time1',    'Night shift',   'Play for 1 hour.',   '🌙', ()=>S.playTime>=3600);
+ach('time2',    'Dedicated',     'Play for 10 hours.', '☕', ()=>S.playTime>=36000);
+ach('time3',    'Lifer',         'Play for 100 hours.','🪦', ()=>S.playTime>=360000);
+
+/* ---------- FORMATTING ---------- */
+function fmt(n, dec){
+  if(!isFinite(n)) return '∞';
+  if(n<0) return '-'+fmt(-n,dec);
+  if(n<1e6){
+    if(dec && n<100 && n!==Math.floor(n)) return (Math.floor(n*10)/10).toLocaleString('en-US');
+    return Math.floor(n).toLocaleString('en-US');
+  }
+  const UNITS=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc','UDc','DDc','TDc','QaDc','QiDc','SxDc','SpDc','OcDc','NoDc','Vg'];
+  const e = Math.floor(Math.log10(n)/3);
+  if(e>=UNITS.length) return n.toExponential(2);
+  const v = Math.floor(n/Math.pow(1000,e)*1000)/1000;
+  return v.toFixed(v>=100?1:v>=10?2:3) + ' ' + UNITS[e];
+}
+function fmtTime(s){
+  if(!isFinite(s) || s>3.15e9) return 'a very long time';
+  s = Math.max(0, Math.ceil(s));
+  const d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60), sec=s%60;
+  if(d>=365) return fmt(Math.floor(d/365))+' years';
+  if(d) return `${d}d ${h}h`;
+  if(h) return `${h}h ${m}m`;
+  if(m) return `${m}m ${sec}s`;
+  return `${sec}s`;
+}
+const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- STATE ---------- */
+const SAVE_KEY = 'ultraClickerSave_v2';
+const OLD_KEY  = 'ultraClickerSave';
+
+function freshState(){
+  return {
+    v:2, energy:0, runEarned:0, allTimeEarned:0,
+    handmadeRun:0, handmadeAll:0, clicksRun:0, clicksAll:0,
+    golden:0, rebrands:0, legacyLevel:0, legacyTokens:0,
+    owned:{}, upgrades:{}, legacy:{}, ach:{},
+    runStart:Date.now(), gameStart:Date.now(), lastSave:Date.now(), playTime:0,
+    flags:{ sold:false, speed:false, double:false, vendRun:false },
+    buffs:[], goldenTimer: 150 + Math.random()*150
+  };
+}
+let S = freshState();
+let C = null;  // cached calculation
+
+function totalOwned(){ let t=0; for(const b of BUILDINGS) t+=S.owned[b.id]||0; return t; }
+function legacyLevelFor(total){ return Math.floor(Math.cbrt(total/1e9) + 1e-9); }
+
+/* ---------- THE MATH ----------
+   calc() works out every number in the game from scratch.
+   extra lets us ask "what if I bought this?" to show payback times. */
+function calc(extra){
+  extra = extra || {};
+  const owned = id => (S.owned[id]||0) + (extra.building===id ? (extra.count||1) : 0);
+  const L = S.legacy;
+
+  const tiers = {}; BUILDINGS.forEach(b=>tiers[b.id]=0);
+  let clickDoubles=0, clickPct=0, flavorMult=1, goldFreq=1, goldStay=1, effectDur=1;
+  const chillKs=[], netHave=[];
+  const ids = Object.keys(S.upgrades);
+  if(extra.upgrade && !S.upgrades[extra.upgrade]) ids.push(extra.upgrade);
+  for(const id of ids){
+    const u = UMAP[id]; if(!u) continue;
+    switch(u.kind){
+      case 'tier':     tiers[u.building]++; break;
+      case 'clickx2':  clickDoubles++; break;
+      case 'clickpct': clickPct += u.value; break;
+      case 'network':  netHave[u.level] = u.value; break;
+      case 'flavor':   flavorMult *= 1+u.value; break;
+      case 'goldfreq': goldFreq *= 2; goldStay *= 2; break;
+      case 'golddur':  effectDur *= 2; break;
+      case 'chill':    chillKs.push(u.value); break;
     }
   }
+  let netVal = 0;
+  if(netHave[0]){ netVal = netHave[0]; for(let i=1;i<netHave.length;i++) if(netHave[i]) netVal *= netHave[i]; }
 
-  function loadGame(){
-    try{
-      const raw = localStorage.getItem(SAVE_KEY);
-      if(!raw) return;
-      const data = JSON.parse(raw);
-      energy = data.energy || 0;
-      clickPower = data.clickPower || 1;
-      prodMultiplier = data.prodMultiplier || 1;
-      (data.buildings || []).forEach(saved=>{
-        const b = buildings.find(x=>x.id === saved.id);
-        if(b) b.owned = saved.owned || 0;
-      });
-      (data.upgrades || []).forEach(saved=>{
-        const u = upgrades.find(x=>x.id === saved.id);
-        if(u) u.applied = !!saved.applied;
-      });
-    }catch(err){
-      console.error('Load failed:', err);
-    }
+  let nonVend = 0;
+  for(const b of BUILDINGS) if(b.id!=='vend') nonVend += owned(b.id);
+
+  const each={}, bTotal={};
+  let base = 0;
+  for(const b of BUILDINGS){
+    let r = b.rate * Math.pow(2, tiers[b.id]);
+    if(b.id==='vend') r += netVal * nonVend;
+    each[b.id] = r;
+    bTotal[b.id] = r * owned(b.id);
+    base += bTotal[b.id];
   }
 
-  resetBtn.addEventListener('click', ()=>{
-    if(!confirm('Reset all progress? This cannot be undone.')) return;
-    try{ localStorage.removeItem(SAVE_KEY); }catch(err){ console.error(err); }
-    energy = 0;
-    clickPower = 1;
-    prodMultiplier = 1;
-    buildings.forEach(b=> b.owned = 0);
-    upgrades.forEach(u=> u.applied = false);
-    recalcPerSec();
-    render();
+  const achCount = Object.keys(S.ach).length;
+  const chill = achCount * 0.04;
+  const deep = L.deep ? 1.1 : 1;
+  let chillMult = 1;
+  chillKs.forEach(k=> chillMult *= 1 + chill*k*deep);
+
+  const legacyMult = 1 + S.legacyLevel * (L.eternal ? 0.015 : 0.01);
+  let legacyUpMult = 1;
+  if(L.loyal)   legacyUpMult *= 1.10;
+  if(L.formula) legacyUpMult *= 1.25;
+  if(L.recipe)  legacyUpMult *= 1.50;
+  if(L.final)   legacyUpMult *= 2;
+
+  const globalMult = flavorMult * chillMult * legacyMult * legacyUpMult;
+  const raw = base * globalMult;
+
+  let buffMult=1, clickBuff=1;
+  for(const bf of S.buffs){ if(bf.type==='prod') buffMult*=bf.mult; else if(bf.type==='click') clickBuff*=bf.mult; }
+  const eps = raw * buffMult;
+
+  const clickBase = (Math.pow(2, clickDoubles) + netVal*nonVend) * (L.muscle ? 2 : 1);
+  const click = clickBase*clickBuff + eps*clickPct;
+
+  let goldInterval = 1/goldFreq;
+  if(L.touch)   goldInterval /= 1.10;
+  if(L.destiny) goldInterval /= 1.15;
+  if(L.shelf)   effectDur *= 1.25;
+
+  return { each, bTotal, base, tiers, nonVend, netVal, flavorMult, chill, chillMult, legacyMult, legacyUpMult,
+           globalMult, raw, buffMult, eps, clickBase, clickBuff, clickPct, click, clickDoubles,
+           goldInterval, goldStay, effectDur, achCount };
+}
+function recalc(){ C = calc(); }
+
+const discount = () => S.legacy.discount ? 0.95 : 1;
+function buyCost(b, n){
+  const o = S.owned[b.id]||0;
+  return Math.ceil(b.base * Math.pow(1.15,o) * (Math.pow(1.15,n)-1) / 0.15 * discount());
+}
+function sellValue(b, n){
+  const o = S.owned[b.id]||0; n = Math.min(n,o);
+  if(n<=0) return 0;
+  return Math.floor(b.base * Math.pow(1.15,o-n) * (Math.pow(1.15,n)-1) / 0.15 * discount() * 0.25);
+}
+
+function isUnlocked(u){
+  switch(u.kind){
+    case 'tier':     return (S.owned[u.building]||0) >= u.req;
+    case 'network':  return (S.owned.vend||0) >= u.req && (u.level===0 || !!S.upgrades['net'+(u.level-1)]);
+    case 'goldfreq':
+    case 'golddur':  return S.golden >= u.req;
+    case 'chill':    return C.achCount >= u.req;
+    default:         return S.runEarned >= u.cost*0.5;
+  }
+}
+function availableUpgrades(){
+  return UPGRADES.filter(u=>!S.upgrades[u.id] && isUnlocked(u)).sort((a,b)=>a.cost-b.cost);
+}
+
+function earn(amount, handmade){
+  if(!(amount>0)) return;
+  S.energy += amount; S.runEarned += amount; S.allTimeEarned += amount;
+  if(handmade){ S.handmadeRun += amount; S.handmadeAll += amount; }
+}
+
+/* ---------- SAVE / LOAD ---------- */
+function mergeState(data){
+  const s = freshState();
+  for(const k of Object.keys(s)){
+    if(data[k]===undefined) continue;
+    if(k==='flags') Object.assign(s.flags, data.flags);
+    else s[k] = data[k];
+  }
+  // drop unknown ids
+  for(const id of Object.keys(s.upgrades)) if(!UMAP[id]) delete s.upgrades[id];
+  for(const id of Object.keys(s.legacy)) if(!LMAP[id]) delete s.legacy[id];
+  for(const id of Object.keys(s.owned)) if(!BMAP[id]) delete s.owned[id];
+  if(!Array.isArray(s.buffs)) s.buffs=[];
+  return s;
+}
+function migrateOld(d){
+  const s = freshState();
+  s.energy = +d.energy || 0;
+  let spent = 0;
+  (d.buildings||[]).forEach(x=>{
+    const b = BMAP[x.id]; if(!b || !x.owned) return;
+    if(b.id==='sat'){ // Orbital Dispenser moved to a later tier: refund what it cost in the old version
+      s.energy += 2e7 * (Math.pow(1.15,x.owned)-1)/0.15;
+      return;
+    }
+    s.owned[b.id] = x.owned;
+    spent += b.base * (Math.pow(1.15,x.owned)-1)/0.15;
+    if(b.id==='vend') s.flags.vendRun = true;
   });
-
-  function fmt(n){
-    if(n < 1000) return Math.floor(n).toString();
-    const units = ['K','M','B','T','Qa','Qi'];
-    let u = -1;
-    let num = n;
-    while(num >= 1000 && u < units.length-1){ num/=1000; u++; }
-    return num.toFixed(2) + units[u];
+  const refunds = { crate:5000, ads:50000, gold:250000 };
+  (d.upgrades||[]).forEach(x=>{
+    if(!x.applied) return;
+    if(UMAP[x.id]) { s.upgrades[x.id]=true; spent += UMAP[x.id].cost; }
+    else if(refunds[x.id]) s.energy += refunds[x.id];
+  });
+  s.runEarned = s.allTimeEarned = s.energy + spent;
+  return s;
+}
+function saveGame(){
+  S.lastSave = Date.now();
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+    const el = document.getElementById('saveStatus');
+    el.textContent = 'Saved'; el.classList.add('flash');
+    setTimeout(()=>el.classList.remove('flash'), 600);
+  }catch(err){
+    document.getElementById('saveStatus').textContent = 'Could not save';
   }
+}
+function loadGame(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(raw){ S = mergeState(JSON.parse(raw)); return 'loaded'; }
+    const old = localStorage.getItem(OLD_KEY);
+    if(old){ S = migrateOld(JSON.parse(old)); return 'migrated'; }
+  }catch(err){ console.error('Load failed:', err); }
+  return 'fresh';
+}
 
-  function buildingCost(b){
-    return Math.ceil(b.base * Math.pow(1.15, b.owned));
+/* =====================================================================
+   UI
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const zone = $('clickzone');
+const hoverCapable = window.matchMedia('(hover: hover)').matches;
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let buyMode = 'buy', buyAmt = 1, currentTab = 'store';
+
+/* ---------- toasts ---------- */
+function toast(title, text, cls){
+  const box = $('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast ' + (cls||'');
+  t.innerHTML = `<b>${esc(title)}</b>${text?esc(text):''}`;
+  box.appendChild(t);
+  while(box.children.length>4) box.firstChild.remove();
+  setTimeout(()=>{ t.classList.add('out'); setTimeout(()=>t.remove(), 400); }, 4200);
+}
+
+/* ---------- modal ---------- */
+function confirmBox(title, text, okLabel, onOk){
+  $('modalTitle').textContent = title;
+  $('modalText').textContent = text;
+  $('modalOk').textContent = okLabel;
+  $('modal').hidden = false;
+  $('modalOk').focus();
+  const close = ()=>{ $('modal').hidden = true; $('modalOk').onclick = null; };
+  $('modalOk').onclick = ()=>{ close(); onOk(); };
+  $('modalCancel').onclick = close;
+}
+$('modal').addEventListener('click', e=>{ if(e.target.id==='modal') $('modal').hidden = true; });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') $('modal').hidden = true; });
+
+/* ---------- clicking the can ---------- */
+const canWrap = $('canWrap');
+let clickTimes = [];
+function floater(x, y, text, gold){
+  if(zone.querySelectorAll('.floater').length > 25) return;
+  const f = document.createElement('div');
+  f.className = 'floater' + (gold?' gold':'');
+  f.textContent = text;
+  f.style.left = x+'px'; f.style.top = y+'px';
+  zone.appendChild(f);
+  setTimeout(()=>f.remove(), 900);
+}
+function doClick(clientX, clientY){
+  const amount = C.click;
+  earn(amount, true);
+  S.clicksRun++; S.clicksAll++;
+  const zr = zone.getBoundingClientRect();
+  floater(clientX - zr.left + (Math.random()*30-15), clientY - zr.top - 10, '+'+fmt(amount, true));
+  bubbleBurst(clientX - zr.left, clientY - zr.top);
+  const now = performance.now();
+  clickTimes.push(now);
+  clickTimes = clickTimes.filter(t=>now-t<1000);
+  if(clickTimes.length>=15) S.flags.speed = true;
+  canWrap.classList.add('squash');
+  setTimeout(()=>canWrap.classList.remove('squash'), 80);
+  const counter = $('counter');
+  counter.classList.add('pulse');
+  setTimeout(()=>counter.classList.remove('pulse'), 120);
+  renderCounter();
+}
+canWrap.addEventListener('click', e=>{
+  if(e.detail===0){ const r=canWrap.getBoundingClientRect(); doClick(r.left+r.width/2, r.top+r.height/3); }
+  else doClick(e.clientX, e.clientY);
+});
+canWrap.addEventListener('keydown', e=>{
+  if((e.key==='Enter'||e.key===' ') && !e.repeat){
+    e.preventDefault();
+    const r = canWrap.getBoundingClientRect();
+    doClick(r.left+r.width/2, r.top+r.height/3);
   }
+});
 
-  function recalcPerSec(){
-    perSec = buildings.reduce((sum,b)=> sum + b.rate*b.owned, 0) * prodMultiplier;
+/* ---------- golden cans ---------- */
+let goldenEl = null, goldenLeft = 0;
+const GOLD_SVG = `<svg viewBox="0 0 60 116" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs><linearGradient id="gcan" x1="0" x2="1"><stop offset="0" stop-color="#b8861f"/><stop offset=".25" stop-color="#ffe59a"/>
+  <stop offset=".5" stop-color="#e0a93a"/><stop offset=".75" stop-color="#fff1c4"/><stop offset="1" stop-color="#b8861f"/></linearGradient></defs>
+  <rect x="10" y="2" width="40" height="9" rx="4" fill="#d9ab45"/>
+  <rect x="4" y="9" width="52" height="104" rx="8" fill="url(#gcan)" stroke="#8a6414" stroke-width="1.5"/>
+  <path d="M30 34 L22 60 H30 L26 84 L40 54 H31 L36 34 Z" fill="#6b4a0a"/>
+</svg>`;
+
+function nextGoldenDelay(){ return (240 + Math.random()*360) * C.goldInterval; }
+function spawnGolden(){
+  const zr = zone.getBoundingClientRect();
+  const el = document.createElement('button');
+  el.className = 'goldenCan';
+  el.setAttribute('aria-label','Golden can. Click it for a bonus.');
+  el.innerHTML = GOLD_SVG;
+  const x = 40 + Math.random()*Math.max(10, zr.width-136);
+  const y = 70 + Math.random()*Math.max(10, zr.height-240);
+  el.style.left = x+'px'; el.style.top = y+'px';
+  el.addEventListener('click', e=>{ e.stopPropagation(); collectGolden(el); });
+  zone.appendChild(el);
+  goldenEl = el;
+  goldenLeft = 13 * C.goldStay;
+}
+function removeGolden(){
+  if(!goldenEl) return;
+  const el = goldenEl; goldenEl = null;
+  el.classList.add('leaving'); el.disabled = true;
+  setTimeout(()=>el.remove(), 500);
+  S.goldenTimer = nextGoldenDelay();
+}
+function addBuff(buff){
+  S.buffs = S.buffs.filter(b=>b.id!==buff.id);
+  S.buffs.push(buff);
+  if(S.buffs.length>=2) S.flags.double = true;
+  recalc();
+  renderBuffs(true);
+}
+function collectGolden(el){
+  const zr = zone.getBoundingClientRect(), er = el.getBoundingClientRect();
+  const fx = er.left - zr.left + er.width/2, fy = er.top - zr.top + er.height/2;
+  S.golden++;
+  removeGolden();
+
+  const dur = C.effectDur;
+  const eligible = BUILDINGS.filter(b=>(S.owned[b.id]||0)>=10);
+  const pool = [['frenzy',40],['lucky',40],['clickfrenzy',10]];
+  if(eligible.length) pool.push(['coldsnap',10]);
+  let r = Math.random()*pool.reduce((s,p)=>s+p[1],0), pick = pool[0][0];
+  for(const [id,w] of pool){ if((r-=w)<0){ pick=id; break; } }
+
+  if(pick==='frenzy'){
+    addBuff({ id:'frenzy', type:'prod', mult:7, t:77*dur, max:77*dur, name:'Sugar rush', effect:'production ×7' });
+    floater(fx, fy, 'Sugar rush!', true);
+    toast('Sugar rush!', `Production ×7 for ${fmtTime(77*dur)}.`, 'gold');
+  } else if(pick==='clickfrenzy'){
+    addBuff({ id:'clickfrenzy', type:'click', mult:777, t:13*dur, max:13*dur, name:'Caffeine overload', effect:'clicks ×777' });
+    floater(fx, fy, 'Caffeine overload!', true);
+    toast('Caffeine overload!', `Clicks ×777 for ${fmtTime(13*dur)}. Click fast!`, 'gold');
+  } else if(pick==='coldsnap'){
+    const b = eligible[Math.floor(Math.random()*eligible.length)];
+    const mult = 1 + (S.owned[b.id]||0)/10;
+    addBuff({ id:'coldsnap', type:'prod', mult, t:30*dur, max:30*dur, name:`Cold snap: ${b.plural}`, effect:`production ×${fmt(mult,true)}` });
+    floater(fx, fy, 'Cold snap!', true);
+    toast('Cold snap!', `Your ${fmt(S.owned[b.id])} ${b.plural} boost production ×${fmt(mult,true)} for ${fmtTime(30*dur)}.`, 'gold');
+  } else {
+    const gain = Math.min(S.energy*0.15, C.eps*900) * (S.legacy.destiny?2:1) + 13;
+    earn(gain);
+    floater(fx, fy, '+'+fmt(gain), true);
+    toast('Lucky sip!', `+${fmt(gain)} energy.`, 'gold');
   }
+}
 
-  function render(){
-    counterEl.innerHTML = fmt(energy) + ' <span id="unit">ENERGY</span>';
-    perSecTextEl.textContent = fmt(perSec) + ' energy / sec';
-    updateShop();
+/* ---------- buying ---------- */
+function buyBuilding(b){
+  if(buyMode==='sell'){
+    const n = Math.min(buyAmt, S.owned[b.id]||0);
+    if(n<=0) return;
+    S.energy += sellValue(b, n);
+    S.owned[b.id] -= n;
+    S.flags.sold = true;
+  } else {
+    const cost = buyCost(b, buyAmt);
+    if(S.energy < cost) return;
+    S.energy -= cost;
+    S.owned[b.id] = (S.owned[b.id]||0) + buyAmt;
+    if(b.id==='vend') S.flags.vendRun = true;
   }
+  recalc();
+  renderStore(true);
+  renderCounter();
+  refreshTooltip();
+}
+function buyUpgrade(u){
+  if(S.upgrades[u.id] || S.energy < u.cost || !isUnlocked(u)) return false;
+  S.energy -= u.cost;
+  S.upgrades[u.id] = true;
+  recalc();
+  hideTooltip();
+  renderStore(true);
+  renderCounter();
+  return true;
+}
+function buyLegacy(l){
+  if(S.legacy[l.id] || S.legacyTokens < l.cost || (l.req && !S.legacy[l.req])) return;
+  S.legacyTokens -= l.cost;
+  S.legacy[l.id] = true;
+  recalc();
+  renderLegacy(true);
+  toast('Legacy upgrade', l.name, 'gold');
+  saveGame();
+}
 
-  const buildingRowEls = {};
-  const upgradeRowEls = {};
-  let shopBuilt = false;
+/* ---------- rebrand (prestige) ---------- */
+function rebrand(){
+  const newLevel = legacyLevelFor(S.allTimeEarned);
+  const gain = newLevel - S.legacyLevel;
+  if(gain < 1) return;
+  S.legacyTokens += gain;
+  S.legacyLevel = newLevel;
+  S.rebrands++;
+  S.energy = 0; S.runEarned = 0; S.handmadeRun = 0; S.clicksRun = 0;
+  S.owned = {}; S.upgrades = {}; S.buffs = [];
+  S.flags.vendRun = false;
+  S.runStart = Date.now();
+  if(S.legacy.kit) ['vend','intern','truck','plant'].forEach(id=>S.owned[id]=10);
+  if(goldenEl){ goldenEl.remove(); goldenEl=null; }
+  recalc();
+  S.goldenTimer = nextGoldenDelay();
+  upgradeKey = '';
+  renderAll();
+  toast('Rebranded!', `+${fmt(gain)} legacy ${gain===1?'level':'levels'}. Production is now ×${fmt(C.legacyMult,true)} from legacy.`, 'gold');
+  saveGame();
+}
 
-  function buildShop(){
-    listEl.innerHTML = '';
+/* ---------- counter & buffs ---------- */
+function renderCounter(){
+  $('counterNum').textContent = fmt(S.energy);
+  const boosted = C.buffMult!==1;
+  $('perSecText').innerHTML = `${fmt(C.eps, true)} per second` +
+    (boosted ? ` <span class="boosted">(×${fmt(C.buffMult,true)})</span>` : '');
+}
+let buffKey = '';
+function renderBuffs(force){
+  const box = $('buffs');
+  const key = S.buffs.map(b=>b.id).join();
+  if(force || key!==buffKey){
+    buffKey = key;
+    box.innerHTML = S.buffs.map(b=>`<div class="buff" data-id="${b.id}">${esc(b.name)} <small>${esc(b.effect)} · <span class="left"></span></small><div class="bar"></div></div>`).join('');
+  }
+  S.buffs.forEach(b=>{
+    const el = box.querySelector(`[data-id="${b.id}"]`); if(!el) return;
+    el.querySelector('.left').textContent = fmtTime(b.t);
+    el.querySelector('.bar').style.width = (100*b.t/b.max)+'%';
+  });
+}
 
-    const buildingsWrap = document.createElement('div');
-    buildingsWrap.id = 'buildingsWrap';
-    buildings.forEach(b=>{
-      const el = document.createElement('div');
-      el.className = 'item';
-      el.innerHTML = `
-        <div class="itemIcon">${b.icon}</div>
-        <div class="itemInfo">
-          <div class="itemName">${b.name}</div>
-          <div class="itemDesc">${b.desc} · +${fmt(b.rate)}/s each</div>
-        </div>
-        <div class="itemRight">
-          <div class="itemCost"></div>
-          <div class="itemOwned"></div>
-        </div>
-      `;
-      el.addEventListener('click', ()=>{
-        const c = buildingCost(b);
-        if(energy >= c){
-          energy -= c;
-          b.owned++;
-          recalcPerSec();
-          render();
+/* ---------- store: upgrades ---------- */
+let upgradeKey = '';
+let selectedTile = null;
+function renderUpgrades(force){
+  const list = availableUpgrades();
+  const key = list.map(u=>u.id).join();
+  const grid = $('upgradeGrid');
+  if(force || key!==upgradeKey){
+    upgradeKey = key;
+    grid.innerHTML = '';
+    if(!list.length){
+      grid.innerHTML = `<div class="empty">No upgrades yet. They show up as you earn energy and buy producers.</div>`;
+    }
+    list.forEach(u=>{
+      const t = document.createElement('button');
+      t.className = 'tile kind-'+u.kind;
+      t.dataset.id = u.id;
+      t.setAttribute('aria-label', `${u.name}, costs ${fmt(u.cost)}. ${u.desc}`);
+      t.innerHTML = `${u.icon}${u.badge?`<span class="badge">${u.badge}</span>`:''}`;
+      bindTip(t, ()=>upgradeTip(u));
+      t.addEventListener('click', ()=>{
+        if(!hoverCapable && selectedTile!==t){
+          grid.querySelectorAll('.selected').forEach(x=>x.classList.remove('selected'));
+          selectedTile = t; t.classList.add('selected'); showTip(t, ()=>upgradeTip(u));
+          return;
         }
+        selectedTile = null;
+        buyUpgrade(u);
       });
-      buildingRowEls[b.id] = {
-        row: el,
-        costEl: el.querySelector('.itemCost'),
-        ownedEl: el.querySelector('.itemOwned')
-      };
-      buildingsWrap.appendChild(el);
-    });
-
-    const upgradesWrap = document.createElement('div');
-    upgradesWrap.id = 'upgradesWrap';
-    upgradesWrap.style.display = 'none';
-    upgrades.forEach(u=>{
-      const el = document.createElement('div');
-      el.className = 'item';
-      el.innerHTML = `
-        <div class="itemIcon">${u.icon}</div>
-        <div class="itemInfo">
-          <div class="itemName">${u.name}</div>
-          <div class="itemDesc">${u.desc}</div>
-        </div>
-        <div class="itemRight">
-          <div class="itemCost"></div>
-        </div>
-      `;
-      el.addEventListener('click', ()=>{
-        if(!u.applied && energy >= u.cost){
-          energy -= u.cost;
-          u.applied = true;
-          u.effect();
-          recalcPerSec();
-          render();
-        }
-      });
-      upgradeRowEls[u.id] = {
-        row: el,
-        costEl: el.querySelector('.itemCost')
-      };
-      upgradesWrap.appendChild(el);
-    });
-
-    listEl.appendChild(buildingsWrap);
-    listEl.appendChild(upgradesWrap);
-    shopBuilt = true;
-  }
-
-  function updateShop(){
-    if(!shopBuilt) buildShop();
-
-    buildings.forEach(b=>{
-      const cost = buildingCost(b);
-      const refs = buildingRowEls[b.id];
-      const canAfford = energy >= cost;
-      refs.row.classList.toggle('disabled', !canAfford);
-      refs.costEl.textContent = fmt(cost);
-      refs.ownedEl.textContent = 'owned: ' + b.owned;
-    });
-
-    upgrades.forEach(u=>{
-      const refs = upgradeRowEls[u.id];
-      const canAfford = energy >= u.cost && !u.applied;
-      refs.row.classList.toggle('disabled', !canAfford && !u.applied);
-      refs.costEl.textContent = u.applied ? 'OWNED' : fmt(u.cost);
+      grid.appendChild(t);
     });
   }
-
-  document.querySelectorAll('.tabBtn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.tabBtn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      currentTab = btn.dataset.tab;
-      if(!shopBuilt) buildShop();
-      document.getElementById('buildingsWrap').style.display = currentTab === 'buildings' ? '' : 'none';
-      document.getElementById('upgradesWrap').style.display = currentTab === 'upgrades' ? '' : 'none';
-    });
+  grid.querySelectorAll('.tile').forEach(t=>{
+    const u = UMAP[t.dataset.id];
+    t.classList.toggle('can', S.energy>=u.cost);
   });
+  const bought = Object.keys(S.upgrades).length;
+  $('upMeta').textContent = `${bought} of ${UPGRADES.length} bought`;
+}
 
-  function spawnFloater(x, y, amount){
-    const f = document.createElement('div');
-    f.className = 'floater';
-    f.textContent = '+' + fmt(amount);
-    f.style.left = x + 'px';
-    f.style.top = y + 'px';
-    document.getElementById('clickzone').appendChild(f);
-    setTimeout(()=> f.remove(), 900);
-  }
-
-  canWrap.addEventListener('click', (e)=>{
-    energy += clickPower;
-    const rect = canWrap.getBoundingClientRect();
-    spawnFloater(e.clientX - rect.left + 60, e.clientY - rect.top, clickPower);
-    render();
-    counterEl.classList.add('pulse');
-    setTimeout(()=> counterEl.classList.remove('pulse'), 120);
+/* ---------- store: producers ---------- */
+const rowEls = {};
+function buildBuildingRows(){
+  const wrap = $('buildingList');
+  wrap.innerHTML = '';
+  BUILDINGS.forEach(b=>{
+    const el = document.createElement('button');
+    el.className = 'item';
+    el.innerHTML = `<span class="best">Best value</span>
+      <div class="itemIcon">${b.icon}</div>
+      <div class="itemInfo"><div class="itemName"></div><div class="itemSub"></div></div>
+      <div class="itemOwned"></div>`;
+    el.addEventListener('click', ()=>{
+      if(el.classList.contains('mystery') || el.classList.contains('disabled')) return;
+      buyBuilding(b);
+    });
+    bindTip(el, ()=>buildingTip(b));
+    rowEls[b.id] = { el, name:el.querySelector('.itemName'), sub:el.querySelector('.itemSub'), owned:el.querySelector('.itemOwned') };
+    wrap.appendChild(el);
   });
-
-  setInterval(()=>{
-    if(perSec > 0){
-      energy += perSec / 10;
-      render();
+}
+function lastVisibleIndex(){
+  let last = 0;
+  BUILDINGS.forEach((b,i)=>{ if((S.owned[b.id]||0)>0 || S.runEarned>=b.base) last = i; });
+  return last;
+}
+let bestId = null;
+function computeBest(){
+  const lastVis = lastVisibleIndex();
+  let best = null, bestScore = Infinity;
+  BUILDINGS.forEach((b,i)=>{
+    if(i>lastVis) return;
+    const cost = buyCost(b,1);
+    const delta = calc({building:b.id, count:1}).raw - C.raw;
+    if(delta<=0) return;
+    const wait = Math.max(0, cost - S.energy) / Math.max(C.raw, 1e-9);
+    const score = cost/delta + wait;
+    if(score < bestScore){ bestScore = score; best = b.id; }
+  });
+  bestId = best;
+}
+function renderBuildings(){
+  const lastVis = lastVisibleIndex();
+  BUILDINGS.forEach((b,i)=>{
+    const r = rowEls[b.id];
+    const owned = S.owned[b.id]||0;
+    const hidden = i > lastVis+2;
+    r.el.style.display = hidden ? 'none' : '';
+    if(hidden) return;
+    const mystery = i > lastVis;
+    r.el.classList.toggle('mystery', mystery);
+    r.el.classList.toggle('faint', i === lastVis+2);
+    r.el.classList.toggle('isBest', !mystery && buyMode==='buy' && bestId===b.id && totalOwned()>0);
+    if(mystery){
+      r.name.textContent = '???';
+      r.sub.innerHTML = `<span class="cost">${fmt(buyCost(b,1))}</span>`;
+      r.owned.textContent = '';
+      r.el.classList.remove('disabled');
+      return;
     }
-  }, 100);
+    r.name.textContent = b.name;
+    r.owned.textContent = owned || '';
+    if(buyMode==='sell'){
+      const n = Math.min(buyAmt, owned);
+      r.sub.innerHTML = n>0 ? `Sell ${n} for <span class="refund">+${fmt(sellValue(b,buyAmt))}</span>` : 'None to sell';
+      r.el.classList.toggle('disabled', n<=0);
+    } else {
+      const cost = buyCost(b, buyAmt);
+      const can = S.energy >= cost;
+      r.sub.innerHTML = `${buyAmt>1?`×${buyAmt} `:''}<span class="cost${can?'':' no'}">${fmt(cost)}</span> · +${fmt(C.each[b.id]*C.globalMult, true)}/s each`;
+      r.el.classList.toggle('disabled', !can);
+    }
+  });
+}
+function renderStore(force){
+  renderUpgrades(force);
+  renderBuildings();
+}
+document.querySelectorAll('#modeSeg button').forEach(btn=>btn.addEventListener('click', ()=>{
+  buyMode = btn.dataset.mode;
+  document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.remove('on','sellOn'));
+  btn.classList.add(buyMode==='sell'?'sellOn':'on');
+  renderBuildings();
+}));
+document.querySelectorAll('#amtSeg button').forEach(btn=>btn.addEventListener('click', ()=>{
+  buyAmt = +btn.dataset.amt;
+  document.querySelectorAll('#amtSeg button').forEach(x=>x.classList.remove('on'));
+  btn.classList.add('on');
+  renderBuildings();
+}));
 
-  setInterval(saveGame, 3000);
-  window.addEventListener('beforeunload', saveGame);
+/* ---------- tooltips ---------- */
+const tipEl = $('tooltip');
+let tipAnchor = null, tipBuilder = null;
+function bindTip(el, builder){
+  if(!hoverCapable) return;
+  el.addEventListener('mouseenter', ()=>showTip(el, builder));
+  el.addEventListener('mouseleave', hideTooltip);
+  el.addEventListener('focus', ()=>showTip(el, builder));
+  el.addEventListener('blur', hideTooltip);
+}
+function showTip(el, builder){
+  tipAnchor = el; tipBuilder = builder;
+  tipEl.innerHTML = builder();
+  tipEl.style.display = 'block';
+  positionTip();
+}
+function positionTip(){
+  if(!tipAnchor) return;
+  const r = tipAnchor.getBoundingClientRect();
+  const tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
+  let x = r.left - tw - 12;
+  if(x < 8) x = Math.min(window.innerWidth - tw - 8, r.right + 12);
+  if(x < 8) x = 8;
+  let y = r.top + r.height/2 - th/2;
+  y = Math.max(8, Math.min(window.innerHeight - th - 8, y));
+  if(!hoverCapable){ y = r.bottom + 8; if(y+th > window.innerHeight-8) y = r.top - th - 8; x = Math.max(8, Math.min(window.innerWidth-tw-8, r.left)); }
+  tipEl.style.left = x+'px'; tipEl.style.top = y+'px';
+}
+function hideTooltip(){ tipAnchor = null; tipBuilder = null; tipEl.style.display = 'none'; }
+function refreshTooltip(){
+  if(tipAnchor && !document.body.contains(tipAnchor)){ hideTooltip(); return; }
+  if(tipAnchor){ tipEl.innerHTML = tipBuilder(); positionTip(); }
+}
+document.addEventListener('click', e=>{
+  if(!hoverCapable && tipAnchor && !tipAnchor.contains(e.target)){ hideTooltip(); selectedTile = null;
+    document.querySelectorAll('.tile.selected').forEach(x=>x.classList.remove('selected')); }
+});
 
-  loadGame();
-  recalcPerSec();
-  render();
+function paybackLine(cost, delta){
+  if(!(delta>0)) return '';
+  let s = `<div class="tLine">Adds <b>+${fmt(delta,true)}/s</b>, pays for itself in <b>${fmtTime(cost/delta)}</b></div>`;
+  if(S.energy < cost){
+    s += C.raw>0 ? `<div class="tLine">Affordable in <b>${fmtTime((cost-S.energy)/C.eps)}</b></div>` : '';
+  }
+  return s;
+}
+function upgradeTip(u){
+  const can = S.energy >= u.cost;
+  let h = `<span class="tCost${can?'':' no'}">${fmt(u.cost)}</span><div class="tName">${esc(u.name)}</div><div class="tDesc">${esc(u.desc)}</div>`;
+  if(['tier','flavor','chill','network'].includes(u.kind)){
+    h += paybackLine(u.cost, calc({upgrade:u.id}).raw - C.raw);
+  } else if(u.kind==='clickx2' || u.kind==='clickpct'){
+    h += `<div class="tLine">Click: <b>${fmt(C.click,true)}</b> → <b>${fmt(calc({upgrade:u.id}).click,true)}</b></div>`;
+    if(!can && C.eps>0) h += `<div class="tLine">Affordable in <b>${fmtTime((u.cost-S.energy)/C.eps)}</b></div>`;
+  }
+  if(!hoverCapable) h += `<div class="tTap">Tap again to buy</div>`;
+  return h;
+}
+function buildingTip(b){
+  const owned = S.owned[b.id]||0;
+  if(rowEls[b.id].el.classList.contains('mystery')){
+    return `<div class="tName">???</div><div class="tDesc">Earn more energy to reveal this producer.</div>`;
+  }
+  const n = buyMode==='sell' ? Math.min(buyAmt, owned) : buyAmt;
+  const cost = buyCost(b, n);
+  let h = buyMode==='sell'
+    ? `<span class="tCost">+${fmt(sellValue(b,n))}</span>`
+    : `<span class="tCost${S.energy>=cost?'':' no'}">${fmt(cost)}</span>`;
+  h += `<div class="tName">${esc(b.name)}${n>1?` ×${n}`:''}</div><div class="tDesc">${esc(b.desc)}</div>`;
+  const eachReal = C.each[b.id]*C.globalMult;
+  const allReal = C.bTotal[b.id]*C.globalMult;
+  h += `<div class="tLine">Each makes <b>${fmt(eachReal,true)}/s</b>${C.tiers[b.id]?` (×${fmt(Math.pow(2,C.tiers[b.id]))} from upgrades)`:''}</div>`;
+  if(owned) h += `<div class="tLine">Your ${fmt(owned)} make <b>${fmt(allReal,true)}/s</b> (${C.raw>0?(100*allReal/C.raw).toFixed(1):0}% of total)</div>`;
+  if(b.id==='vend' && C.netVal>0) h += `<div class="tLine">Vending network: +${fmt(C.netVal,true)} for each of your ${fmt(C.nonVend)} other producers</div>`;
+  if(buyMode==='buy') h += paybackLine(cost, calc({building:b.id, count:n}).raw - C.raw);
+  else h += `<div class="tLine">Selling refunds 25% of the price.</div>`;
+  return h;
+}
+
+/* ---------- achievements ---------- */
+const achEls = {};
+function buildAchGrid(){
+  const grid = $('achGrid'); grid.innerHTML = '';
+  ACH.forEach(a=>{
+    const el = document.createElement('button');
+    el.className = 'ach locked';
+    el.textContent = a.icon;
+    el.setAttribute('aria-label', `${a.name}: ${a.desc}`);
+    const tip = ()=>`<div class="tName">${esc(a.name)}</div><div class="tDesc">${esc(a.desc)}</div><div class="tLine">${S.ach[a.id]?'<b>Unlocked</b>':'Locked'}</div>`;
+    bindTip(el, tip);
+    if(!hoverCapable) el.addEventListener('click', ()=>showTip(el, tip));
+    achEls[a.id] = el;
+    grid.appendChild(el);
+  });
+}
+function renderAch(){
+  ACH.forEach(a=>{ const got=!!S.ach[a.id]; achEls[a.id].classList.toggle('locked',!got); achEls[a.id].classList.toggle('got',got); });
+  $('achMeta').textContent = `${Object.keys(S.ach).length} of ${ACH.length} · chill ${Math.round(C.chill*100)}%`;
+}
+function checkAchievements(silent){
+  let changed = false;
+  for(const a of ACH){
+    if(S.ach[a.id]) continue;
+    if(a.test()){
+      S.ach[a.id] = Date.now(); changed = true;
+      if(!silent){ toast(a.name, 'Achievement unlocked', 'achToast'); if(currentTab!=='ach') $('tabs').querySelector('[data-tab="ach"]').classList.add('notify'); }
+    }
+  }
+  if(changed){ recalc(); renderAch(); renderCompletion(); }
+}
+
+/* ---------- completion ---------- */
+function renderCompletion(){
+  const done = Object.keys(S.ach).length + Object.keys(S.legacy).length;
+  const total = ACH.length + LEGACY.length;
+  const pct = 100*done/total;
+  $('completionFill').style.width = pct+'%';
+  $('completionText').textContent = `${pct.toFixed(1)}% complete`;
+}
+
+/* ---------- stats ---------- */
+function statRow(label, value, cls){ return `<div class="statRow ${cls||''}"><span>${label}</span><span>${value}</span></div>`; }
+function renderStats(){
+  if(currentTab!=='stats') return;
+  const up = Object.keys(S.upgrades).length;
+  let h = `<div class="statGroup"><div class="sectionHead"><h2>Where your energy per second comes from</h2></div>`;
+  h += statRow('Producers (with their upgrades)', fmt(C.base,true)+'/s');
+  h += statRow(`Flavors`, '×'+fmt(C.flavorMult,true));
+  h += statRow(`Chill (${Math.round(C.chill*100)}% from ${C.achCount} achievements)`, '×'+fmt(C.chillMult,true));
+  h += statRow(`Legacy level ${fmt(S.legacyLevel)}`, '×'+fmt(C.legacyMult,true));
+  h += statRow('Legacy upgrades', '×'+fmt(C.legacyUpMult,true));
+  if(C.buffMult!==1) h += statRow('Golden can effects', '×'+fmt(C.buffMult,true));
+  h += statRow('Total', fmt(C.eps,true)+'/s', 'total');
+  h += `</div><div class="statGroup"><div class="sectionHead"><h2>Clicking</h2></div>`;
+  h += statRow(`Base click (×${fmt(Math.pow(2,C.clickDoubles))} from upgrades${S.legacy.muscle?', ×2 legacy':''})`, fmt(C.clickBase,true));
+  if(C.clickPct>0) h += statRow(`Plus ${Math.round(C.clickPct*100)}% of energy per second`, fmt(C.eps*C.clickPct,true));
+  if(C.clickBuff!==1) h += statRow('Caffeine overload', '×'+fmt(C.clickBuff));
+  h += statRow('Each click', fmt(C.click,true), 'total');
+  h += `</div><div class="statGroup"><div class="sectionHead"><h2>This run</h2></div>`;
+  h += statRow('Energy made', fmt(S.runEarned));
+  h += statRow('Run started', fmtTime((Date.now()-S.runStart)/1000)+' ago');
+  h += statRow('Producers owned', fmt(totalOwned()));
+  h += statRow('Upgrades bought', `${up} of ${UPGRADES.length}`);
+  h += statRow('Clicks', fmt(S.clicksRun));
+  h += statRow('Energy from clicks', fmt(S.handmadeRun));
+  h += `</div><div class="statGroup"><div class="sectionHead"><h2>All time</h2></div>`;
+  h += statRow('Energy made', fmt(S.allTimeEarned));
+  h += statRow('Time played', fmtTime(S.playTime));
+  h += statRow('Clicks', fmt(S.clicksAll));
+  h += statRow('Energy from clicks', fmt(S.handmadeAll));
+  h += statRow('Golden cans clicked', fmt(S.golden));
+  h += statRow('Rebrands', fmt(S.rebrands));
+  h += statRow('Achievements', `${Object.keys(S.ach).length} of ${ACH.length}`);
+  h += `</div>`;
+  $('statsBody').innerHTML = h;
+}
+$('exportBtn').addEventListener('click', ()=>{
+  S.lastSave = Date.now();
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+  $('saveText').value = code;
+  $('saveText').select();
+  try{ navigator.clipboard.writeText(code).then(()=>toast('Save code copied','Paste it somewhere safe.')).catch(()=>{}); }catch(e){}
+});
+$('importBtn').addEventListener('click', ()=>{
+  const code = $('saveText').value.trim();
+  if(!code){ toast('Nothing to import','Paste a save code into the box first.'); return; }
+  try{
+    const data = JSON.parse(decodeURIComponent(escape(atob(code))));
+    if(data.v!==2) throw new Error('bad version');
+    confirmBox('Import save?', 'This replaces your current progress with the save code.', 'Import', ()=>{
+      S = mergeState(data); S.lastSave = Date.now();
+      afterStateReplaced(); toast('Save imported','');
+    });
+  }catch(e){ toast('Save code not recognized','Check that you copied the whole code.'); }
+});
+$('resetBtn').addEventListener('click', ()=>{
+  confirmBox('Reset everything?', 'This deletes all progress, including achievements and legacy. It cannot be undone.', 'Reset', ()=>{
+    S = freshState();
+    try{ localStorage.removeItem(SAVE_KEY); localStorage.removeItem(OLD_KEY); }catch(e){}
+    afterStateReplaced(); saveGame();
+  });
+});
+
+/* ---------- legacy ---------- */
+let legacyKey = '';
+function renderLegacy(force){
+  const lvlNow = legacyLevelFor(S.allTimeEarned);
+  const pending = lvlNow - S.legacyLevel;
+  $('tabs').querySelector('[data-tab="legacy"]').classList.toggle('notify', currentTab!=='legacy' && pending>0);
+  if(currentTab!=='legacy' && !force) return;
+  const curReq = Math.pow(lvlNow,3)*1e9, nextReq = Math.pow(lvlNow+1,3)*1e9;
+  const prog = Math.max(0, Math.min(1, (S.allTimeEarned-curReq)/(nextReq-curReq)));
+  const per = S.legacy.eternal ? 1.5 : 1;
+  $('legacyHero').innerHTML = `<div class="legacyHero">
+    <div class="lvl">Level ${fmt(S.legacyLevel)}</div>
+    <div class="lvlSub">+${fmt(S.legacyLevel*per,true)}% production · ${fmt(S.legacyTokens)} legacy ${S.legacyTokens===1?'can':'cans'} to spend</div>
+    <div class="track"><div class="fill" style="width:${prog*100}%"></div></div>
+    <div class="small">${pending>0
+      ? `Rebrand now for <b style="color:var(--gold)">+${fmt(pending)}</b> ${pending===1?'level':'levels'} and legacy ${pending===1?'can':'cans'}. `
+      : ''}Next level at ${fmt(nextReq)} energy made in total (${fmt(Math.max(0,nextReq-S.allTimeEarned))} to go).</div>
+    <div class="small" style="margin-top:8px">Rebranding restarts your energy, producers and upgrades. You keep achievements, legacy levels and legacy upgrades. Each level adds +${per}% production. Your level is the cube root of all the energy you have ever made, counted in billions. Twice the levels takes 8 times the energy.</div>
+    <div class="btnRow"><button class="btn primary" id="rebrandBtn" ${pending<1?'disabled':''}>Rebrand${pending>0?` (+${fmt(pending)})`:''}</button></div>
+  </div>`;
+  $('rebrandBtn').onclick = ()=> confirmBox('Rebrand?',
+    `You will gain ${fmt(pending)} legacy ${pending===1?'level':'levels'} and start a new run from zero. Achievements and legacy upgrades are kept.`,
+    'Rebrand', rebrand);
+
+  const key = LEGACY.map(l=>(S.legacy[l.id]?1:0)+(S.legacyTokens>=l.cost?2:0)).join()+S.legacyTokens;
+  if(force || key!==legacyKey){
+    legacyKey = key;
+    $('legacyList').innerHTML = LEGACY.map(l=>{
+      const owned = !!S.legacy[l.id];
+      const locked = l.req && !S.legacy[l.req];
+      const can = !owned && !locked && S.legacyTokens >= l.cost;
+      return `<button class="lrow ${owned?'owned':''}" data-id="${l.id}" ${owned||!can?'disabled':''}>
+        <div class="itemIcon">${l.icon}</div>
+        <div class="itemInfo"><div class="itemName">${esc(l.name)}</div><div class="itemSub">${esc(l.desc)}${locked?` Requires ${esc(LMAP[l.req].name)}.`:''}</div></div>
+        <div class="lcost">${owned?'Owned':fmt(l.cost)}</div></button>`;
+    }).join('');
+    $('legacyList').querySelectorAll('.lrow').forEach(el=>el.addEventListener('click', ()=>buyLegacy(LMAP[el.dataset.id])));
+  }
+  $('legacyMeta').textContent = `${Object.keys(S.legacy).length} of ${LEGACY.length}`;
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('.tabBtn').forEach(btn=>btn.addEventListener('click', ()=>{
+  currentTab = btn.dataset.tab;
+  document.querySelectorAll('.tabBtn').forEach(b=>b.classList.toggle('active', b===btn));
+  btn.classList.remove('notify');
+  ['store','ach','stats','legacy'].forEach(t=>$('tab-'+t).hidden = t!==currentTab);
+  hideTooltip();
+  if(currentTab==='stats') renderStats();
+  if(currentTab==='legacy') renderLegacy(true);
+  if(currentTab==='ach') renderAch();
+}));
+
+/* ---------- news ticker ---------- */
+const NEWS = [
+  [()=>true, 'Weather forecast: scattered fizz, with a 40% chance of carbonation.'],
+  [()=>true, 'Scientists discover a new state of matter. They are calling it "wired".'],
+  [()=>true, 'Local man drinks one can "just to stay awake", reorganizes entire city by lunch.'],
+  [()=>true, 'Economists agree energy is the new currency. Economists have not slept in days.'],
+  [()=>true, 'Survey: 9 out of 10 people can hear the can calling them. The tenth is lying.'],
+  [()=>true, 'Lifeguards report unusually fast swimmers this summer.'],
+  [()=>S.runEarned<1000, 'Your can sits on the desk, cold and full of potential.'],
+  [()=>S.owned.vend>0, 'Vending machine spotted humming a little louder than usual.'],
+  [()=>S.owned.intern>0, 'Intern union demands at least one sip per shift.'],
+  [()=>S.owned.truck>0, 'Delivery trucks seen driving slightly faster than trucks should.'],
+  [()=>S.owned.plant>0, 'Bottling plant workers say the conveyor belt has started humming a tune.'],
+  [()=>S.owned.ware>0, 'Warehouse now so full it has its own weather system.'],
+  [()=>S.owned.dist>0, 'Distribution hub now reaches every town. Several towns did not ask.'],
+  [()=>S.owned.lab>0, 'Flavor Lab unveils "Blue", which scientists insist is a flavor.'],
+  [()=>S.owned.arena>0, 'Stadium crowd does the wave for four hours straight, refuses to sit.'],
+  [()=>S.owned.sat>0, 'Astronomers puzzled by new constellation shaped exactly like a can.'],
+  [()=>S.owned.cloud>0, 'Umbrella sales collapse after rain turns out to be delicious.'],
+  [()=>S.owned.reactor>0, 'Taurine reactor declared "mostly safe" by a very excited inspector.'],
+  [()=>S.owned.chrono>0, 'Chrono Fridge delivers tomorrow\'s cans today. Tomorrow is annoyed.'],
+  [()=>S.owned.portal>0, 'Visitors from the fizz dimension ask to speak to a manager.'],
+  [()=>S.owned.star>0, 'The sun dims slightly as a Can Forge Star requests a refill.'],
+  [()=>S.owned.hive>0, 'Hive Mind Crew now finishes each other\'s cans.'],
+  [()=>S.owned.multi>0, 'Alternate-timeline you says hi, and is doing slightly better.'],
+  [()=>S.owned.tap>0, 'The Eternal Tap has been running for ten thousand years. A plumber is on the way.'],
+  [()=>S.golden>0, 'Reports of glittering golden cans appearing out of thin air. Grab them.'],
+  [()=>S.rebrands>0, 'Company rebrands again. Customers say it tastes the same, only more.'],
+  [()=>C.raw>1e9, 'Global power grid now runs on leftover fizz.'],
+  [()=>C.raw>1e15, 'Physicists propose measuring the universe in cans per second.'],
+];
+function nextNews(){
+  const pool = NEWS.filter(([t])=>{ try{return t();}catch(e){return false;} });
+  const line = pool[Math.floor(Math.random()*pool.length)][1];
+  const el = $('tickerText');
+  el.classList.add('hide');
+  setTimeout(()=>{ el.textContent = line; el.classList.remove('hide'); }, 400);
+}
+
+/* ---------- fizz bubbles ---------- */
+const cvs = $('fizz'), ctx = cvs.getContext('2d');
+let bubbles = [], cw = 0, ch = 0;
+function resizeCanvas(){
+  const dpr = Math.min(2, window.devicePixelRatio||1);
+  cw = zone.clientWidth; ch = zone.clientHeight;
+  cvs.width = cw*dpr; cvs.height = ch*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function makeBubble(x, y, burst){
+  return { x, y, r: 1 + Math.random()*(burst?3:2.5), vy: burst ? 40+Math.random()*80 : 15+Math.random()*35,
+           vx: burst ? (Math.random()-0.5)*80 : 0, sway: Math.random()*Math.PI*2, life: burst ? 1.2 : 99 };
+}
+function bubbleBurst(x, y){
+  if(reducedMotion) return;
+  for(let i=0;i<5;i++) bubbles.push(makeBubble(x, y, true));
+}
+let lastFrame = performance.now();
+function drawFizz(now){
+  const dt = Math.min(0.05, (now-lastFrame)/1000); lastFrame = now;
+  if(!reducedMotion && !document.hidden){
+    const target = Math.min(70, 4 + Math.log10(C.raw+1)*4);
+    const ambient = bubbles.filter(b=>b.life>50).length;
+    if(ambient < target && Math.random()<0.3) bubbles.push(makeBubble(Math.random()*cw, ch+10, false));
+    ctx.clearRect(0,0,cw,ch);
+    bubbles = bubbles.filter(b=>b.y>-10 && b.life>0);
+    for(const b of bubbles){
+      b.sway += dt*2; b.y -= b.vy*dt; b.x += (b.vx*dt) + Math.sin(b.sway)*0.3; b.vx *= 0.96;
+      if(b.life<50) b.life -= dt;
+      const a = b.life<50 ? Math.max(0,b.life/1.2)*0.6 : 0.28;
+      ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+      ctx.strokeStyle = `rgba(143,215,232,${a})`; ctx.lineWidth = 1; ctx.stroke();
+    }
+  }
+  requestAnimationFrame(drawFizz);
+}
+
+/* ---------- offline progress ---------- */
+function applyAway(seconds, fromLoad){
+  const L = S.legacy;
+  const pct = L.cold3 ? 0.9 : L.cold2 ? 0.5 : L.cold1 ? 0.25 : 0.1;
+  const cap = L.cold3 ? 172800 : 86400;
+  const s = Math.min(seconds, cap);
+  S.buffs.forEach(b=>b.t -= seconds);
+  S.buffs = S.buffs.filter(b=>b.t>0);
+  S.goldenTimer = Math.max(5, S.goldenTimer - seconds);
+  recalc();
+  const gain = C.raw * pct * s;
+  if(gain>0 && s>=30){
+    earn(gain);
+    toast('Welcome back', `While you were away for ${fmtTime(seconds)}, your producers made ${fmt(gain)} energy (${Math.round(pct*100)}% speed).`, 'gold');
+  }
+}
+
+/* ---------- main loop ---------- */
+let lastTick = performance.now();
+let slowTimer = 0, midTimer = 0, newsTimer = 0, saveTimer = 0;
+function tick(){
+  const now = performance.now();
+  let dt = (now-lastTick)/1000; lastTick = now;
+  if(dt<0) dt = 0;
+  if(dt > 60){ applyAway(dt); dt = 0; }
+  S.playTime += dt;
+
+  if(S.buffs.length){
+    S.buffs.forEach(b=>b.t -= dt);
+    const n = S.buffs.length;
+    S.buffs = S.buffs.filter(b=>b.t>0);
+    if(S.buffs.length!==n) recalc();
+  }
+  earn(C.eps*dt);
+
+  if(goldenEl){ goldenLeft -= dt; if(goldenLeft<=0) removeGolden(); }
+  else { S.goldenTimer -= dt; if(S.goldenTimer<=0) spawnGolden(); }
+
+  renderCounter();
+  renderBuffs(false);
+
+  midTimer += dt;
+  if(midTimer >= 0.25){ midTimer = 0; renderStore(false); refreshTooltip(); }
+  slowTimer += dt;
+  if(slowTimer >= 1){
+    slowTimer = 0;
+    checkAchievements(false);
+    computeBest();
+    renderStats();
+    renderLegacy(false);
+    document.title = `${fmt(S.energy)} energy · Ultra Clicker`;
+  }
+  newsTimer += dt;
+  if(newsTimer >= 12){ newsTimer = 0; nextNews(); }
+  saveTimer += dt;
+  if(saveTimer >= 10){ saveTimer = 0; saveGame(); }
+}
+
+function renderAll(){
+  upgradeKey = '';
+  renderCounter(); renderBuffs(true); computeBest(); renderStore(true);
+  renderAch(); renderCompletion(); renderStats(); renderLegacy(true);
+}
+function afterStateReplaced(){
+  if(goldenEl){ goldenEl.remove(); goldenEl = null; }
+  recalc();
+  checkAchievements(true);
+  renderAll();
+}
+
+/* ---------- start ---------- */
+buildBuildingRows();
+buildAchGrid();
+const loadResult = loadGame();
+recalc();
+checkAchievements(true);
+if(loadResult==='loaded') applyAway((Date.now()-S.lastSave)/1000, true);
+if(loadResult==='migrated') toast('Save upgraded', 'Your old progress was carried over to the new version.', 'gold');
+renderAll();
+$('tickerText').textContent = NEWS[0][1];
+resizeCanvas();
+window.addEventListener('resize', ()=>{ resizeCanvas(); hideTooltip(); });
+requestAnimationFrame(drawFizz);
+setInterval(tick, 100);
+window.addEventListener('beforeunload', saveGame);
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveGame(); });
 })();
 </script>
 </body>
