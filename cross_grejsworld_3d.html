@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Cross GrejsWorld 3D</title>
+    <!-- Tailwind CSS for modern responsive UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js for 3D Voxel Rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            background-color: #1a1a24;
+        }
+
+        #game-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* Glassmorphism Overlay Utilities */
+        .glass-panel {
+            background: rgba(20, 25, 40, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* Custom Arcade Button Style */
+        .btn-arcade {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            box-shadow: 0 8px 0 #3730a3, 0 12px 20px rgba(0, 0, 0, 0.4);
+            transition: all 0.1s ease;
+        }
+        .btn-arcade:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #3730a3, 0 6px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-dpad {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .btn-dpad:active {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0.95);
+        }
+
+        /* Pulse FX for camera warning */
+        @keyframes borderPulse {
+            0% { box-shadow: inset 0 0 20px rgba(239, 68, 68, 0); }
+            50% { box-shadow: inset 0 0 40px rgba(239, 68, 68, 0.8); }
+            100% { box-shadow: inset 0 0 20px rgba(239, 68, 68, 0); }
+        }
+        .warning-border {
+            animation: borderPulse 0.8s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white select-none">
+
+    <!-- 3D Game Canvas Holder -->
+    <div id="game-container"></div>
+
+    <!-- Red Danger Border Overlay (Active when falling behind) -->
+    <div id="danger-overlay" class="pointer-events-none absolute inset-0 z-10 transition-opacity duration-300 opacity-0 warning-border"></div>
+
+    <!-- UI Overlay HUD -->
+    <div id="hud" class="absolute top-0 left-0 w-full p-4 flex justify-between items-start pointer-events-none z-20">
+        <!-- Left group: back button + score box -->
+        <div class="flex flex-col items-start gap-2">
+            <button id="back-btn" onclick="goBackToAlley()" class="glass-panel pointer-events-auto rounded-xl px-3 py-2 flex items-center gap-1.5 text-sm font-semibold text-white/90 hover:bg-white/15 active:scale-95 transition">
+                <span aria-hidden="true">◀</span> Tilbage
+            </button>
+            <!-- Score Box -->
+            <div class="glass-panel rounded-2xl px-5 py-3 flex flex-col items-center shadow-lg">
+                <span class="text-xs uppercase tracking-widest text-indigo-300 font-bold">METER FØRT</span>
+                <span id="score-text" class="text-4xl font-extrabold text-white drop-shadow">0</span>
+            </div>
+        </div>
+
+        <!-- Highscore & Multiplier -->
+        <div class="flex flex-col items-end gap-2">
+            <div class="glass-panel rounded-xl px-4 py-2 flex items-center gap-2">
+                <span class="text-xs text-amber-400 font-semibold">REKORD:</span>
+                <span id="highscore-text" class="text-lg font-bold">0</span>
+            </div>
+            <div id="speed-badge" class="glass-panel rounded-lg px-3 py-1 text-xs text-cyan-300 font-semibold border-cyan-500/30">
+                HASTIGHED: 1.0x
+            </div>
+        </div>
+    </div>
+
+    <!-- Start Overlay Screen -->
+    <div id="start-screen" class="absolute inset-0 z-30 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+        <div class="glass-panel max-w-md w-full rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
+            <div class="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-2xl flex items-center justify-center text-4xl shadow-lg mb-4 ring-4 ring-emerald-400/30">
+                🦆
+            </div>
+            <h1 class="text-3xl font-black tracking-tight mb-1 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-200 to-cyan-400">
+                CROSS GREJSWORLD
+            </h1>
+            <p class="text-sm text-slate-300 mb-6">3D Voxel Andeeventyr i Grejsdalen!</p>
+
+            <div class="bg-slate-900/60 rounded-2xl p-4 text-left text-xs text-slate-300 space-y-2 mb-6 border border-slate-700/50 w-full">
+                <p class="flex items-center gap-2">
+                    <span class="text-emerald-400 font-bold">⚠️ Pas på:</span> Skærmen autoscroller fremad! Hænger du for langt bagud, dør du!
+                </p>
+                <p class="flex items-center gap-2">
+                    <span class="text-amber-400 font-bold">🚗 Biler:</span> Bilerne holder sig nøje på vejen. Sørg for ikke at blive ramt.
+                </p>
+                <p class="flex items-center gap-2">
+                    <span class="text-cyan-400 font-bold">🌊 Floder:</span> Hop på træstammerne for ikke at drukne.
+                </p>
+            </div>
+
+            <button id="start-btn" class="btn-arcade w-full py-4 rounded-2xl font-black text-lg text-white uppercase tracking-wider mb-3">
+                START SPILLET
+            </button>
+            <p class="text-xs text-slate-400">Brug Piltaster / WASD eller knapperne på skærmen</p>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameover-screen" class="hidden absolute inset-0 z-30 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4">
+        <div class="glass-panel max-w-md w-full rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center transform scale-95 transition-transform duration-200">
+            <div class="w-16 h-16 bg-rose-500/20 text-rose-500 rounded-full flex items-center justify-center text-3xl mb-3 border border-rose-500/30">
+                💥
+            </div>
+            <h2 class="text-3xl font-extrabold text-white mb-1">GAME OVER</h2>
+            <p id="death-reason" class="text-rose-400 font-medium text-sm mb-4">Du blev ramt af en bil!</p>
+
+            <div class="grid grid-cols-2 gap-3 w-full mb-6">
+                <div class="bg-slate-900/60 rounded-2xl p-3 border border-slate-800">
+                    <div class="text-xs text-slate-400 mb-1">SCORE</div>
+                    <div id="final-score" class="text-3xl font-black text-emerald-400">0</div>
+                </div>
+                <div class="bg-slate-900/60 rounded-2xl p-3 border border-slate-800">
+                    <div class="text-xs text-slate-400 mb-1">REKORD</div>
+                    <div id="final-highscore" class="text-3xl font-black text-amber-400">0</div>
+                </div>
+            </div>
+
+            <button id="restart-btn" class="btn-arcade w-full py-4 rounded-2xl font-black text-lg text-white uppercase tracking-wider">
+                PRØV IGEN
+            </button>
+        </div>
+    </div>
+
+    <!-- On-Screen D-Pad / Touch Controls (Mobile Friendly) -->
+    <div id="touch-controls" class="absolute bottom-6 left-0 right-0 z-20 flex justify-center items-center pointer-events-none md:hidden">
+        <div class="grid grid-cols-3 gap-2 w-48 h-48 pointer-events-auto">
+            <div></div>
+            <button id="btn-up" class="btn-dpad rounded-2xl flex items-center justify-center text-2xl text-white font-bold">▲</button>
+            <div></div>
+
+            <button id="btn-left" class="btn-dpad rounded-2xl flex items-center justify-center text-2xl text-white font-bold">◀</button>
+            <button id="btn-down" class="btn-dpad rounded-2xl flex items-center justify-center text-2xl text-white font-bold">▼</button>
+            <button id="btn-right" class="btn-dpad rounded-2xl flex items-center justify-center text-2xl text-white font-bold">▶</button>
+        </div>
+    </div>
+
+    <!-- MAIN GAME SCRIPT -->
+    <script>
+        // Fallback link to the Grejs Alley hub, used if there's no browser history to go back to
+        // (e.g. the page was opened directly rather than via a link from the hub).
+        const GREJS_ALLEY_URL = "GREJSALLEY.html";
+        function goBackToAlley() {
+            try {
+                if (window.history.length > 1) {
+                    window.history.back();
+                    return;
+                }
+            } catch (e) {}
+            window.location.href = GREJS_ALLEY_URL;
+        }
+
+        // --- CONSTANTS & CONFIGS ---
+        const BOARD_WIDTH = 19; // Lane width X boundaries (-9 to +9)
+        const LANE_LIMIT_X = 9;  // Spawning bounds for vehicles
+        const CAMERA_BACK_LIMIT = 5.2; // How far behind camera duck can fall before dying
+
+        // Audio Synth Generator (Web Audio API)
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playQuack() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(160, this.ctx.currentTime + 0.15);
+
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.15);
+            }
+
+            playSplash() {
+                if (!this.ctx) return;
+                const bufferSize = this.ctx.sampleRate * 0.2;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(1000, this.ctx.currentTime);
+                filter.frequency.linearRampToValueAtTime(200, this.ctx.currentTime + 0.2);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                noise.start();
+            }
+
+            playSquish() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.25);
+
+                gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.25);
+            }
+
+            playScore() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, this.ctx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, this.ctx.currentTime + 0.05); // E5
+
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.12);
+            }
+        }
+
+        const audio = new SoundEngine();
+
+        
+        let scene, camera, renderer;
+        let duckGroup;
+        let particles = [];
+
+        // Game State Variables
+        let isGameStarted = false;
+        let isGameOver = false;
+        
+        let duckPos = { x: 0, z: 0 };
+        let duckTarget = { x: 0, z: 0 };
+        let isMoving = false;
+        let moveProgress = 0;
+        let duckRotation = 0; // 0: Up (-Z), Math.PI: Down (+Z), Math.PI/2: Left (-X), -Math.PI/2: Right (+X)
+        
+        let score = 0;
+        let highestZReached = 0;
+        let highscore = localStorage.getItem('cross_grejs_hs') || 0;
+        document.getElementById('highscore-text').innerText = highscore;
+
+        // Forced Camera Scrolling logic
+        let cameraBaseZ = 4;
+        let cameraBaseX = 0;
+        let cameraScrollSpeed = 0.8; // Units per second, grows with distance
+        
+        let lanes = []; // Active map rows
+        let generatedMaxZ = -1; // Track lane generation forward
+
+        function initThree() {
+            const container = document.getElementById('game-container');
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x71c5ee); // Sky blue
+            scene.fog = new THREE.Fog(0x71c5ee, 25, 45);
+
+            // Orthographic-like Isometric Camera
+            const aspect = window.innerWidth / window.innerHeight;
+            const d = 10;
+            camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 0.1, 1000);
+            
+            // Set initial camera angled view
+            camera.position.set(0, 16, 14);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // Ambient & Directional Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.55);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.75);
+            dirLight.position.set(20, 40, 20);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 1024;
+            dirLight.shadow.mapSize.height = 1024;
+            dirLight.shadow.camera.near = 10;
+            dirLight.shadow.camera.far = 80;
+            const shadowD = 18;
+            dirLight.shadow.camera.left = -shadowD;
+            dirLight.shadow.camera.right = shadowD;
+            dirLight.shadow.camera.top = shadowD;
+            dirLight.shadow.camera.bottom = -shadowD;
+            scene.add(dirLight);
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            const aspect = window.innerWidth / window.innerHeight;
+            const d = 10;
+            camera.left = -d * aspect;
+            camera.right = d * aspect;
+            camera.top = d;
+            camera.bottom = -d;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+
+        function createDuckModel() {
+            duckGroup = new THREE.Group();
+
+            // Materials
+            const emeraldMat = new THREE.MeshLambertMaterial({ color: 0x0f9f59 }); // Emerald Green Head
+            const whiteMat = new THREE.MeshLambertMaterial({ color: 0xf8fafc });   // White Neck Ring
+            const bodyMat = new THREE.MeshLambertMaterial({ color: 0x475569 });    // Dark Slate Body
+            const yellowMat = new THREE.MeshLambertMaterial({ color: 0xf59e0b });  // Yellow Beak/Feet
+            const eyeMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });     // Dark Eyes
+
+            // Body
+            const bodyGeo = new THREE.BoxGeometry(0.7, 0.55, 0.8);
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 0.45;
+            body.castShadow = true;
+            duckGroup.add(body);
+
+            // Tail Wings
+            const wingGeo = new THREE.BoxGeometry(0.82, 0.35, 0.5);
+            const wings = new THREE.Mesh(wingGeo, bodyMat);
+            wings.position.set(0, 0.5, -0.05);
+            wings.castShadow = true;
+            duckGroup.add(wings);
+
+            // Neck Ring
+            const ringGeo = new THREE.BoxGeometry(0.42, 0.12, 0.42);
+            const ring = new THREE.Mesh(ringGeo, whiteMat);
+            ring.position.set(0, 0.78, 0.18);
+            duckGroup.add(ring);
+
+            // Head (Mallard Emerald Green)
+            const headGeo = new THREE.BoxGeometry(0.48, 0.48, 0.48);
+            const head = new THREE.Mesh(headGeo, emeraldMat);
+            head.position.set(0, 1.05, 0.18);
+            head.castShadow = true;
+            duckGroup.add(head);
+
+            // Beak (Scaled precisely)
+            const beakGeo = new THREE.BoxGeometry(0.32, 0.14, 0.32);
+            const beak = new THREE.Mesh(beakGeo, yellowMat);
+            beak.position.set(0, 0.96, 0.52);
+            beak.castShadow = true;
+            duckGroup.add(beak);
+
+            // Eyes
+            const eyeGeo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+            const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+            leftEye.position.set(0.25, 1.12, 0.28);
+            const rightEye = leftEye.clone();
+            rightEye.position.x = -0.25;
+            duckGroup.add(leftEye);
+            duckGroup.add(rightEye);
+
+            // Feet
+            const footGeo = new THREE.BoxGeometry(0.2, 0.1, 0.35);
+            const leftFoot = new THREE.Mesh(footGeo, yellowMat);
+            leftFoot.position.set(0.2, 0.05, 0.05);
+            const rightFoot = leftFoot.clone();
+            rightFoot.position.x = -0.2;
+            duckGroup.add(leftFoot);
+            duckGroup.add(rightFoot);
+
+            scene.add(duckGroup);
+        }
+
+
+        // Lane Types: 'GRASS', 'ROAD', 'WATER', 'RAIL'
+        function generateLane(z) {
+            const lane = { z: z, type: 'GRASS', mesh: new THREE.Group(), obstacles: [], vehicles: [], direction: Math.random() < 0.5 ? 1 : -1, speed: 0 };
+            
+            // Progressive difficulty calculations
+            const difficultyFactor = Math.min(3.5, 1 + Math.abs(z) / 40);
+
+            // Decide Lane Type based on Z depth
+            if (z > -3) {
+                lane.type = 'GRASS'; // Safe starting area
+            } else {
+                const rand = Math.random();
+                if (rand < 0.4) lane.type = 'ROAD';
+                else if (rand < 0.7) lane.type = 'GRASS';
+                else if (rand < 0.9) lane.type = 'WATER';
+                else lane.type = 'RAIL';
+            }
+
+            // --- 1. GRASS LANE ---
+            if (lane.type === 'GRASS') {
+                const geo = new THREE.BoxGeometry(BOARD_WIDTH, 1, 1);
+                const mat = new THREE.MeshLambertMaterial({ color: (z % 2 === 0) ? 0x4ade80 : 0x22c55e });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(0, -0.5, z);
+                mesh.receiveShadow = true;
+                lane.mesh.add(mesh);
+
+                // Add solid trees as obstacles (keep at least 2 pathways open!)
+                const occupied = new Set();
+                const numTrees = Math.floor(Math.random() * 4) + 2;
+                
+                // Keep center path open initially near start
+                if (z > -5) occupied.add(0);
+
+                for (let i = 0; i < numTrees; i++) {
+                    const posX = Math.floor(Math.random() * (BOARD_WIDTH - 2)) - (LANE_LIMIT_X - 1);
+                    if (!occupied.has(posX)) {
+                        occupied.add(posX);
+                        const tree = createTreeMesh();
+                        tree.position.set(posX, 0, z);
+                        lane.mesh.add(tree);
+                        lane.obstacles.push({ x: posX, type: 'TREE' });
+                    }
+                }
+            }
+            // --- 2. ROAD LANE (STRICT VEHICLE BOUNDARIES) ---
+            else if (lane.type === 'ROAD') {
+                const geo = new THREE.BoxGeometry(BOARD_WIDTH, 1, 1);
+                const mat = new THREE.MeshLambertMaterial({ color: 0x334155 }); // Dark asphalt
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(0, -0.5, z);
+                mesh.receiveShadow = true;
+                lane.mesh.add(mesh);
+
+                // Side curb details to clearly mark boundaries
+                const curbGeo = new THREE.BoxGeometry(1, 1.05, 1);
+                const curbMat = new THREE.MeshLambertMaterial({ color: 0x94a3b8 });
+                const leftCurb = new THREE.Mesh(curbGeo, curbMat);
+                leftCurb.position.set(-LANE_LIMIT_X - 0.5, -0.48, z);
+                const rightCurb = new THREE.Mesh(curbGeo, curbMat);
+                rightCurb.position.set(LANE_LIMIT_X + 0.5, -0.48, z);
+                lane.mesh.add(leftCurb);
+                lane.mesh.add(rightCurb);
+
+                // Speed grows with depth
+                lane.speed = (3.5 + Math.random() * 2.5) * difficultyFactor;
+                lane.spawnInterval = Math.max(1.2, (3.0 - Math.random() * 1.0) / difficultyFactor);
+                lane.lastSpawn = 0;
+            }
+            // --- 3. WATER LANE ---
+            else if (lane.type === 'WATER') {
+                const geo = new THREE.BoxGeometry(BOARD_WIDTH, 0.8, 1);
+                const mat = new THREE.MeshLambertMaterial({ color: 0x0284c7, transparent: true, opacity: 0.85 });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(0, -0.6, z);
+                lane.mesh.add(mesh);
+
+                lane.speed = (2.0 + Math.random() * 1.5) * Math.min(2.0, difficultyFactor);
+                lane.spawnInterval = Math.max(1.5, (3.5 - Math.random() * 1.0) / difficultyFactor);
+                lane.lastSpawn = 0;
+            }
+            // --- 4. RAIL LANE ---
+            else if (lane.type === 'RAIL') {
+                const geo = new THREE.BoxGeometry(BOARD_WIDTH, 1, 1);
+                const mat = new THREE.MeshLambertMaterial({ color: 0x78350f }); // Wooden ties ground
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(0, -0.5, z);
+                lane.mesh.add(mesh);
+
+                // Metal rails
+                const railGeo = new THREE.BoxGeometry(BOARD_WIDTH, 0.1, 0.08);
+                const railMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.8 });
+                const rail1 = new THREE.Mesh(railGeo, railMat);
+                rail1.position.set(0, 0.05, z - 0.2);
+                const rail2 = new THREE.Mesh(railGeo, railMat);
+                rail2.position.set(0, 0.05, z + 0.2);
+                lane.mesh.add(rail1);
+                lane.mesh.add(rail2);
+
+                lane.speed = 12 * difficultyFactor; // Fast train!
+                lane.spawnInterval = Math.max(4.0, (7.0 - Math.random() * 2) / difficultyFactor);
+                lane.lastSpawn = 0;
+            }
+
+            scene.add(lane.mesh);
+            lanes.push(lane);
+        }
+
+
+        function createTreeMesh() {
+            const group = new THREE.Group();
+            
+            // Trunk
+            const trunkGeo = new THREE.BoxGeometry(0.4, 0.6, 0.4);
+            const trunkMat = new THREE.MeshLambertMaterial({ color: 0x78350f });
+            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk.position.y = 0.3;
+            trunk.castShadow = true;
+            group.add(trunk);
+
+            // Foliage Voxel Blocks
+            const folMat = new THREE.MeshLambertMaterial({ color: 0x15803d });
+            const b1 = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.7, 1.1), folMat);
+            b1.position.y = 0.85;
+            b1.castShadow = true;
+            group.add(b1);
+
+            const b2 = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.6, 0.75), folMat);
+            b2.position.y = 1.35;
+            b2.castShadow = true;
+            group.add(b2);
+
+            return group;
+        }
+
+        // SCALED DOWN CAR MODEL (Fits perfectly inside lane & road bounds)
+        function createCarMesh() {
+            const group = new THREE.Group();
+            const colors = [0xef4444, 0x3b82f6, 0xeab308, 0xa855f7, 0xec4899];
+            const carColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Reduced Scale Factor: 0.7x for precision fit
+            const carMat = new THREE.MeshLambertMaterial({ color: carColor });
+            const glassMat = new THREE.MeshLambertMaterial({ color: 0x93c5fd });
+            const wheelMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+
+            // Car Base Body (Width: 1.2, Height: 0.45, Depth: 0.7)
+            const bodyGeo = new THREE.BoxGeometry(1.25, 0.35, 0.7);
+            const body = new THREE.Mesh(bodyGeo, carMat);
+            body.position.y = 0.25;
+            body.castShadow = true;
+            group.add(body);
+
+            // Car Roof/Cabin
+            const cabinGeo = new THREE.BoxGeometry(0.7, 0.3, 0.62);
+            const cabin = new THREE.Mesh(cabinGeo, glassMat);
+            cabin.position.set(-0.05, 0.52, 0);
+            cabin.castShadow = true;
+            group.add(cabin);
+
+            // Wheels
+            const wGeo = new THREE.BoxGeometry(0.25, 0.2, 0.76);
+            const wheels = new THREE.Mesh(wGeo, wheelMat);
+            wheels.position.y = 0.12;
+            group.add(wheels);
+
+            return group;
+        }
+
+        // SCALED DOWN TRUCK MODEL
+        function createTruckMesh() {
+            const group = new THREE.Group();
+            const cabMat = new THREE.MeshLambertMaterial({ color: 0xd97706 });
+            const trailerMat = new THREE.MeshLambertMaterial({ color: 0xf8fafc });
+
+            // Cabin
+            const cab = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.6, 0.72), cabMat);
+            cab.position.set(0.65, 0.38, 0);
+            cab.castShadow = true;
+            group.add(cab);
+
+            // Trailer
+            const trailer = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.7, 0.74), trailerMat);
+            trailer.position.set(-0.35, 0.45, 0);
+            trailer.castShadow = true;
+            group.add(trailer);
+
+            return group;
+        }
+
+        // LOG MESH FOR WATER
+        function createLogMesh(length = 2.2) {
+            const group = new THREE.Group();
+            const logMat = new THREE.MeshLambertMaterial({ color: 0x854d0e });
+            const geo = new THREE.BoxGeometry(length, 0.25, 0.68);
+            const mesh = new THREE.Mesh(geo, logMat);
+            mesh.position.y = 0.05;
+            mesh.receiveShadow = true;
+            group.add(mesh);
+            return group;
+        }
+
+        // TRAIN MESH FOR RAIL
+        function createTrainMesh() {
+            const group = new THREE.Group();
+            const mat = new THREE.MeshLambertMaterial({ color: 0xd97706 });
+            const body = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.8, 0.78), mat);
+            body.position.y = 0.45;
+            body.castShadow = true;
+            group.add(body);
+            return group;
+        }
+
+
+        function initGame() {
+            initThree();
+            createDuckModel();
+
+            // Setup initial world lanes
+            for (let z = 5; z >= -25; z--) {
+                generateLane(z);
+                generatedMaxZ = z;
+            }
+
+            // Keyboard listeners
+            window.addEventListener('keydown', (e) => {
+                if (!isGameStarted || isGameOver) return;
+                switch (e.key) {
+                    case 'ArrowUp': case 'w': case 'W': moveDuck(0, -1); break;
+                    case 'ArrowDown': case 's': case 'S': moveDuck(0, 1); break;
+                    case 'ArrowLeft': case 'a': case 'A': moveDuck(-1, 0); break;
+                    case 'ArrowRight': case 'd': case 'D': moveDuck(1, 0); break;
+                }
+            });
+
+            // Touch Control Buttons
+            document.getElementById('btn-up').addEventListener('click', () => moveDuck(0, -1));
+            document.getElementById('btn-down').addEventListener('click', () => moveDuck(0, 1));
+            document.getElementById('btn-left').addEventListener('click', () => moveDuck(-1, 0));
+            document.getElementById('btn-right').addEventListener('click', () => moveDuck(1, 0));
+
+            // Start & Restart UI Actions
+            document.getElementById('start-btn').addEventListener('click', startGame);
+            document.getElementById('restart-btn').addEventListener('click', restartGame);
+
+            // Render loop start
+            requestAnimationFrame(animate);
+        }
+
+        function startGame() {
+            audio.init();
+            document.getElementById('start-screen').classList.add('hidden');
+            isGameStarted = true;
+            isGameOver = false;
+        }
+
+        function restartGame() {
+            // Reset position & states
+            duckPos = { x: 0, z: 0 };
+            duckTarget = { x: 0, z: 0 };
+            duckGroup.position.set(0, 0, 0);
+            duckGroup.rotation.y = 0;
+            duckRotation = 0;
+            isMoving = false;
+            
+            score = 0;
+            highestZReached = 0;
+            cameraBaseZ = 4;
+            cameraBaseX = 0;
+            cameraScrollSpeed = 0.8;
+            document.getElementById('score-text').innerText = '0';
+            document.getElementById('danger-overlay').style.opacity = '0';
+
+            // Clean up existing lanes
+            lanes.forEach(l => scene.remove(l.mesh));
+            lanes = [];
+
+            // Regenerate starting map
+            for (let z = 5; z >= -25; z--) {
+                generateLane(z);
+                generatedMaxZ = z;
+            }
+
+            document.getElementById('gameover-screen').classList.add('hidden');
+            isGameOver = false;
+            isGameStarted = true;
+        }
+
+
+        function moveDuck(dx, dz) {
+            if (isMoving || isGameOver) return;
+
+            const newTargetX = duckPos.x + dx;
+            const newTargetZ = duckPos.z + dz;
+
+            // X-Axis boundaries check
+            if (newTargetX < -LANE_LIMIT_X + 1 || newTargetX > LANE_LIMIT_X - 1) return;
+
+            // Rotate duck towards movement direction
+            if (dx === 1) duckRotation = -Math.PI / 2;
+            else if (dx === -1) duckRotation = Math.PI / 2;
+            else if (dz === 1) duckRotation = Math.PI;
+            else if (dz === -1) duckRotation = 0;
+
+            // Check Tree Obstacle Collisions on target lane
+            const targetLane = lanes.find(l => l.z === newTargetZ);
+            if (targetLane && targetLane.type === 'GRASS') {
+                const hitTree = targetLane.obstacles.some(o => o.x === newTargetX);
+                if (hitTree) {
+                    // Tree Bump Effect
+                    audio.playQuack();
+                    bounceDuck(dx, dz);
+                    return;
+                }
+            }
+
+            // Start valid move jump
+            duckTarget.x = newTargetX;
+            duckTarget.z = newTargetZ;
+            isMoving = true;
+            moveProgress = 0;
+
+            audio.playQuack();
+
+            // Update Score when moving forward
+            if (-newTargetZ > highestZReached) {
+                highestZReached = -newTargetZ;
+                score = highestZReached;
+                document.getElementById('score-text').innerText = score;
+                audio.playScore();
+
+                // Increase camera autoscroll speed progressively!
+                cameraScrollSpeed = 0.8 + Math.min(2.5, score * 0.025);
+                document.getElementById('speed-badge').innerText = `HASTIGHED: ${(cameraScrollSpeed / 0.8).toFixed(1)}x`;
+            }
+        }
+
+        // Bounce effect when hitting trees
+        function bounceDuck(dx, dz) {
+            const startY = duckGroup.position.y;
+            let step = 0;
+            const bumpTimer = setInterval(() => {
+                step += 0.2;
+                duckGroup.position.x = duckPos.x + dx * Math.sin(step) * 0.2;
+                duckGroup.position.z = duckPos.z + dz * Math.sin(step) * 0.2;
+                if (step >= Math.PI) {
+                    clearInterval(bumpTimer);
+                    duckGroup.position.x = duckPos.x;
+                    duckGroup.position.z = duckPos.z;
+                }
+            }, 16);
+        }
+
+
+        function spawnFeatherParticles(pos) {
+            for (let i = 0; i < 8; i++) {
+                const geo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+                const mat = new THREE.MeshLambertMaterial({ color: 0xf8fafc });
+                const p = new THREE.Mesh(geo, mat);
+                p.position.set(pos.x, pos.y + 0.4, pos.z);
+                p.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.15,
+                    Math.random() * 0.15 + 0.1,
+                    (Math.random() - 0.5) * 0.15
+                );
+                p.life = 1.0;
+                scene.add(p);
+                particles.push(p);
+            }
+        }
+
+        function spawnSplashParticles(pos) {
+            for (let i = 0; i < 10; i++) {
+                const geo = new THREE.BoxGeometry(0.12, 0.12, 0.12);
+                const mat = new THREE.MeshLambertMaterial({ color: 0x38bdf8 });
+                const p = new THREE.Mesh(geo, mat);
+                p.position.set(pos.x, pos.y + 0.1, pos.z);
+                p.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.2,
+                    Math.random() * 0.2 + 0.1,
+                    (Math.random() - 0.5) * 0.2
+                );
+                p.life = 1.0;
+                scene.add(p);
+                particles.push(p);
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.position.add(p.velocity);
+                p.life -= 0.04;
+                p.scale.multiplyScalar(0.92);
+                if (p.life <= 0) {
+                    scene.remove(p);
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+
+        let lastTime = performance.now();
+
+        function animate(time) {
+            requestAnimationFrame(animate);
+
+            const delta = Math.min((time - lastTime) / 1000, 0.1);
+            lastTime = time;
+
+            if (isGameStarted && !isGameOver) {
+                // 1. FORCED CAMERA SCROLLING (Autoscroll forward continuously)
+                cameraBaseZ -= cameraScrollSpeed * delta;
+                cameraBaseX += (duckGroup.position.x - cameraBaseX) * 0.05; // Smooth horizontal camera follow
+
+                camera.position.set(cameraBaseX, 16, cameraBaseZ + 10);
+                camera.lookAt(cameraBaseX, 0, cameraBaseZ - 4);
+
+                // Check if duck is falling behind camera (DROWNED/OUT OF SCREEN DEATH)
+                const distanceBehind = duckGroup.position.z - cameraBaseZ;
+                const dangerOverlay = document.getElementById('danger-overlay');
+
+                if (distanceBehind > CAMERA_BACK_LIMIT - 1.5) {
+                    dangerOverlay.style.opacity = '1';
+                } else {
+                    dangerOverlay.style.opacity = '0';
+                }
+
+                if (distanceBehind > CAMERA_BACK_LIMIT) {
+                    triggerGameOver("Du kunne ikke følge med skærmen!");
+                }
+
+                // 2. GENERATE NEW LANES AHEAD & CLEAN UP OLD LANES
+                if (cameraBaseZ - 20 < generatedMaxZ) {
+                    generateLane(generatedMaxZ - 1);
+                    generatedMaxZ--;
+                }
+                
+                // Remove lanes far behind camera to optimize performance
+                lanes = lanes.filter(lane => {
+                    if (lane.z > cameraBaseZ + 12) {
+                        scene.remove(lane.mesh);
+                        return false;
+                    }
+                    return true;
+                });
+
+                // 3. DUCK JUMP ANIMATION SMOOTHING
+                if (isMoving) {
+                    moveProgress += delta * 12; // Jump speed
+                    if (moveProgress >= 1) {
+                        moveProgress = 1;
+                        isMoving = false;
+                        duckPos.x = duckTarget.x;
+                        duckPos.z = duckTarget.z;
+                    }
+
+                    // Arc interpolation for jump height
+                    const currentX = THREE.MathUtils.lerp(duckPos.x, duckTarget.x, moveProgress);
+                    const currentZ = THREE.MathUtils.lerp(duckPos.z, duckTarget.z, moveProgress);
+                    const jumpY = Math.sin(moveProgress * Math.PI) * 0.5;
+
+                    duckGroup.position.set(currentX, jumpY, currentZ);
+                }
+
+                duckGroup.rotation.y = THREE.MathUtils.lerp(duckGroup.rotation.y, duckRotation, 0.3);
+
+                // 4. VEHICLES & LOGS SPAWNING & UPDATING
+                lanes.forEach(lane => {
+                    lane.lastSpawn += delta;
+
+                    // Vehicle / Log Spawning logic
+                    if (lane.lastSpawn > lane.spawnInterval) {
+                        lane.lastSpawn = 0;
+                        
+                        let entity;
+                        if (lane.type === 'ROAD') {
+                            entity = Math.random() < 0.65 ? createCarMesh() : createTruckMesh();
+                        } else if (lane.type === 'WATER') {
+                            entity = createLogMesh(Math.random() < 0.5 ? 2.2 : 3.0);
+                        } else if (lane.type === 'RAIL') {
+                            entity = createTrainMesh();
+                        }
+
+                        if (entity) {
+                            // STRICT BOUNDARIES: Spawn exactly at edge of lane
+                            const startX = lane.direction === 1 ? -LANE_LIMIT_X : LANE_LIMIT_X;
+                            entity.position.set(startX, 0, lane.z);
+                            if (lane.direction === -1) entity.rotation.y = Math.PI;
+
+                            lane.mesh.add(entity);
+                            lane.vehicles.push(entity);
+                        }
+                    }
+
+                    // Move Vehicles & Logs within STRICT boundaries
+                    for (let i = lane.vehicles.length - 1; i >= 0; i--) {
+                        const v = lane.vehicles[i];
+                        v.position.x += lane.direction * lane.speed * delta;
+
+                        // DESPAWN EXACTLY WHEN CROSSING OUTSIDE ROAD BOUNDS (LANE_LIMIT_X)
+                        if ((lane.direction === 1 && v.position.x > LANE_LIMIT_X + 1.5) ||
+                            (lane.direction === -1 && v.position.x < -LANE_LIMIT_X - 1.5)) {
+                            lane.mesh.remove(v);
+                            lane.vehicles.splice(i, 1);
+                        }
+                    }
+                });
+
+                // 5. WATER DRIFT & COLLISION CHECKS
+                const currentLane = lanes.find(l => l.z === Math.round(duckGroup.position.z));
+                
+                if (currentLane) {
+                    // WATER LANE LOGIC
+                    if (currentLane.type === 'WATER') {
+                        let isOnLog = false;
+                        let logSpeed = 0;
+
+                        // Check if duck is on any log in this water lane
+                        currentLane.vehicles.forEach(log => {
+                            const logBox = new THREE.Box3().setFromObject(log);
+                            const duckBox = new THREE.Box3().setFromObject(duckGroup);
+                            
+                            // Adjust box for forgiving float collision
+                            logBox.expandByScalar(0.1);
+
+                            if (logBox.intersectsBox(duckBox)) {
+                                isOnLog = true;
+                                logSpeed = currentLane.direction * currentLane.speed;
+                            }
+                        });
+
+                        if (isOnLog && !isMoving) {
+                            // Drift duck with log water stream
+                            duckGroup.position.x += logSpeed * delta;
+                            duckPos.x = duckGroup.position.x;
+
+                            // Off-screen water death
+                            if (duckGroup.position.x < -LANE_LIMIT_X || duckGroup.position.x > LANE_LIMIT_X) {
+                                spawnSplashParticles(duckGroup.position);
+                                audio.playSplash();
+                                triggerGameOver("Du drev ud af banen i floden!");
+                            }
+                        } else if (!isOnLog && !isMoving) {
+                            // Drowned in water!
+                            spawnSplashParticles(duckGroup.position);
+                            audio.playSplash();
+                            triggerGameOver("Du faldt i vandet og druknede!");
+                        }
+                    }
+                    // ROAD / RAIL COLLISION LOGIC
+                    else if (currentLane.type === 'ROAD' || currentLane.type === 'RAIL') {
+                        currentLane.vehicles.forEach(v => {
+                            const vBox = new THREE.Box3().setFromObject(v);
+                            const duckBox = new THREE.Box3().setFromObject(duckGroup);
+
+                            // Slightly shrink collision box for tight pixel-perfect feel
+                            vBox.shrinkByScalar(0.15);
+
+                            if (vBox.intersectsBox(duckBox)) {
+                                spawnFeatherParticles(duckGroup.position);
+                                audio.playSquish();
+                                triggerGameOver(currentLane.type === 'ROAD' ? "Du blev kørt over af en bil!" : "Du blev ramt af toget!");
+                            }
+                        });
+                    }
+                }
+            }
+
+            updateParticles();
+            renderer.render(scene, camera);
+        }
+
+
+        function triggerGameOver(reason) {
+            if (isGameOver) return;
+            isGameOver = true;
+            isGameStarted = false;
+
+            document.getElementById('danger-overlay').style.opacity = '0';
+
+            // Highscore logic
+            if (score > highscore) {
+                highscore = score;
+                localStorage.setItem('cross_grejs_hs', highscore);
+                document.getElementById('highscore-text').innerText = highscore;
+            }
+
+            document.getElementById('death-reason').innerText = reason;
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('final-highscore').innerText = highscore;
+
+            setTimeout(() => {
+                document.getElementById('gameover-screen').classList.remove('hidden');
+            }, 400);
+        }
+
+        // Initialize on Window Load
+        window.onload = () => {
+            initGame();
+        };
+    </script>
+</body>
+</html>
