@@ -667,59 +667,193 @@
     }});
 
   /* ---------------- BLOCKS (tetromino) ---------------- */
-  G({ id:"blocks", name:"Stack Drop", tag:"puzzle", w:300, h:480,
-    desc:"The falling-block classic. Clear lines, survive the speed-up.",
-    hint:"◀▶ move · ▲ rotate · ▼ soft · A hard drop",
+  G({ id:"blocks", name:"Neon Tetris", tag:"puzzle", href:"klassisk_neon_tetris.html", w:350, h:480,
+    desc:"The full neon tetromino stacker — opens in its own page. 7-bag draw, hold, ghost piece, hard drop.",
+    hint:"◀▶ move · ▲ rotate · ▼ soft · A hard drop · C hold",
     mount(env){
-      const {ctx,w,h}=env, COLS=10, ROWS=16, S=w/COLS;
-      const P=[
-        {c:COL.cyan,   cells:[[-1,0],[0,0],[1,0],[2,0]]},
-        {c:COL.amber,  cells:[[0,0],[1,0],[0,1],[1,1]]},
-        {c:COL.violet, cells:[[-1,0],[0,0],[1,0],[0,1]]},
-        {c:COL.green,  cells:[[0,0],[1,0],[-1,1],[0,1]]},
-        {c:COL.coral,  cells:[[-1,0],[0,0],[0,1],[1,1]]},
-        {c:"#7b8cff",  cells:[[-1,0],[0,0],[1,0],[-1,1]]},
-        {c:"#ff9f43",  cells:[[-1,0],[0,0],[1,0],[1,1]]}
-      ];
-      let grid,cur,cx,cy,pi,acc,lines,score,over;
+      const {ctx,w,h}=env, COLS=10, ROWS=20, S=24, BW=COLS*S, PX=BW+10, PW=w-PX;
+      const PIECES={
+        I:{shape:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], color:COL.cyan},
+        J:{shape:[[1,0,0],[1,1,1],[0,0,0]], color:"#7b8cff"},
+        L:{shape:[[0,0,1],[1,1,1],[0,0,0]], color:"#ff9f43"},
+        O:{shape:[[1,1],[1,1]], color:COL.amber},
+        S:{shape:[[0,1,1],[1,1,0],[0,0,0]], color:COL.green},
+        T:{shape:[[0,1,0],[1,1,1],[0,0,0]], color:COL.violet},
+        Z:{shape:[[1,1,0],[0,1,1],[0,0,0]], color:COL.coral}
+      };
+      const KEYS=Object.keys(PIECES);
+      let grid,bag,cur,nextP,holdKey,canHold,acc,dropIv,lines,level,score,over,particles,flash;
+
       const empty=()=>Array.from({length:ROWS},()=>Array(COLS).fill(null));
-      function spawn(){
-        pi=rand(P.length); cur=P[pi].cells.map(c=>c.slice()); cx=4; cy=1;
-        if(hit(cur,cx,cy)){ over=true; env.saveHi(score); env.status("Topped out — A / Restart"); }
+      function refillBag(){ bag=KEYS.slice(); for(let i=bag.length-1;i>0;i--){ const j=rand(i+1); [bag[i],bag[j]]=[bag[j],bag[i]]; } }
+      function spawnPiece(key){
+        const def=PIECES[key], shape=def.shape.map(r=>r.slice());
+        return { key, shape, color:def.color, x:Math.floor(COLS/2)-Math.ceil(shape[0].length/2), y:0 };
       }
-      function reset(){ grid=empty(); lines=0; score=0; acc=0; over=false; env.score(0); env.status("Fill rows to clear them"); spawn(); }
-      env.reset=reset;
-      const hit=(cells,ox,oy)=>cells.some(([x,y])=>{ const gx=ox+x, gy=oy+y; return gx<0||gx>=COLS||gy>=ROWS||(gy>=0&&grid[gy][gx]); });
-      function rotate(){ if(pi===1)return; const nc=cur.map(([x,y])=>[-y,x]); if(!hit(nc,cx,cy))cur=nc; }
+      function takeFromBag(){ if(!bag||!bag.length)refillBag(); return spawnPiece(bag.pop()); }
+      function collide(shape,ox,oy){
+        for(let r=0;r<shape.length;r++)for(let c=0;c<shape[r].length;c++){
+          if(!shape[r][c])continue;
+          const gx=ox+c, gy=oy+r;
+          if(gx<0||gx>=COLS||gy>=ROWS)return true;
+          if(gy>=0&&grid[gy][gx])return true;
+        }
+        return false;
+      }
+      const rotateMatrix=m=>{ const n=m.length; return m.map((row,i)=>row.map((_,j)=>m[n-1-j][i])); };
+      function rotate(){
+        if(cur.key==="O")return;
+        const before=cur.shape; cur.shape=rotateMatrix(before);
+        let ok=false;
+        for(const dx of [0,1,-1,2,-2]){ if(!collide(cur.shape,cur.x+dx,cur.y)){ cur.x+=dx; ok=true; break; } }
+        if(!ok)cur.shape=before; else env.sfx.ui();
+      }
+      function ghostY(){ let gy=cur.y; while(!collide(cur.shape,cur.x,gy+1))gy++; return gy; }
+      function burst(px,py,color,n){
+        for(let i=0;i<n;i++)particles.push({x:px,y:py,vx:rnd(-2.6,2.6),vy:rnd(-2.6,1),life:1,decay:rnd(1.1,2.1),size:rnd(2,4.2),color});
+      }
       function lock(){
-        cur.forEach(([x,y])=>{ if(cy+y>=0)grid[cy+y][cx+x]=P[pi].c; });
-        let cleared=0;
-        for(let y=ROWS-1;y>=0;y--){ if(grid[y].every(v=>v)){ grid.splice(y,1); grid.unshift(Array(COLS).fill(null)); cleared++; y++; } }
-        if(cleared){ lines+=cleared; score+=[0,100,300,500,800][cleared]; env.score(score); env.saveHi(score); }
-        spawn();
+        cur.shape.forEach((row,r)=>row.forEach((v,c)=>{ if(v&&cur.y+r>=0)grid[cur.y+r][cur.x+c]=cur.color; }));
+        const cleared=[];
+        for(let y=ROWS-1;y>=0;y--){ if(grid[y].every(v=>v))cleared.push(y); }
+        if(cleared.length){
+          cleared.forEach(y=>{ for(let x=0;x<COLS;x++)burst(x*S+S/2,y*S+S/2,grid[y][x],5); });
+          cleared.forEach(y=>{ grid.splice(y,1); grid.unshift(Array(COLS).fill(null)); });
+          lines+=cleared.length;
+          score+=[0,100,300,500,800][cleared.length]*level;
+          const nl=Math.floor(lines/10)+1;
+          if(nl!==level){ level=nl; dropIv=Math.max(0.1,1-(level-1)*0.085); }
+          env.score(score); env.saveHi(score);
+          env.shake(cleared.length>=4?10:4);
+          env.sfx.hit();
+          flash=cleared.length>=4?1:0.4;
+          env.status("Level "+level+" · Lines "+lines);
+        }
+        canHold=true;
+        cur=nextP; nextP=takeFromBag();
+        if(collide(cur.shape,cur.x,cur.y)){ over=true; env.saveHi(score); env.status("Topped out — A / Restart"); env.sfx.over(); }
       }
-      function down(){ if(hit(cur,cx,cy+1))lock(); else cy++; }
+      function softDown(){
+        if(!collide(cur.shape,cur.x,cur.y+1)){ cur.y++; score+=1; env.score(score); }
+        else lock();
+      }
+      function hardDrop(){
+        let d=0;
+        while(!collide(cur.shape,cur.x,cur.y+1)){ cur.y++; d++; }
+        if(d){
+          score+=d*2; env.score(score); env.shake(4);
+          cur.shape.forEach((row,r)=>row.forEach((v,c)=>{ if(v)burst((cur.x+c)*S+S/2,(cur.y+r+1)*S,cur.color,2); }));
+        }
+        lock(); acc=0;
+      }
+      function doHold(){
+        if(!canHold||over)return;
+        canHold=false; env.sfx.ui();
+        if(holdKey===null){ holdKey=cur.key; cur=nextP; nextP=takeFromBag(); }
+        else { const swap=holdKey; holdKey=cur.key; cur=spawnPiece(swap); }
+      }
+      function reset(){
+        grid=empty(); bag=null; particles=[]; lines=0; level=1; score=0; acc=0; dropIv=1; over=false; flash=0;
+        holdKey=null; canHold=true;
+        cur=takeFromBag(); nextP=takeFromBag();
+        env.score(0); env.status("Fill rows to clear them");
+      }
+      env.reset=reset;
+
       env.on(window,"keydown",e=>{
         const k=e.key.toLowerCase();
         if(over){ if(k===" ")reset(); return; }
-        if(k==="arrowleft"||k==="a"){ if(!hit(cur,cx-1,cy))cx--; }
-        else if(k==="arrowright"||k==="d"){ if(!hit(cur,cx+1,cy))cx++; }
+        if(k==="arrowleft"||k==="a"){ if(!collide(cur.shape,cur.x-1,cur.y))cur.x--; }
+        else if(k==="arrowright"||k==="d"){ if(!collide(cur.shape,cur.x+1,cur.y))cur.x++; }
         else if(k==="arrowup"||k==="w"){ rotate(); }
-        else if(k==="arrowdown"||k==="s"){ down(); acc=0; }
-        else if(k===" "){ while(!hit(cur,cx,cy+1))cy++; lock(); acc=0; }
+        else if(k==="arrowdown"||k==="s"){ softDown(); acc=0; }
+        else if(k===" "){ hardDrop(); }
+        else if(k==="c"||k==="shift"){ doHold(); }
         if(k.startsWith("arrow")||k===" ")e.preventDefault();
       });
+
+      function drawBlock(px,py,size,color,ghost){
+        ctx.save();
+        if(ghost){
+          ctx.globalAlpha=0.55; ctx.strokeStyle=color; ctx.lineWidth=1.4;
+          roundRect(ctx,px+2,py+2,size-4,size-4,4); ctx.stroke();
+        } else {
+          ctx.shadowBlur=9; ctx.shadowColor=color; ctx.fillStyle=color;
+          roundRect(ctx,px+1,py+1,size-2,size-2,4); ctx.fill();
+          ctx.shadowBlur=0; ctx.fillStyle="rgba(255,255,255,.22)";
+          roundRect(ctx,px+3,py+3,size-6,(size-6)/3,2); ctx.fill();
+        }
+        ctx.restore();
+      }
+      function drawMini(key,px,py,box){
+        if(!key)return;
+        const def=PIECES[key], shape=def.shape, cell=box/4;
+        const ox=px+(4-shape[0].length)/2*cell, oy=py+(4-shape.length)/2*cell;
+        shape.forEach((row,r)=>row.forEach((v,c)=>{
+          if(v){ ctx.save(); ctx.shadowBlur=6; ctx.shadowColor=def.color; ctx.fillStyle=def.color;
+            roundRect(ctx,ox+c*cell+1,oy+r*cell+1,cell-2,cell-2,3); ctx.fill(); ctx.restore(); }
+        }));
+      }
+
       env.loop.fn=(dt)=>{
-        if(!over){ acc+=dt; const iv=Math.max(0.09,0.7-lines*0.045); while(acc>=iv){ acc-=iv; down(); } }
+        if(!over){
+          acc+=dt;
+          while(acc>=dropIv){ acc-=dropIv; if(!collide(cur.shape,cur.x,cur.y+1))cur.y++; else lock(); }
+        }
+        particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.22; p.life-=p.decay*dt; });
+        particles=particles.filter(p=>p.life>0);
+
         paintBg(ctx,w,h);
-        ctx.strokeStyle="rgba(255,255,255,.04)";
-        for(let x=1;x<COLS;x++){ctx.beginPath();ctx.moveTo(x*S,0);ctx.lineTo(x*S,h);ctx.stroke();}
-        for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){ if(grid[y][x]){ ctx.fillStyle=grid[y][x]; roundRect(ctx,x*S+1,y*S+1,S-2,S-2,3); ctx.fill(); } }
-        if(!over){ ctx.fillStyle=P[pi].c; cur.forEach(([x,y])=>{ if(cy+y>=0){ roundRect(ctx,(cx+x)*S+1,(cy+y)*S+1,S-2,S-2,3); ctx.fill(); } }); }
-        ctx.fillStyle=COL.muted; ctx.font='11px "DM Mono", monospace'; ctx.fillText("LINES "+lines,6,h-6);
+
+        ctx.strokeStyle="rgba(255,255,255,.05)"; ctx.strokeRect(0.5,0.5,BW-1,h-1);
+        ctx.strokeStyle="rgba(255,255,255,.035)";
+        for(let x=1;x<COLS;x++){ ctx.beginPath(); ctx.moveTo(x*S,0); ctx.lineTo(x*S,h); ctx.stroke(); }
+        for(let y=1;y<ROWS;y++){ ctx.beginPath(); ctx.moveTo(0,y*S); ctx.lineTo(BW,y*S); ctx.stroke(); }
+
+        for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){ if(grid[y][x])drawBlock(x*S,y*S,S,grid[y][x]); }
+
+        if(!over){
+          const gy=ghostY();
+          cur.shape.forEach((row,r)=>row.forEach((v,c)=>{ if(v&&gy+r>=0)drawBlock((cur.x+c)*S,(gy+r)*S,S,cur.color,true); }));
+          cur.shape.forEach((row,r)=>row.forEach((v,c)=>{ if(v&&cur.y+r>=0)drawBlock((cur.x+c)*S,(cur.y+r)*S,S,cur.color); }));
+        }
+
+        particles.forEach(p=>{
+          ctx.save(); ctx.globalAlpha=Math.max(0,p.life); ctx.shadowBlur=8; ctx.shadowColor=p.color; ctx.fillStyle=p.color;
+          ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,7); ctx.fill(); ctx.restore();
+        });
+
+        if(flash>0){
+          ctx.save(); ctx.globalAlpha=flash*0.5; ctx.fillStyle="#fff"; ctx.fillRect(0,0,BW,h); ctx.restore();
+          flash=Math.max(0,flash-dt*2.4);
+        }
+
+        ctx.fillStyle=COL.muted; ctx.font='600 10px "DM Mono", monospace'; ctx.textAlign="left"; ctx.textBaseline="alphabetic";
+        ctx.fillText("NEXT",PX,14);
+        roundRect(ctx,PX,20,PW-6,70,8); ctx.strokeStyle="rgba(255,255,255,.08)"; ctx.stroke();
+        drawMini(nextP&&nextP.key, PX+(PW-6-64)/2, 22, 64);
+
+        ctx.fillStyle=COL.muted; ctx.fillText("HOLD",PX,108);
+        roundRect(ctx,PX,114,PW-6,70,8); ctx.stroke();
+        drawMini(holdKey, PX+(PW-6-64)/2, 116, 64);
+
+        ctx.fillStyle=COL.ink; ctx.font='700 13px "DM Mono", monospace';
+        ctx.fillText("LV "+level,PX,210);
+        ctx.fillStyle=COL.muted; ctx.font='500 11px "DM Mono", monospace';
+        ctx.fillText("LINES "+lines,PX,228);
+
+        if(over){
+          ctx.fillStyle="rgba(9,6,15,.72)"; ctx.fillRect(0,0,BW,h);
+          ctx.fillStyle=COL.amber; ctx.font='700 16px "DM Mono", monospace'; ctx.textAlign="center";
+          ctx.fillText("GAME OVER",BW/2,h/2-6);
+          ctx.fillStyle=COL.muted; ctx.font='500 11px "DM Mono", monospace';
+          ctx.fillText("A / Space to restart",BW/2,h/2+14);
+          ctx.textAlign="left";
+        }
       };
+
       reset(); env.loop.start();
-      return {};
+      return { destroy(){} };
     }});
 
   /* ---------------- 2048 ---------------- */
@@ -2543,7 +2677,7 @@
       const meta=document.createElement("div"); meta.className="meta";
       meta.innerHTML=`<span class="lbl">${esc(g.tag)}</span><span class="name">${esc(g.name)}</span><span class="desc">${esc(g.desc)}</span>`;
       card.append(thumb,meta);
-      card.onclick=()=>{ lastCard=card; SFX.wake(); SFX.ui(); openGame(g); };
+      card.onclick=()=>{ if(g.href){ SFX.ui(); location.href=g.href; return; } lastCard=card; SFX.wake(); SFX.ui(); openGame(g); };
       grid.appendChild(card);
     });
   }
