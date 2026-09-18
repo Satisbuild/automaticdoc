@@ -314,7 +314,7 @@
 <div class="wrap">
   <header class="marquee">
     <h1 class="sign">GREJS <span class="b">ALLEY</span></h1>
-    <p class="tag">Når timerne bliver lidt for lange og man lige skal have et BREAK</p>
+    <p class="tag">A cramped neon arcade at the end of the block. A back room full of coin-op miniatures, one dusty cabinet. Keyboard, mouse, or the on-screen stick.</p>
     <div class="bulbs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
   </header>
 
@@ -526,6 +526,16 @@
       const shape=[[0,1],[0,2],[1,0],[1,1],[1,2],[2,2]];
       shape.forEach((p,i)=>{ ctx.fillStyle=cc[i%cc.length]; roundRect(ctx,(p[0]-1.5)*1.35*u,(p[1]-1.5)*1.35*u,1.2*u,1.2*u,3); ctx.fill(); });
     }
+    else if(g==="neonsnake"){
+      ctx.strokeStyle=COL.cyan; ctx.lineWidth=s*0.09; ctx.lineCap="round"; ctx.lineJoin="round";
+      ctx.shadowColor=COL.cyan; ctx.shadowBlur=s*0.12;
+      ctx.beginPath();
+      ctx.moveTo(-2.6*u,1.6*u); ctx.lineTo(-2.6*u,-0.6*u); ctx.lineTo(-0.4*u,-0.6*u);
+      ctx.lineTo(-0.4*u,1.2*u); ctx.lineTo(1.6*u,1.2*u); ctx.lineTo(1.6*u,-1.8*u);
+      ctx.stroke();
+      ctx.shadowBlur=0;
+      ctx.fillStyle=COL.violet; ctx.beginPath(); ctx.arc(2.2*u,-1.8*u,u*0.38,0,7); ctx.fill();
+    }
     ctx.restore();
   }
 
@@ -688,6 +698,11 @@
   G({ id:"grejsworld3d", name:"Cross GrejsWorld 3D", tag:"arcade", href:"cross_grejsworld_3d.html",
     desc:"3D voxel-andeeventyr i Grejsdalen — kryds veje, floder og togskinner uden at blive ramt. Opens in its own page.",
     hint:"Piltaster / WASD eller skærmknapper" });
+
+  /* ---------------- NEON SNAKE (external page) ---------------- */
+  G({ id:"neonsnake", name:"Neon Snake", tag:"reflex", href:"neon_snake.html",
+    desc:"Glasagtig neon-slange med pulserende glow. Spis, voks, styr uden om din egen hale. Opens in its own page.",
+    hint:"Piltaster eller swipe på mobil" });
 
   /* ---------------- BLOCKS (tetromino) ---------------- */
   G({ id:"blocks", name:"Neon Tetris", tag:"puzzle", href:"klassisk_neon_tetris.html", w:350, h:480,
