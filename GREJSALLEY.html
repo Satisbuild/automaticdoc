@@ -513,6 +513,19 @@
       ctx.fillStyle="rgba(255,255,255,.18)"; ctx.fillRect(-3*u,2.75*u,6*u,u*0.12);
     }
     else if(g==="hojlav"){ ctx.fillStyle="#f3ecff";roundRect(ctx,-2.7*u,-1.9*u,2.3*u,3.8*u,5);ctx.fill(); ctx.fillStyle="#2c2249";roundRect(ctx,0.4*u,-1.9*u,2.3*u,3.8*u,5);ctx.fill(); ctx.fillStyle=COL.coral;ctx.font=`bold ${s*0.17}px "DM Mono",monospace`;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("?",1.55*u,0); ctx.fillStyle=COL.amber;ctx.fillText("Q",-1.55*u,0); }
+    else if(g==="grejsworld3d"){
+      ctx.fillStyle="#233022"; roundRect(ctx,-2.8*u,-0.2*u,5.6*u,2.6*u,3); ctx.fill();
+      ctx.fillStyle=COL.amber; ctx.fillRect(-2.8*u,-0.6*u,5.6*u,0.7*u);
+      ctx.fillStyle=COL.cyan; roundRect(ctx,-2.6*u,-2.2*u,1.6*u,1.6*u,3); ctx.fill();
+      ctx.fillStyle=COL.green; ctx.beginPath(); ctx.ellipse(1.3*u,0.5*u,1.3*u,0.7*u,0,0,7); ctx.fill();
+      ctx.fillStyle=COL.amber; roundRect(ctx,-0.5*u,-1.55*u,1.25*u,1.25*u,3); ctx.fill();
+      ctx.fillStyle="#3a2f5c"; ctx.beginPath(); ctx.arc(-0.05*u,-1.15*u,u*0.14,0,7); ctx.fill();
+    }
+    else if(g==="blaster"){
+      const cc=[COL.coral,COL.cyan,COL.amber,COL.green,COL.violet];
+      const shape=[[0,1],[0,2],[1,0],[1,1],[1,2],[2,2]];
+      shape.forEach((p,i)=>{ ctx.fillStyle=cc[i%cc.length]; roundRect(ctx,(p[0]-1.5)*1.35*u,(p[1]-1.5)*1.35*u,1.2*u,1.2*u,3); ctx.fill(); });
+    }
     ctx.restore();
   }
 
@@ -665,6 +678,16 @@
       reset(); env.loop.start();
       return {};
     }});
+
+  /* ---------------- GREJS BLASTERS (external page) ---------------- */
+  G({ id:"blaster", name:"Grejs Blasters", tag:"puzzle", href:"grejs-blasters.html",
+    desc:"Blokpuslespil i neon-look — træk klodser ud på et 8×8 bræt og ryd rækker og kolonner. Opens in its own page.",
+    hint:"Træk klodser fra bakken ud på brættet" });
+
+  /* ---------------- CROSS GREJSWORLD 3D (external page) ---------------- */
+  G({ id:"grejsworld3d", name:"Cross GrejsWorld 3D", tag:"arcade", href:"cross_grejsworld_3d.html",
+    desc:"3D voxel-andeeventyr i Grejsdalen — kryds veje, floder og togskinner uden at blive ramt. Opens in its own page.",
+    hint:"Piltaster / WASD eller skærmknapper" });
 
   /* ---------------- BLOCKS (tetromino) ---------------- */
   G({ id:"blocks", name:"Neon Tetris", tag:"puzzle", href:"klassisk_neon_tetris.html", w:350, h:480,
