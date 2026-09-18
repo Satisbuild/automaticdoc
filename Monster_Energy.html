@@ -320,6 +320,43 @@
   .lrow .lcost{font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--gold);white-space:nowrap;}
   .lrow.owned .lcost{color:var(--good);font-size:0.85rem;}
 
+  /* leaderboard */
+  #rankControls{display:flex;gap:8px;align-items:center;margin:0 2px 10px;}
+  #metricSel{
+    flex:1;background:#0e1218;color:var(--accent);border:1px solid var(--line-2);
+    border-radius:7px;padding:6px 8px;font-size:0.8rem;font-family:inherit;
+  }
+  .rank{
+    display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:6px;border-radius:10px;
+    border:1px solid var(--line-2);background:var(--bg-row);
+  }
+  .rank.me{border-color:var(--ice);background:#17222c;}
+  .rank .pos{
+    font-family:var(--display);font-size:1.2rem;font-weight:700;color:var(--muted);
+    min-width:34px;text-align:right;font-variant-numeric:tabular-nums;
+  }
+  .rank.top1 .pos{color:var(--gold);}
+  .rank.top2 .pos,.rank.top3 .pos{color:var(--silver);}
+  .rank .who{flex:1;min-width:0;}
+  .rank .who b{display:block;font-size:0.88rem;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .rank .who small{font-size:0.72rem;color:var(--muted);}
+  .rank .val{font-family:var(--display);font-weight:700;font-size:1.05rem;color:var(--ice-glow);
+    font-variant-numeric:tabular-nums;white-space:nowrap;}
+  #rankList .empty{font-size:0.78rem;color:var(--muted);padding:14px 4px;line-height:1.5;}
+  .rankSep{border:0;border-top:1px dashed var(--line-2);margin:12px 2px;}
+
+  /* cloud */
+  #cloudDot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--muted);
+    margin-right:6px;vertical-align:middle;}
+  #cloudDot.on{background:var(--good);box-shadow:0 0 6px rgba(127,224,168,0.7);}
+  #cloudDot.warn{background:var(--gold);}
+  #cloudDot.err{background:var(--bad);}
+  .cloudInput{
+    width:100%;margin-top:8px;background:#0e1218;color:var(--accent);border:1px solid var(--line-2);
+    border-radius:8px;font-size:0.78rem;padding:7px 9px;font-family:inherit;
+  }
+  .cloudInput::placeholder{color:var(--muted);}
+
   /* tooltip */
   #tooltip{
     position:fixed;z-index:60;max-width:300px;pointer-events:none;
@@ -439,6 +476,7 @@
       <button class="tabBtn" data-tab="ach">Achievements<span class="dot"></span></button>
       <button class="tabBtn" data-tab="stats">Stats</button>
       <button class="tabBtn" data-tab="legacy">Legacy<span class="dot"></span></button>
+      <button class="tabBtn" data-tab="ranks">Ranks</button>
     </nav>
 
     <section class="panel" id="tab-store">
@@ -472,6 +510,24 @@
         </div>
         <textarea id="saveText" placeholder="Save code appears here. Paste a code here, then press Import save." spellcheck="false"></textarea>
       </div>
+
+      <div class="statGroup" id="cloudBox" hidden>
+        <div class="sectionHead"><h2>Cloud</h2></div>
+        <p class="note" id="cloudNote"></p>
+        <div class="statRow"><span><span id="cloudDot"></span>Status</span><span id="cloudStatus">Local only</span></div>
+        <div class="statRow"><span>Player</span><span id="cloudName">&mdash;</span></div>
+        <div class="statRow"><span>Last sync</span><span id="cloudSynced">&mdash;</span></div>
+        <div class="btnRow">
+          <button class="btn" id="cloudSyncBtn">Sync now</button>
+          <button class="btn" id="cloudTokenBtn">Show token</button>
+          <button class="btn danger" id="cloudDetachBtn">Disconnect</button>
+          <button class="btn danger" id="cloudFreshBtn" hidden>Start fresh</button>
+        </div>
+        <input class="cloudInput" id="cloudNameInput" maxlength="24" spellcheck="false"
+               placeholder="Display name for the leaderboard (press Enter)">
+        <input class="cloudInput" id="cloudTokenInput" spellcheck="false"
+               placeholder="Paste a token to load that account here (press Enter)">
+      </div>
     </section>
 
     <section class="panel" id="tab-legacy" hidden>
@@ -479,6 +535,15 @@
       <div class="sectionHead"><h2>Legacy upgrades</h2><span class="meta" id="legacyMeta"></span></div>
       <p class="note">Bought with legacy cans. These stay with you through every rebrand.</p>
       <div id="legacyList"></div>
+    </section>
+
+    <section class="panel" id="tab-ranks" hidden>
+      <div class="sectionHead"><h2>Leaderboard</h2><span class="meta" id="rankMeta"></span></div>
+      <div id="rankControls">
+        <select id="metricSel" aria-label="Leaderboard metric"></select>
+        <button class="btn" id="rankRefresh">Refresh</button>
+      </div>
+      <div id="rankList"></div>
     </section>
   </aside>
 </div>
@@ -497,6 +562,16 @@
 <script>
 (function(){
 'use strict';
+
+/* =====================================================================
+   CLOUD SERVER
+   Point this at the sync server. Leave it as '' and the game runs exactly
+   as it always did: local save only, no leaderboard tab content, no
+   network calls at all.
+   A player can override it for testing with:
+     localStorage.setItem('ultraCloudApi', 'http://localhost:3000')
+   ===================================================================== */
+const CLOUD_API = 'https://grejsdata.systematisk.dk';
 
 /* =====================================================================
    GAME DATA
@@ -693,12 +768,27 @@ function fmtTime(s){
 const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ---------- STATE ---------- */
-const SAVE_KEY = 'ultraClickerSave_v2';
+/* Save keys, newest first. loadGame() walks this list and migrates whatever
+   it finds, so a player arriving from any older build keeps their progress.
+   Never remove an entry from here - that is what strands a save. */
+const SAVE_V   = 3;
+const SAVE_KEY = 'ultraClickerSave_v3';
+const BAK_KEY  = 'ultraClickerSave_v3_bak';   // rotating copy of the last healthy save
+const KEY_V2   = 'ultraClickerSave_v2';
 const OLD_KEY  = 'ultraClickerSave';
+const BAD_KEY  = 'ultraClickerSave_damaged';  // quarantine: never written over, never loaded
+/* Marks an empty save as something the player asked for. An empty save with
+   no marker means the save went missing instead, which is worth a prompt.
+   Clearing browser data clears this too - which is exactly right, because
+   that is the case we DO want to offer to recover from. */
+const RESET_KEY = 'ultraClickerResetIntent';
+const markResetIntent  = ()=>{ try{ localStorage.setItem(RESET_KEY, String(Date.now())); }catch(e){} };
+const hasResetIntent   = ()=>{ try{ return !!localStorage.getItem(RESET_KEY); }catch(e){ return false; } };
+const clearResetIntent = ()=>{ try{ localStorage.removeItem(RESET_KEY); }catch(e){} };
 
 function freshState(){
   return {
-    v:2, energy:0, runEarned:0, allTimeEarned:0,
+    v:SAVE_V, energy:0, runEarned:0, allTimeEarned:0,
     handmadeRun:0, handmadeAll:0, clicksRun:0, clicksAll:0,
     golden:0, rebrands:0, legacyLevel:0, legacyTokens:0,
     owned:{}, upgrades:{}, legacy:{}, ach:{},
@@ -835,8 +925,99 @@ function mergeState(data){
   if(!Array.isArray(s.buffs)) s.buffs=[];
   return s;
 }
-function migrateOld(d){
+/* ---------- SAVE INTEGRITY ----------
+   checkState() answers one question: could normal play have produced this?
+   It returns null for a healthy state, or a short reason it is not.
+
+   Only invariants that genuinely cannot break during play are checked, so a
+   healthy save is never wrongly rejected - a false alarm here would stop a
+   real player syncing. Every counter below is incremented in lockstep by
+   earn(), and a rebrand resets the run counters while the all-time ones only
+   ever grow, so the run-vs-all-time comparisons hold for the whole game. */
+// Counters that only ever grow, or are spent behind an affordability check.
+const NUM_FIELDS = ['energy','runEarned','allTimeEarned','handmadeRun','handmadeAll',
+  'clicksRun','clicksAll','golden','rebrands','legacyLevel','legacyTokens','playTime'];
+// Must be real numbers, but negatives are normal: goldenTimer counts down past
+// zero while a can is on screen and is only reset when that can goes away,
+// and the timestamps are just clock readings.
+const NUM_FIELDS_SIGNED = ['goldenTimer','lastSave','runStart','gameStart'];
+
+function checkState(s){
+  if(!s || typeof s!=='object' || Array.isArray(s)) return 'it is not a save object';
+  for(const k of NUM_FIELDS){
+    const v = s[k];
+    if(typeof v!=='number' || !isFinite(v)) return k+' is not a number';
+    if(v < 0) return k+' is negative';
+  }
+  for(const k of NUM_FIELDS_SIGNED){
+    const v = s[k];
+    if(typeof v!=='number' || !isFinite(v)) return k+' is not a number';
+  }
+  for(const k of ['owned','upgrades','legacy','ach']){
+    const o = s[k];
+    if(!o || typeof o!=='object' || Array.isArray(o)) return k+' is missing';
+  }
+  for(const id of Object.keys(s.owned)){
+    const n = s.owned[id];
+    if(typeof n!=='number' || !isFinite(n) || n<0) return 'the count for '+id+' is invalid';
+  }
+  if(!Array.isArray(s.buffs)) return 'buffs is not a list';
+  // +1 absorbs float rounding; these are otherwise incremented together.
+  if(s.runEarned   > s.allTimeEarned + 1) return 'this run earned more than all time';
+  if(s.handmadeRun > s.handmadeAll   + 1) return 'this run clicked more than all time';
+  if(s.clicksRun   > s.clicksAll     + 1) return 'this run has more clicks than all time';
+  if((s.legacyLevel>0 || s.rebrands>0) && !(s.allTimeEarned>0)) return 'legacy progress but no energy ever earned';
+  return null;
+}
+
+/* Keep the first damaged save we meet, untouched, so nothing is ever truly
+   lost - not even when the player later chooses to start over. */
+function quarantine(raw){
+  try{
+    if(!localStorage.getItem(BAD_KEY)) localStorage.setItem(BAD_KEY, raw);
+  }catch(e){}
+}
+
+/* ---------- MIGRATIONS ----------
+   One function per version step. migrateSave() walks the chain from whatever
+   version a save claims up to SAVE_V, so a v1 save from the very first build
+   still lands intact. Saves carry no version field before v2; those are v1. */
+const MIGRATIONS = {
+  1: migrateV1toV2,
+  2: migrateV2toV3,
+};
+function migrateSave(data){
+  if(!data || typeof data!=='object') return data;
+  let d = data;
+  let v = Number(d.v) || 1;
+  for(let guard=0; v<SAVE_V && guard<20; guard++){
+    const step = MIGRATIONS[v];
+    if(!step){ d.v = SAVE_V; break; }   // unknown gap: accept as-is rather than drop the save
+    d = step(d);
+    const next = Number(d.v);
+    if(!(next>v)) { d.v = v+1; }        // a step that forgot to bump must not loop forever
+    v = Number(d.v);
+  }
+  if(v>SAVE_V) console.warn('Save is from a newer version ('+v+'); loading anyway.');
+  return d;
+}
+
+/* v2 -> v3: the cloud-sync build. No fields change shape, but numbers that
+   went non-finite are repaired here: JSON.stringify writes Infinity as null,
+   which silently reset a maxed-out save to zero on the next load. */
+function migrateV2toV3(d){
+  const out = Object.assign({}, d, { v:3 });
+  ['energy','runEarned','allTimeEarned','handmadeRun','handmadeAll',
+   'clicksRun','clicksAll','playTime','goldenTimer','legacyTokens'].forEach(k=>{
+    const n = out[k];
+    if(typeof n!=='number' || !isFinite(n)) out[k] = (typeof n==='number' && n>0) ? Number.MAX_VALUE : (+n||0);
+  });
+  return out;
+}
+
+function migrateV1toV2(d){
   const s = freshState();
+  s.v = 2;
   s.energy = +d.energy || 0;
   let spent = 0;
   (d.buildings||[]).forEach(x=>{
@@ -858,10 +1039,43 @@ function migrateOld(d){
   s.runEarned = s.allTimeEarned = s.energy + spent;
   return s;
 }
+/* JSON has no way to write Infinity - it becomes null, and null loads back as
+   a broken save. Clamp on the way out so a maxed-out run survives a reload. */
+function serializable(state){
+  const out = JSON.parse(JSON.stringify(state, (k,v)=>
+    (typeof v==='number' && !isFinite(v)) ? (v>0 ? Number.MAX_VALUE : -Number.MAX_VALUE) : v
+  ));
+  out.v = SAVE_V;
+  return out;
+}
+let lastBackup = 0;
 function saveGame(){
+  // A state that has gone bad must never be written over a good one - not
+  // here, and not on the server. Stop, and let the recovery path take over.
+  const problem = checkState(S);
+  if(problem) Cloud.holdSync('This tab’s game state became invalid (' + problem + ').');
+  if(problem || Cloud.blocksLocalSave()){
+    // Leave the damaged text exactly where it is: it is what makes the next
+    // reload re-detect the problem and try the restore again, instead of
+    // trusting a fresh state that was never really this player's save.
+    const el = document.getElementById('saveStatus');
+    if(el) el.textContent = 'Save paused';
+    return;
+  }
   S.lastSave = Date.now();
   try{
-    localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+    const json = JSON.stringify(serializable(S));
+    localStorage.setItem(SAVE_KEY, json);
+    // Rotating backup of a known-good save, so a save damaged between now and
+    // the next load costs minutes rather than everything - and so recovery
+    // works even with no server to fall back on.
+    if(Date.now()-lastBackup > 120000){
+      lastBackup = Date.now();
+      try{ localStorage.setItem(BAK_KEY, json); }catch(e){}
+    }
+    // Mirror to the previous key so downgrading to the old build does not
+    // land on a stale save. Best effort - a full quota must not break saving.
+    try{ localStorage.setItem(KEY_V2, json); }catch(e){}
     const el = document.getElementById('saveStatus');
     el.textContent = 'Saved'; el.classList.add('flash');
     setTimeout(()=>el.classList.remove('flash'), 600);
@@ -869,15 +1083,435 @@ function saveGame(){
     document.getElementById('saveStatus').textContent = 'Could not save';
   }
 }
+
+let loadProblem = '';   // why the local save could not be trusted, if it could not
+/* Walks every key newest-first and returns the first save that both parses
+   AND passes checkState(). A key that is damaged is quarantined and skipped,
+   so one bad entry can never hide a good save sitting behind it.
+   Returns 'corrupt' when saves existed but none of them were usable - that
+   is the signal to recover from the server rather than start over. */
 function loadGame(){
-  try{
-    const raw = localStorage.getItem(SAVE_KEY);
-    if(raw){ S = mergeState(JSON.parse(raw)); return 'loaded'; }
-    const old = localStorage.getItem(OLD_KEY);
-    if(old){ S = migrateOld(JSON.parse(old)); return 'migrated'; }
-  }catch(err){ console.error('Load failed:', err); }
-  return 'fresh';
+  let sawSave = false;
+  const SOURCES = [[SAVE_KEY,'loaded'], [BAK_KEY,'backup'], [KEY_V2,'migrated'], [OLD_KEY,'migrated']];
+  for(const [key, tag] of SOURCES){
+    let raw;
+    try{ raw = localStorage.getItem(key); }catch(err){ break; }   // storage blocked entirely
+    if(!raw) continue;
+    sawSave = true;
+    let candidate = null, why = null;
+    try{
+      const parsed = JSON.parse(raw);
+      // mergeState() overlays onto a fresh state, so anything that is not a
+      // real object (a bare string, an array, null) would come back looking
+      // like a pristine new game instead of the damage it actually is.
+      if(!parsed || typeof parsed!=='object' || Array.isArray(parsed)) throw new Error('bad shape');
+      candidate = mergeState(migrateSave(parsed));
+      why = checkState(candidate);
+    }catch(err){ why = 'it could not be read'; }
+    if(candidate && !why){ S = candidate; return tag; }
+    console.error('Save in ' + key + ' rejected: ' + why);
+    if(!loadProblem) loadProblem = why;
+    quarantine(raw);
+  }
+  return sawSave ? 'corrupt' : 'fresh';
 }
+
+/* =====================================================================
+   CLOUD SYNC
+   ---------------------------------------------------------------------
+   Rules this module sticks to:
+   - localStorage stays the source of truth for playing. The network is a
+     backup and a leaderboard feed, never something the game waits on.
+   - Every failure path leaves the game running. Offline just means the
+     event queue grows and the next push carries it.
+   - Away-time is computed from the SERVER clock when a cloud save is
+     adopted, so changing the system clock does not mint energy.
+   ===================================================================== */
+let awayPending = 0;   // seconds of offline production not yet granted
+
+// Away time is granted exactly once per load, by whichever path resolves
+// first: the cloud reconcile if there is an account, otherwise boot.
+function flushAway(){
+  const s = awayPending;
+  awayPending = 0;
+  if(s > 0) applyAway(s, true);
+}
+
+const Cloud = (function(){
+  const AUTH_KEY   = 'ultraCloudAuth';
+  const OPTOUT_KEY = 'ultraCloudOptOut';
+
+  // An override that is present but empty means "cloud off on this device",
+  // so it has to be told apart from no override at all.
+  let base = '';
+  try{
+    const override = localStorage.getItem('ultraCloudApi');
+    base = (override !== null ? override : (CLOUD_API || ''));
+  }catch(e){ base = CLOUD_API || ''; }
+  base = base.trim().replace(/\/+$/,'');
+  if(/CHANGE-ME/.test(base)) base = '';   // unconfigured build: stay local-only
+
+  let auth = null;        // { playerId, token, name }
+  let rev = 0;            // last server revision this device has seen
+  let status = 'local', detail = '';
+  // While hold is set, nothing goes UP. The only ways out are a successful
+  // restore from the server, or the player choosing to start over.
+  //   'damaged' - the local save could not be read. The damaged text must also
+  //               stay on disk, so local writes are frozen too.
+  //   'choice'  - the local save is fine but empty while the server has
+  //               progress. Only uploads are frozen; play still saves here.
+  let hold = '', holdKind = '';
+  let lastSync = 0;
+  let queue = [];         // events waiting to go up
+  let busy = false, resolving = false;
+
+  const ls = {
+    get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+    set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
+    del(k){ try{ localStorage.removeItem(k); }catch(e){} },
+  };
+
+  function loadAuth(){
+    try{
+      const a = JSON.parse(ls.get(AUTH_KEY)||'null');
+      if(a && a.token){ auth = { playerId:a.playerId, token:a.token, name:a.name }; rev = a.rev||0; }
+    }catch(e){}
+  }
+  function storeAuth(){
+    if(auth) ls.set(AUTH_KEY, JSON.stringify({ playerId:auth.playerId, token:auth.token, name:auth.name, rev }));
+    else ls.del(AUTH_KEY);
+  }
+  function setStatus(s, d){
+    if(hold){
+      // Never let a hold be downgraded into a reassuring message. "Offline"
+      // here means "cannot restore yet", not "everything is fine".
+      status = 'error';
+      detail = d || (hold + ' ' + (s === 'offline'
+        ? 'The server cannot be reached yet, so it cannot be restored — this keeps retrying.'
+        : holdKind === 'choice'
+          ? 'Nothing has been uploaded. Press Restore to load your cloud save, or Start fresh to replace it with a new one.'
+          : 'Uploads are paused so your cloud save is not overwritten.'));
+    }else{
+      status = s; detail = d || '';
+    }
+    renderCloud();
+  }
+
+  function holdSync(reason, kind){
+    if(hold) return;
+    hold = reason; holdKind = kind || 'damaged';
+    setStatus('error', reason + ' Uploads are paused so your cloud save is not overwritten.');
+    // A damaged save is a fault worth surfacing; an unanswered restore prompt
+    // is just a question waiting on the player.
+    if(holdKind === 'damaged') console.error('Sync held:', reason);
+    else console.warn('Sync held pending a choice:', reason);
+  }
+  // Only ever called once the state is known good again.
+  function releaseHold(){
+    if(!hold) return;
+    hold = ''; holdKind = '';
+    setStatus('ok','');
+  }
+  function startFresh(){
+    hold = ''; holdKind = '';
+    clearResetIntent();
+    // The hold may have come from state that went bad at runtime, in which
+    // case saving it again would just trip the guard a second time.
+    if(checkState(S)){
+      S = freshState();
+      recalc();
+      checkAchievements(true);
+      renderAll();
+    }
+    toast('Starting over', 'The damaged save is kept in this browser under "' + BAD_KEY + '".', 'gold');
+    saveGame();
+    push(true);
+  }
+
+  function api(path, opts){
+    opts = opts || {};
+    const headers = {};
+    if(opts.body !== undefined) headers['Content-Type'] = 'application/json';
+    if(auth && opts.auth !== false) headers['Authorization'] = 'Bearer ' + auth.token;
+    let ctrl = null, timer = null;
+    if(typeof AbortController !== 'undefined'){
+      ctrl = new AbortController();
+      timer = setTimeout(()=>ctrl.abort(), 12000);
+    }
+    return fetch(base + path, {
+      method: opts.method || 'GET',
+      headers,
+      body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+      signal: ctrl ? ctrl.signal : undefined,
+    }).then(r=>r.text().then(t=>{
+      if(timer) clearTimeout(timer);
+      let data = null;
+      try{ data = t ? JSON.parse(t) : null; }catch(e){}
+      return { status:r.status, ok:r.ok, data };
+    })).catch(err=>{ if(timer) clearTimeout(timer); throw err; });
+  }
+
+  /* Replace local state with the server's, and pay out offline production
+     for the gap between the server's own savedAt and its current time. */
+  function adopt(d){
+    if(!d || !d.save) return;
+    const away = Math.max(0, ((d.serverTime||Date.now()) - (d.savedAt||d.serverTime||Date.now())) / 1000);
+    awayPending = 0;
+    hold = ''; holdKind = '';   // whatever was wrong locally, this came from the server
+    clearResetIntent();
+    if(goldenEl){ goldenEl.remove(); goldenEl = null; }
+    S = mergeState(migrateSave(d.save));
+    rev = d.rev || 0;
+    if(d.name && auth) auth.name = d.name;
+    storeAuth();
+    recalc();
+    if(away >= 30) applyAway(away, true); else recalc();
+    checkAchievements(true);
+    upgradeKey = ''; legacyKey = ''; buffKey = '';
+    renderAll();
+    saveGame();
+    lastSync = Date.now();
+    setStatus('ok','');
+  }
+
+  function reconcile(d){
+    // Recovering from a damaged local save: the server copy wins outright,
+    // and there is nothing to weigh it against or prompt about. A 'choice'
+    // hold is the opposite case - it falls through and asks again.
+    if(hold && holdKind === 'damaged'){
+      if(d.save){
+        const was = hold;
+        adopt(d);
+        toast('Save restored', 'Your local save was damaged, so this device was restored from the server.', 'gold');
+        console.warn('Recovered from server after:', was);
+      }else{
+        setStatus('error', 'This device’s save is damaged and the server has no copy yet. Nothing has been overwritten — press Start fresh to begin a new save.');
+      }
+      return;
+    }
+    if(!d.save){ flushAway(); push(true); return; }          // server has nothing yet
+    const localHasProgress = S.allTimeEarned > 0 || totalOwned() > 0;
+    const remoteEarned = d.save.allTimeEarned || 0;
+
+    if(!localHasProgress){
+      if(!remoteProgress(d.save)){ adopt(d); return; }       // both empty, nothing to weigh
+      if(hasResetIntent()){
+        // The player asked for this empty save. Let the server follow, and
+        // stop treating the emptiness as suspicious from here on.
+        flushAway(); push(true); return;
+      }
+      // Empty here, progress up there, and nobody asked for that. Do not
+      // assume either way: hold uploads and let the player decide.
+      if(resolving) return;
+      resolving = true;
+      holdSync('This device has no saved progress, but your cloud save does.', 'choice');
+      confirmBox('Restore your progress?',
+        'This browser has no saved game, but your cloud save has ' + describe(d.save) +
+        '. Restore it? If you meant to start over, cancel and press Start fresh in the Stats tab.',
+        'Restore it',
+        ()=>{ resolving = false; adopt(d); },
+        ()=>{ resolving = false; setStatus('error',''); });
+      return;
+    }
+    if(remoteEarned <= S.allTimeEarned){ flushAway(); push(); return; }  // local is ahead
+    if(resolving) return;
+    resolving = true;
+    confirmBox('Cloud save found',
+      'The server has a save with ' + fmt(remoteEarned) + ' all-time energy. This device has ' +
+      fmt(S.allTimeEarned) + '. Load the server save? Cancelling keeps this device and overwrites the server.',
+      'Load server save',
+      ()=>{ resolving = false; adopt(d); },
+      ()=>{ resolving = false; flushAway(); push(true); });
+  }
+
+  function remoteProgress(sv){
+    if(!sv) return false;
+    if((sv.allTimeEarned||0) > 0) return true;
+    const owned = sv.owned || {};
+    return Object.keys(owned).some(k=>owned[k] > 0);
+  }
+  function describe(sv){
+    const owned = sv.owned || {};
+    const prod = Object.keys(owned).reduce((t,k)=>t + (owned[k] > 0 ? owned[k] : 0), 0);
+    return fmt(sv.allTimeEarned||0) + ' all-time energy, ' + fmt(prod) +
+           ' producers and legacy level ' + fmt(sv.legacyLevel||0);
+  }
+
+  function handleConflict(d){
+    if(resolving) return;
+    resolving = true;
+    const theirs = (d && d.save && d.save.allTimeEarned) || 0;
+    confirmBox('Save conflict',
+      'This save also changed somewhere else (the server has ' + fmt(theirs) + ' all-time energy, this device has ' +
+      fmt(S.allTimeEarned) + '). Load the server version? Cancelling keeps this device and overwrites the server.',
+      'Load server version',
+      ()=>{ resolving = false; adopt(d); },
+      ()=>{ resolving = false; rev = (d && d.rev) || rev; push(true); });
+  }
+
+  function push(force){
+    if(!base || !auth || busy || resolving || hold) return Promise.resolve();
+    busy = true;
+    const sent = queue; queue = [];
+    const body = { save: serializable(S), events: sent };
+    if(!force) body.baseRev = rev;
+    return api('/api/save', { method:'PUT', body })
+      .then(r=>{
+        if(r.status === 409){ queue = sent.concat(queue); handleConflict(r.data); return; }
+        if(r.status === 401 || r.status === 403){
+          setStatus('error', 'The server rejected this device’s token.'); return;
+        }
+        if(!r.ok) throw new Error('HTTP ' + r.status);
+        rev = r.data.rev; lastSync = Date.now(); storeAuth(); setStatus('ok','');
+        clearResetIntent();   // the server now matches this device
+      })
+      .catch(err=>{
+        // Keep the events for the next attempt, newest last, bounded.
+        queue = sent.concat(queue).slice(-400);
+        setStatus('offline', 'Server unreachable. Progress is safe in this browser and will upload when it returns.');
+      })
+      .then(()=>{ busy = false; });
+  }
+
+  function pull(){
+    if(!base || !auth) return Promise.resolve();
+    setStatus('connecting','');
+    return api('/api/save')
+      .then(r=>{
+        if(r.status === 401 || r.status === 403){
+          setStatus('error', 'The server rejected this device’s token. Paste a valid token below, or disconnect to start a new cloud save.');
+          flushAway(); return;
+        }
+        if(!r.ok) throw new Error('HTTP ' + r.status);
+        rev = r.data.rev || 0;
+        if(r.data.name && auth) auth.name = r.data.name;
+        if(r.data.playerId && auth) auth.playerId = r.data.playerId;
+        lastSync = Date.now(); storeAuth(); setStatus('ok','');
+        reconcile(r.data);
+      })
+      .catch(()=>{
+        setStatus('offline', 'Server unreachable. Playing from this browser’s save.');
+        flushAway();
+      });
+  }
+
+  /* First run on this device: hand the local save straight to the server so
+     an existing player keeps everything they had before cloud sync existed. */
+  function claim(){
+    setStatus('connecting','');
+    return api('/api/register', { method:'POST', auth:false, body:{ name:'', save: serializable(S) } })
+      .then(r=>{
+        if(r.status !== 201) throw new Error('HTTP ' + r.status);
+        auth = { playerId:r.data.playerId, token:r.data.token, name:r.data.name };
+        rev = r.data.rev || 0; lastSync = Date.now();
+        ls.del(OPTOUT_KEY); storeAuth(); setStatus('ok','');
+        toast('Cloud sync on', 'Your save now backs up to the server. Copy your token from the Stats tab to play on another device.', 'gold');
+      })
+      .catch(()=>{ setStatus('offline', 'Could not reach the server. Playing locally; it will retry.'); })
+      .then(()=>flushAway());
+  }
+
+  function attach(tok){
+    if(!base) return;
+    const prev = auth, prevRev = rev;
+    auth = { playerId:'', token:String(tok).trim(), name:'' };
+    rev = 0;
+    setStatus('connecting','');
+    api('/api/save').then(r=>{
+      if(!r.ok){
+        auth = prev; rev = prevRev; storeAuth();
+        setStatus(prev ? 'ok' : 'local', 'That token was not accepted.');
+        toast('Token not accepted', 'Check that you pasted the whole thing.');
+        return;
+      }
+      auth.playerId = r.data.playerId; auth.name = r.data.name;
+      rev = r.data.rev || 0; lastSync = Date.now();
+      ls.del(OPTOUT_KEY); storeAuth(); setStatus('ok','');
+      toast('Account loaded', r.data.name || '', 'gold');
+      if(r.data.save) adopt(r.data); else push(true);
+    }).catch(()=>{
+      auth = prev; rev = prevRev; storeAuth();
+      setStatus('offline', 'Could not reach the server.');
+    });
+  }
+
+  function detach(){
+    auth = null; rev = 0; queue = [];
+    storeAuth();
+    ls.set(OPTOUT_KEY, '1');   // do not silently make a new account on reload
+    setStatus('local', 'Not connected. Your progress still saves in this browser.');
+  }
+
+  function connect(){ ls.del(OPTOUT_KEY); return auth ? pull() : claim(); }
+
+  function rename(name){
+    if(!auth || !base) return;
+    api('/api/me/name', { method:'POST', body:{ name } }).then(r=>{
+      if(r.ok){ auth.name = r.data.name; storeAuth(); renderCloud(); toast('Name updated', auth.name); }
+    }).catch(()=>{});
+  }
+
+  function logEvent(type, extra){
+    if(!base) return;
+    queue.push(Object.assign({ type, at: Date.now() }, extra || {}));
+    if(queue.length > 400) queue.splice(0, queue.length - 400);
+  }
+
+  /* Page is closing: fetch would be killed mid-flight. sendBeacon survives,
+     but cannot set headers, so the token rides in the body and the content
+     type stays text/plain to avoid a preflight a beacon cannot perform. */
+  function beacon(){
+    if(!base || !auth || !navigator.sendBeacon || hold) return;
+    try{
+      const body = JSON.stringify({ token: auth.token, save: serializable(S), events: queue.slice(-200) });
+      if(navigator.sendBeacon(base + '/api/save/beacon', new Blob([body], { type:'text/plain' }))) queue = [];
+    }catch(e){}
+  }
+
+  function leaderboard(metric, limit){
+    if(!base) return Promise.resolve({ ok:false, status:0, data:null });
+    return api('/api/leaderboard?metric=' + encodeURIComponent(metric) + '&limit=' + (limit||25),
+               { auth: !!auth });
+  }
+
+  function boot(){
+    if(!base){
+      setStatus('disabled','');
+      flushAway();
+      return;
+    }
+    loadAuth();
+    if(auth){ pull(); return; }
+    if(hold){
+      // No account on this device and nothing to restore from. Do NOT claim:
+      // registering here would publish the empty state as this player's save.
+      setStatus('error', 'This device’s save is damaged and it is not linked to a cloud save. Paste your token below to restore, or press Start fresh.');
+      return;
+    }
+    if(ls.get(OPTOUT_KEY)){ setStatus('local','Not connected. Press Connect in the Stats tab to back up to the server.'); flushAway(); }
+    else claim();
+  }
+
+  // Called on the 30s timer. While held, keep retrying the restore instead of
+  // pushing - the server may simply have been down at boot.
+  function periodic(){
+    if(hold){ if(auth) pull(); return; }
+    push();
+  }
+
+  return {
+    boot, push, pull, attach, detach, connect, rename, logEvent, beacon, leaderboard,
+    holdSync, releaseHold, startFresh, periodic,
+    enabled: ()=>!!base,
+    isHeld: ()=>!!hold,
+    // Only a damaged save freezes local writes - an unanswered restore prompt
+    // must not stop the player's current session from saving.
+    blocksLocalSave: ()=>holdKind === 'damaged',
+    info: ()=>({ base, status, detail, connected: !!auth, held: !!hold, holdReason: hold,
+                 name: auth && auth.name, playerId: auth && auth.playerId, token: auth && auth.token,
+                 lastSync, pending: queue.length, rev }),
+  };
+})();
 
 /* =====================================================================
    UI
@@ -900,18 +1534,31 @@ function toast(title, text, cls){
 }
 
 /* ---------- modal ---------- */
-function confirmBox(title, text, okLabel, onOk){
+/* onCancel also fires on Escape and on a backdrop click, so a caller waiting
+   on an answer (the cloud conflict prompt) can never be left hanging. */
+let modalDismiss = null;
+function confirmBox(title, text, okLabel, onOk, onCancel){
   $('modalTitle').textContent = title;
   $('modalText').textContent = text;
   $('modalOk').textContent = okLabel;
   $('modal').hidden = false;
   $('modalOk').focus();
-  const close = ()=>{ $('modal').hidden = true; $('modalOk').onclick = null; };
-  $('modalOk').onclick = ()=>{ close(); onOk(); };
-  $('modalCancel').onclick = close;
+  const finish = fn =>{
+    $('modal').hidden = true;
+    $('modalOk').onclick = null; $('modalCancel').onclick = null;
+    modalDismiss = null;
+    if(fn) fn();
+  };
+  modalDismiss = ()=>finish(onCancel);
+  $('modalOk').onclick = ()=>finish(onOk);
+  $('modalCancel').onclick = ()=>finish(onCancel);
 }
-$('modal').addEventListener('click', e=>{ if(e.target.id==='modal') $('modal').hidden = true; });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') $('modal').hidden = true; });
+function dismissModal(){
+  if(modalDismiss) modalDismiss();
+  else $('modal').hidden = true;
+}
+$('modal').addEventListener('click', e=>{ if(e.target.id==='modal') dismissModal(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') dismissModal(); });
 
 /* ---------- clicking the can ---------- */
 const canWrap = $('canWrap');
@@ -1006,6 +1653,7 @@ function collectGolden(el){
   if(eligible.length) pool.push(['coldsnap',10]);
   let r = Math.random()*pool.reduce((s,p)=>s+p[1],0), pick = pool[0][0];
   for(const [id,w] of pool){ if((r-=w)<0){ pick=id; break; } }
+  Cloud.logEvent('golden', { kind:pick });
 
   if(pick==='frenzy'){
     addBuff({ id:'frenzy', type:'prod', mult:7, t:77*dur, max:77*dur, name:'Sugar rush', effect:'production ×7' });
@@ -1037,12 +1685,14 @@ function buyBuilding(b){
     S.energy += sellValue(b, n);
     S.owned[b.id] -= n;
     S.flags.sold = true;
+    Cloud.logEvent('sell', { id:b.id, n:n });
   } else {
     const cost = buyCost(b, buyAmt);
     if(S.energy < cost) return;
     S.energy -= cost;
     S.owned[b.id] = (S.owned[b.id]||0) + buyAmt;
     if(b.id==='vend') S.flags.vendRun = true;
+    Cloud.logEvent('buy', { id:b.id, n:buyAmt });
   }
   recalc();
   renderStore(true);
@@ -1053,6 +1703,7 @@ function buyUpgrade(u){
   if(S.upgrades[u.id] || S.energy < u.cost || !isUnlocked(u)) return false;
   S.energy -= u.cost;
   S.upgrades[u.id] = true;
+  Cloud.logEvent('upgrade', { id:u.id, n:u.cost });
   recalc();
   hideTooltip();
   renderStore(true);
@@ -1063,6 +1714,7 @@ function buyLegacy(l){
   if(S.legacy[l.id] || S.legacyTokens < l.cost || (l.req && !S.legacy[l.req])) return;
   S.legacyTokens -= l.cost;
   S.legacy[l.id] = true;
+  Cloud.logEvent('legacy', { id:l.id, n:l.cost });
   recalc();
   renderLegacy(true);
   toast('Legacy upgrade', l.name, 'gold');
@@ -1077,6 +1729,7 @@ function rebrand(){
   S.legacyTokens += gain;
   S.legacyLevel = newLevel;
   S.rebrands++;
+  Cloud.logEvent('rebrand', { n:gain, id:'level_'+newLevel });
   S.energy = 0; S.runEarned = 0; S.handmadeRun = 0; S.clicksRun = 0;
   S.owned = {}; S.upgrades = {}; S.buffs = [];
   S.flags.vendRun = false;
@@ -1349,6 +2002,7 @@ function checkAchievements(silent){
     if(S.ach[a.id]) continue;
     if(a.test()){
       S.ach[a.id] = Date.now(); changed = true;
+      Cloud.logEvent('ach', { id:a.id });
       if(!silent){ toast(a.name, 'Achievement unlocked', 'achToast'); if(currentTab!=='ach') $('tabs').querySelector('[data-tab="ach"]').classList.add('notify'); }
     }
   }
@@ -1402,7 +2056,7 @@ function renderStats(){
 }
 $('exportBtn').addEventListener('click', ()=>{
   S.lastSave = Date.now();
-  const code = btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(serializable(S)))));
   $('saveText').value = code;
   $('saveText').select();
   try{ navigator.clipboard.writeText(code).then(()=>toast('Save code copied','Paste it somewhere safe.')).catch(()=>{}); }catch(e){}
@@ -1411,8 +2065,10 @@ $('importBtn').addEventListener('click', ()=>{
   const code = $('saveText').value.trim();
   if(!code){ toast('Nothing to import','Paste a save code into the box first.'); return; }
   try{
-    const data = JSON.parse(decodeURIComponent(escape(atob(code))));
-    if(data.v!==2) throw new Error('bad version');
+    const raw = JSON.parse(decodeURIComponent(escape(atob(code))));
+    // Accept a code from any build - migrateSave() brings it up to date.
+    if(!raw || typeof raw!=='object' || raw.energy===undefined) throw new Error('not a save');
+    const data = migrateSave(raw);
     confirmBox('Import save?', 'This replaces your current progress with the save code.', 'Import', ()=>{
       S = mergeState(data); S.lastSave = Date.now();
       afterStateReplaced(); toast('Save imported','');
@@ -1422,7 +2078,11 @@ $('importBtn').addEventListener('click', ()=>{
 $('resetBtn').addEventListener('click', ()=>{
   confirmBox('Reset everything?', 'This deletes all progress, including achievements and legacy. It cannot be undone.', 'Reset', ()=>{
     S = freshState();
-    try{ localStorage.removeItem(SAVE_KEY); localStorage.removeItem(OLD_KEY); }catch(e){}
+    // Every slot, or the next load restores what was just deleted.
+    try{
+      [SAVE_KEY, BAK_KEY, KEY_V2, OLD_KEY].forEach(k=>localStorage.removeItem(k));
+    }catch(e){}
+    markResetIntent();
     afterStateReplaced(); saveGame();
   });
 });
@@ -1468,16 +2128,151 @@ function renderLegacy(force){
   $('legacyMeta').textContent = `${Object.keys(S.legacy).length} of ${LEGACY.length}`;
 }
 
+/* ---------- cloud panel ----------
+   Lives outside #statsBody on purpose: renderStats() rewrites that element
+   every second, which would wipe whatever the player was typing. */
+function renderCloud(){
+  const box = $('cloudBox');
+  if(!box) return;
+  const i = Cloud.info();
+  box.hidden = !i.base;
+  if(!i.base) return;
+
+  const STATES = {
+    ok:         ['on',   'Synced'],
+    connecting: ['warn', 'Connecting…'],
+    offline:    ['warn', 'Offline — saving locally'],
+    error:      ['err',  'Needs attention'],
+    local:      ['',     'Not connected'],
+    disabled:   ['',     'Off'],
+  };
+  const st = STATES[i.status] || ['', i.status];
+  $('cloudDot').className = st[0];
+  $('cloudStatus').textContent = st[1] + (i.pending ? ' · ' + i.pending + ' queued' : '');
+  $('cloudName').textContent = i.connected ? (i.name || 'unnamed') : '—';
+  $('cloudSynced').textContent = i.lastSync ? fmtTime((Date.now()-i.lastSync)/1000) + ' ago' : '—';
+  $('cloudNote').textContent = i.detail || (i.connected
+    ? 'Your save uploads every 30 seconds and when you close the tab. The game keeps working while the server is down and catches up when it returns.'
+    : 'Not connected. Your progress still saves in this browser.');
+  $('cloudSyncBtn').textContent = i.connected ? (i.held ? 'Restore' : 'Sync now') : 'Connect';
+  $('cloudTokenBtn').disabled  = !i.connected;
+  $('cloudDetachBtn').disabled = !i.connected;
+  $('cloudFreshBtn').hidden    = !i.held;
+
+  const ni = $('cloudNameInput');
+  if(document.activeElement !== ni && !ni.value && i.name) ni.value = i.name;
+}
+
+$('cloudSyncBtn').addEventListener('click', ()=>{
+  const i = Cloud.info();
+  if(i.connected) Cloud.push().then(()=>Cloud.pull());
+  else Cloud.connect();
+});
+$('cloudTokenBtn').addEventListener('click', ()=>{
+  const t = Cloud.info().token;
+  if(!t) return;
+  $('saveText').value = t;
+  $('saveText').select();
+  try{
+    navigator.clipboard.writeText(t)
+      .then(()=>toast('Token copied', 'It is also in the save box above. This is the only way back into your cloud save — keep it somewhere safe.'))
+      .catch(()=>toast('Token shown', 'It is in the save box above.'));
+  }catch(e){ toast('Token shown', 'It is in the save box above.'); }
+});
+$('cloudFreshBtn').addEventListener('click', ()=>{
+  confirmBox('Start a new save?',
+    'Only do this if your progress cannot be restored. The damaged save is kept in this browser and is not deleted, but a new empty save will replace what is on the server.',
+    'Start fresh', ()=>Cloud.startFresh());
+});
+$('cloudDetachBtn').addEventListener('click', ()=>{
+  confirmBox('Disconnect from the server?',
+    'This device goes back to saving locally only. Your cloud save is kept — paste your token here again to come back to it.',
+    'Disconnect', ()=>Cloud.detach());
+});
+$('cloudNameInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ e.preventDefault(); Cloud.rename(e.target.value); e.target.blur(); }
+});
+$('cloudTokenInput').addEventListener('keydown', e=>{
+  if(e.key!=='Enter') return;
+  e.preventDefault();
+  const t = e.target.value.trim();
+  if(!t) return;
+  e.target.value = '';
+  confirmBox('Load that account here?',
+    'This replaces what is on this device with the save that token belongs to.',
+    'Load it', ()=>Cloud.attach(t));
+});
+
+/* ---------- leaderboard ---------- */
+const RANK_METRICS = [
+  ['allTimeEarned','All-time energy'], ['legacyLevel','Legacy level'],
+  ['achCount','Achievements'],         ['producers','Producers owned'],
+  ['golden','Golden cans'],            ['rebrands','Rebrands'],
+  ['clicksAll','Clicks'],              ['playTime','Time played'],
+];
+let rankMetric = 'allTimeEarned', rankBusy = false, rankLoadedAt = 0;
+
+function buildMetricSel(){
+  $('metricSel').innerHTML = RANK_METRICS.map(m=>`<option value="${m[0]}">${esc(m[1])}</option>`).join('');
+  $('metricSel').value = rankMetric;
+}
+function rankValue(v){ return rankMetric==='playTime' ? fmtTime(v) : fmt(v); }
+function rankRow(e, isMe){
+  const s = e.stats || {};
+  return `<div class="rank${isMe?' me':''}${e.rank<=3?' top'+e.rank:''}">
+    <div class="pos">${e.rank}</div>
+    <div class="who"><b>${esc(e.name||'unnamed')}${isMe?' (you)':''}</b>
+      <small>legacy ${fmt(s.legacyLevel||0)} · ${fmt(s.achCount||0)} achievements · ${fmt(s.producers||0)} producers</small></div>
+    <div class="val">${rankValue(e.value||0)}</div>
+  </div>`;
+}
+function renderRanks(force){
+  if(currentTab!=='ranks') return;
+  const list = $('rankList');
+  if(!Cloud.enabled()){
+    list.innerHTML = '<div class="empty">Leaderboards need the sync server. This build is running local-only, so there is nothing to rank against.</div>';
+    $('rankMeta').textContent = '';
+    return;
+  }
+  if(rankBusy) return;
+  if(!force && Date.now()-rankLoadedAt < 15000) return;   // self-throttled: the 1s tick calls this
+  rankBusy = true;
+  $('rankMeta').textContent = 'loading…';
+  Cloud.leaderboard(rankMetric, 25).then(r=>{
+    rankBusy = false; rankLoadedAt = Date.now();
+    if(!r.ok || !r.data){
+      list.innerHTML = '<div class="empty">Could not reach the leaderboard. Your progress is still safe — this will keep retrying.</div>';
+      $('rankMeta').textContent = '';
+      return;
+    }
+    const me = r.data.me;
+    const inTop = me && r.data.entries.some(e=>e.playerId===me.playerId);
+    let html = r.data.entries.map(e=>rankRow(e, !!me && e.playerId===me.playerId)).join('');
+    if(!html) html = '<div class="empty">Nobody is on the board yet. Be the first.</div>';
+    if(me && !inTop) html += '<hr class="rankSep">' + rankRow(me, true);
+    list.innerHTML = html;
+    $('rankMeta').textContent = r.data.label || '';
+  }).catch(()=>{
+    rankBusy = false; rankLoadedAt = Date.now();
+    list.innerHTML = '<div class="empty">Could not reach the leaderboard. This will keep retrying.</div>';
+    $('rankMeta').textContent = '';
+  });
+}
+$('metricSel').addEventListener('change', e=>{ rankMetric = e.target.value; renderRanks(true); });
+$('rankRefresh').addEventListener('click', ()=>renderRanks(true));
+
 /* ---------- tabs ---------- */
+const TABS = ['store','ach','stats','legacy','ranks'];
 document.querySelectorAll('.tabBtn').forEach(btn=>btn.addEventListener('click', ()=>{
   currentTab = btn.dataset.tab;
   document.querySelectorAll('.tabBtn').forEach(b=>b.classList.toggle('active', b===btn));
   btn.classList.remove('notify');
-  ['store','ach','stats','legacy'].forEach(t=>$('tab-'+t).hidden = t!==currentTab);
+  TABS.forEach(t=>$('tab-'+t).hidden = t!==currentTab);
   hideTooltip();
-  if(currentTab==='stats') renderStats();
+  if(currentTab==='stats'){ renderStats(); renderCloud(); }
   if(currentTab==='legacy') renderLegacy(true);
   if(currentTab==='ach') renderAch();
+  if(currentTab==='ranks') renderRanks(true);
 }));
 
 /* ---------- news ticker ---------- */
@@ -1575,7 +2370,7 @@ function applyAway(seconds, fromLoad){
 
 /* ---------- main loop ---------- */
 let lastTick = performance.now();
-let slowTimer = 0, midTimer = 0, newsTimer = 0, saveTimer = 0;
+let slowTimer = 0, midTimer = 0, newsTimer = 0, saveTimer = 0, cloudTimer = 0;
 function tick(){
   const now = performance.now();
   let dt = (now-lastTick)/1000; lastTick = now;
@@ -1606,42 +2401,78 @@ function tick(){
     computeBest();
     renderStats();
     renderLegacy(false);
+    renderRanks(false);
+    renderCloud();
     document.title = `${fmt(S.energy)} energy · Ultra Clicker`;
   }
   newsTimer += dt;
   if(newsTimer >= 12){ newsTimer = 0; nextNews(); }
   saveTimer += dt;
   if(saveTimer >= 10){ saveTimer = 0; saveGame(); }
+  // Uploads are deliberately far rarer than local saves - localStorage is
+  // the thing that must never be behind, the server only needs to be close.
+  cloudTimer += dt;
+  if(cloudTimer >= 30){ cloudTimer = 0; Cloud.periodic(); }
 }
 
 function renderAll(){
   upgradeKey = '';
   renderCounter(); renderBuffs(true); computeBest(); renderStore(true);
   renderAch(); renderCompletion(); renderStats(); renderLegacy(true);
+  renderCloud(); renderRanks(false);
 }
 function afterStateReplaced(){
   if(goldenEl){ goldenEl.remove(); goldenEl = null; }
   recalc();
   checkAchievements(true);
   renderAll();
+  // An import or a reset is a deliberate act: persist it now rather than
+  // leaving the browser up to 10s behind, and force it past the rev check
+  // rather than asking the player to resolve a conflict they just created.
+  saveGame();
+  Cloud.push(true);
 }
 
 /* ---------- start ---------- */
 buildBuildingRows();
 buildAchGrid();
+buildMetricSel();
 const loadResult = loadGame();
 recalc();
 checkAchievements(true);
-if(loadResult==='loaded') applyAway((Date.now()-S.lastSave)/1000, true);
+
+// Offline production is owed but not yet granted. If this device has a cloud
+// account, the reconcile decides which save wins first and pays out against
+// the server clock; flushAway() covers every other path, including the
+// server being down. Either way it happens exactly once.
+if(loadResult!=='fresh' && loadResult!=='corrupt') awayPending = (Date.now()-S.lastSave)/1000;
 if(loadResult==='migrated') toast('Save upgraded', 'Your old progress was carried over to the new version.', 'gold');
+if(loadResult==='backup') toast('Recovered from backup', 'Your main save could not be read, so the last good backup was loaded instead.', 'gold');
+
+// Nothing usable in this browser. Hold every upload BEFORE Cloud.boot() runs,
+// so the empty state we are sitting on cannot reach the server; boot() will
+// try to restore the real save instead.
+if(loadResult==='corrupt'){
+  Cloud.holdSync('This browser’s save could not be read (' + loadProblem + ').');
+  toast('Save could not be read', Cloud.enabled()
+    ? 'Trying to restore your progress from the server. Nothing has been overwritten.'
+    : 'The damaged save is kept under "' + BAD_KEY + '" in this browser.');
+}
 renderAll();
 $('tickerText').textContent = NEWS[0][1];
 resizeCanvas();
 window.addEventListener('resize', ()=>{ resizeCanvas(); hideTooltip(); });
 requestAnimationFrame(drawFizz);
 setInterval(tick, 100);
-window.addEventListener('beforeunload', saveGame);
-document.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveGame(); });
+
+// The game is fully playable from here. Cloud.boot() runs after, never
+// before: nothing on screen waits for the network.
+Cloud.boot();
+
+window.addEventListener('beforeunload', ()=>{ saveGame(); Cloud.beacon(); });
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden){ saveGame(); Cloud.beacon(); }
+});
 })();
 </script>
 </body>
