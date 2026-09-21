@@ -536,6 +536,15 @@
       ctx.shadowBlur=0;
       ctx.fillStyle=COL.violet; ctx.beginPath(); ctx.arc(2.2*u,-1.8*u,u*0.38,0,7); ctx.fill();
     }
+    else if(g==="taptapshots"){
+      ctx.fillStyle="#fff"; ctx.fillRect(2.6*u,-2.6*u,0.5*u,2.4*u);
+      ctx.strokeStyle=COL.cyan; ctx.lineWidth=s*0.035; ctx.beginPath(); ctx.moveTo(2.6*u,-0.9*u); ctx.lineTo(0.9*u,-0.9*u); ctx.stroke();
+      ctx.strokeStyle="rgba(255,255,255,.7)"; ctx.lineWidth=s*0.012; ctx.beginPath();
+      for(let i=0;i<4;i++){ const x=0.9*u+i*0.57*u; ctx.moveTo(x,-0.9*u); ctx.lineTo(1.2*u+i*0.38*u,0.3*u); } ctx.stroke();
+      ctx.fillStyle=COL.muted; for(let i=1;i<5;i++){ ctx.globalAlpha=0.2*i; ctx.beginPath(); ctx.arc((-3+i*0.55)*u,(1.8-i*0.75)*u,u*0.14,0,7); ctx.fill(); } ctx.globalAlpha=1;
+      ctx.fillStyle="#ff7b00"; ctx.beginPath(); ctx.arc(-0.3*u,-1.4*u,u*0.85,0,7); ctx.fill();
+      ctx.strokeStyle="#222"; ctx.lineWidth=s*0.012; ctx.beginPath(); ctx.moveTo(-1.15*u,-1.4*u); ctx.lineTo(0.55*u,-1.4*u); ctx.moveTo(-0.3*u,-2.25*u); ctx.lineTo(-0.3*u,-0.55*u); ctx.stroke();
+    }
     else if(g==="dybegruber"){
       ctx.fillStyle="#3a2a1c"; ctx.fillRect(-3.2*u,-0.6*u,6.4*u,3.6*u);
       ctx.fillStyle=COL.green; ctx.fillRect(-3.2*u,-0.9*u,6.4*u,0.35*u);
@@ -718,6 +727,11 @@
   G({ id:"dybegruber", name:"Dybe Gruber Deluxe", tag:"arcade", href:"dybe-gruber-deluxe.html", isNew:true,
     desc:"Idle-minespil — grav malm i dybe skakter, kør elevator og lastbil, og ansæt managers. Opens in its own page.",
     hint:"Klik på minearbejdere, elevator og lastbil" });
+
+  /* ---------------- TAP TAP SHOTS (external page) ---------------- */
+  G({ id:"taptapshots", name:"Tap Tap Shots", tag:"reflex", href:"tap_tap_shots.html", isNew:true,
+    desc:"Tap for at hoppe med bolden og dunk den i kurven, før tiden løber ud. Kurven skifter side hver gang. Opens in its own page.",
+    hint:"Tap / klik for at hoppe" });
 
   /* ---------------- BLOCKS (tetromino) ---------------- */
   G({ id:"blocks", name:"Neon Tetris", tag:"puzzle", href:"klassisk_neon_tetris.html", w:350, h:480,
