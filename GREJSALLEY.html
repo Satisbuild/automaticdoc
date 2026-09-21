@@ -536,6 +536,16 @@
       ctx.shadowBlur=0;
       ctx.fillStyle=COL.violet; ctx.beginPath(); ctx.arc(2.2*u,-1.8*u,u*0.38,0,7); ctx.fill();
     }
+    else if(g==="dybegruber"){
+      ctx.fillStyle="#3a2a1c"; ctx.fillRect(-3.2*u,-0.6*u,6.4*u,3.6*u);
+      ctx.fillStyle=COL.green; ctx.fillRect(-3.2*u,-0.9*u,6.4*u,0.35*u);
+      ctx.fillStyle=COL.bg; ctx.fillRect(-2.3*u,-0.55*u,1.3*u,3.5*u);
+      ctx.strokeStyle=COL.amber; ctx.lineWidth=s*0.035;
+      ctx.beginPath(); ctx.moveTo(-2.5*u,-0.9*u); ctx.lineTo(-1.65*u,-3*u); ctx.lineTo(-0.8*u,-0.9*u); ctx.stroke();
+      ctx.beginPath(); ctx.arc(-1.65*u,-2.8*u,u*0.45,0,7); ctx.stroke();
+      ctx.fillStyle=COL.muted; ctx.fillRect(-2.1*u,1*u,0.9*u,0.9*u);
+      [[0.3,0.4,COL.amber],[1.4,1.3,COL.coral],[2.3,0.2,COL.cyan],[0.8,2.2,COL.violet],[2.2,2.3,COL.amber]].forEach(([x,y,c])=>{ ctx.fillStyle=c; ctx.beginPath(); ctx.arc(x*u,y*u,u*0.32,0,7); ctx.fill(); });
+    }
     ctx.restore();
   }
 
@@ -703,6 +713,11 @@
   G({ id:"neonsnake", name:"Neon Snake", tag:"reflex", href:"neon_snake.html",
     desc:"Glasagtig neon-slange med pulserende glow. Spis, voks, styr uden om din egen hale. Opens in its own page.",
     hint:"Piltaster eller swipe på mobil" });
+
+  /* ---------------- DYBE GRUBER DELUXE (external page) ---------------- */
+  G({ id:"dybegruber", name:"Dybe Gruber Deluxe", tag:"arcade", href:"dybe-gruber-deluxe.html", isNew:true,
+    desc:"Idle-minespil — grav malm i dybe skakter, kør elevator og lastbil, og ansæt managers. Opens in its own page.",
+    hint:"Klik på minearbejdere, elevator og lastbil" });
 
   /* ---------------- BLOCKS (tetromino) ---------------- */
   G({ id:"blocks", name:"Neon Tetris", tag:"puzzle", href:"klassisk_neon_tetris.html", w:350, h:480,
