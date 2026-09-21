@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dybe Gruber — Deluxe</title>
+<style>
+:root{
+  --bg:#100b08;--panel:#211711;--panel2:#2b1d14;--wood:#9a6532;--wood2:#5d381a;
+  --gold:#ffd34e;--text:#f8efdf;--muted:#c6b49d;--green:#4dbb59;--red:#d95757;
+  --blue:#4da3ff;--purple:#a96cff;--row:142px;--col:86px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:radial-gradient(circle at 50% -10%,#342217,#100b08 55%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+button{font:inherit;border:0;border-radius:9px;padding:7px 10px;color:#fff;background:var(--wood);box-shadow:0 3px 0 var(--wood2);font-weight:800;cursor:pointer;transition:.12s transform,.12s filter}
+button:hover:not(:disabled){filter:brightness(1.12)}button:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 var(--wood2)}
+button:disabled{opacity:.4;cursor:default}button.buy{background:var(--green);box-shadow:0 3px 0 #286b30}
+button.blue{background:#367fc5;box-shadow:0 3px 0 #1e4e7b}button.purple{background:#8150c9;box-shadow:0 3px 0 #4e2f7d}
+header{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 14px;background:rgba(15,9,6,.96);backdrop-filter:blur(8px);border-bottom:3px solid var(--wood2)}
+.logo{font-weight:950;letter-spacing:.7px;color:#d6c2a6}.logo span{color:var(--gold)}
+#cash{font-size:24px;font-weight:950;color:var(--gold);text-shadow:0 2px 0 #654d00}
+#rate{font-size:12px;color:var(--muted)}.sp{flex:1}
+.topbtn{padding:6px 8px;font-size:12px}
+.back{display:inline-flex;align-items:center;padding:6px 10px;border-radius:9px;background:#3a2718;color:var(--gold);font-weight:850;font-size:13px;text-decoration:none;box-shadow:0 3px 0 #120c08;white-space:nowrap}.back:hover{filter:brightness(1.2)}
+
+#surface{position:relative;height:205px;overflow:hidden;background:linear-gradient(#55aee0,#c5e8f6 72%)}
+.sun{position:absolute;top:18px;right:42px;width:48px;height:48px;border-radius:50%;background:#ffe05a;box-shadow:0 0 35px #ffe05a}
+.cloud{position:absolute;width:90px;height:26px;background:white;border-radius:20px;opacity:.88;animation:drift linear infinite}
+.cloud:before,.cloud:after{content:"";position:absolute;background:white;border-radius:50%}
+.cloud:before{width:40px;height:40px;top:-20px;left:12px}.cloud:after{width:30px;height:30px;top:-14px;left:44px}
+@keyframes drift{from{transform:translateX(-180px)}to{transform:translateX(110vw)}}
+.ground{position:absolute;left:0;right:0;bottom:0;height:54px;background:linear-gradient(#55a83d 0 11px,#765034 11px)}
+#road{position:absolute;left:100px;right:120px;bottom:45px;height:9px;background:#505050;border-radius:3px}
+#headframe{position:absolute;left:14px;bottom:53px;width:72px;height:120px;cursor:pointer}
+.hf-legs{position:absolute;inset:18px 0 0;border:6px solid var(--wood);border-bottom:0;background:linear-gradient(45deg,transparent 47%,var(--wood2) 47% 53%,transparent 53%),linear-gradient(-45deg,transparent 47%,var(--wood2) 47% 53%,transparent 53%)}
+.hf-wheel{position:absolute;left:18px;top:0;width:36px;height:36px;border-radius:50%;border:5px dashed #444;background:radial-gradient(#444 0 4px,transparent 5px)}
+.hf-wheel.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+#pile{position:absolute;left:94px;bottom:61px;background:#000a;padding:4px 9px;border-radius:10px;font-size:13px;font-weight:800}
+#truck{position:absolute;bottom:50px;left:100px;width:44px;height:40px;cursor:pointer}
+#truck .em{display:inline-block;font-size:36px;line-height:40px}#truck .tl{position:absolute;top:-19px;left:50%;transform:translateX(-50%);font-size:11px;background:#000a;padding:1px 6px;border-radius:8px;white-space:nowrap}
+#shop{position:absolute;right:14px;bottom:53px;width:96px;height:72px;background:#c0703a;border:4px solid #7a4220;cursor:pointer}
+#shop:before{content:"";position:absolute;left:-12px;right:-12px;top:-32px;height:30px;background:#8e2f25;clip-path:polygon(50% 0,100% 100%,0 100%)}
+#shop .sign{position:absolute;top:8px;left:8px;right:8px;background:#f5deb3;color:#5a2e0e;font-weight:950;text-align:center;font-size:13px;border-radius:3px}
+#shop .door{position:absolute;bottom:0;left:33px;width:22px;height:30px;background:#5a2e0e}
+
+.panel{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 14px;background:var(--panel2);border-bottom:4px solid #120c08}
+.panel .stats{margin:0}.info{flex:1;min-width:180px}.stats{font-size:12px;color:var(--muted);margin:2px 0 6px}.btns{display:flex;gap:6px;flex-wrap:wrap}
+
+#mine{position:relative}
+#col{position:absolute;left:0;top:0;bottom:0;width:var(--col);overflow:hidden;cursor:pointer;border-right:4px solid var(--wood2);background:linear-gradient(90deg,#120d09 0 12px,#3a3a3a 12px 16px,transparent 16px calc(100% - 16px),#3a3a3a calc(100% - 16px) calc(100% - 12px),#120d09 calc(100% - 12px)),#0d0806}
+#cabin{position:absolute;left:9px;right:9px;top:0;height:96px;background:linear-gradient(#b7c0ca,#6f7984);border:3px solid #3c434b;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#1b1f24;z-index:2}
+#cabin:before{content:"";position:absolute;left:50%;bottom:100%;width:2px;height:5000px;background:#222}
+#cabin .ic{font-size:22px}
+#rows{margin-left:var(--col)}
+.row{height:var(--row);display:flex;align-items:center;gap:10px;padding:0 12px;border-bottom:4px solid #120c08;position:relative}
+.row:nth-child(odd){background-color:#271a12}.row:nth-child(even){background-color:#21150f}
+.elevrow{background:linear-gradient(90deg,#302116,#24170f)}
+.crate{width:58px;flex-shrink:0;text-align:center;font-size:12px;font-weight:800}
+.orebox{width:36px;height:26px;margin:0 auto 4px;border:2px solid #4a2d12;border-radius:3px;background:repeating-linear-gradient(0deg,#8a5a2b 0 6px,#6b4420 6px 8px)}
+.orebox.full{background:linear-gradient(var(--ore),var(--ore)) top/100% 9px no-repeat,repeating-linear-gradient(0deg,#8a5a2b 0 6px,#6b4420 6px 8px)}
+.work{position:relative;width:112px;height:86px;flex-shrink:0;border-radius:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:radial-gradient(circle at 78% 28%,var(--ore) 0 4px,transparent 5px),radial-gradient(circle at 86% 66%,var(--ore) 0 3px,transparent 4px),radial-gradient(circle at 70% 55%,var(--ore) 0 2px,transparent 3px),radial-gradient(ellipse at center,#0d0907 55%,transparent 71%);transition:filter .2s}
+.work:hover{filter:brightness(1.18)}.miner{font-size:30px}.pick{font-size:24px;display:inline-block;transform-origin:20% 80%}
+.work.working .pick{animation:swing .3s ease-in-out infinite alternate}@keyframes swing{from{transform:rotate(-35deg)}to{transform:rotate(25deg)}}
+.bar{position:absolute;left:14px;right:14px;bottom:4px;height:7px;background:#ffffff22;border-radius:4px;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),#fff19a)}
+.hint{position:absolute;top:-6px;left:50%;transform:translateX(-50%);font-size:11px;background:var(--gold);color:#3a2600;padding:2px 7px;border-radius:8px;font-weight:950;white-space:nowrap;animation:pulse 1s ease-in-out infinite;pointer-events:none;z-index:4}
+@keyframes pulse{50%{transform:translateX(-50%) scale(1.1)}}.mtag{position:absolute;top:2px;right:6px;font-size:16px}
+.lockrow{justify-content:center;flex-direction:column;gap:6px;background:#0d0907;color:var(--muted);font-weight:800}
+
+#sidePanel{position:fixed;right:12px;bottom:12px;z-index:25;width:min(370px,calc(100vw - 24px));background:#1d130eeb;border:2px solid var(--wood2);border-radius:14px;padding:12px;box-shadow:0 12px 35px #0009;display:none;max-height:72vh;overflow:auto;backdrop-filter:blur(8px)}
+#sidePanel.open{display:block}.sideHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.sideTitle{font-weight:950;color:var(--gold)}
+.cardGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.miniCard{background:#2a1c14;border:1px solid #4b311f;border-radius:9px;padding:8px}.miniCard b{display:block}.miniCard small{color:var(--muted)}
+.ach{padding:8px;border-radius:8px;background:#2a1c14;margin:5px 0;border:1px solid #4b311f}.ach.done{border-color:#8b6c28;background:#3a2c13}.ach small{display:block;color:var(--muted)}
+.setting{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #493020}
+
+.float{position:fixed;pointer-events:none;font-weight:950;color:var(--gold);text-shadow:0 2px 0 #000;animation:rise 1.1s ease-out forwards;z-index:80}
+@keyframes rise{to{transform:translateY(-50px);opacity:0}}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:90;background:#2e2118;border:2px solid var(--gold);border-radius:10px;padding:9px 13px;font-weight:850;box-shadow:0 7px 25px #0008;animation:toast 2.4s ease forwards}
+@keyframes toast{0%,75%{opacity:1}100%{opacity:0;transform:translate(-50%,12px)}}
+#modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+#modal .card{background:#2a1d14;border:3px solid var(--wood);border-radius:15px;padding:20px;max-width:430px;width:100%;box-shadow:0 20px 70px #000}
+#modal .big{font-size:28px;font-weight:950;color:var(--gold);margin:8px 0 14px}
+.tabs{display:flex;gap:5px;margin-bottom:10px}.tabs button{flex:1;font-size:12px}
+footer{padding:16px 16px 34px;color:var(--muted);font-size:13px;line-height:1.5;max-width:800px}
+body.compact{--row:118px}body.noanim *{animation:none!important;transition:none!important}
+
+@media(max-width:650px){
+  :root{--row:154px;--col:72px}.work{width:80px}.crate{width:40px}.row{gap:5px;padding:0 7px}
+  #cabin{left:6px;right:6px}button{font-size:12px;padding:6px 7px}.topbtn{font-size:11px}
+  #shop{width:78px}#shop .door{left:25px}#road{right:102px}.info b{font-size:14px}
+}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="GREJSALLEY.html" title="Tilbage til Grejs Alley">← Grejs Alley</a>
+  <span class="logo">⛏ <span>DYBE GRUBER</span> DELUXE</span>
+  <span id="cash">💰 20</span>
+  <span id="rate">0 / sek</span>
+  <span class="sp"></span>
+  <button class="topbtn" data-act="mode" id="modeBtn">Køb ×1</button>
+  <button class="topbtn blue" data-act="panel" data-panel="stats">📊</button>
+  <button class="topbtn" data-act="panel" data-panel="ach">🏆</button>
+  <button class="topbtn" data-act="panel" data-panel="settings">⚙️</button>
+  <button class="topbtn" data-act="reset">Start forfra</button>
+</header>
+
+<section id="surface">
+  <div class="sun"></div>
+  <div class="cloud" style="top:30px;animation-duration:70s"></div>
+  <div class="cloud" style="top:72px;animation-duration:95s;animation-delay:-40s"></div>
+  <div class="ground"></div>
+  <div id="headframe" data-act="elev"><div class="hf-wheel" id="wheel"></div><div class="hf-legs"></div></div>
+  <div id="pile">🪨 0</div><div id="road"></div>
+  <div id="truck" data-act="truck"><span class="em">🚚</span><span class="tl" id="truckLabel"></span><span class="hint" id="truckHint" style="top:-38px">Klik!</span></div>
+  <div id="shop" data-act="truck"><div class="sign">SALG</div><div class="door"></div></div>
+</section>
+
+<div class="panel">
+  <div class="info"><b>🚚 Transport</b><div class="stats" id="wStats"></div></div>
+  <div class="btns"><button class="buy" data-act="up-w" id="wUp"><span></span><small></small></button><button data-act="mgr-w" id="wMgr"><span></span><small></small></button></div>
+</div>
+
+<section id="mine">
+  <div id="col" data-act="elev"><div id="cabin"><span class="ic">🛗</span><span id="cabinLoad">0</span><span class="hint" id="cabinHint" style="top:4px">Klik!</span></div></div>
+  <div id="rows"></div>
+</section>
+
+<footer>
+  <b>Sådan spiller du:</b> Klik på minearbejderne for at grave. Elevatorens tur henter malm fra skakterne, og lastbilen sælger den.
+  Ansæt managers for automatisk drift. Spillet gemmes løbende i <b>localStorage</b> og beregner offline-indtjening, når du kommer tilbage.
+  Brug 📊 til statistik, 🏆 til achievements og ⚙️ til indstillinger. Nå milepæle for at få permanente produktionsbonusser.
+</footer>
+
+<div id="sidePanel">
+  <div class="sideHead"><div class="sideTitle" id="sideTitle"></div><button data-act="closePanel">✕</button></div>
+  <div id="sideContent"></div>
+</div>
+
+<div id="modal"><div class="card"><div id="modalTitle">Mens du var væk</div><div class="big" id="modalAmt"></div><div id="modalText" style="color:var(--muted);margin-bottom:14px"></div><button class="buy" id="modalOk">Fedt!</button></div></div>
+
+<script>
+(()=> {
+const KEY='dybe-gruber-deluxe-v2';
+const ORES=[
+ ['Kul','#343434'],['Kobber','#c8733a'],['Jern','#9aa3ad'],['Sølv','#e2e6ea'],['Guld','#ffcf40'],
+ ['Rubin','#e0245e'],['Smaragd','#2ecc71'],['Safir','#2d7ff9'],['Ametyst','#a55ed0'],['Diamant','#bff3ff'],
+ ['Platin','#d8d6d0'],['Stjernestøv','#ff9ff3']
+];
+const MAX_SHAFTS=ORES.length, MIL=[10,25,50,100,150,200,300,400,500,750,1000];
+const SHAFT_T=3,LOAD_T=.4,OFFLINE_CAP=4*3600;
+const mult=i=>Math.pow(10,i), bonus=l=>MIL.reduce((b,m)=>l>=m?b*2:b,1);
+const nextMil=l=>MIL.find(m=>m>l), shaftYield=(i,l)=>4*l*mult(i)*bonus(l);
+const elevCap=l=>30*Math.pow(1.2,l-1), elevSpeed=l=>Math.min(8,1.2*(1+.06*(l-1)));
+const whCap=l=>25*Math.pow(1.2,l-1), whTrip=l=>Math.max(1,4/(1+.05*(l-1)));
+const UPG={shaft:i=>({base:12*mult(i),g:1.14}),elev:{base:50,g:1.19},wh:{base:40,g:1.19}};
+const newShaftCost=i=>600*Math.pow(14,i-1),shaftMgrCost=i=>25*mult(i),ELEV_MGR=100,WH_MGR=75;
+const SUF=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc','Ud','Dd','Td'];
+const fmt=n=>{if(!isFinite(n))return '∞';if(n<1000)return Math.floor(n).toString();let i=0;while(n>=1000&&i<SUF.length-1){n/=1000;i++}return (n<10?n.toFixed(2):n<100?n.toFixed(1):Math.floor(n))+SUF[i]};
+
+function fresh(){return{
+ cash:20,stock:0,total:0,created:Date.now(),saved:Date.now(),clicks:0,sales:0,
+ maxCash:20,shafts:[{lvl:1,mgr:false,stored:0,working:false,t:0}],
+ elev:{lvl:1,mgr:false,busy:false,p:0,target:0,phase:'idle',timer:0,load:0},
+ wh:{lvl:1,mgr:false,busy:false,phase:'idle',t:0,load:0},
+ settings:{compact:false,animations:true,sound:false},ach:{},daily:0,lastDaily:0
+}}
+function load(){try{let d=JSON.parse(localStorage.getItem(KEY));if(d&&Array.isArray(d.shafts)&&d.elev&&d.wh){d.settings={compact:false,animations:true,sound:false,...d.settings};d.ach=d.ach||{};return d}}catch(e){}return null}
+let S=load()||fresh(),mode=1,earnLog=[],R=[],ER={},LR=null,ROW=142,roadW=300;
+const $=id=>document.getElementById(id);
+function save(){S.saved=Date.now();S.maxCash=Math.max(S.maxCash,S.cash);try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function toast(t){let x=document.createElement('div');x.className='toast';x.textContent=t;document.body.appendChild(x);setTimeout(()=>x.remove(),2400)}
+function floatMsg(t,x='50%',y='90px'){let f=document.createElement('div');f.className='float';f.textContent=t;f.style.left=x;f.style.top=y;document.body.appendChild(f);setTimeout(()=>f.remove(),1200)}
+function priceN(u,l,n){let c0=u.base*Math.pow(u.g,l-1);return c0*(Math.pow(u.g,n)-1)/(u.g-1)}
+function countFor(u,l){if(mode!=='max')return mode;let c0=u.base*Math.pow(u.g,l-1);let n=Math.floor(Math.log(S.cash*(u.g-1)/c0+1)/Math.log(u.g));return Math.max(1,n||1)}
+function newShaft(){return{lvl:1,mgr:false,stored:0,working:false,t:0}}
+function buyUp(u,o){let n=countFor(u,o.lvl),c=priceN(u,o.lvl,n);if(S.cash>=c){S.cash-=c;o.lvl+=n;checkAchievements();return true}return false}
+function hire(o,c){if(!o.mgr&&S.cash>=c){S.cash-=c;o.mgr=true;checkAchievements();return true}return false}
+function startElev(){let E=S.elev;if(E.busy)return;E.busy=true;E.target=1;E.phase='move'}
+function startWh(){let W=S.wh;if(W.busy||S.stock<=0)return;let take=Math.min(whCap(W.lvl),S.stock);S.stock-=take;W.load=take;W.busy=true;W.phase='go';W.t=0}
+function sell(x){S.cash+=x;S.total+=x;S.sales++;earnLog.push([performance.now(),x]);S.maxCash=Math.max(S.maxCash,S.cash);let r=$('shop').getBoundingClientRect();floatMsg('+'+fmt(x),r.left+r.width/2-20,r.top-10);checkAchievements()}
+function act(a,i){
+ switch(a){
+  case 'dig':{let s=S.shafts[i];if(s&&!s.working){s.working=true;s.t=0;S.clicks++}break}
+  case 'up-s':buyUp(UPG.shaft(i),S.shafts[i]);break
+  case 'up-e':buyUp(UPG.elev,S.elev);break
+  case 'up-w':buyUp(UPG.wh,S.wh);break
+  case 'mgr-s':hire(S.shafts[i],shaftMgrCost(i));break
+  case 'mgr-e':hire(S.elev,ELEV_MGR);break
+  case 'mgr-w':hire(S.wh,WH_MGR);break
+  case 'elev':startElev();break
+  case 'truck':startWh();break
+  case 'newshaft':{let n=S.shafts.length,c=newShaftCost(n);if(n<MAX_SHAFTS&&S.cash>=c){S.cash-=c;S.shafts.push(newShaft());build();toast('Ny skakt åbnet!');}break}
+  case 'mode':mode=mode===1?10:mode===10?'max':1;$('modeBtn').textContent='Køb '+(mode==='max'?'MAX':'×'+mode);break
+  case 'panel':openPanel(document.querySelector('[data-panel="'+i+'"]')?.dataset.panel||i);break
+  case 'closePanel':$('sidePanel').classList.remove('open');break
+  case 'reset':if(confirm('Vil du starte forfra? Alt i dette spil bliver slettet fra localStorage.')){localStorage.removeItem(KEY);S=fresh();build();toast('Spillet er nulstillet')}break
+ }
+}
+document.addEventListener('click',e=>{let t=e.target.closest('[data-act]');if(!t||t.disabled)return;e.stopPropagation();act(t.dataset.act,t.dataset.i!=null?+t.dataset.i:t.dataset.panel||'')});
+
+function update(dt){
+ S.shafts.forEach((s,i)=>{if(!s.working&&s.mgr){s.working=true;s.t=0}if(s.working){s.t+=dt;if(s.t>=SHAFT_T){s.stored+=shaftYield(i,s.lvl);if(s.mgr)s.t-=SHAFT_T;else{s.t=0;s.working=false}}}});
+ let E=S.elev;
+ if(!E.busy&&E.mgr)startElev();
+ if(E.busy){
+  if(E.phase==='move'){let step=elevSpeed(E.lvl)*dt,d=E.target-E.p;if(Math.abs(d)<=step){E.p=E.target;E.phase=E.target===0?'unload':'load';E.timer=LOAD_T}else E.p+=Math.sign(d)*step}
+  else if(E.phase==='load'){E.timer-=dt;if(E.timer<=0){let s=S.shafts[E.target-1],cap=elevCap(E.lvl);if(s){let take=Math.min(cap-E.load,s.stored);s.stored-=take;E.load+=take}E.target=(E.load>=cap*.9999||E.target>=S.shafts.length)?0:E.target+1;E.phase='move'}}
+  else if(E.phase==='unload'){E.timer-=dt;if(E.timer<=0){S.stock+=E.load;E.load=0;E.busy=false;E.phase='idle'}}
+ }
+ let W=S.wh;
+ if(!W.busy&&W.mgr&&S.stock>0)startWh();
+ if(W.busy){W.t+=dt/(whTrip(W.lvl)/2);if(W.phase==='go'&&W.t>=1){sell(W.load);W.load=0;W.phase='back';W.t=0}else if(W.phase==='back'&&W.t>=1){W.busy=false;W.phase='idle';W.t=0}}
+}
+function offlineRate(){
+ if(!S.elev.mgr||!S.wh.mgr)return 0;
+ let prod=0;S.shafts.forEach((s,i)=>{if(s.mgr)prod+=shaftYield(i,s.lvl)/SHAFT_T});
+ let n=S.shafts.length,rt=2*n/elevSpeed(S.elev.lvl)+(n+1)*LOAD_T;
+ return Math.min(prod,elevCap(S.elev.lvl)/rt,whCap(S.wh.lvl)/whTrip(S.wh.lvl));
+}
+function grantAway(sec,popup){
+ let g=offlineRate()*Math.min(sec,OFFLINE_CAP);if(g<=0)return;
+ S.cash+=g;S.total+=g;S.maxCash=Math.max(S.maxCash,S.cash);
+ if(popup){$('modalAmt').textContent='💰 '+fmt(g);$('modalText').textContent='Managers arbejdede i '+Math.floor(Math.min(sec,OFFLINE_CAP)/60)+' minutter.';$('modal').style.display='flex'}else floatMsg('+'+fmt(g)+' offline');
+}
+$('modalOk').onclick=()=>$('modal').style.display='none';
+
+const ACH=[
+ ['first','Første salg',()=>S.sales>=1,'Sælg din første last'],
+ ['million','Millionær',()=>S.total>=1e6,'Tjen 1 million i alt'],
+ ['shaft3','Dybere ned',()=>S.shafts.length>=3,'Åbn 3 skakter'],
+ ['allmgr','Automatiseret',()=>S.shafts.every(x=>x.mgr)&&S.elev.mgr&&S.wh.mgr,'Ansæt managers overalt'],
+ ['lvl25','Milepæl',()=>S.shafts.some(x=>x.lvl>=25),'Nå niveau 25 i en skakt'],
+ ['lvl100','Dybhavsarbejder',()=>S.shafts.some(x=>x.lvl>=100),'Nå niveau 100 i en skakt'],
+ ['click100','Hårdt arbejde',()=>S.clicks>=100,'Klik 100 gange på en skakt'],
+ ['sales100','Logistikchef',()=>S.sales>=100,'Sælg 100 læs'],
+ ['billion','Billionær',()=>S.total>=1e9,'Tjen 1 milliard i alt']
+];
+function checkAchievements(){
+ ACH.forEach(a=>{if(!S.ach[a[0]]&&a[2]()){S.ach[a[0]]=Date.now();toast('🏆 '+a[1]+' låst op!')}})
+}
+function dailyBonus(){
+ let day=Math.floor(Date.now()/86400000);
+ if(S.lastDaily!==day){S.lastDaily=day;let b=Math.max(100,S.total*.01);S.cash+=b;toast('🎁 Daglig bonus: '+fmt(b));save()}
+}
+
+function btnHTML(cls,act,i){return `<button class="${cls}" data-act="${act}"${i!=null?` data-i="${i}"`:''}><span></span><small></small></button>`}
+function build(){
+ $('rows').innerHTML='';
+ let e=document.createElement('div');e.className='row elevrow';
+ e.innerHTML=`<div class="info"><b>🛗 Elevator</b><div class="stats"></div><div class="btns">${btnHTML('buy','up-e')}${btnHTML('','mgr-e')}</div></div>`;
+ $('rows').appendChild(e);let eb=e.querySelectorAll('button');ER={stats:e.querySelector('.stats'),up:eb[0],mgr:eb[1]};
+ R=S.shafts.map((s,i)=>{let o=ORES[i],r=document.createElement('div');r.className='row';r.style.setProperty('--ore',o[1]);
+  r.innerHTML=`<div class="crate"><div class="orebox"></div><div class="stored">0</div></div>
+  <div class="work" data-act="dig" data-i="${i}"><span class="miner">👷</span><span class="pick">⛏️</span><div class="bar"><div class="fill"></div></div><div class="hint">Klik!</div><div class="mtag">👔</div></div>
+  <div class="info"><b>Skakt ${i+1} · ${o[0]}</b><div class="stats"></div><div class="btns">${btnHTML('buy','up-s',i)}${btnHTML('','mgr-s',i)}</div></div>`;
+  $('rows').appendChild(r);let b=r.querySelectorAll('button');return{box:r.querySelector('.orebox'),stored:r.querySelector('.stored'),work:r.querySelector('.work'),fill:r.querySelector('.fill'),hint:r.querySelector('.hint'),mtag:r.querySelector('.mtag'),stats:r.querySelector('.stats'),up:b[0],mgr:b[1]}
+ });
+ LR=null;if(S.shafts.length<MAX_SHAFTS){let n=S.shafts.length,l=document.createElement('div');l.className='row lockrow';l.innerHTML=`<div>🔒 Skakt ${n+1} · ${ORES[n][0]} (×10 værdi)</div><button class="buy" data-act="newshaft"><span>Grav ny skakt</span><small></small></button>`;$('rows').appendChild(l);LR={btn:l.querySelector('button')}}
+ measure();applySettings()
+}
+function measure(){ROW=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--row'))||142;roadW=Math.max(40,$('road').clientWidth-44)}
+addEventListener('resize',measure);
+function T(el,v){if(el._v!==v){el._v=v;el.textContent=v}}
+function Dis(el,v){el.disabled=v}
+function Show(el,v){el.style.display=v?'':'none'}
+function btnUp(btn,u,lvl){let n=countFor(u,lvl),c=priceN(u,lvl,n);T(btn.children[0],'⬆ Niv. +'+n);T(btn.children[1],'💰 '+fmt(c));Dis(btn,S.cash<c)}
+function btnMgr(btn,o,c){if(o.mgr){T(btn.children[0],'👔 Manager');T(btn.children[1],'ansat');btn.classList.add('hired')}else{T(btn.children[0],'Ansæt manager');T(btn.children[1],'💰 '+fmt(c));btn.classList.remove('hired');Dis(btn,S.cash<c)}}
+
+function render(){
+ let now=performance.now();while(earnLog.length&&now-earnLog[0][0]>10000)earnLog.shift();
+ let rate=earnLog.reduce((a,x)=>a+x[1],0)/10;T($('cash'),'💰 '+fmt(S.cash));T($('rate'),fmt(rate)+' / sek');T($('pile'),'🪨 '+fmt(S.stock));
+ let E=S.elev;$('cabin').style.transform=`translateY(${E.p*ROW+(ROW-$('cabin').offsetHeight)/2}px)`;T($('cabinLoad'),fmt(E.load));Show($('cabinHint'),!E.busy&&!E.mgr);$('wheel').classList.toggle('spin',E.busy);
+ T(ER.stats,`Niv. ${E.lvl} · Kap. ${fmt(elevCap(E.lvl))} · Fart ${elevSpeed(E.lvl).toFixed(1)} etager/s`);btnUp(ER.up,UPG.elev,E.lvl);btnMgr(ER.mgr,E,ELEV_MGR);
+ let W=S.wh,x=W.phase==='go'?W.t:W.phase==='back'?1-W.t:0;$('truck').style.transform=`translateX(${Math.min(1,x)*roadW}px)`;$('truck').firstChild.style.transform=W.phase==='back'?'none':'scaleX(-1)';T($('truckLabel'),W.load>0?fmt(W.load):'');Show($('truckLabel'),W.load>0);Show($('truckHint'),!W.busy&&!W.mgr&&S.stock>0);T($('wStats'),`Niv. ${W.lvl} · Kap. ${fmt(whCap(W.lvl))} · Tur ${whTrip(W.lvl).toFixed(1)} s`);btnUp($('wUp'),UPG.wh,W.lvl);btnMgr($('wMgr'),W,WH_MGR);
+ S.shafts.forEach((s,i)=>{let r=R[i];if(!r)return;T(r.stored,fmt(s.stored));r.box.classList.toggle('full',s.stored>0);r.work.classList.toggle('working',s.working);r.fill.style.width=(s.working?Math.min(100,s.t/SHAFT_T*100):0)+'%';Show(r.hint,!s.working&&!s.mgr);Show(r.mtag,s.mgr);let nm=nextMil(s.lvl);T(r.stats,`Niv. ${s.lvl} · ${fmt(shaftYield(i,s.lvl))} pr. tur`+(nm?` · ×2 ved niv. ${nm}`:''));btnUp(r.up,UPG.shaft(i),s.lvl);btnMgr(r.mgr,s,shaftMgrCost(i))});
+ if(LR){let c=newShaftCost(S.shafts.length);T(LR.btn.children[1],'💰 '+fmt(c));Dis(LR.btn,S.cash<c)}
+}
+function openPanel(which){
+ let title=which==='stats'?'📊 Statistik':which==='ach'?'🏆 Achievements':'⚙️ Indstillinger';$('sideTitle').textContent=title;
+ if(which==='stats'){$('sideContent').innerHTML=`<div class="cardGrid">
+ <div class="miniCard"><b>💰 Total tjent</b><small>${fmt(S.total)}</small></div><div class="miniCard"><b>🚚 Salg</b><small>${fmt(S.sales)}</small></div>
+ <div class="miniCard"><b>⛏ Klik</b><small>${fmt(S.clicks)}</small></div><div class="miniCard"><b>🕳 Skakter</b><small>${S.shafts.length}/${MAX_SHAFTS}</small></div>
+ <div class="miniCard"><b>⬆ Højeste niveau</b><small>${Math.max(...S.shafts.map(x=>x.lvl))}</small></div><div class="miniCard"><b>💵 Flest kontanter</b><small>${fmt(S.maxCash)}</small></div>
+ </div><br><div class="miniCard"><b>Automatik</b><small>${S.shafts.filter(x=>x.mgr).length} skakt-managers · Elevator: ${S.elev.mgr?'Ja':'Nej'} · Lastbil: ${S.wh.mgr?'Ja':'Nej'}</small></div>`}
+ else if(which==='ach'){$('sideContent').innerHTML=ACH.map(a=>`<div class="ach ${S.ach[a[0]]?'done':''}"><b>${S.ach[a[0]]?'🏆':'🔒'} ${a[1]}</b><small>${a[2]()}</small></div>`).join('')}
+ else{$('sideContent').innerHTML=`
+ <div class="setting"><span>Kompakt mine</span><button data-act="toggleCompact">${S.settings.compact?'Til':'Fra'}</button></div>
+ <div class="setting"><span>Animationer</span><button data-act="toggleAnim">${S.settings.animations?'Til':'Fra'}</button></div>
+ <div class="setting"><span>Lyde</span><button data-act="toggleSound">${S.settings.sound?'Til':'Fra'}</button></div>
+ <div style="margin-top:12px;display:grid;gap:6px"><button class="blue" data-act="export">💾 Eksportér save</button><button data-act="import">📥 Importér save</button><button data-act="wipe" style="background:var(--red)">🗑 Slet save</button></div>`}
+ $('sidePanel').classList.add('open')
+}
+document.addEventListener('click',e=>{
+ let t=e.target.closest('[data-act]');if(!t)return;
+ if(t.dataset.act==='toggleCompact'){S.settings.compact=!S.settings.compact;applySettings();openPanel('settings');save()}
+ if(t.dataset.act==='toggleAnim'){S.settings.animations=!S.settings.animations;applySettings();openPanel('settings');save()}
+ if(t.dataset.act==='toggleSound'){S.settings.sound=!S.settings.sound;openPanel('settings');save()}
+ if(t.dataset.act==='export'){let data=btoa(unescape(encodeURIComponent(JSON.stringify(S))));navigator.clipboard?.writeText(data);toast('Save kopieret til udklipsholder')}
+ if(t.dataset.act==='import'){let v=prompt('Indsæt din save-string:');if(v){try{S=JSON.parse(decodeURIComponent(escape(atob(v))));save();build();toast('Save importeret')}catch(err){alert('Ugyldig save-string')}}}
+ if(t.dataset.act==='wipe'){if(confirm('Slet hele localStorage-save?')){localStorage.removeItem(KEY);S=fresh();build();save();toast('Save slettet')}}
+});
+function applySettings(){document.body.classList.toggle('compact',S.settings.compact);document.body.classList.toggle('noanim',!S.settings.animations);measure()}
+
+build();dailyBonus();
+let away=(Date.now()-(S.saved||Date.now()))/1000;if(away>30)grantAway(away,true);
+let last=performance.now();
+function frame(now){let dt=(now-last)/1000;last=now;if(dt>2)grantAway(dt,false);else while(dt>0){let st=Math.min(dt,.05);update(st);dt-=st}render();requestAnimationFrame(frame)}
+requestAnimationFrame(frame);setInterval(save,4000);addEventListener('beforeunload',save);document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
+})();
+</script>
+</body>
+</html>
