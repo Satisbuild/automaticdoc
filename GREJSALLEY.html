@@ -1,10 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Start addsense -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8439801014322558"
-     crossorigin="anonymous"></script>
-    <!-- Slutaddsense -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#130e1f" />
@@ -559,6 +555,25 @@
       ctx.fillStyle=COL.muted; ctx.fillRect(-2.1*u,1*u,0.9*u,0.9*u);
       [[0.3,0.4,COL.amber],[1.4,1.3,COL.coral],[2.3,0.2,COL.cyan],[0.8,2.2,COL.violet],[2.2,2.3,COL.amber]].forEach(([x,y,c])=>{ ctx.fillStyle=c; ctx.beginPath(); ctx.arc(x*u,y*u,u*0.32,0,7); ctx.fill(); });
     }
+    else if(g==="grejsforge"){
+      // Anvil + hammer icon
+      ctx.fillStyle="#35304a";
+      roundRect(ctx,-2.55*u,0.2*u,5.1*u,1.65*u,0.35*u); ctx.fill();
+      ctx.fillStyle=COL.ink;
+      roundRect(ctx,-1.85*u,-0.55*u,3.7*u,1.15*u,0.28*u); ctx.fill();
+      ctx.fillStyle=COL.cyan;
+      ctx.beginPath(); ctx.moveTo(-1.15*u,-0.55*u); ctx.lineTo(-0.35*u,-1.35*u);
+      ctx.lineTo(1.7*u,-1.35*u); ctx.lineTo(2.05*u,-0.7*u); ctx.lineTo(0.8*u,-0.55*u);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle=COL.amber;
+      ctx.save(); ctx.rotate(-0.38);
+      roundRect(ctx,-0.45*u,-3.0*u,0.8*u,2.0*u,0.18*u); ctx.fill();
+      roundRect(ctx,-0.95*u,-3.25*u,1.8*u,0.55*u,0.18*u); ctx.fill();
+      ctx.restore();
+      ctx.fillStyle=COL.coral;
+      ctx.beginPath(); ctx.arc(0.2*u,-0.1*u,0.28*u,0,7); ctx.fill();
+      ctx.beginPath(); ctx.arc(-0.45*u,-0.15*u,0.18*u,0,7); ctx.fill();
+    }
     ctx.restore();
   }
 
@@ -736,6 +751,11 @@
   G({ id:"taptapshots", name:"Tap Tap Shots", tag:"reflex", href:"tap_tap_shots.html", isNew:true,
     desc:"Tap for at hoppe med bolden og dunk den i kurven, før tiden løber ud. Kurven skifter side hver gang. Opens in its own page.",
     hint:"Tap / klik for at hoppe" });
+
+  /* ---------------- GREJS FORGE (external page) ---------------- */
+  G({ id:"grejsforge", name:"Grejs Forge", tag:"arcade", href:"grejs-forge.html", isNew:true,
+    desc:"Et nyt spil fra Grejs-universet — åbner på sin egen side.",
+    hint:"Åbn Grejs Forge" });
 
   /* ---------------- BLOCKS (tetromino) ---------------- */
   G({ id:"blocks", name:"Neon Tetris", tag:"puzzle", href:"klassisk_neon_tetris.html", w:350, h:480,
