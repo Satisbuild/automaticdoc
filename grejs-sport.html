@@ -4470,15 +4470,15 @@ class Grejs {
 
 const LEVELS = [
   { lvl: 1, name: 'Grejs Rookie', xp: 0 },
-  { lvl: 2, name: 'Grejs Amateur', xp: 300 },
-  { lvl: 3, name: 'Grejs Pro', xp: 1000 },
-  { lvl: 4, name: 'Grejs Master', xp: 2200 },
-  { lvl: 5, name: 'Grejs Legend', xp: 4000 },
-  { lvl: 6, name: 'Grejs Superstjerne', xp: 6000 },
-  { lvl: 7, name: 'Grejs Mytisk', xp: 8500 },
-  { lvl: 8, name: 'Grejs Kosmisk', xp: 11500 },
-  { lvl: 9, name: 'Grejs Uovervindelig', xp: 15500 },
-  { lvl: 10, name: 'Grejs Gud', xp: 20000 },
+  { lvl: 2, name: 'Grejs Amateur', xp: 500 },
+  { lvl: 3, name: 'Grejs Pro', xp: 1500 },
+  { lvl: 4, name: 'Grejs Master', xp: 3000 },
+  { lvl: 5, name: 'Grejs Legend', xp: 5000 },
+  { lvl: 6, name: 'Grejs Superstjerne', xp: 7500 },
+  { lvl: 7, name: 'Grejs Mytisk', xp: 10500 },
+  { lvl: 8, name: 'Grejs Kosmisk', xp: 14000 },
+  { lvl: 9, name: 'Grejs Uovervindelig', xp: 18500 },
+  { lvl: 10, name: 'Grejs Gud', xp: 24000 },
 ];
 
 /** Bats: power = hvor meget hårdere man slår i Grejs Slag (og i Grejs Kaos). */
@@ -4653,7 +4653,7 @@ const Achievements = {
   list: ACHIEVEMENTS,
   byId: Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, a])),
   runUnlocked: [],
-  XP: 25,
+  XP: 10,
 
   has(id) { return !!SaveSystem.data.achievements[id]; },
   count() { return this.list.filter((a) => this.has(a.id)).length; },
@@ -7833,7 +7833,7 @@ const Game = {
     if (rec.length > 5) rec.shift();
 
     // XP stiger langsommere end scoren, så alle sportsgrene giver nogenlunde lige meget
-    const xpGain = Math.max(10, Math.round(Math.sqrt(r.score) * 3));
+    const xpGain = Math.max(10, Math.round(Math.sqrt(r.score) * 1.5));
     Progression.addXp(xpGain);
     Achievements.onRunEnd(id, r, { isRecord: hs.isRecord, prevBest: hs.prevBest });
     SaveSystem.save();
