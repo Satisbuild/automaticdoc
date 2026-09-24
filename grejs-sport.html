@@ -509,6 +509,11 @@ input[type=range]::-moz-range-thumb {
 .item-btn.selected { background: var(--yellow); outline: 3px solid #fff; }
 .item-btn.locked { background: #6c757d; color: #dfe3e8; cursor: not-allowed; }
 .item-btn .req { display: block; font-family: var(--font-body); font-size: 11px; }
+.item-btn.bat-btn { min-width: 150px; text-align: left; }
+.bat-stat { display: block; font-family: var(--font-body); font-size: 12px; margin-top: 4px; }
+.bat-bar { display: block; height: 8px; border-radius: 99px; background: rgba(29, 43, 83, 0.25); overflow: hidden; margin-bottom: 2px; }
+.bat-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--teal), var(--orange)); }
+.item-btn.locked .bat-bar { background: rgba(0, 0, 0, 0.25); }
 
 /* Hovedmenuen skal altid kunne være på skærmen */
 @media (max-height: 820px) {
@@ -1223,7 +1228,7 @@ const SaveSystem = (() => {
       level: 1,
       unlockedSports: ['slag', 'kast', 'flyvning', 'ram'],
       achievements: {},          // achievementId -> tidsstempel
-      characterCustomization: { hat: 'helmet', outfit: 'jersey', shoes: 'sneakers' },
+      characterCustomization: { hat: 'helmet', outfit: 'jersey', shoes: 'sneakers', bat: 'wood' },
       settings: {
         music: 0.6,
         sfx: 0.8,
@@ -2908,6 +2913,21 @@ const HUD = {
     ctx.globalAlpha = 1;
   },
 
+  /** Viser det valgte bat og dets styrke. */
+  batInfo(ctx, x, y) {
+    const bat = currentBat();
+    this.panel(ctx, x, y, 262, 58, { fill: 'rgba(29,43,83,0.7)' });
+    this.text(ctx, 'BAT', x + 12, y + 17, { size: 15, color: '#ffd23f' });
+    this.text(ctx, bat.name, x + 250, y + 17, { size: 18, align: 'right' });
+    this.text(ctx, 'STYRKE', x + 12, y + 41, { size: 15, color: '#ffd23f' });
+    const bw = 120, bx = x + 74;
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillRect(bx, y + 35, bw, 12);
+    ctx.fillStyle = bat.power >= 1.5 ? '#ff8c42' : '#3bceac';
+    ctx.fillRect(bx, y + 35, bw * (bat.power / BAT_MAX), 12);
+    this.text(ctx, Math.round(bat.power * 100) + '%', x + 250, y + 41, { size: 18, align: 'right' });
+  },
+
   /** Grejs' kommentarer i en taleboble nederst. */
   quip(ctx, text, t) {
     if (!text || t <= 0) return;
@@ -3237,6 +3257,25 @@ const Art = {
     ctx.fillStyle = '#ffd23f';
     U.circle(ctx, x - w / 2 + 3, y, 4); ctx.fill();
     U.circle(ctx, x + w / 2 - 3, y, 4); ctx.fill();
+  },
+
+  /** Boost-plade på jorden: grøn plade med blinkende pile */
+  booster(ctx, x, gy, w, t = 0) {
+    this.outline(ctx, 3);
+    U.roundRect(ctx, x - w / 2, gy - 10, w, 12, 5);
+    ctx.fillStyle = '#1d2b53';
+    ctx.fill();
+    ctx.stroke();
+    for (let i = 0; i < 3; i++) {
+      const on = Math.floor(t * 8 - i) % 3 === 0;
+      const ax = x - 30 + i * 26;
+      ctx.fillStyle = on ? '#b6ff3a' : '#3bceac';
+      ctx.beginPath();
+      ctx.moveTo(ax - 8, gy - 8); ctx.lineTo(ax + 4, gy - 8); ctx.lineTo(ax + 12, gy - 4);
+      ctx.lineTo(ax + 4, gy); ctx.lineTo(ax - 8, gy); ctx.lineTo(ax, gy - 4);
+      ctx.closePath();
+      ctx.fill();
+    }
   },
 
   /** Luftballon (forhindring i Flyvning) */
@@ -4302,24 +4341,53 @@ class Grejs {
   }
 
   drawBat(ctx, sx, sy, a) {
+    const bat = (typeof BATS !== 'undefined' && BATS[(this.cos || {}).bat]) || null;
+    const lk = bat ? bat.look : { wood: '#d99a4e', grip: '#1d2b53', len: 56, head: 7.5 };
     const L = 22;
     const hx = sx + Math.sin(a) * L, hy = sy + Math.cos(a) * L;
     const dx = Math.sin(a), dy = Math.cos(a);
     const nx = -dy, ny = dx;
     const x0 = hx - dx * 8, y0 = hy - dy * 8;
-    const x1 = hx + dx * 56, y1 = hy + dy * 56;
+    const x1 = hx + dx * lk.len, y1 = hy + dy * lk.len;
+    if (lk.glow) { ctx.save(); ctx.shadowColor = lk.wood; ctx.shadowBlur = 16; }
     ctx.beginPath();
     ctx.moveTo(x0 + nx * 3, y0 + ny * 3);
-    ctx.lineTo(x1 + nx * 7.5, y1 + ny * 7.5);
-    ctx.quadraticCurveTo(x1 + dx * 8, y1 + dy * 8, x1 - nx * 7.5, y1 - ny * 7.5);
+    ctx.lineTo(x1 + nx * lk.head, y1 + ny * lk.head);
+    ctx.quadraticCurveTo(x1 + dx * 8, y1 + dy * 8, x1 - nx * lk.head, y1 - ny * lk.head);
     ctx.lineTo(x0 - nx * 3, y0 - ny * 3);
     ctx.closePath();
-    ctx.fillStyle = '#d99a4e';
+    ctx.fillStyle = lk.wood;
     ctx.fill();
     ctx.strokeStyle = INK;
     ctx.lineWidth = 3;
     ctx.stroke();
-    ctx.strokeStyle = '#1d2b53';
+    if (lk.glow) ctx.restore();
+    if (lk.shine) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(hx + dx * 14 + nx * 2, hy + dy * 14 + ny * 2); ctx.lineTo(x1 - dx * 6 + nx * 4, y1 - dy * 6 + ny * 4); ctx.stroke();
+    }
+    if (lk.club) {
+      // Golfkølle-hoved
+      ctx.save(); ctx.translate(x1, y1); ctx.rotate(Math.atan2(dy, dx));
+      U.roundRect(ctx, -6, -4, 16, 20, 6); ctx.fillStyle = '#4a4e69'; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.stroke();
+      ctx.restore();
+    }
+    if (lk.pan) {
+      // Stegepande
+      const cx = x1 + dx * 16, cy = y1 + dy * 16;
+      U.circle(ctx, cx, cy, 19); ctx.fillStyle = '#2b2d42'; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.stroke();
+      U.circle(ctx, cx, cy, 13); ctx.fillStyle = '#4a4e69'; ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.35)'; U.ellipse(ctx, cx - 5, cy - 5, 5, 3, -0.6); ctx.fill();
+    }
+    if (lk.rocket) {
+      // Små vinger og flamme bag på raketbattet
+      ctx.fillStyle = '#ffd23f';
+      ctx.beginPath(); ctx.moveTo(x1 - dx * 14 + nx * 8, y1 - dy * 14 + ny * 8); ctx.lineTo(x1 - dx * 26 + nx * 16, y1 - dy * 26 + ny * 16); ctx.lineTo(x1 - dx * 26 + nx * 8, y1 - dy * 26 + ny * 8); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(x1 - dx * 14 - nx * 8, y1 - dy * 14 - ny * 8); ctx.lineTo(x1 - dx * 26 - nx * 16, y1 - dy * 26 - ny * 16); ctx.lineTo(x1 - dx * 26 - nx * 8, y1 - dy * 26 - ny * 8); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#fff'; U.circle(ctx, x1 - dx * 4, y1 - dy * 4, 3.5); ctx.fill();
+    }
+    ctx.strokeStyle = lk.grip;
     ctx.lineWidth = 5;
     ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(hx + dx * 6, hy + dy * 6); ctx.stroke();
   }
@@ -4402,18 +4470,44 @@ class Grejs {
 
 const LEVELS = [
   { lvl: 1, name: 'Grejs Rookie', xp: 0 },
-  { lvl: 2, name: 'Grejs Amateur', xp: 400 },
-  { lvl: 3, name: 'Grejs Pro', xp: 1200 },
-  { lvl: 4, name: 'Grejs Master', xp: 3000 },
-  { lvl: 5, name: 'Grejs Legend', xp: 6000 },
-  { lvl: 6, name: 'Grejs Superstjerne', xp: 10000 },
-  { lvl: 7, name: 'Grejs Mytisk', xp: 16000 },
-  { lvl: 8, name: 'Grejs Kosmisk', xp: 24000 },
-  { lvl: 9, name: 'Grejs Uovervindelig', xp: 35000 },
-  { lvl: 10, name: 'Grejs Gud', xp: 50000 },
+  { lvl: 2, name: 'Grejs Amateur', xp: 300 },
+  { lvl: 3, name: 'Grejs Pro', xp: 1000 },
+  { lvl: 4, name: 'Grejs Master', xp: 2200 },
+  { lvl: 5, name: 'Grejs Legend', xp: 4000 },
+  { lvl: 6, name: 'Grejs Superstjerne', xp: 6000 },
+  { lvl: 7, name: 'Grejs Mytisk', xp: 8500 },
+  { lvl: 8, name: 'Grejs Kosmisk', xp: 11500 },
+  { lvl: 9, name: 'Grejs Uovervindelig', xp: 15500 },
+  { lvl: 10, name: 'Grejs Gud', xp: 20000 },
 ];
 
+/** Bats: power = hvor meget hårdere man slår i Grejs Slag (og i Grejs Kaos). */
+const BATS = {
+  wood:     { name: 'Træbat',         power: 1.00, req: { level: 1 },      look: { wood: '#d99a4e', grip: '#1d2b53', len: 56, head: 7.5 } },
+  baseball: { name: 'Baseballbat',    power: 1.08, req: { level: 2 },      look: { wood: '#f1c27d', grip: '#ee4266', len: 60, head: 8 } },
+  alu:      { name: 'Aluminiumsbat',  power: 1.16, req: { level: 3 },      look: { wood: '#c9d1db', grip: '#1d2b53', len: 60, head: 8, shine: true } },
+  golf:     { name: 'Golfkølle',      power: 1.25, req: { level: 5 }, look: { wood: '#8d99ae', grip: '#1d2b53', len: 66, head: 3, club: true } },
+  pan:      { name: 'Stegepande',     power: 1.35, req: { level: 6 },      look: { wood: '#2b2d42', grip: '#6b4a2b', len: 40, head: 3, pan: true } },
+  neon:     { name: 'Neon-bat',       power: 1.45, req: { level: 7 },      look: { wood: '#4cc9f0', grip: '#9b5de5', len: 62, head: 8.5, glow: true } },
+  rocket:   { name: 'Raketbat',       power: 1.6,  req: { level: 8 }, look: { wood: '#ee4266', grip: '#1d2b53', len: 64, head: 9, rocket: true } },
+  gold:     { name: 'Guld-bat',       power: 1.75, req: { level: 10 },      look: { wood: '#ffd23f', grip: '#e0a800', len: 64, head: 9, shine: true } },
+};
+const BAT_MAX = 1.75;
+/** Næste bat, man kan låse op (til hovedmenuen). */
+function nextBat() {
+  return COSMETICS.bat.items.find((it) => !Progression.itemUnlocked(it)) || null;
+}
+function currentBat() {
+  const id = (SaveSystem.data.characterCustomization || {}).bat;
+  const b = BATS[id];
+  return b && Progression.itemUnlocked(b) ? b : BATS.wood;
+}
+
 const COSMETICS = {
+  bat: {
+    label: 'Bats',
+    items: Object.keys(BATS).map((id) => ({ id, name: BATS[id].name, req: BATS[id].req, power: BATS[id].power })),
+  },
   hat: {
     label: 'Hatte',
     items: [
@@ -4483,7 +4577,8 @@ const Progression = {
     const out = [];
     for (const cat of Object.keys(COSMETICS)) {
       for (const it of COSMETICS[cat].items) {
-        if (it.req.level && it.req.level > oldLvl && it.req.level <= newLvl) out.push(`${COSMETICS[cat].label}: ${it.name}`);
+        if (!(it.req.level && it.req.level > oldLvl && it.req.level <= newLvl)) continue;
+        out.push(cat === 'bat' ? `NYT BAT: ${it.name} (styrke ${Math.round(it.power * 100)}%)` : `${COSMETICS[cat].label}: ${it.name}`);
       }
     }
     for (const S of Sports.list) {
@@ -4558,7 +4653,7 @@ const Achievements = {
   list: ACHIEVEMENTS,
   byId: Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, a])),
   runUnlocked: [],
-  XP: 50,
+  XP: 25,
 
   has(id) { return !!SaveSystem.data.achievements[id]; },
   count() { return this.list.filter((a) => this.has(a.id)).length; },
@@ -4942,8 +5037,8 @@ class ThrowSport extends Sport {
   checkTrampoline(b, t, h) {
     if (b.vy > 0 && Math.abs(b.x - t.x) < t.w / 2 && b.y + b.r >= t.y - 6 && b.y + b.r <= t.y + 24) {
       b.y = t.y - 6 - b.r;
-      b.vy = -Math.max(Math.abs(b.vy) * 1.05, 12);
-      b.vx = b.vx * 1.04 + 1.2;
+      b.vy = -Math.max(Math.abs(b.vy) * 1.1, 15);
+      b.vx = Math.min(b.vx * 1.1 + 2.5, Math.max(b.vx, 30));
       t.sq = 1;
       AudioSys.sfx.boing();
       Popups.add('BOING!', t.x, t.y - 70, { size: 38, color: '#ffd23f' });
@@ -5129,38 +5224,50 @@ class SlagSport extends ThrowSport {
   generateLevel() {
     const r = this.rng, d = this.diff;
     this.terrain = Terrain.generate(r, {
-      length: 12000, baseY: 600, amp: 30 + d * 60, flatUntil: 520,
-      zoneStart: 900, zoneGap: [600, 1300], zoneLen: [180, 420],
-      zones: [['sand', 3], ['ice', 2], ['mud', 1 + d * 2], ['water', 1.4 + d * 2], ['grass', 2]],
+      length: 42000, baseY: 600, amp: 30 + d * 50, flatUntil: 520,
+      zoneStart: 1200, zoneGap: [900, 1800], zoneLen: [180, 420],
+      zones: [['ice', 3], ['sand', 1.2], ['mud', 0.4 + d * 0.6], ['water', 0.5 + d * 0.8], ['grass', 2]],
     });
+    // Færre forhindringer – og flest kasser, som man smadrer igennem
     this.obstacles = [];
-    let x = 700;
-    while (x < 11200) {
-      x += r.range(420, 1000) * (1.1 - d * 0.35);
+    let x = 900;
+    while (x < 41000) {
+      x += r.range(1100, 2200) * (1.1 - d * 0.25);
       if (this.terrain.zoneAt(x, 70)) continue;
       const gy = this.terrain.heightAt(x);
       const k = r();
-      if (k < 0.5) this.obstacles.push({ type: 'tree', x, gy, h: r.range(150, 250), v: r.int(0, 2) });
+      if (k < 0.3) this.obstacles.push({ type: 'tree', x, gy, h: r.range(140, 210), v: r.int(0, 2) });
       else if (k < 0.8) {
         const w = r.range(44, 58);
         this.obstacles.push({ type: 'crate', x: x - w / 2, y: gy - w + 4, w, h: w, alive: true, breakAt: 6 });
       } else this.obstacles.push({ type: 'sign', x, gy, text: r.pick(SIGN_TEXTS) });
     }
     this.bonuses = [];
-    x = 650;
-    while (x < 11200) {
-      x += r.range(420, 900);
+    x = 600;
+    while (x < 41000) {
+      x += r.range(320, 650);
       const gy = this.terrain.heightAt(x);
-      const kind = r.chance(0.22) ? 'turbo' : 'golden';
+      const kind = r.chance(0.5) ? 'turbo' : 'golden';
       this.bonuses.push({ kind, x, y: gy - r.range(110, 460), r: kind === 'turbo' ? 30 : 20, taken: false, ph: r() * 6 });
     }
+    // Mange trampoliner
     this.trampolines = [];
-    x = 900;
-    while (x < 11200) {
-      x += r.range(900, 1900);
+    x = 700;
+    while (x < 41000) {
+      x += r.range(650, 1300);
       if (this.terrain.zoneAt(x, 90)) continue;
-      if (this.obstacles.some((o) => Math.abs((o.x || 0) - x) < 90)) continue;
-      this.trampolines.push({ x, y: this.terrain.heightAt(x) - 26, w: 100, sq: 0 });
+      if (this.obstacles.some((o) => Math.abs((o.x || 0) - x) < 110)) continue;
+      this.trampolines.push({ x, y: this.terrain.heightAt(x) - 26, w: 120, sq: 0 });
+    }
+    // Boost-plader på jorden: ruller eller hopper man over dem, får man ekstra fart
+    this.boosters = [];
+    x = 1400;
+    while (x < 41000) {
+      x += r.range(1300, 2400);
+      if (this.terrain.zoneAt(x, 90)) continue;
+      if (this.trampolines.some((t) => Math.abs(t.x - x) < 160)) continue;
+      if (this.obstacles.some((o) => Math.abs((o.x || 0) - x) < 110)) continue;
+      this.boosters.push({ x, w: 110, used: 0 });
     }
     this.windKmh = U.clamp(r.range(-1, 1) * (4 + d * 16), -22, 22);
   }
@@ -5172,7 +5279,7 @@ class SlagSport extends ThrowSport {
     this.lastItem = this.itemKey;
     this.item = ITEMS[this.itemKey];
     const gy = this.terrain.heightAt(this.teeX);
-    this.ball = this.makeBody(this.itemKey, this.teeX, gy - 18 - this.item.r);
+    this.ball = this.makeBody(this.itemKey, this.teeX, gy - 18 - this.item.r, 0.6);
     this.state = 'aim';
     this.setupAim(0.62);
     this.restT = 0;
@@ -5236,8 +5343,9 @@ class SlagSport extends ThrowSport {
   launch() {
     const b = this.ball, it = this.item, p = this.shotPower;
     const perfect = p >= 0.95;
-    let v = (6 + p * 27) * it.power;
-    if (perfect) v *= 1.08;
+    const bat = currentBat();
+    let v = (10 + p * 30) * it.power * bat.power;
+    if (perfect) v *= 1.12;
     b.vx = Math.cos(this.aim) * v;
     b.vy = -Math.sin(this.aim) * v;
     b.spin = (0.12 + p * 0.3) * it.spin;
@@ -5270,6 +5378,7 @@ class SlagSport extends ThrowSport {
         this.combo.add();
         this.points(75, t.x, t.y - 30, { bonus: true });
       },
+      extra: (bb) => this.checkBoosters(bb),
       onCrate: (o) => {
         this.combo.add();
         this.points(100, o.x + o.w / 2, o.y - 20, { bonus: true });
@@ -5287,8 +5396,8 @@ class SlagSport extends ThrowSport {
         if (c.kind === 'golden') this.collectGolden(c.x, cy);
         else {
           SaveSystem.data.statistics.powerups.turbo = true;
-          b.vx += 7 * (b.vx >= 0 ? 1 : -1);
-          b.vy = Math.min(b.vy, 0) - 2;
+          b.vx += 10 * (b.vx >= 0 ? 1 : -1);
+          b.vy = Math.min(b.vy, 0) - 4;
           this.combo.add();
           this.points(50, c.x, cy - 20, { bonus: true });
           Popups.add('TURBO!', c.x, cy - 60, { size: 36, color: '#ff5a36' });
@@ -5316,6 +5425,24 @@ class SlagSport extends ThrowSport {
     const tx = b.x + U.clamp(b.vx * 10, -150, 260);
     const ty = Math.min(gy - 260 / this.cam.zoom, b.y + 40);
     this.cam.follow(tx, ty, 0.1, dt);
+  }
+
+  /** Boost-plade: giver fart fremad og et lille hop. */
+  checkBoosters(b) {
+    for (const p of this.boosters) {
+      if (p.shot === this.shot) continue; // hver plade virker én gang pr. slag
+      if (Math.abs(b.x - p.x) < p.w / 2 && b.y + b.r > this.terrain.heightAt(p.x) - 14) {
+        p.shot = this.shot;
+        b.vx = Math.min(Math.max(b.vx, 4) + 8, 30);
+        b.vy = -Math.max(6, Math.abs(b.vy) * 0.4 + 5);
+        b.onGround = false;
+        this.combo.add();
+        this.points(50, p.x, this.terrain.heightAt(p.x) - 60, { bonus: true });
+        Popups.add('BOOST!', p.x, this.terrain.heightAt(p.x) - 110, { size: 38, color: '#3bceac' });
+        AudioSys.sfx.boost();
+        Particles.emit('spark', b.x, b.y, { n: 12, angle: -0.3, spread: 0.6, color: '#3bceac' });
+      }
+    }
   }
 
   onGroundHit(hit) {
@@ -5445,6 +5572,7 @@ class SlagSport extends ThrowSport {
     }
 
     for (const t of this.trampolines) if (t.x > cam.left - 80 && t.x < cam.right + 80) Art.trampoline(ctx, t.x, t.y, t.w, t.sq);
+    for (const p of this.boosters) if (p.x > cam.left - 80 && p.x < cam.right + 80) Art.booster(ctx, p.x, this.terrain.heightAt(p.x), p.w, this.t);
     for (const o of this.obstacles) {
       const ox = o.type === 'crate' ? o.x : o.x;
       if (ox > cam.left - 200 && ox < cam.right + 200) this.drawObstacle(ctx, o);
@@ -5474,8 +5602,8 @@ class SlagSport extends ThrowSport {
       Renderer.shadow(ctx, b.x, bgy, b.r, bgy - b.y);
       Art.item(ctx, this.itemKey, b.x, b.y, b.r, b.angle);
       if (this.state === 'aim') {
-        const v = (6 + 0.62 * 27) * this.item.power;
-        this.drawAimPreview(ctx, b.x, b.y, this.aim, v, 12, this.item.drag, 3);
+        const v = (10 + 0.62 * 30) * this.item.power * currentBat().power;
+        this.drawAimPreview(ctx, b.x, b.y, this.aim, v, 12, this.item.drag * 0.6, 3);
         this.drawAimArrow(ctx, b.x, b.y, this.aim);
       }
     }
@@ -5489,6 +5617,7 @@ class SlagSport extends ThrowSport {
       HUD.powerBar(ctx, 44, H - 64, this.state === 'aim' ? this.power : this.shotPower, { perfectFrom: 0.95, hint: Input.touchMode ? 'Tryk SLÅ!' : 'Klik / MELLEMRUM' });
       HUD.text(ctx, this.item.name.toUpperCase(), W - 40, H - 50, { size: 28, align: 'right', color: '#ffd23f' });
       HUD.text(ctx, this.item.desc, W - 40, H - 22, { size: 18, align: 'right' });
+      HUD.batInfo(ctx, W - 300, H - 150);
     }
     if (this.state === 'flight' || this.state === 'landed') {
       HUD.text(ctx, `${U.fmt1(this.liveDist)} m`, W / 2, 170, { size: 50, align: 'center' });
@@ -5591,7 +5720,7 @@ class KastSport extends ThrowSport {
     this.target = { x: tx, baseX: tx, w: tw, top: gy - 40 - raise, gy, move: d > 0.72 ? r.range(50, 110) : 0, ph: r() * 6, speed: 0.9 + d * 0.7 };
 
     this.obstacles = [];
-    const n = 1 + Math.round(d * 3.4 + r.range(0, 1.2));
+    const n = 1 + Math.round(d * 2.4 + r.range(0, 0.8));
     const x0 = 500, x1 = tx - 330;
     for (let i = 0; i < n; i++) {
       const x = U.lerp(x0, x1, (i + 0.5) / n) + r.range(-50, 50);
@@ -5900,9 +6029,9 @@ class FlyvningSport extends Sport {
     this.theme = 'day';
     this.powerups = new PowerUps(this);
     this.terrain = Terrain.generate(this.rng, {
-      length: 90000, step: 40, baseY: 620, amp: 55, flatUntil: 700,
+      length: 160000, step: 40, baseY: 620, amp: 55, flatUntil: 700,
       zoneStart: 3000, zoneGap: [2500, 5200], zoneLen: [300, 700],
-      zones: [['sand', 2], ['water', 1.4], ['grass', 1]],
+      zones: [['sand', 2], ['water', 0.6], ['grass', 1.5]],
     });
     this.launchX = 200;
     const gy = this.terrain.heightAt(this.launchX);
@@ -5953,22 +6082,29 @@ class FlyvningSport extends Sport {
       }
     }
     if (r.chance(0.3)) add({ type: 'golden', x: r.range(x0, x1), y: gy(x0) - r.range(220, 950), r: 22 });
-    if (r.chance(0.45)) { const x = r.range(x0, x1); add({ type: 'ring', x, y: gy(x) - r.range(200, 800), r: 58 }); }
-    if (r.chance(0.3)) { const x = r.range(x0, x1); add({ type: 'updraft', x, w: r.range(170, 260), top: gy(x) - 1500 }); }
-    if (r.chance(0.22)) { const x = r.range(x0, x1); add({ type: 'power', kind: r.pick(['turbo', 'slowmo', 'double', 'magnet', 'shield', 'turbo']), x, y: gy(x) - r.range(200, 700), r: 26 }); }
-    // Forhindringer
-    if (r.chance(0.2 + d * 0.5)) { const x = r.range(x0, x1); add({ type: 'balloon', x, y: gy(x) - r.range(260, 900), r: 56, colors: r.pick([['#ee4266', '#ffd23f'], ['#4cc9f0', '#ffffff'], ['#9b5de5', '#3bceac']]), ph: r() * 6 }); }
-    if (r.chance(0.12 + d * 0.4)) {
+    // Boost-ringe – ofte flere i træk
+    if (r.chance(0.75)) {
+      const x = r.range(x0, x1 - 300), y = gy(x) - r.range(180, 700);
+      const n = r.chance(0.4) ? 3 : 1;
+      for (let i = 0; i < n; i++) add({ type: 'ring', x: x + i * 170, y: y - i * 40, r: 58 });
+    }
+    if (r.chance(0.45)) { const x = r.range(x0, x1); add({ type: 'updraft', x, w: r.range(200, 300), top: gy(x) - 1600 }); }
+    if (r.chance(0.3)) { const x = r.range(x0, x1); add({ type: 'power', kind: r.pick(['turbo', 'turbo', 'slowmo', 'double', 'magnet', 'shield']), x, y: gy(x) - r.range(150, 600), r: 26 }); }
+    // Forhindringer (få)
+    if (r.chance(0.08 + d * 0.2)) { const x = r.range(x0, x1); add({ type: 'balloon', x, y: gy(x) - r.range(260, 900), r: 56, colors: r.pick([['#ee4266', '#ffd23f'], ['#4cc9f0', '#ffffff'], ['#9b5de5', '#3bceac']]), ph: r() * 6 }); }
+    if (r.chance(0.04 + d * 0.14)) {
       const x = r.range(x0, x1);
       if (!this.terrain.waterAt(x)) add({ type: 'tower', x, gy: gy(x), h: r.range(200, 380 + d * 220), w: 40 });
     }
-    if (r.chance(0.08 + d * 0.35)) { const x = r.range(x0, x1); add({ type: 'storm', x, y: gy(x) - r.range(450, 1000), w: 250, h: 100 }); }
+    if (r.chance(0.03 + d * 0.12)) { const x = r.range(x0, x1); add({ type: 'storm', x, y: gy(x) - r.range(450, 1000), w: 250, h: 100 }); }
     // Platforme / trampoliner
-    if (r.chance(0.35)) {
+    // Mange trampoliner på jorden
+    for (let i = 0; i < 2; i++) {
+      if (!r.chance(i === 0 ? 0.85 : 0.5)) continue;
       const x = r.range(x0, x1);
-      if (!this.terrain.zoneAt(x, 80)) add({ type: 'tramp', x, y: gy(x) - 26, w: 130, sq: 0 });
+      if (!this.terrain.zoneAt(x, 80)) add({ type: 'tramp', x, y: gy(x) - 26, w: 160, sq: 0 });
     }
-    if (r.chance(0.16)) { const x = r.range(x0, x1); add({ type: 'airtramp', x, y: gy(x) - r.range(260, 560), w: 140, sq: 0 }); }
+    if (r.chance(0.35)) { const x = r.range(x0, x1); add({ type: 'airtramp', x, y: gy(x) - r.range(260, 560), w: 140, sq: 0 }); }
   }
 
   update(dt) {
@@ -6017,7 +6153,7 @@ class FlyvningSport extends Sport {
     const p = this.power;
     const g = this.g;
     const perfect = p >= 0.95;
-    g.s = 15 + p * 17 + (perfect ? 3 : 0);
+    g.s = 19 + p * 19 + (perfect ? 4 : 0);
     g.a = -0.62;
     this.state = 'flight';
     this.grejs.setState('glide');
@@ -6050,7 +6186,7 @@ class FlyvningSport extends Sport {
     g.a = U.clamp(g.a, -1.15, 1.3);
 
     // Fart: dyk giver fart, stigning koster fart, luftmodstand
-    g.s += GRAVITY * Math.sin(g.a) * dt - 0.00015 * g.s * g.s * dt;
+    g.s += GRAVITY * Math.sin(g.a) * dt - 0.0001 * g.s * g.s * dt;
     if (pu.has('turbo')) { g.s = Math.max(g.s, 27); if (g.a > 0.1) g.a -= 0.02 * dt; }
     if (g.s < 4) g.a += 0.05 * dt; // stall: næsen falder
     g.s = U.clamp(g.s, 1.5, 42);
@@ -6107,7 +6243,7 @@ class FlyvningSport extends Sport {
     if (g.y + 20 > gy) {
       const tramp = this.objects.find((o) => o.type === 'tramp' && Math.abs(o.x - g.x) < o.w / 2 + 10);
       if (tramp) { this.bounceTramp(tramp, gy - 26); return; }
-      if (g.vy < 7.5 && g.s > 8 && this.skips < 3) {
+      if (g.vy < 9 && g.s > 7 && this.skips < 5) {
         g.y = gy - 20;
         g.a = -Math.abs(g.a) * 0.4 - 0.28;
         g.s *= 0.72;
@@ -6126,7 +6262,7 @@ class FlyvningSport extends Sport {
     const g = this.g;
     g.y = surfaceY - 22;
     g.a = -0.85;
-    g.s = Math.max(g.s * 1.08, 17);
+    g.s = Math.max(g.s * 1.15, 21);
     g.evy = 0;
     t.sq = 1;
     this.tramps++;
@@ -6202,7 +6338,7 @@ class FlyvningSport extends Sport {
         case 'ring':
           if (!o.used && Math.abs(o.x - cx) < 28 && Math.abs(o.y - cy) < o.r) {
             o.used = true;
-            g.s = Math.min(42, g.s + 9);
+            g.s = Math.min(42, g.s + 11);
             g.evy -= 1;
             this.combo.add();
             this.points(50, o.x, o.y - o.r - 10, { bonus: true });
@@ -7080,7 +7216,7 @@ class KaosSport extends Sport {
     Particles.emit('spark', o.x, o.y, { n: 6, angle: dir > 0 ? 0 : Math.PI, spread: 0.8 });
     switch (o.type) {
       case 'ball':
-        o.vx = dir * U.rand(12, 16);
+        o.vx = dir * U.rand(12, 16) * Math.min(1.4, currentBat().power);
         o.vy = -U.rand(7, 11);
         o.launched = 45;
         this.hitsN++;
@@ -7696,7 +7832,8 @@ const Game = {
     rec.push(r.score);
     if (rec.length > 5) rec.shift();
 
-    const xpGain = Math.max(10, Math.round(r.score / 10));
+    // XP stiger langsommere end scoren, så alle sportsgrene giver nogenlunde lige meget
+    const xpGain = Math.max(10, Math.round(Math.sqrt(r.score) * 3));
     Progression.addXp(xpGain);
     Achievements.onRunEnd(id, r, { isRecord: hs.isRecord, prevBest: hs.prevBest });
     SaveSystem.save();
@@ -7850,7 +7987,9 @@ const UI = {
     $('#pc-level').textContent = info.lvl;
     $('#pc-name').textContent = info.name;
     $('#pc-xp').style.width = Math.round(info.progress * 100) + '%';
-    $('#pc-xptext').textContent = info.nextXp ? `${U.fmt(info.xp)} / ${U.fmt(info.nextXp)} XP` : `${U.fmt(info.xp)} XP · MAX LEVEL`;
+    const nb = nextBat();
+    $('#pc-xptext').textContent = (info.nextXp ? `${U.fmt(info.xp)} / ${U.fmt(info.nextXp)} XP` : `${U.fmt(info.xp)} XP · MAX LEVEL`)
+      + (nb ? ` · Næste bat: ${nb.name} (Level ${nb.req.level})` : ' · Alle bats låst op!');
   },
 
   /* ---------- Sportsvalg ---------- */
@@ -8065,14 +8204,16 @@ const UI = {
         const ok = Progression.itemUnlocked(it);
         const b = document.createElement('button');
         b.className = 'item-btn' + (cc[cat] === it.id ? ' selected' : '') + (ok ? '' : ' locked');
-        b.innerHTML = ok ? it.name : `🔒 ${it.name}<span class="req">${Progression.reqText(it)}</span>`;
+        const stat = it.power ? `<span class="bat-stat"><span class="bat-bar"><i style="width:${Math.round((it.power / BAT_MAX) * 100)}%"></i></span>Styrke ${Math.round(it.power * 100)}%</span>` : '';
+        b.innerHTML = (ok ? it.name : `🔒 ${it.name}<span class="req">${Progression.reqText(it)}</span>`) + stat;
+        if (it.power) b.classList.add('bat-btn');
         b.addEventListener('click', () => {
           if (!ok) { AudioSys.sfx.fail(); this.toastText('Låst', `${it.name} låses op ved ${Progression.reqText(it)}.`); return; }
           AudioSys.sfx.coin();
           if (cc[cat] !== it.id) {
             cc[cat] = it.id;
             Achievements.unlock('dressup');
-            this.wardrobeGrejs.setState('celebrate');
+            this.wardrobeGrejs.setState(cat === 'bat' ? 'ready' : 'celebrate', true);
             setTimeout(() => this.wardrobeGrejs && this.wardrobeGrejs.setState('idle'), 1200);
           }
           SaveSystem.save();
@@ -8093,7 +8234,7 @@ const UI = {
       this.wardrobeGrejs.cos = SaveSystem.data.characterCustomization;
       this.wardrobeGrejs.update(dt);
       Renderer.shadow(ctx, 150, 300, 55);
-      this.wardrobeGrejs.draw(ctx, 150, 300, { scale: 2.0 });
+      this.wardrobeGrejs.draw(ctx, 135, 305, { scale: 1.55, prop: 'bat' });
     }
   },
 
@@ -8191,6 +8332,7 @@ const UI = {
               $('#lu-name').textContent = `Level ${p.levelAfter.lvl} – ${p.levelAfter.name}`;
               $('#lu-unlocks').innerHTML = p.unlocks.map((u) => `<li>${u}</li>`).join('');
               lu.classList.remove('hidden');
+              setTimeout(() => { try { lu.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) { /* ok */ } }, 80);
               AudioSys.sfx.levelup();
               Particles.confettiBurst(80);
             }, 1000);
