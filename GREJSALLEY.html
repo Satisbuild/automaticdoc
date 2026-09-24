@@ -525,6 +525,26 @@
       ctx.fillStyle=COL.amber; roundRect(ctx,-0.5*u,-1.55*u,1.25*u,1.25*u,3); ctx.fill();
       ctx.fillStyle="#3a2f5c"; ctx.beginPath(); ctx.arc(-0.05*u,-1.15*u,u*0.14,0,7); ctx.fill();
     }
+    else if(g==="grejssport"){
+      ctx.fillStyle="#c68642"; ctx.save(); ctx.translate(1.3*u,0.4*u); ctx.rotate(-0.7); roundRect(ctx,-0.3*u,-2.6*u,0.6*u,3.2*u,u*0.3); ctx.fill(); ctx.restore();
+      ctx.fillStyle="#ffcf9e"; ctx.beginPath(); ctx.arc(-0.7*u,0.5*u,u*1.6,0,7); ctx.fill();
+      ctx.fillStyle=COL.amber; ctx.beginPath(); ctx.arc(-0.7*u,0.1*u,u*1.75,Math.PI,0); ctx.lineTo(1.6*u,0.3*u); ctx.lineTo(-2.45*u,0.1*u); ctx.closePath(); ctx.fill();
+      ctx.fillStyle=COL.coral; ctx.fillRect(-0.95*u,-1.6*u,0.5*u,1.7*u);
+      ctx.fillStyle=COL.bg; ctx.beginPath(); ctx.arc(-0.2*u,0.8*u,u*0.2,0,7); ctx.arc(0.5*u,0.8*u,u*0.2,0,7); ctx.fill();
+      ctx.strokeStyle=COL.bg; ctx.lineWidth=s*0.025; ctx.beginPath(); ctx.arc(0.1*u,1.3*u,u*0.5,0.2,Math.PI-0.2); ctx.stroke();
+      ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(2.4*u,-2*u,u*0.6,0,7); ctx.fill();
+      ctx.fillStyle=COL.coral; ctx.beginPath(); ctx.arc(2.4*u,-2*u,u*0.6,Math.PI*0.5,Math.PI*1.5); ctx.fill();
+    }
+    else if(g==="grejsforge"){
+      ctx.fillStyle="#4a4e69";
+      ctx.beginPath(); ctx.moveTo(-2.8*u,0.2*u); ctx.lineTo(2.2*u,0.2*u); ctx.quadraticCurveTo(1.5*u,1*u,1*u,1.1*u); ctx.lineTo(-1.2*u,1.1*u); ctx.quadraticCurveTo(-2.2*u,0.9*u,-2.8*u,0.2*u); ctx.fill();
+      ctx.fillRect(-0.9*u,1.1*u,1.6*u,1.1*u); ctx.fillRect(-1.6*u,2.1*u,3*u,0.6*u);
+      ctx.fillStyle="#8d99ae"; ctx.fillRect(-2.6*u,0.05*u,4.6*u,0.25*u);
+      ctx.save(); ctx.translate(1.1*u,-1.3*u); ctx.rotate(0.6);
+      ctx.fillStyle="#c68642"; ctx.fillRect(-0.2*u,-0.3*u,0.4*u,2.4*u);
+      ctx.fillStyle=COL.muted; roundRect(ctx,-0.9*u,-0.9*u,1.8*u,0.8*u,3); ctx.fill(); ctx.restore();
+      [[0.2,-0.5,COL.amber],[-0.6,-1,COL.coral],[0.8,-0.2,COL.amber],[-0.2,-1.6,COL.amber]].forEach(([x,y,c])=>{ ctx.fillStyle=c; ctx.beginPath(); ctx.arc(x*u,y*u,u*0.22,0,7); ctx.fill(); });
+    }
     else if(g==="blaster"){
       const cc=[COL.coral,COL.cyan,COL.amber,COL.green,COL.violet];
       const shape=[[0,1],[0,2],[1,0],[1,1],[1,2],[2,2]];
@@ -648,6 +668,16 @@
   G({ id:"taptapshots", name:"Tap Tap Shots", tag:"reflex", href:"tap_tap_shots.html", isNew:true,
     desc:"Tap for at hoppe med bolden og dunk den i kurven, før tiden løber ud. Kurven skifter side hver gang. Opens in its own page.",
     hint:"Tap / klik for at hoppe" });
+
+  /* ---------------- GREJS SPORT (external page) ---------------- */
+  G({ id:"grejssport", name:"Grejs Sport", tag:"arcade", href:"grejs-sport.html", isNew:true,
+    desc:"Fem fysik-minigames med Grejs: slå, kast, flyv, ram og totalt kaos. Highscores, achievements og levels. Opens in its own page.",
+    hint:"Mus/tastatur eller touch-knapper" });
+
+  /* ---------------- GREJS FORGE (external page) ---------------- */
+  G({ id:"grejsforge", name:"Grejs Forge", tag:"arcade", href:"grejs-forge.html", isNew:true,
+    desc:"Fantasy-smedje — smed våben, udrust dine krigere, fyr kanonen af og saml loot gennem fem områder. Opens in its own page.",
+    hint:"Klik / tap for at smede og kæmpe" });
 
   /* ---------------- BLOCKS (tetromino) ---------------- */
   G({ id:"blocks", name:"Neon Tetris", tag:"puzzle", href:"klassisk_neon_tetris.html", w:350, h:480,
