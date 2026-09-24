@@ -545,6 +545,27 @@
       ctx.fillStyle=COL.muted; roundRect(ctx,-0.9*u,-0.9*u,1.8*u,0.8*u,3); ctx.fill(); ctx.restore();
       [[0.2,-0.5,COL.amber],[-0.6,-1,COL.coral],[0.8,-0.2,COL.amber],[-0.2,-1.6,COL.amber]].forEach(([x,y,c])=>{ ctx.fillStyle=c; ctx.beginPath(); ctx.arc(x*u,y*u,u*0.22,0,7); ctx.fill(); });
     }
+    else if(g==="grejsrider"){
+      /* snowy slope, pine, snowboarder carving down */
+      ctx.fillStyle="#1d2c52"; ctx.beginPath(); ctx.moveTo(-3.8*u,-1.2*u); ctx.lineTo(-1.6*u,-3.2*u); ctx.lineTo(0.4*u,-1.6*u); ctx.lineTo(2*u,-3*u); ctx.lineTo(3.8*u,-1*u); ctx.lineTo(3.8*u,0); ctx.lineTo(-3.8*u,0); ctx.closePath(); ctx.fill();
+      ctx.fillStyle="#e8f2ff"; ctx.beginPath(); ctx.moveTo(-1.6*u,-3.2*u); ctx.lineTo(-1.05*u,-2.75*u); ctx.lineTo(-2.1*u,-2.75*u); ctx.closePath(); ctx.moveTo(2*u,-3*u); ctx.lineTo(2.5*u,-2.45*u); ctx.lineTo(1.5*u,-2.45*u); ctx.closePath(); ctx.fill();
+      ctx.fillStyle="#dfeaff"; ctx.beginPath(); ctx.moveTo(-3.8*u,-0.9*u); ctx.quadraticCurveTo(0,-1.3*u,3.8*u,0.2*u); ctx.lineTo(3.8*u,3.8*u); ctx.lineTo(-3.8*u,3.8*u); ctx.closePath(); ctx.fill();
+      ctx.fillStyle="#2f6b55"; ctx.beginPath(); ctx.moveTo(-2.6*u,-2.5*u); ctx.lineTo(-1.7*u,-0.4*u); ctx.lineTo(-3.5*u,-0.4*u); ctx.closePath(); ctx.fill();
+      ctx.fillStyle="#fff"; ctx.beginPath(); ctx.moveTo(-2.6*u,-2.5*u); ctx.lineTo(-2.25*u,-1.7*u); ctx.lineTo(-2.95*u,-1.7*u); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle="rgba(84,216,255,.55)"; ctx.lineWidth=s*0.02; ctx.beginPath(); ctx.moveTo(-3.4*u,0.4*u); ctx.quadraticCurveTo(-1.2*u,0.6*u,-0.3*u,2*u); ctx.stroke();
+      ctx.save(); ctx.translate(0.6*u,1.2*u); ctx.rotate(-0.35);
+      ctx.fillStyle=COL.coral; roundRect(ctx,-1.5*u,1.1*u,3*u,0.42*u,0.2*u); ctx.fill();
+      ctx.fillStyle="#2a2f3d"; ctx.fillRect(-0.75*u,0.1*u,0.38*u,1.05*u); ctx.fillRect(0.4*u,0.1*u,0.38*u,1.05*u);
+      ctx.fillStyle="#2b6cff"; roundRect(ctx,-0.7*u,-1.2*u,1.45*u,1.4*u,0.25*u); ctx.fill();
+      ctx.fillStyle=COL.cyan; ctx.fillRect(-0.7*u,-0.75*u,1.45*u,0.22*u);
+      ctx.fillStyle="#2b6cff"; ctx.save(); ctx.translate(-0.6*u,-1*u); ctx.rotate(-0.9); ctx.fillRect(-1.2*u,-0.18*u,1.2*u,0.36*u); ctx.restore();
+      ctx.save(); ctx.translate(0.65*u,-1*u); ctx.rotate(0.5); ctx.fillRect(0,-0.18*u,1.2*u,0.36*u); ctx.restore();
+      ctx.fillStyle="#f0c19c"; ctx.beginPath(); ctx.arc(0.05*u,-1.75*u,0.5*u,0,7); ctx.fill();
+      ctx.fillStyle=COL.coral; ctx.beginPath(); ctx.arc(0.05*u,-1.85*u,0.52*u,Math.PI,0); ctx.fill();
+      ctx.fillStyle=COL.cyan; ctx.fillRect(0.1*u,-1.8*u,0.5*u,0.2*u);
+      ctx.restore();
+      ctx.fillStyle="rgba(255,255,255,.85)"; [[-2.9,-3.3],[1,-3.4],[3.1,-2],[-0.6,-2.6],[2.7,1.4]].forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(x*u,y*u,u*0.13,0,7); ctx.fill(); });
+    }
     else if(g==="blaster"){
       const cc=[COL.coral,COL.cyan,COL.amber,COL.green,COL.violet];
       const shape=[[0,1],[0,2],[1,0],[1,1],[1,2],[2,2]];
@@ -678,6 +699,11 @@
   G({ id:"grejsforge", name:"Grejs Forge", tag:"arcade", href:"grejs-forge.html", isNew:true,
     desc:"Fantasy-smedje — smed våben, udrust dine krigere, fyr kanonen af og saml loot gennem fem områder. Opens in its own page.",
     hint:"Klik / tap for at smede og kæmpe" });
+
+  /* ---------------- GREJS RIDER 3D (external page) ---------------- */
+  G({ id:"grejsrider", name:"Grejs Rider 3D", tag:"arcade", href:"grejs-rider-3d.html", isNew:true,
+    desc:"3D-snowboard ned ad et uendeligt bjerg — undgå træer og klipper, saml gaver, byg combos og lås nye boards op. Opens in its own page.",
+    hint:"A/D eller piletaster · Space hop · touch-knapper på mobil" });
 
   /* ---------------- BLOCKS (tetromino) ---------------- */
   G({ id:"blocks", name:"Neon Tetris", tag:"puzzle", href:"klassisk_neon_tetris.html", w:350, h:480,
