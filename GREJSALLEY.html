@@ -566,6 +566,19 @@
       ctx.restore();
       ctx.fillStyle="rgba(255,255,255,.85)"; [[-2.9,-3.3],[1,-3.4],[3.1,-2],[-0.6,-2.6],[2.7,1.4]].forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(x*u,y*u,u*0.13,0,7); ctx.fill(); });
     }
+    else if(g==="eightball"){
+      /* pool table with pockets, cue ball, cue and the 8-ball */
+      ctx.fillStyle="#5a3a22"; roundRect(ctx,-3.4*u,-2.4*u,6.8*u,4.8*u,u*0.5); ctx.fill();
+      ctx.fillStyle="#1f7a4d"; roundRect(ctx,-2.9*u,-1.9*u,5.8*u,3.8*u,u*0.2); ctx.fill();
+      ctx.fillStyle=COL.bg; [[-2.9,-1.9],[0,-2],[2.9,-1.9],[-2.9,1.9],[0,2],[2.9,1.9]].forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(x*u,y*u,u*0.36,0,7); ctx.fill(); });
+      ctx.fillStyle="#111"; ctx.beginPath(); ctx.arc(0.9*u,-0.2*u,u*0.95,0,7); ctx.fill();
+      ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(0.9*u,-0.2*u,u*0.45,0,7); ctx.fill();
+      ctx.fillStyle="#111"; ctx.font=`bold ${s*0.085}px "DM Mono",monospace`; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("8",0.9*u,-0.17*u);
+      ctx.fillStyle="rgba(255,255,255,.35)"; ctx.beginPath(); ctx.arc(0.55*u,-0.6*u,u*0.2,0,7); ctx.fill();
+      ctx.fillStyle="#f4f1e8"; ctx.beginPath(); ctx.arc(-1.4*u,0.9*u,u*0.5,0,7); ctx.fill();
+      ctx.strokeStyle="#e0b877"; ctx.lineWidth=s*0.03; ctx.lineCap="round"; ctx.beginPath(); ctx.moveTo(-2.1*u,1.3*u); ctx.lineTo(-3.8*u,2.3*u); ctx.stroke();
+      ctx.strokeStyle=COL.cyan; ctx.beginPath(); ctx.moveTo(-2.0*u,1.24*u); ctx.lineTo(-2.2*u,1.36*u); ctx.stroke();
+    }
     else if(g==="blaster"){
       const cc=[COL.coral,COL.cyan,COL.amber,COL.green,COL.violet];
       const shape=[[0,1],[0,2],[1,0],[1,1],[1,2],[2,2]];
@@ -704,6 +717,11 @@
   G({ id:"grejsrider", name:"Grejs Rider 3D", tag:"arcade", href:"grejs-rider-3d.html", isNew:true,
     desc:"3D-snowboard ned ad et uendeligt bjerg — undgå træer og klipper, saml gaver, byg combos og lås nye boards op. Opens in its own page.",
     hint:"A/D eller piletaster · Space hop · touch-knapper på mobil" });
+
+  /* ---------------- 8-BALL ONLINE (external site) ---------------- */
+  G({ id:"eightball", name:"8-Ball Online", tag:"classic", href:"https://ball.systematisk.dk/", isNew:true,
+    desc:"Multiplayer 8-ball pool mod rigtige modstandere — ranked med Elo og leaderboard, casual eller privat rum med en ven. Opens in its own page.",
+    hint:"Sigt med mus / touch, træk for kraft" });
 
   /* ---------------- BLOCKS (tetromino) ---------------- */
   G({ id:"blocks", name:"Neon Tetris", tag:"puzzle", href:"klassisk_neon_tetris.html", w:350, h:480,
