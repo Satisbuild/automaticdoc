@@ -566,6 +566,31 @@
       ctx.restore();
       ctx.fillStyle="rgba(255,255,255,.85)"; [[-2.9,-3.3],[1,-3.4],[3.1,-2],[-0.6,-2.6],[2.7,1.4]].forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(x*u,y*u,u*0.13,0,7); ctx.fill(); });
     }
+    else if(g==="grejsjetpack"){
+      /* flame trail, jetpack pilot, coins */
+      ctx.fillStyle=COL.amber; [[1.2,-2.2],[2.1,-2.2],[3,-2.2]].forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(x*u,y*u,u*0.32,0,7); ctx.fill(); });
+      const fl=ctx.createLinearGradient(0,0.6*u,0,3.4*u); fl.addColorStop(0,"#fff1a8"); fl.addColorStop(0.4,"#ffae2b"); fl.addColorStop(1,"rgba(255,75,31,0)");
+      ctx.fillStyle=fl; ctx.beginPath(); ctx.moveTo(-2.1*u,0.6*u); ctx.quadraticCurveTo(-1.7*u,2.4*u,-1.55*u,3.4*u); ctx.quadraticCurveTo(-1.2*u,2.2*u,-1*u,0.6*u); ctx.closePath(); ctx.fill();
+      ctx.fillStyle="#8d99ae"; roundRect(ctx,-2.3*u,-1.4*u,1.5*u,2.1*u,u*0.3); ctx.fill();
+      ctx.fillStyle=COL.coral; ctx.fillRect(-2.3*u,-0.6*u,1.5*u,0.3*u);
+      ctx.fillStyle="#2b6cff"; roundRect(ctx,-0.9*u,-1.3*u,1.7*u,2.2*u,u*0.35); ctx.fill();
+      ctx.fillStyle="#2a2f3d"; ctx.fillRect(-0.7*u,0.8*u,0.5*u,1.1*u); ctx.fillRect(0.1*u,0.8*u,0.5*u,1.1*u);
+      ctx.fillStyle="#f0c19c"; ctx.beginPath(); ctx.arc(-0.05*u,-1.9*u,0.7*u,0,7); ctx.fill();
+      ctx.fillStyle=COL.cyan; roundRect(ctx,0*u,-2.15*u,0.75*u,0.4*u,u*0.15); ctx.fill();
+      ctx.fillStyle="#2b6cff"; ctx.save(); ctx.translate(0.6*u,-0.9*u); ctx.rotate(-0.5); ctx.fillRect(0,-0.2*u,1.3*u,0.4*u); ctx.restore();
+    }
+    else if(g==="grejscombat"){
+      /* tank with turret on a sand strip, flag */
+      ctx.fillStyle="#3b3524"; ctx.fillRect(-3.4*u,1.6*u,6.8*u,1.4*u);
+      ctx.strokeStyle=COL.muted; ctx.lineWidth=s*0.02; ctx.beginPath(); ctx.moveTo(2.2*u,1.6*u); ctx.lineTo(2.2*u,-2.6*u); ctx.stroke();
+      ctx.fillStyle=COL.coral; ctx.beginPath(); ctx.moveTo(2.2*u,-2.6*u); ctx.lineTo(3.4*u,-2.2*u); ctx.lineTo(2.2*u,-1.8*u); ctx.closePath(); ctx.fill();
+      ctx.fillStyle="#2a2f3d"; roundRect(ctx,-2.8*u,0.7*u,4.4*u,1.1*u,u*0.55); ctx.fill();
+      ctx.fillStyle=COL.muted; for(let i=0;i<4;i++){ ctx.beginPath(); ctx.arc((-2.2+i*1.07)*u,1.25*u,u*0.3,0,7); ctx.fill(); }
+      ctx.fillStyle="#5d7a3a"; roundRect(ctx,-2.6*u,-0.2*u,4*u,1*u,u*0.25); ctx.fill();
+      ctx.fillStyle="#6f8f46"; roundRect(ctx,-1.5*u,-1.1*u,1.9*u,1*u,u*0.35); ctx.fill();
+      ctx.fillStyle="#4c6630"; ctx.fillRect(0.3*u,-0.85*u,2.3*u,0.36*u);
+      ctx.fillStyle=COL.amber; ctx.beginPath(); ctx.arc(2.85*u,-0.67*u,u*0.3,0,7); ctx.fill();
+    }
     else if(g==="eightball"){
       /* pool table with pockets, cue ball, cue and the 8-ball */
       ctx.fillStyle="#5a3a22"; roundRect(ctx,-3.4*u,-2.4*u,6.8*u,4.8*u,u*0.5); ctx.fill();
@@ -717,6 +742,16 @@
   G({ id:"grejsrider", name:"Grejs Rider 3D", tag:"arcade", href:"grejs-rider-3d.html", isNew:true,
     desc:"3D-snowboard ned ad et uendeligt bjerg — undgå træer og klipper, saml gaver, byg combos og lås nye boards op. Opens in its own page.",
     hint:"A/D eller piletaster · Space hop · touch-knapper på mobil" });
+
+  /* ---------------- GREJS JETPACK (external page) ---------------- */
+  G({ id:"grejsjetpack", name:"Grejs Jetpack", tag:"arcade", href:"grejs-jetpack.html", isNew:true,
+    desc:"Hurtigt jetpack-arcadespil — flyv gennem laboratoriet, undgå lasere og missiler, saml mønter og lås upgrades, power-ups og køretøjer op. Opens in its own page.",
+    hint:"Hold Space / klik / tryk for at flyve" });
+
+  /* ---------------- GREJS COMBAT (external page) ---------------- */
+  G({ id:"grejscombat", name:"Grejs Combat", tag:"classic", href:"grejs-combat.html", isNew:true,
+    desc:"Klassisk real-time strategi — byg base, høst malm med harvesters, producer tropper og knus fjenden i kampagne eller skirmish. Opens in its own page.",
+    hint:"Mus: vælg og kommandér enheder" });
 
   /* ---------------- 8-BALL ONLINE (external site) ---------------- */
   G({ id:"eightball", name:"8-Ball Online", tag:"classic", href:"https://ball.systematisk.dk/", isNew:true,
