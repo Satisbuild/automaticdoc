@@ -566,6 +566,25 @@
       ctx.restore();
       ctx.fillStyle="rgba(255,255,255,.85)"; [[-2.9,-3.3],[1,-3.4],[3.1,-2],[-0.6,-2.6],[2.7,1.4]].forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(x*u,y*u,u*0.13,0,7); ctx.fill(); });
     }
+    else if(g==="grejsfactory"){
+      /* factory hall with smokestack, conveyor belt carrying ore, gear */
+      ctx.fillStyle="rgba(200,210,230,.35)"; [[2.1,-2.85,0.45],[2.75,-3.1,0.36],[1.6,-3.2,0.3]].forEach(([x,y,r])=>{ ctx.beginPath(); ctx.arc(x*u,y*u,r*u,0,7); ctx.fill(); });
+      ctx.fillStyle="#5c6378"; ctx.fillRect(1.6*u,-2.5*u,0.8*u,2*u);
+      ctx.fillStyle=COL.coral; ctx.fillRect(1.6*u,-2.25*u,0.8*u,0.22*u);
+      ctx.fillStyle="#3b4256"; ctx.beginPath(); ctx.moveTo(-3.2*u,0.6*u); ctx.lineTo(-3.2*u,-1*u);
+      ctx.lineTo(-2.2*u,-1.8*u); ctx.lineTo(-2.2*u,-1*u); ctx.lineTo(-1.2*u,-1.8*u); ctx.lineTo(-1.2*u,-1*u); ctx.lineTo(-0.2*u,-1.8*u); ctx.lineTo(-0.2*u,-1*u);
+      ctx.lineTo(0.8*u,-1.8*u); ctx.lineTo(0.8*u,-1*u); ctx.lineTo(2.8*u,-1*u); ctx.lineTo(2.8*u,0.6*u); ctx.closePath(); ctx.fill();
+      ctx.fillStyle=COL.amber; [[-2.7,-0.6],[-1.7,-0.6],[-0.7,-0.6],[0.3,-0.6]].forEach(([x,y])=>{ ctx.fillRect(x*u,y*u,0.6*u,0.5*u); });
+      ctx.fillStyle="#232838"; ctx.fillRect(1.3*u,-0.4*u,1*u,1*u);
+      ctx.fillStyle="#2a2f3d"; roundRect(ctx,-3.5*u,1.3*u,7*u,0.8*u,0.4*u); ctx.fill();
+      ctx.strokeStyle="#8d99ae"; ctx.lineWidth=Math.max(1,u*0.08); ctx.beginPath();
+      for(let x=-3.1;x<3.4;x+=0.55){ ctx.moveTo(x*u,1.4*u); ctx.lineTo((x-0.2)*u,2*u); } ctx.stroke();
+      [[-2.6,"#8fa4be"],[-1.2,"#d7864e"],[0.2,"#6dff5a"],[1.6,"#8fa4be"]].forEach(([x,c])=>{ ctx.fillStyle=c; roundRect(ctx,(x-0.3)*u,0.7*u,0.6*u,0.6*u,0.12*u); ctx.fill(); });
+      ctx.save(); ctx.translate(2.6*u,2.9*u); ctx.fillStyle=COL.cyan;
+      for(let i=0;i<8;i++){ ctx.rotate(Math.PI/4); ctx.fillRect(-0.16*u,-0.85*u,0.32*u,0.4*u); }
+      ctx.beginPath(); ctx.arc(0,0,0.6*u,0,7); ctx.fill();
+      ctx.fillStyle="#1a1f2b"; ctx.beginPath(); ctx.arc(0,0,0.25*u,0,7); ctx.fill(); ctx.restore();
+    }
     else if(g==="grejsjetpack"){
       /* flame trail, jetpack pilot, coins */
       ctx.fillStyle=COL.amber; [[1.2,-2.2],[2.1,-2.2],[3,-2.2]].forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(x*u,y*u,u*0.32,0,7); ctx.fill(); });
@@ -742,6 +761,11 @@
   G({ id:"grejsrider", name:"Grejs Rider 3D", tag:"arcade", href:"grejs-rider-3d.html", isNew:true,
     desc:"3D-snowboard ned ad et uendeligt bjerg — undgå træer og klipper, saml gaver, byg combos og lås nye boards op. Opens in its own page.",
     hint:"A/D eller piletaster · Space hop · touch-knapper på mobil" });
+
+  /* ---------------- GREJS FACTORY (external page) ---------------- */
+  G({ id:"grejsfactory", name:"Grejs Factory", tag:"puzzle", href:"grejs-factory.html", isNew:true,
+    desc:"Fabriks- og automatiseringsspil — grav ressourcer, byg transportbånd og maskiner, forsk i ny teknologi og forsvar din fabrik. Opens in its own page.",
+    hint:"Mus + tastatur · WASD for at bevæge dig" });
 
   /* ---------------- GREJS JETPACK (external page) ---------------- */
   G({ id:"grejsjetpack", name:"Grejs Jetpack", tag:"arcade", href:"grejs-jetpack.html", isNew:true,
