@@ -114,8 +114,6 @@ label.btn { cursor: pointer; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .menu-sub { font: 600 14px var(--f-ui); letter-spacing: .3em; text-transform: uppercase; color: var(--muted); }
 .menu-col { display: flex; flex-direction: column; gap: 10px; width: min(340px, 100%); }
-.menu-col a.btn { text-decoration: none; }
-.menu-col .btn.alley-back { margin-top: 6px; border-left-color: var(--amber); }
 .menu-col .btn { justify-content: flex-start; background: linear-gradient(90deg, rgba(28,36,46,.95), rgba(21,27,35,.85)); border-left: 4px solid var(--line-2); }
 .menu-col .btn:hover:not([disabled]) { border-left-color: var(--amber); }
 .menu-col .btn-primary { background: linear-gradient(90deg, #f7b84d, #d98d1f); border-left-color: #fff0c8; }
@@ -520,6 +518,41 @@ label.btn { cursor: pointer; }
 }
 @media (prefers-reduced-motion: reduce) { .win { animation: none; } .bar i { transition: none; } }
 
+/* help / encyclopedia */
+.w-help { width: min(880px, calc(100vw - 32px)); }
+.help-wrap { display: flex; gap: 14px; min-height: 420px; }
+.help-nav { display: flex; flex-direction: column; gap: 3px; flex: none; width: 170px; }
+.hnav { text-align: left; background: #151b22; border: 1px solid var(--line); color: var(--muted); font: 600 14px var(--f-ui); padding: 7px 10px; border-radius: 3px; cursor: pointer; }
+.hnav:hover { color: var(--text); }
+.hnav.on { border-color: var(--amber); color: var(--text); background: var(--panel-3); }
+.help-body { flex: 1; max-height: 62vh; padding-right: 6px; font-size: 14.5px; line-height: 1.5; }
+.help-body h3 { margin: 0 0 8px; font: 700 18px var(--f-display); color: var(--amber); }
+.help-body p, .help-body li { max-width: 68ch; color: #cdd6e0; }
+.help-body b { color: var(--text); }
+.help-list { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 8px; }
+.help-item { display: flex; gap: 8px; align-items: flex-start; padding: 6px 8px; border: 1px solid var(--line); border-radius: 3px; cursor: pointer; background: rgba(0,0,0,.15); }
+.help-item:hover { border-color: var(--amber); }
+.help-item .ico { width: 30px; height: 30px; }
+.help-item div { display: flex; flex-direction: column; font-size: 13px; color: var(--muted); }
+.help-item b { color: var(--text); font-size: 14px; }
+.hd-title { display: flex; align-items: center; gap: 8px; font: 700 20px var(--f-display); }
+.hd-title .ico { width: 40px; height: 40px; }
+.tipline { color: var(--amber-2) !important; }
+.howto { font-size: 13px; line-height: 1.45; color: #c3cdd8; background: rgba(79,195,232,.07); border: 1px solid rgba(79,195,232,.25); border-radius: 3px; padding: 7px 9px; }
+.howto b { color: var(--cyan); }
+.fixbox { font-size: 13.5px; line-height: 1.4; color: #ffe0c8; background: rgba(255,90,79,.12); border: 1px solid rgba(255,90,79,.45); border-radius: 3px; padding: 7px 9px; }
+.sel-fix { font-size: 13px; color: #ffd6c8; background: rgba(255,90,79,.14); border-left: 3px solid var(--bad); padding: 4px 7px; line-height: 1.35; }
+.tt-usel { display: flex; flex-direction: column; gap: 1px; }
+.tt-usel span { display: flex; align-items: center; gap: 4px; }
+.tt-usel .ico { width: 18px; height: 18px; }
+.toast.t-hint { border-color: #2a6a8a; border-left: 3px solid var(--cyan); max-width: 420px; white-space: normal; }
+.tut-prog { margin-top: 6px; display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+.tut-prog .ok { color: var(--good); }
+.tut-prog .todo { color: var(--text); }
+.hb-slot.tut-hl { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(79,195,232,.7), 0 0 14px rgba(79,195,232,.6); animation: pulse 1s ease-in-out infinite alternate; }
+@keyframes pulse { to { box-shadow: 0 0 0 2px rgba(79,195,232,.2), 0 0 4px rgba(79,195,232,.2); } }
+@media (max-width: 700px) { .help-wrap { flex-direction: column; } .help-nav { width: 100%; flex-direction: row; flex-wrap: wrap; } .help-list { grid-template-columns: 1fr; } }
+
 </style>
 </head>
 <body>
@@ -759,7 +792,7 @@ window.GF = window.GF || {};
     inventory: 'KeyI', crafting: 'KeyC', map: 'KeyM', rotate: 'KeyR',
     build: 'KeyB', tech: 'KeyT', power: 'KeyP', stats: 'KeyO',
     blueprint: 'KeyK', decon: 'KeyX', pipette: 'KeyQ', drop: 'KeyZ',
-    shoot: 'Space', weapon: 'Tab', alt: 'AltLeft', debug: 'F3',
+    shoot: 'Space', weapon: 'Tab', alt: 'AltLeft', debug: 'F3', help: 'KeyH',
     hot1: 'Digit1', hot2: 'Digit2', hot3: 'Digit3', hot4: 'Digit4', hot5: 'Digit5',
     hot6: 'Digit6', hot7: 'Digit7', hot8: 'Digit8', hot9: 'Digit9', hot0: 'Digit0',
   };
@@ -770,7 +803,7 @@ window.GF = window.GF || {};
     inventory: 'Inventar', crafting: 'Crafting', map: 'Kort', rotate: 'Rotér bygning',
     build: 'Byggemenu', tech: 'Teknologi', power: 'Strøm', stats: 'Statistik',
     blueprint: 'Byggeplaner', decon: 'Nedrivningsværktøj', pipette: 'Pipette (vælg bygning)', drop: 'Smid genstand',
-    shoot: 'Skyd', weapon: 'Skift våben', alt: 'Vis detaljer (Alt)', debug: 'Debug-visning',
+    shoot: 'Skyd', weapon: 'Skift våben', alt: 'Vis detaljer (Alt)', debug: 'Debug-visning', help: 'Hjælp & leksikon',
     hot1: 'Hotbar 1', hot2: 'Hotbar 2', hot3: 'Hotbar 3', hot4: 'Hotbar 4', hot5: 'Hotbar 5',
     hot6: 'Hotbar 6', hot7: 'Hotbar 7', hot8: 'Hotbar 8', hot9: 'Hotbar 9', hot0: 'Hotbar 0',
   };
@@ -1470,6 +1503,8 @@ window.GF = window.GF || {};
       desc: 'Splitter til ekspresbånd.' },
     merger: { name: 'Fletter', w: 1, h: 1, hp: 150, kind: 'merger', speed: 3.75, group: 'logistics', rot: true, solid: false, layer: 0, stack: 50,
       desc: 'Samler bånd fra bagside og begge sider til ét output.' },
+    burner_inserter: { name: 'Kulgrabber', w: 1, h: 1, hp: 80, kind: 'inserter', energy: 'burner', power: 94 * k, speed: 0.6, reach: 1, stack: 1, group: 'logistics', rot: true, layer: 2,
+      desc: 'Langsom grabber der kører på brændsel (tager selv kul fra det den flytter). Kræver ingen strøm.' },
     inserter: { name: 'Grabber', w: 1, h: 1, hp: 100, kind: 'inserter', energy: 'electric', power: 13 * k, speed: 0.85, reach: 1, stack: 1, group: 'logistics', rot: true, layer: 2, stack_: 50,
       desc: 'Flytter genstande fra bagsiden til forsiden.' },
     fast_inserter: { name: 'Hurtig grabber', w: 1, h: 1, hp: 110, kind: 'inserter', energy: 'electric', power: 46 * k, speed: 2.3, reach: 1, stack: 1, group: 'logistics', rot: true, layer: 2,
@@ -1919,6 +1954,7 @@ window.GF = window.GF || {};
     fast_splitter: r(2, { splitter: 1, gear: 10, circuit: 10 }, { fast_splitter: 1 }),
     express_splitter: r(2, { fast_splitter: 1, gear: 10, adv_circuit: 10 }, { express_splitter: 1 }),
     merger: r(1, { belt: 3, gear: 3, circuit: 1 }, { merger: 1 }),
+    burner_inserter: r(0.5, { iron_plate: 1, gear: 1 }, { burner_inserter: 1 }, 'craft', INIT),
     inserter: r(0.5, { circuit: 1, gear: 1, iron_plate: 1 }, { inserter: 1 }, 'craft', INIT),
     fast_inserter: r(0.5, { inserter: 1, circuit: 2, iron_plate: 2 }, { fast_inserter: 1 }),
     long_inserter: r(0.5, { inserter: 1, gear: 1, iron_plate: 1 }, { long_inserter: 1 }),
@@ -3093,7 +3129,11 @@ window.GF = window.GF || {};
   /** Drill / machine output onto a tile: belt-like or insertable entity */
   B.outputTo = function (x, y, id, fromDir, from) {
     const t = GF.Ent.at(x, y);
-    if (!t) return false;
+    if (!t) {
+      // nothing in front: drop on the ground (pile up to 50 items, like a heap you can pick up with F)
+      if (GF.groundFree && GF.groundFree(x, y) && GF.Game.groundCount(x, y) < 50) { GF.Game.dropItem(x + 0.5, y + 0.5, id, 1, true); return true; }
+      return false;
+    }
     if (B.isBeltFamily(t)) {
       if (t.kind === 'belt') return insertAt(t, id, 0.5) || insertAt(t, id, 0.25) || insertAt(t, id, 0.75);
       return pushTo(t, id, fromDir, from);
@@ -3973,6 +4013,11 @@ window.GF = window.GF || {};
     if (src.buf && src.buf.length) return src.buf;
     return null;
   }
+  function groundFree(x, y) {
+    return GF.World.inBounds(x, y) && !GF.World.TERRAIN[GF.World.terrain(x, y)].solid && !GF.Ent.at(x, y);
+  }
+  GF.groundFree = groundFree;
+
   K.inserter = {
     init(e, s) {
       s = s || {};
@@ -3981,28 +4026,91 @@ window.GF = window.GF || {};
       if (!e.hand && (e.phase === 1 || e.phase === 2)) e.phase = 0;
       e.filter = s.f || null; e.limit = s.l || 0;
       e.st = 'Venter'; e.cd = Math.random() * 0.1;
+      if (e.def.energy === 'burner') {
+        e.fuel = s.fu && GF.ITEMS[s.fu[0]] ? { id: s.fu[0], n: s.fu[1] } : null;
+        e.burn = s.bu != null ? s.bu : 1.2e6; // starts with a little energy so it can grab its first fuel
+        e.burnMax = GF.ITEMS.coal.fuel;
+      }
     },
-    save(e) { return { ph: e.phase, t: +e.t.toFixed(2), hd: e.hand, hn: e.handN, f: e.filter, l: e.limit }; },
-    contents(e) { return e.hand ? [{ id: e.hand, n: e.handN }] : []; },
+    save(e) {
+      const o = { ph: e.phase, t: +e.t.toFixed(2), hd: e.hand, hn: e.handN, f: e.filter, l: e.limit };
+      if (e.def.energy === 'burner') { o.bu = Math.round(e.burn); if (e.fuel) o.fu = [e.fuel.id, e.fuel.n]; }
+      return o;
+    },
+    contents(e) {
+      const l = e.hand ? [{ id: e.hand, n: e.handN }] : [];
+      if (e.fuel) l.push({ id: e.fuel.id, n: e.fuel.n });
+      return l;
+    },
+    // burner inserters accept fuel by hand
+    canInsert(e, id, n) {
+      if (e.def.energy !== 'burner' || !GF.Energy.isFuel(id)) return 0;
+      if (e.fuel && e.fuel.id !== id) return 0;
+      return Math.max(0, Math.min(n, GF.stackOf(id) - (e.fuel ? e.fuel.n : 0)));
+    },
+    insert(e, id, n) {
+      const a = this.canInsert(e, id, n);
+      if (a > 0) { if (!e.fuel) e.fuel = { id, n: 0 }; e.fuel.n += a; }
+      return a;
+    },
     endpoints(e) {
       const v = U.DIRS[e.dir], r = e.def.reach;
       return { sx: e.x - v.x * r, sy: e.y - v.y * r, tx: e.x + v.x * r, ty: e.y + v.y * r };
     },
+    /** energy factor while moving (0..1) */
+    energy(e, dt) {
+      const d = e.def;
+      if (d.energy !== 'burner') { e.demand = d.power; return GF.Power.sat(e); }
+      const need = d.power * dt;
+      if (e.burn < need) {
+        if (e.fuel && e.fuel.n > 0) GF.Energy.refuel(e);
+        else if (e.hand && GF.Energy.isFuel(e.hand) && e.handN > 0) {
+          // burner inserters feed themselves from the fuel they carry
+          e.burn += GF.ITEMS[e.hand].fuel; e.handN--;
+          if (e.handN <= 0) { e.hand = null; e.handN = 0; e.phase = 3; e.t = 1 - e.t; }
+        }
+      }
+      if (e.burn <= 0) return 0;
+      const f = Math.min(1, e.burn / need);
+      e.burn -= need * f;
+      return f;
+    },
+    hasEnergy(e) {
+      if (e.def.energy === 'burner') return e.burn > 0 || (e.fuel && e.fuel.n > 0);
+      return GF.Power.sat(e) >= 0.05;
+    },
     update(e, dt) {
       const d = e.def;
       const p = this.endpoints(e);
+      const burner = d.energy === 'burner';
       if (e.phase === 0) {
         e.demand = d.power * 0.04;
         e.cd -= dt;
         if (e.cd > 0) return;
         e.cd = 0.08;
         if (!e.on) { e.st = 'Stoppet'; return; }
-        const sat = GF.Power.sat(e);
-        if (sat < 0.05) { e.st = e.net ? 'Lav strøm' : 'Ingen strøm'; e.warn = 'nopower'; return; }
-        e.warn = null;
+        const hasE = this.hasEnergy(e);
+        if (!hasE && !burner) { e.st = e.net ? 'Lav strøm' : 'Ingen strøm – byg en elmast i nærheden'; e.warn = 'nopower'; return; }
         const src = GF.Ent.at(p.sx, p.sy), tgt = GF.Ent.at(p.tx, p.ty);
-        if (!src || !tgt || src === tgt) { e.st = 'Venter'; return; }
-        const filt = (id) => (!e.filter || e.filter === id) && targetAccepts(e, tgt, id) > 0;
+        const toGround = !tgt && groundFree(p.tx, p.ty) && GF.Game.groundCount(p.tx, p.ty) < 1;
+        if (!src || (!tgt && !toGround) || src === tgt) {
+          e.st = !src ? 'Venter – intet at tage fra bagved' : 'Venter – målet er blokeret';
+          e.warn = !hasE ? 'nofuel' : null;
+          return;
+        }
+        // burner inserters top up their own fuel slot from fuel passing by (like a real burner inserter)
+        if (burner && (!e.fuel || e.fuel.n < 2) && e.burn < 2e6) {
+          const isF = (id) => GF.Energy.isFuel(id) && (!e.fuel || e.fuel.id === id);
+          const its = sourceItems(src);
+          let got = null;
+          if (its) { const i = its.findIndex((it) => isF(it.id)); if (i >= 0) { got = its[i].id; its.splice(i, 1); } }
+          else { const SK = K[src.kind]; if (SK && SK.takeable && src.kind !== 'drill') { const id0 = SK.takeable(src, isF); if (id0 && SK.take(src, id0, 1)) got = id0; } }
+          if (got) { if (!e.fuel) e.fuel = { id: got, n: 0 }; e.fuel.n++; }
+        }
+        const fuelOnly = burner && !this.hasEnergy(e); // an empty burner inserter can only move fuel (and eats it)
+        if (fuelOnly) { e.st = 'Intet brændsel – læg kul i den'; e.warn = 'nofuel'; }
+        else e.warn = null;
+        const filt = (id) => (!e.filter || e.filter === id) && (!fuelOnly || GF.Energy.isFuel(id)) && (toGround || targetAccepts(e, tgt, id) > 0);
         const stack = d.stack + GF.Research.bonus.stack;
         let id = null, n = 0;
         const items = sourceItems(src);
@@ -4013,7 +4121,7 @@ window.GF = window.GF || {};
             if (!id) {
               if (!filt(it.id)) continue;
               id = it.id;
-              if (!beltLike(tgt)) maxN = Math.max(1, Math.min(stack, targetAccepts(e, tgt, id)));
+              if (tgt && !beltLike(tgt)) maxN = Math.max(1, Math.min(stack, targetAccepts(e, tgt, id)));
             } else if (it.id !== id) continue;
             items.splice(i, 1); i--; n++;
             if (n >= maxN) break;
@@ -4023,7 +4131,7 @@ window.GF = window.GF || {};
           if (SK && SK.takeable) {
             id = SK.takeable(src, filt);
             if (id) {
-              const want = beltLike(tgt) ? stack : Math.min(stack, targetAccepts(e, tgt, id));
+              const want = !tgt || beltLike(tgt) ? stack : Math.min(stack, targetAccepts(e, tgt, id));
               n = SK.take(src, id, Math.max(1, want));
             }
           }
@@ -4031,22 +4139,25 @@ window.GF = window.GF || {};
         if (id && n > 0) {
           e.hand = id; e.handN = n; e.phase = 1; e.t = 0; e.st = 'Arbejder';
           e.srcKind = src.kind; e.srcAuto = !!src.autoIn;
-        } else e.st = 'Venter på genstande';
+          if (fuelOnly) { e.burn += GF.ITEMS[id].fuel; e.handN--; if (e.handN <= 0) { e.hand = null; e.phase = 0; } }
+        } else if (!fuelOnly) e.st = 'Venter på genstande';
         return;
       }
-      const sat = GF.Power.sat(e);
-      e.demand = d.power;
       if (e.phase === 1 || e.phase === 3) {
-        e.t += dt * d.speed * 2 * sat;
+        const f = this.energy(e, dt);
+        if (f <= 0) { e.st = burner ? 'Intet brændsel' : 'Ingen strøm'; e.warn = burner ? 'nofuel' : 'nopower'; return; }
+        e.t += dt * d.speed * 2 * f;
         if (e.t >= 1) { e.t = 0; e.phase = e.phase === 1 ? 2 : 0; e.cd = 0; }
         return;
       }
       if (e.phase === 2) {
         e.demand = d.power * 0.04;
+        if (!e.hand) { e.phase = 3; e.t = 0; return; }
         const tgt = GF.Ent.at(p.tx, p.ty);
-        if (!tgt) { e.st = 'Intet mål'; return; }
         let put = 0;
-        if (beltLike(tgt)) { if (GF.Belts.drop(tgt, e.hand)) put = 1; }
+        if (!tgt) {
+          if (groundFree(p.tx, p.ty) && GF.Game.groundCount(p.tx, p.ty) < 1) { GF.Game.dropItem(p.tx + 0.5, p.ty + 0.5, e.hand, 1, true); put = 1; }
+        } else if (beltLike(tgt)) { if (GF.Belts.drop(tgt, e.hand)) put = 1; }
         else {
           const TK = K[tgt.kind];
           if (TK && TK.insert) {
@@ -4056,10 +4167,10 @@ window.GF = window.GF || {};
           }
         }
         if (put > 0) {
-          GF.Progress.inserterMoved(e, tgt, e.hand, put);
+          if (tgt) GF.Progress.inserterMoved(e, tgt, e.hand, put);
           e.handN -= put;
           if (e.handN <= 0) { e.hand = null; e.handN = 0; e.phase = 3; e.t = 0; e.st = 'Arbejder'; }
-        } else e.st = 'Mål fuldt';
+        } else e.st = tgt ? 'Venter – målet er fuldt' : 'Venter – der ligger noget på jorden';
       }
     },
     /** arm angle 0 (source) .. PI (target) */
@@ -5901,7 +6012,7 @@ window.GF = window.GF || {};
   };
 
   // --------------------------- inserters ---------------------------
-  const INS_COL = { inserter: '#e0b030', fast_inserter: '#3f8fe0', long_inserter: '#d04040', filter_inserter: '#a060e0', smart_inserter: '#40c070', stack_inserter: '#d8dde2' };
+  const INS_COL = { burner_inserter: '#9a6a3a', inserter: '#e0b030', fast_inserter: '#3f8fe0', long_inserter: '#d04040', filter_inserter: '#a060e0', smart_inserter: '#40c070', stack_inserter: '#d8dde2' };
   const insBody = (c, W, H, d) => {
     const col = INS_COL[d.id];
     if (GF.Settings.get('shadows')) circ(c, 0.58, 0.6, 0.3, 'rgba(0,0,0,.25)');
@@ -5929,7 +6040,7 @@ window.GF = window.GF || {};
     c.beginPath(); c.moveTo(hx - 0.12, hy - 0.05); c.lineTo(hx - 0.12, hy + 0.08); c.moveTo(hx + 0.12, hy - 0.05); c.lineTo(hx + 0.12, hy + 0.08); c.stroke();
     if (e.filter) I().paint(c, e.filter, 0.62, 0.62, 0.3);
   };
-  ['inserter', 'fast_inserter', 'long_inserter', 'filter_inserter', 'smart_inserter', 'stack_inserter'].forEach((k) => { P[k] = { body: insBody, dyn: insDyn }; });
+  ['burner_inserter', 'inserter', 'fast_inserter', 'long_inserter', 'filter_inserter', 'smart_inserter', 'stack_inserter'].forEach((k) => { P[k] = { body: insBody, dyn: insDyn }; });
 
   // ---------------------------- chests ----------------------------
   P.wood_chest = {
@@ -6742,7 +6853,7 @@ window.GF = window.GF || {};
     for (const e of builds.concat(tops, poles)) {
       if (e.hp < e.maxHp && !e.def.enemy) hpBar(ctx, R.w2sx(e.x) + 2, R.w2sy(e.y + e.h) - 6, e.w * s - 4, e.hp / e.maxHp);
       else if (e.def.enemy && e.hp < e.maxHp) hpBar(ctx, R.w2sx(e.x) + 2, R.w2sy(e.y) - 6, e.w * s - 4, e.hp / e.maxHp, '#e44');
-      if (e.warn && blink && e.warn !== 'lowpower' && s > 12) {
+      if (e.warn && blink && e.warn !== 'lowpower' && e.warn !== 'starved' && s > 12) {
         const ic = { nopower: '⚡', nofuel: '🔥', outfull: '⛔', starved: '⚠', noammo: '⚠', depleted: '✖' }[e.warn] || '⚠';
         const X = R.w2sx(e.x + e.w / 2), Y = R.w2sy(e.y + e.h / 2);
         ctx.fillStyle = 'rgba(20,10,0,.75)'; ctx.beginPath(); ctx.arc(X, Y, s * 0.28, 0, 6.28); ctx.fill();
@@ -7344,6 +7455,14 @@ window.GF = window.GF || {};
     GF.Audio.play('error');
   }
 
+  const hintsShown = {};
+  function hint(key, msg) {
+    if (hintsShown[key]) return;
+    hintsShown[key] = true;
+    GF.UI.toast('💡 ' + msg, 'hint');
+  }
+  B.hint = hint;
+
   function reachOk(x, y, w, h) {
     const p = GF.player;
     return U.dist(p.x, p.y, x + w / 2, y + h / 2) <= p.reach;
@@ -7363,11 +7482,12 @@ window.GF = window.GF || {};
     }
     if (!def) return null;
     const { w, h } = GF.Ent.size(type, dir);
-    if (forceGhost || p.inv.count(type) <= 0) {
+    if (forceGhost || (p.inv.count(type) <= 0 && GF.Logistics.nets.length)) {
       const g = GF.Logistics.addGhost(type, x, y, dir);
       if (g) GF.Audio.play('rotate');
       return g;
     }
+    if (p.inv.count(type) <= 0) { err('Du har ikke flere ' + GF.itemName(type) + ' – craft flere (C)'); B.clear(); return null; }
     if (!reachOk(x, y, w, h)) { err('For langt væk'); return null; }
     const chk = GF.Ent.canPlace(type, x, y, dir);
     if (!chk.ok) { err(chk.reason); return null; }
@@ -7389,6 +7509,11 @@ window.GF = window.GF || {};
     if (!e) return null;
     GF.Logistics.clearGhostsIn(x, y, e.w, e.h);
     GF.Progress.stat('buildingsBuilt', 1);
+    // helpful hints right after placing
+    if (def.energy === 'electric' && !GF.Power.polesCovering(e.x, e.y, e.w, e.h).length) hint('power', def.name + ' skal have strøm: byg en generator (fx Kulgenerator) og Træmaster, så det blå forsyningsområde dækker maskinen.');
+    else if (def.energy === 'burner') hint('fuel_' + type, def.name + ' kører på brændsel: klik på den og læg kul eller træ i.');
+    else if (def.kind === 'belt') hint('belt', 'Bånd flytter genstande, men kan ikke selv fylde maskiner – brug en grabber til at tage fra båndet og lægge i maskinen.');
+    if (p.inv.count(type) <= 0 && !GF.Logistics.nets.length) B.clear();
     GF.Audio.play('build', { x: x + w / 2, y: y + h / 2 });
     GF.Particles.emit('dust', x + w / 2, y + h / 2, 4 + w * 2);
     return e;
@@ -7529,15 +7654,23 @@ window.GF = window.GF || {};
       const type = hand.item;
       const pp = placePos(type, B.dir, m.wx, m.wy);
       if (m.lp) {
+        const hDef = GF.DEFS[type];
+        if (hv.ent && !hv.ent.def.enemy && !(hDef && GF.Belts.isBeltFamily(hv.ent) && GF.Belts.isBeltFamily({ def: hDef }))) {
+          // clicking an existing building opens it instead of trying to build on top of it
+          GF.UI.openEntity(hv.ent);
+          return;
+        }
         B.drag = { lx: pp.x, ly: pp.y };
         const r = B.tryPlace(type, pp.x, pp.y, B.dir, I.shift());
-        B.drag.placed = r && r.id ? r : null;
+        if (B.drag) B.drag.placed = r && r.id ? r : null;
+        if (r && r.id && r.kind === 'crafter' && !r.def.auto && !r.recipe) { r.pick = true; GF.UI.open('entity', r); }
       } else if (m.left && B.drag && (pp.x !== B.drag.lx || pp.y !== B.drag.ly)) {
         const def = GF.DEFS[type];
         const linear = def && def.w === 1 && def.h === 1;
         if (linear) {
           const tiles = lineTiles(B.drag.lx, B.drag.ly, pp.x, pp.y);
           for (const [x, y] of tiles) {
+            if (!B.hand) break;
             const nd = dirOf(x - B.drag.lx, y - B.drag.ly);
             if (def.kind === 'belt') {
               B.dir = nd;
@@ -7545,12 +7678,13 @@ window.GF = window.GF || {};
               if (last && !last.dead && last.kind === 'belt' && last.dir !== nd) { last.dir = nd; GF.Belts.reshapeAround(last); }
             }
             const r = B.tryPlace(type, x, y, B.dir, I.shift());
+            if (!B.drag) break;
             B.drag.placed = r && r.id ? r : null;
             B.drag.lx = x; B.drag.ly = y;
           }
         } else if (Math.abs(pp.x - B.drag.lx) >= pp.w || Math.abs(pp.y - B.drag.ly) >= pp.h) {
           B.tryPlace(type, pp.x, pp.y, B.dir, I.shift());
-          B.drag.lx = pp.x; B.drag.ly = pp.y;
+          if (B.drag) { B.drag.lx = pp.x; B.drag.ly = pp.y; }
         }
       }
       if (!m.left) B.drag = null;
@@ -7625,7 +7759,7 @@ window.GF = window.GF || {};
     if (!m.left) B.attacking = false;
     if (B.attacking && m.left && !firing) GF.Combat.playerFire(p, m.wx, m.wy);
     // mining with left mouse (or E) on resources
-    const wantMine = (m.left && !B.attacking && !hv.ent) || (I.down('interact') && !hv.ent);
+    const wantMine = (m.left && !B.attacking && !hv.ent) || (m.right && !hv.ent && !hv.ghost) || (I.down('interact') && !hv.ent);
     if (wantMine) {
       if (U.dist(p.x, p.y, tx + 0.5, ty + 0.5) > p.mineReach + 0.7) { if (GF.World.mineInfo(tx, ty) && m.lp) err('For langt væk – gå tættere på'); B.mining = null; }
       else mineTick(tx, ty, dt);
@@ -7699,6 +7833,35 @@ window.GF = window.GF || {};
         rectPx(ctx, cx - 25, cy - 25, 50, 50, s, 'rgba(255,200,80,.06)', 'rgba(255,200,80,.4)');
       }
     }
+    // tutorial guide arrow
+    const tg = GF.Progress.target();
+    if (tg && p && !p.dead) {
+      const X = R.w2sx(tg.x), Y = R.w2sy(tg.y);
+      const t = GF.Game.time;
+      const on = X > 30 && Y > 30 && X < R.W - 30 && Y < R.H - 30;
+      ctx.save();
+      if (on) {
+        const bob = Math.sin(t * 5) * 6;
+        ctx.strokeStyle = 'rgba(79,195,232,.9)'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(X, Y, s * 0.7 + Math.sin(t * 4) * 3, 0, 6.283); ctx.stroke();
+        ctx.fillStyle = '#4fc3e8';
+        ctx.beginPath(); ctx.moveTo(X, Y - s * 0.8 + bob); ctx.lineTo(X - 11, Y - s * 0.8 - 18 + bob); ctx.lineTo(X + 11, Y - s * 0.8 - 18 + bob); ctx.closePath(); ctx.fill();
+      } else {
+        const cx = R.W / 2, cy = R.H / 2;
+        const ang = Math.atan2(Y - cy, X - cx);
+        const rx = R.W / 2 - 70, ry = R.H / 2 - 90;
+        const k = Math.min(rx / Math.abs(Math.cos(ang) || 1e-6), ry / Math.abs(Math.sin(ang) || 1e-6));
+        const ax = cx + Math.cos(ang) * k, ay = cy + Math.sin(ang) * k;
+        ctx.translate(ax, ay); ctx.rotate(ang);
+        ctx.fillStyle = 'rgba(79,195,232,.95)';
+        ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-10, -14); ctx.lineTo(-4, 0); ctx.lineTo(-10, 14); ctx.closePath(); ctx.fill();
+        ctx.rotate(-ang);
+        const d = Math.round(U.dist(p.x, p.y, tg.x, tg.y));
+        ctx.font = '700 13px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
+        ctx.fillText(d + ' m', -Math.cos(ang) * 30, -Math.sin(ang) * 30 + 4);
+      }
+      ctx.restore();
+    }
     B.cursorMsg = '';
     if (m.inWorld && p && !p.dead) {
       if (hand && hand.mode === 'build') {
@@ -7724,7 +7887,18 @@ window.GF = window.GF || {};
             rectPx(ctx, pp.x - vv.x * r, pp.y - vv.y * r, 1, 1, s, 'rgba(255,200,80,.2)', 'rgba(255,200,80,.7)');
             rectPx(ctx, pp.x + vv.x * r, pp.y + vv.y * r, 1, 1, s, 'rgba(80,255,120,.2)', 'rgba(80,255,120,.7)');
           }
-          if (GF.Power.isElectric(d) && d.kind !== 'pole' && have > 0 && !GF.Power.polesCovering(pp.x, pp.y, pp.w, pp.h).length) B.cursorMsg = B.cursorMsg || 'Advarsel: ingen strøm her';
+          if (GF.Power.isElectric(d) && d.kind !== 'pole' && have > 0 && !GF.Power.polesCovering(pp.x, pp.y, pp.w, pp.h).length) B.cursorMsg = B.cursorMsg || 'Advarsel: ingen strøm her (byg en elmast)';
+          if (d.kind === 'drill') {
+            const probe = { x: pp.x, y: pp.y, w: pp.w, h: pp.h, dir: B.dir };
+            const ft = GF.Ent.frontTile(probe);
+            rectPx(ctx, ft.x, ft.y, 1, 1, s, 'rgba(80,255,120,.25)', 'rgba(80,255,120,.9)');
+            if (!B.cursorMsg) B.cursorMsg = 'Output (grønt felt) – sæt en ovn, kiste eller et bånd der';
+          }
+          if (d.kind === 'belt' && have > 0) {
+            const vv = U.DIRS[B.dir];
+            const f = GF.Ent.at(pp.x + vv.x, pp.y + vv.y);
+            if (f && !GF.Belts.isBeltFamily(f) && GF.Kinds[f.kind] && GF.Kinds[f.kind].insert) B.cursorMsg = 'Bånd fylder ikke maskiner – brug en grabber';
+          }
           GF.Sprites.drawGhost(ctx, type, pp.x, pp.y, B.dir, R.w2sx(pp.x), R.w2sy(pp.y), s, tint, 0.6);
         } else if (GF.ITEMS[type] && GF.ITEMS[type].vehicle) {
           ringPx(ctx, Math.floor(m.wx) + 0.5, Math.floor(m.wy) + 0.5, 0.7, s, '#4dff7a');
@@ -7979,27 +8153,93 @@ window.GF = window.GF || {};
 (function (GF) {
   const U = GF.U;
 
+  /* ------------------------------------------------------------------
+   * Tutorial missions. Each mission has:
+   *  title, hint (HTML), steps(P) → [[label, done], ...], check(P),
+   *  target() → {x,y} world position for the guide arrow, hot: hotbar item
+   *  help: encyclopedia topic/building for the "Vis mig hvordan" button
+   * ------------------------------------------------------------------ */
+  const cnt = (id) => (GF.player ? GF.player.inv.count(id) : 0);
+  const has = (types) => countBuilt(types) > 0;
+  const T_ = (P) => P.tut;
+  function nearestOre(type) {
+    const p = GF.player; if (!p) return null;
+    const px = Math.floor(p.x), py = Math.floor(p.y);
+    for (let r = 0; r < 60; r++) {
+      for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+        const o = GF.World.ore(px + dx, py + dy);
+        if (o && o.type === type && !GF.Ent.at(px + dx, py + dy)) return { x: px + dx + 0.5, y: py + dy + 0.5 };
+      }
+    }
+    return null;
+  }
+  function firstEnt(types) {
+    for (const e of GF.Ent.list.values()) if (types.includes(e.type)) return { x: e.x + e.w / 2, y: e.y + e.h / 2 };
+    return null;
+  }
+  const since = (P, id) => (P.totals[id] || 0) - (P.tut.base[id] || 0);
+
   const TUTORIAL = [
-    { title: 'Saml 20 jernmalm', hint: 'Gå hen til den blågrå malm (jern) med <b>WASD</b> og hold <b>venstre museknap</b> nede på den for at mine.',
-      check: (P) => GF.player.inv.count('iron_ore') >= 20 || P.tut.ironMined >= 20 },
-    { title: 'Byg en ovn', hint: 'Mine mindst 5 sten (grå malm). Åbn crafting med <b>C</b> og lav en <b>Stenovn</b>. Vælg den og klik for at placere den.',
-      check: () => countBuilt(['stone_furnace', 'steel_furnace', 'elec_furnace']) > 0 },
-    { title: 'Producér 20 jernplader', hint: 'Klik på ovnen og læg <b>jernmalm</b> og <b>kul eller træ</b> i den (klik på genstande i dit inventar). Tag pladerne ud bagefter.',
-      check: (P) => (P.totals.iron_plate || 0) - (P.tut.base || 0) >= 20 },
-    { title: 'Byg et bor', hint: 'Lav et <b>Kulbor</b> (kræver tandhjul, jernplader og en stenovn) og placér det på malm. Giv det kul som brændsel.',
-      check: () => countBuilt(['burner_drill', 'elec_drill', 'adv_drill']) > 0 },
-    { title: 'Byg et transportbånd', hint: 'Lav <b>Transportbånd</b> og placér dem. <b>Træk</b> med musen for at bygge en linje. <b>R</b> roterer.',
-      check: () => countBuilt(['belt', 'fast_belt', 'express_belt']) > 0 },
-    { title: 'Automatisér jernproduktion', hint: 'Sæt et bor på jernmalm med outputtet (pilen) pegende ind i en ovn — eller brug bånd og grabbere. Lad maskinerne producere 10 plader selv.',
-      check: (P) => P.tut.autoIron >= 10 },
-    { title: 'Byg elektricitet', hint: 'Byg en <b>Kulgenerator</b>, fyld kul i den og forbind den med <b>Træmaster</b> til en maskine (fx en grabber eller et lab).',
+    { title: 'Mine jernmalm', hot: null, help: 'start',
+      hint: 'Gå hen til den <b>blågrå malm</b> (pilen viser vejen) med <b>WASD</b>. Hold <b>venstre museknap</b> nede på malmen for at mine den.',
+      steps: (P) => [['Jernmalm ' + Math.min(10, T_(P).mined.iron_ore || 0) + '/10', (T_(P).mined.iron_ore || 0) >= 10]],
+      check: (P) => (T_(P).mined.iron_ore || 0) >= 10,
+      target: () => nearestOre('iron_ore') },
+    { title: 'Mine sten og kul', hot: null, help: 'chains',
+      hint: '<b>Sten</b> (lysegrå) bruges til ovne og <b>kul</b> (sort) er brændsel til ovne og bor. Mine lidt af hvert.',
+      steps: (P) => [['Sten ' + Math.min(10, T_(P).mined.stone || 0) + '/10', (T_(P).mined.stone || 0) >= 10], ['Kul ' + Math.min(10, T_(P).mined.coal || 0) + '/10', (T_(P).mined.coal || 0) >= 10]],
+      check: (P) => (T_(P).mined.stone || 0) >= 10 && (T_(P).mined.coal || 0) >= 10,
+      target: () => ((T_(GF.Progress).mined.stone || 0) < 10 ? nearestOre('stone') : nearestOre('coal')) },
+    { title: 'Placér stenovnen', hot: 'stone_furnace', help: 'stone_furnace',
+      hint: 'Tryk <b>2</b> for at tage <b>Stenovnen</b> i hånden (eller klik på den i hotbaren nederst). Klik på jorden for at placere den. <b>Højreklik</b> lægger den tilbage.',
+      steps: () => [['Stenovn placeret', has(['stone_furnace', 'steel_furnace'])]],
+      check: () => has(['stone_furnace', 'steel_furnace', 'elec_furnace']) },
+    { title: 'Smelt 10 jernplader', hot: null, help: 'stone_furnace',
+      hint: '<b>Klik på ovnen</b>. Klik så på <b>jernmalm</b> og på <b>kul</b> i dit inventar (højre side) for at lægge dem i. Pladerne kommer ud til højre – klik på dem for at tage dem.',
+      steps: (P) => [['Jernplader ' + Math.min(10, since(P, 'iron_plate')) + '/10', since(P, 'iron_plate') >= 10]],
+      check: (P) => since(P, 'iron_plate') >= 10,
+      target: () => firstEnt(['stone_furnace', 'steel_furnace']) },
+    { title: 'Automatisér med et kulbor', hot: 'burner_drill', help: 'burner_drill',
+      hint: 'Tryk <b>1</b> for <b>Kulboret</b>. Tryk <b>R</b> for at dreje det, så det <b>grønne felt</b> (output) rammer ovnen – eller flyt ovnen hen foran boret. Placér boret på jernmalm og læg <b>kul</b> i både boret og ovnen.',
+      steps: (P) => [['Kulbor placeret', has(['burner_drill', 'elec_drill'])], ['Automatiske plader ' + Math.min(5, T_(P).autoIron) + '/5', T_(P).autoIron >= 5]],
+      check: (P) => T_(P).autoIron >= 5,
+      target: () => (has(['burner_drill']) ? firstEnt(['burner_drill']) : nearestOre('iron_ore')) },
+    { title: 'Lav et kulbor der miner kul', hot: 'burner_drill', help: 'burner_drill',
+      hint: 'Åbn crafting med <b>C</b> og lav et nyt <b>Kulbor</b> (fanen Minedrift). Placér det på <b>kul</b> – så miner det sit eget brændsel. Sæt en kiste foran det, så samles kullet.',
+      steps: (P) => [['Kul minet af bor ' + Math.min(10, T_(P).drillCoal) + '/10', T_(P).drillCoal >= 10]],
+      check: (P) => T_(P).drillCoal >= 10,
+      target: () => nearestOre('coal') },
+    { title: 'Bånd og grabber', hot: 'burner_inserter', help: 'logistics',
+      hint: 'Byg <b>Transportbånd</b> (tast 3, træk med musen) og en <b>Kulgrabber</b> (tast 4). En grabber flytter ting fra det <b>gule</b> felt til det <b>grønne</b>: fx fra båndet ind i en ovn eller kiste. Kulgrabberen skal have <b>kul</b> – klik på den og læg kul i (den tager også selv kul fra et kulbånd).',
+      steps: (P) => [['Bånd bygget', has(['belt', 'fast_belt', 'express_belt'])], ['Grabber bygget', has(['burner_inserter', 'inserter', 'fast_inserter', 'long_inserter'])], ['Genstande flyttet af grabber ' + Math.min(10, T_(P).insMoved) + '/10', T_(P).insMoved >= 10]],
+      check: (P) => has(['belt', 'fast_belt']) && T_(P).insMoved >= 10 },
+    { title: 'Byg strøm', hot: 'coal_gen', help: 'power',
+      hint: 'Lav en <b>Kulgenerator</b> (tast 8) og læg kul i. Byg <b>Træmaster</b> (tast 6) fra generatoren hen til en elektrisk maskine – det blå område viser hvor der er strøm. Prøv fx et <b>Forskningslab</b>.',
+      steps: () => [['Generator bygget', has(['coal_gen', 'steam_engine', 'solar'])], ['Strøm leveres', GF.Power.total.prod > 1]],
       check: () => GF.Power.total.prod > 1 },
-    { title: 'Forsk i Automatisering', hint: 'Byg et <b>Forskningslab</b> med strøm, lav <b>Tandhjulspakker</b> og læg dem i labbet. Tryk <b>T</b> og vælg <b>Automatisering</b>.',
-      check: () => GF.Research.isDone('automation') },
-    { title: 'Byg din første samlemaskine', hint: 'Lav en <b>Samlemaskine Mk1</b>, placér den med strøm og vælg en opskrift (fx tandhjul).',
-      check: () => countBuilt(['assembler1', 'assembler2', 'assembler3']) > 0 },
-    { title: 'Skab en automatisk produktionslinje', hint: 'Før materialer ind i samlemaskinen med <b>grabbere</b> og lad en grabber tage produkterne ud på et bånd eller i en kiste (10 stk).',
-      check: (P) => P.tut.autoLine >= 10 },
+    { title: 'Forsk i Automatisering', hot: null, help: 'research',
+      hint: 'Byg et <b>Forskningslab</b> med strøm. Craft <b>Tandhjulspakker</b> (fanen Forskning) og læg dem i labbet. Tryk <b>T</b> og vælg <b>Automatisering</b>.',
+      steps: () => [['Lab bygget', has(['lab'])], ['Forskning valgt', !!GF.Research.current || GF.Research.isDone('automation')], ['Automatisering færdig', GF.Research.isDone('automation')]],
+      check: () => GF.Research.isDone('automation'),
+      target: () => firstEnt(['lab']) },
+    { title: 'Byg en samlemaskine', hot: 'assembler1', help: 'assembler1',
+      hint: 'Lav en <b>Samlemaskine Mk1</b> og placér den med strøm. Vælg en opskrift, fx <b>Tandhjul</b>. Den laver så tingene af sig selv, når den får ingredienser.',
+      steps: () => [['Samlemaskine med opskrift', [...GF.Ent.list.values()].some((e) => e.def.cat === 'craft' && e.recipe)]],
+      check: () => [...GF.Ent.list.values()].some((e) => e.def.cat === 'craft' && e.recipe) },
+    { title: 'Automatisk produktionslinje', hot: 'inserter', help: 'logistics',
+      hint: 'Brug grabbere: <b>kiste/bånd → grabber → samlemaskine → grabber → kiste</b>. Fyld jernplader i den første kiste og se tandhjulene blive lavet automatisk.',
+      steps: (P) => [['Produkter hentet ud af grabber ' + Math.min(10, T_(P).autoLine) + '/10', T_(P).autoLine >= 10]],
+      check: (P) => T_(P).autoLine >= 10,
+      target: () => firstEnt(['assembler1', 'assembler2', 'assembler3']) },
+    { title: 'Forbered forsvaret', hot: 'turret_gun', help: 'defense',
+      hint: 'Krybere angriber før eller siden. Forsk i <b>Forsvarstårne</b> (T), byg et <b>Maskingeværtårn</b> og læg <b>patroner</b> i det.',
+      steps: () => [['Tårn med ammunition', [...GF.Ent.list.values()].some((e) => e.kind === 'turret' && (e.ammo || e.mag > 0 || e.def.laser))]],
+      check: () => [...GF.Ent.list.values()].some((e) => e.kind === 'turret' && (e.ammo || e.mag > 0 || e.def.laser)) },
+    { title: 'Grøn forskning', hot: null, help: 'research',
+      hint: 'Forsk i <b>Logistikforskning</b>. Lav så <b>Logistikpakker</b> (grabber + bånd) – helst i en samlemaskine – og brug dem til nye teknologier.',
+      steps: (P) => [['Logistikforskning færdig', GF.Research.isDone('green_science')], ['Logistikpakker lavet ' + Math.min(10, P.totals.sci_green || 0) + '/10', (P.totals.sci_green || 0) >= 10]],
+      check: (P) => (P.totals.sci_green || 0) >= 10 },
   ];
 
   const MILESTONES = [
@@ -8050,7 +8290,7 @@ window.GF = window.GF || {};
       deaths: 0, buildingsLost: 0, attacksSeen: 0,
     };
     P.totals = {};
-    P.tut = { step: 0, done: false, ironMined: 0, autoIron: 0, autoLine: 0, base: 0, enabled: true };
+    P.tut = { step: 0, done: false, mined: {}, drillCoal: 0, insMoved: 0, autoIron: 0, autoLine: 0, base: {}, enabled: true };
     P.miles = new Set();
     P.warnings = []; P.attackMarks = [];
     P.cur = { p: {}, c: {} }; P.hist = []; P.histMin = []; P._mAcc = { p: {}, c: {} }; P._sT = 0; P._mN = 0;
@@ -8065,7 +8305,8 @@ window.GF = window.GF || {};
       P.totals[id] = (P.totals[id] || 0) + n;
       P.cur.p[id] = (P.cur.p[id] || 0) + n;
       if (src !== 'mine' && src !== 'hand-mine') P.stats.itemsProduced += n;
-      if (id === 'iron_ore' && src === 'hand-mine') P.tut.ironMined += n;
+      if (src === 'hand-mine' || src === 'mine') P.tut.mined[id] = (P.tut.mined[id] || 0) + n;
+      if (id === 'coal' && src === 'mine') P.tut.drillCoal += n;
       if (id === 'iron_plate' && src === 'auto') P.tut.autoIron += n;
     } else {
       P.cur.c[id] = (P.cur.c[id] || 0) + n;
@@ -8073,6 +8314,7 @@ window.GF = window.GF || {};
   };
 
   P.inserterMoved = function (ins, tgt, id, n) {
+    P.tut.insMoved += n;
     if (ins.srcKind === 'crafter' && ins.srcAuto) {
       P.tut.autoLine += n;
     }
@@ -8124,8 +8366,9 @@ window.GF = window.GF || {};
         GF.UI.toast('Mission fuldført: ' + step.title, 'good');
         GF.Audio.play('research');
         T.step++;
-        if (T.step === 2) T.base = P.totals.iron_plate || 0;
-        if (T.step >= TUTORIAL.length) { T.done = true; GF.UI.toast('Tutorial fuldført! Nu er fabrikken din.', 'good'); }
+        T.base = Object.assign({}, P.totals);
+        P._tgtT = 0;
+        if (T.step >= TUTORIAL.length) { T.done = true; GF.UI.toast('Tutorial fuldført! Nu er fabrikken din – se Hjælp (H) for flere mål.', 'good'); }
         GF.bus.emit('tutorial');
       }
     }
@@ -8141,7 +8384,7 @@ window.GF = window.GF || {};
   P.updateWarnings = function () {
     const groups = {};
     for (const e of GF.Ent.list.values()) {
-      if (!e.warn || e.def.enemy) continue;
+      if (!e.warn || e.def.enemy || e.warn === 'starved') continue; // idle machines are normal, not an alarm
       const g = groups[e.warn] || (groups[e.warn] = { key: e.warn, text: WARN_TEXT[e.warn] || e.warn, count: 0, ents: [] });
       g.count++;
       if (g.ents.length < 20) g.ents.push(e);
@@ -8167,11 +8410,37 @@ window.GF = window.GF || {};
   });
   GF.bus.on('coreComplete', () => { P.coreDone = true; GF.UI.victory(); });
 
+  /** current tutorial mission (or null) */
+  P.mission = function () {
+    const T = P.tut;
+    if (!GF.Settings.get('tutorials') || !T.enabled || T.done) return null;
+    return TUTORIAL[T.step] || null;
+  };
+  /** cached world target for the guide arrow */
+  P.target = function () {
+    const m = P.mission();
+    if (!m || !m.target) return null;
+    const now = GF.Game.time;
+    if (!P._tgt || now - (P._tgtT || 0) > 1.5 || P._tgtStep !== P.tut.step) {
+      P._tgtT = now; P._tgtStep = P.tut.step;
+      try { P._tgt = m.target(); } catch (e) { P._tgt = null; }
+    }
+    return P._tgt;
+  };
+  P.skipMission = function () {
+    const T = P.tut;
+    if (T.done) return;
+    T.step++; T.base = Object.assign({}, P.totals);
+    if (T.step >= TUTORIAL.length) T.done = true;
+  };
+
   P.save = () => ({ stats: P.stats, totals: P.totals, tut: P.tut, miles: Array.from(P.miles), core: P.coreDone });
   P.load = function (d) {
     P.reset();
     if (!d) return;
     Object.assign(P.stats, d.stats || {});
+    if (d.tut && typeof d.tut.base !== 'object') d.tut.base = {};
+    if (d.tut && !d.tut.mined) d.tut.mined = {};
     P.totals = d.totals || {};
     Object.assign(P.tut, d.tut || {});
     (d.miles || []).forEach((m) => P.miles.add(m));
@@ -8372,7 +8641,7 @@ window.GF = window.GF || {};
   };
   GF.WIN = GF.WIN || {};
 
-  UI.defaultHotbar = () => ['burner_drill', 'stone_furnace', 'belt', 'inserter', 'wood_chest', 'small_pole', 'assembler1', 'wall', 'turret_gun', 'repair_pack'];
+  UI.defaultHotbar = () => ['burner_drill', 'stone_furnace', 'belt', 'burner_inserter', 'wood_chest', 'small_pole', 'assembler1', 'coal_gen', 'turret_gun', 'repair_pack'];
 
   UI.typing = function () {
     const a = document.activeElement;
@@ -8455,7 +8724,7 @@ window.GF = window.GF || {};
     el.dataset.msg = msg;
     box.appendChild(el);
     while (box.children.length > 6) box.firstChild.remove();
-    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 400); }, type === 'mile' ? 6000 : 3800);
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 400); }, type === 'mile' ? 6000 : type === 'hint' ? 9000 : 3800);
   };
 
   /* ----------------------------- tooltips ----------------------------- */
@@ -8490,7 +8759,8 @@ window.GF = window.GF || {};
     if (!it && !fl) return '';
     if (fl) return '<div class="tt-title">' + GF.Icons.html(id) + U.esc(fl.name) + '</div><div class="tt-desc">Væske. Transporteres i rør.</div>';
     let h = '<div class="tt-title">' + GF.Icons.html(id) + U.esc(it.name) + '</div>';
-    if (it.desc) h += '<div class="tt-desc">' + U.esc(it.desc) + '</div>';
+    if (GF.HELP && GF.HELP.ent[id]) h += '<div class="tt-desc"><b>Bruges til:</b> ' + U.esc(GF.HELP.ent[id].does) + (GF.HELP.ent[id].needs ? '<br><b>Kræver:</b> ' + U.esc(GF.HELP.ent[id].needs) : '') + '</div>';
+    else if (it.desc) h += '<div class="tt-desc">' + U.esc(it.desc) + '</div>';
     const facts = [];
     facts.push('Stakstørrelse: ' + it.stack);
     if (it.fuel) facts.push('Brændværdi: ' + U.fmtJ(it.fuel));
@@ -8519,7 +8789,7 @@ window.GF = window.GF || {};
       }
     }
     const uses = GF.Craft.consumers(id).slice(0, 8);
-    if (uses.length) h += '<div class="tt-sec">Bruges til</div><div class="tt-uses">' + uses.map((r) => GF.Icons.html(r.main)).join('') + '</div>';
+    if (uses.length) h += '<div class="tt-sec">Ingrediens i</div><div class="tt-usel">' + uses.map((r) => '<span>' + GF.Icons.html(r.main) + U.esc(r.name) + '</span>').join('') + (GF.Craft.consumers(id).length > 8 ? '<span class="dim">…og mere</span>' : '') + '</div>';
     return h;
   };
 
@@ -8677,7 +8947,9 @@ window.GF = window.GF || {};
   function updateHotbar() {
     const p = GF.player;
     const hand = GF.Build.hand;
-    const sig = UI.hotbar.map((id) => id + ':' + (id ? p.inv.count(id) : 0)).join('|') + (hand ? hand.item : '');
+    const m = GF.Progress.mission();
+    const tutHot = m && m.hot;
+    const sig = UI.hotbar.map((id) => id + ':' + (id ? p.inv.count(id) : 0)).join('|') + (hand ? hand.item : '') + tutHot;
     if (sig === UI._hbSig) return;
     UI._hbSig = sig;
     const slots = UI.els['hud-hotbar'].children;
@@ -8691,6 +8963,7 @@ window.GF = window.GF || {};
       if (!id) delete s.dataset.tip;
       s.classList.toggle('empty', !!id && n === 0);
       s.classList.toggle('active', !!(hand && hand.item === id && id));
+      s.classList.toggle('tut-hl', !!(id && tutHot && tutHot === id && !(hand && hand.item === id)));
     });
   }
 
@@ -8731,7 +9004,9 @@ window.GF = window.GF || {};
     else if (a === 'mm-out') GF.Map.miniZoom = Math.min(8, GF.Map.miniZoom * 2);
     else if (a === 'mm-map') UI.toggle('map');
     else if (a === 'menu') UI.open(ds.w);
-    else if (a === 'tut-skip') { GF.Progress.tut.enabled = false; UI.toast('Tutorial skjult (kan slås til i indstillinger)', 'info'); }
+    else if (a === 'tut-skip') { GF.Progress.tut.enabled = false; UI.toast('Tutorial skjult (kan vises igen under Statistik → Milepæle)', 'info'); }
+    else if (a === 'tut-next') GF.Progress.skipMission();
+    else if (a === 'tut-help') { const m = GF.Progress.mission(); UI.open('help', m && m.help); }
     else if (a === 'follow') GF.Render.cam.follow = true;
   };
 
@@ -8752,7 +9027,7 @@ window.GF = window.GF || {};
       '<div class="ht-cell ' + pCls + '" data-a="menu" data-w="power" title="Strøm (P)">⚡ ' + U.fmtW(Pw.prod) + ' / ' + U.fmtW(Pw.demand) + bat + '</div>' +
       '<div class="ht-cell" data-a="menu" data-w="tech" title="Teknologi (T)">🔬 ' + res + '</div>' +
       '<div class="ht-cell" title="Fjendernes udvikling">☣ ' + Math.round(GF.Enemies.evolution * 100) + '%</div>' +
-      '<div class="ht-menu"><button data-a="menu" data-w="character" title="Inventar (I)">🎒</button><button data-a="menu" data-w="build" title="Byggemenu (B)">🏗</button><button data-a="menu" data-w="tech" title="Teknologi (T)">🔬</button><button data-a="menu" data-w="stats" title="Statistik (O)">📊</button><button data-a="menu" data-w="blueprints" title="Byggeplaner (K)">📐</button><button data-a="menu" data-w="pause" title="Menu (Esc)">☰</button></div>';
+      '<div class="ht-menu"><button data-a="menu" data-w="character" title="Inventar (I)">🎒</button><button data-a="menu" data-w="build" title="Byggemenu (B)">🏗</button><button data-a="menu" data-w="tech" title="Teknologi (T)">🔬</button><button data-a="menu" data-w="stats" title="Statistik (O)">📊</button><button data-a="menu" data-w="blueprints" title="Byggeplaner (K)">📐</button><button data-a="menu" data-w="help" title="Hjælp (H)">❓</button><button data-a="menu" data-w="pause" title="Menu (Esc)">☰</button></div>';
   }
 
   function hudLeft() {
@@ -8769,10 +9044,13 @@ window.GF = window.GF || {};
 
   function hudTutorial() {
     const T = GF.Progress.tut;
-    if (!GF.Settings.get('tutorials') || !T.enabled || T.done) return '';
-    const st = GF.Progress.TUTORIAL[T.step];
+    const st = GF.Progress.mission();
     if (!st) return '';
-    return '<div class="tut-head">MISSION ' + (T.step + 1) + '/10 <button class="tut-x" data-a="tut-skip" title="Skjul tutorial">✕</button></div><div class="tut-title">' + st.title + '</div><div class="tut-hint">' + st.hint + '</div>';
+    const steps = st.steps ? st.steps(GF.Progress) : [];
+    return '<div class="tut-head">MISSION ' + (T.step + 1) + '/' + GF.Progress.TUTORIAL.length + ' <button class="tut-x" data-a="tut-skip" title="Skjul tutorial">✕</button></div>' +
+      '<div class="tut-title">' + st.title + '</div><div class="tut-hint">' + st.hint + '</div>' +
+      (steps.length ? '<div class="tut-prog">' + steps.map(([l, ok]) => '<span class="' + (ok ? 'ok' : 'todo') + '">' + (ok ? '✔ ' : '▢ ') + U.esc(l) + '</span>').join('') + '</div>' : '') +
+      '<div class="btn-row"><button class="btn sm" data-a="tut-help">❓ Vis mig hvordan</button><button class="btn sm btn-ghost" data-a="tut-next" title="Spring denne mission over">Spring over ›</button></div>';
   }
 
   function hudSelect() {
@@ -8794,6 +9072,8 @@ window.GF = window.GF || {};
     }
     if (e.eff != null && (e.kind === 'crafter' || e.kind === 'drill' || e.kind === 'lab')) h += '<div class="sel-row dim">Effektivitet: ' + Math.round(e.eff * 100) + '%</div>';
     if (e.def.energy === 'electric') h += '<div class="sel-row dim">⚡ ' + U.fmtW(e.demand || 0) + (e.net ? ' · net #' + e.net.id : ' · ikke forbundet') + '</div>';
+    if (e.warn && GF.HELP.fix[e.warn]) h += '<div class="sel-fix">' + U.esc(GF.HELP.fix[e.warn]) + '</div>';
+    else if (GF.HELP.ent[e.type]) h += '<div class="sel-row dim">' + U.esc(GF.HELP.ent[e.type].does) + '</div>';
     if (!e.def.enemy) h += '<div class="sel-row dim">Klik: åbn · Højreklik (hold): fjern · R: rotér</div>';
     return h;
   }
@@ -8831,7 +9111,7 @@ window.GF = window.GF || {};
     if (!UI.typing() && !I.capture && !UI.modalOpen) {
       const pausedMenu = UI.win && GF.WIN[UI.win.name].pauses;
       if (!pausedMenu) {
-        const map = { inventory: 'character', crafting: 'character', tech: 'tech', map: 'map', build: 'build', power: 'power', stats: 'stats', blueprint: 'blueprints' };
+        const map = { inventory: 'character', crafting: 'character', tech: 'tech', map: 'map', build: 'build', power: 'power', stats: 'stats', blueprint: 'blueprints', help: 'help' };
         for (const a in map) if (I.hit(a)) { UI.toggle(map[a], a === 'crafting' ? 'craft' : undefined); break; }
         for (let i = 0; i < 10; i++) {
           if (I.hit('hot' + ((i + 1) % 10))) {
@@ -9140,10 +9420,11 @@ window.GF = window.GF || {};
   };
 
   EP.inserter = {
-    sig: (e) => [e.filter, e.limit, e.on, e.prio, e.hand].join('|'),
+    sig: (e) => [e.filter, e.limit, e.on, e.prio, e.hand, e.fuel ? e.fuel.n : 0].join('|'),
     html(e) {
       const d = e.def;
       let h = '<div class="row">Hastighed: ' + d.speed + ' greb/s · Rækkevidde: ' + d.reach + ' · Stak: ' + (d.stack + GF.Research.bonus.stack) + '</div>';
+      if (d.energy === 'burner') h += '<div class="row">' + fuelSlot(e) + '</div>';
       h += '<div class="row">I hånden: ' + (e.hand ? ico(e.hand, e.handN) : '<span class="dim">intet</span>') + '</div>';
       if (d.filter) h += '<div class="row">Filter: ' + slot(e.filter, null, 'filter', '', 'filter') + ' <span class="dim">(klik for at vælge)</span></div>';
       if (d.smart) h += '<div class="row">Grænse (fyld kun mål til): <input class="inp sm" type="number" min="0" value="' + e.limit + '" data-lim="1"> <span class="dim">0 = ingen grænse</span></div>';
@@ -9295,11 +9576,11 @@ window.GF = window.GF || {};
   W.entity = {
     title: (e) => GF.Icons.html(e.type) + ' ' + esc(e.def.name) + ' <span class="hp-mini">' + Math.ceil(e.hp) + '/' + e.maxHp + ' HP</span>',
     cls: 'w-ent',
-    sig: (e) => entPanel(e).sig(e) + '#' + GF.player.inv.ver + '#' + Math.ceil(e.hp),
+    sig: (e) => entPanel(e).sig(e) + '#' + GF.player.inv.ver + '#' + Math.ceil(e.hp) + '#' + e.warn,
     render(e) {
       const P = entPanel(e);
       const canInsert = !!(GF.Kinds[e.kind] && GF.Kinds[e.kind].insert);
-      let h = '<div class="cols"><div class="col ent-col">' + P.html(e) + '</div>';
+      let h = '<div class="cols"><div class="col ent-col">' + GF.HELP.entityBox(e) + P.html(e) + '</div>';
       h += '<div class="col"><div class="sec-title">Dit inventar</div><div class="scroll inv-scroll small">' + invGrid(GF.player.inv, 'pinv') + '</div>' +
         '<div class="hint">' + (canInsert ? 'Klik: læg i maskinen · Højreklik: halv stak · Shift: alle af typen' : 'Denne bygning kan ikke modtage genstande.') + '</div></div></div>';
       return h;
@@ -9855,6 +10136,203 @@ window.GF = window.GF || {};
 </script>
 <script>
 /* =====================================================================
+ * GREJS FACTORY — help.js
+ * In-game encyclopedia (H): what every building is for, how to use it,
+ * what it needs, plus beginner guides and "why is my machine stopped?"
+ * explanations used by the HUD and machine windows.
+ * ===================================================================== */
+'use strict';
+(function (GF) {
+  const U = GF.U;
+  const esc = U.esc;
+
+  /* ---------------------------- per building ---------------------------- */
+  // does: what it is for · how: how to use it · needs: energy/requirements · tip
+  const E = {
+    burner_drill: { does: 'Miner malm (jern, kobber, kul, sten) automatisk fra feltet under sig.', how: 'Placér den på et malmfelt. Pilen/det grønne felt viser hvor malmen kommer ud – sæt en ovn, en kiste eller et bånd der. Ellers lander malmen på jorden.', needs: 'Brændsel (kul eller træ) i brændselspladsen.', tip: 'Sæt et kulbor på kul, der peger ind i et andet kulbor – så fodrer de hinanden med kul.' },
+    elec_drill: { does: 'Hurtigere bor der miner et 5×5-område.', how: 'Placér på malm, output kommer ud foran (grønt felt).', needs: 'Strøm fra en elmast.', tip: 'Sæt en række bor langs et bånd, så samles al malmen på båndet.' },
+    adv_drill: { does: 'Meget hurtigt bor der miner et 7×7-område.', how: 'Som det elektriske bor.', needs: 'Strøm.', tip: '' },
+    oil_pump: { does: 'Pumper råolie op af en oliekilde (mørke pletter på kortet).', how: 'Placér den over en oliekilde og forbind rør til et raffinaderi.', needs: 'Strøm og rør.', tip: 'Ydelsen (%) står når du holder musen over oliekilden.' },
+    offshore_pump: { does: 'Pumper vand ud i rør.', how: 'Placér den på land lige ved siden af vand og forbind rør til kedler eller kemifabrikker.', needs: 'Intet – kører gratis.', tip: '' },
+    stone_furnace: { does: 'Smelter malm: jernmalm → jernplade, kobbermalm → kobberplade, sten → mursten.', how: 'Klik på ovnen og læg malm i + brændsel. Eller lad et bor/en grabber fylde den. Tag pladerne ud, eller lad en grabber tage dem.', needs: 'Brændsel (kul/træ).', tip: 'Ovnen vælger selv opskrift efter hvilken malm den får.' },
+    steel_furnace: { does: 'Som stenovnen, men dobbelt så hurtig. Kan også lave stål af jernplader.', how: 'Som stenovnen.', needs: 'Brændsel.', tip: '' },
+    elec_furnace: { does: 'Elektrisk ovn – intet brændsel nødvendigt.', how: 'Fyld malm i med en grabber.', needs: 'Strøm.', tip: '' },
+    assembler1: { does: 'Laver genstande automatisk (fx tandhjul, kredsløb, forskningspakker).', how: '1) Placér den. 2) Vælg en opskrift. 3) Brug grabbere til at fylde ingredienser i og tage produktet ud.', needs: 'Strøm.', tip: 'Ingredienserne står i opskriften – hold musen over den.' },
+    assembler2: { does: 'Hurtigere samlemaskine.', how: 'Som Samlemaskine Mk1.', needs: 'Strøm.', tip: '' },
+    assembler3: { does: 'Den hurtigste samlemaskine.', how: 'Som Samlemaskine Mk1.', needs: 'Strøm.', tip: '' },
+    chem_plant: { does: 'Kemiske opskrifter med væsker: plast, batterier, fast brændstof, linser, grejsium.', how: 'Vælg opskrift. Forbind rør med den rigtige væske (fx petrogas) og fyld faste ingredienser i med grabbere.', needs: 'Strøm + væsker i rør.', tip: 'Hvert rørnetværk kan kun indeholde én væske.' },
+    refinery: { does: 'Laver råolie om til petrogas og brændselsolie.', how: 'Før råolie ind med rør. Forbind to andre rørsystemer til output – ét til petrogas og ét til brændselsolie.', needs: 'Strøm + råolie.', tip: '' },
+    lab: { does: 'Forsker i nye teknologier ved at bruge forskningspakker.', how: 'Læg forskningspakker i (fx Tandhjulspakker) og vælg en teknologi med T.', needs: 'Strøm.', tip: 'Flere labs forsker hurtigere.' },
+    coal_gen: { does: 'Laver strøm (op til 600 kW) af brændsel. Den nemmeste strømkilde.', how: 'Placér den, læg kul i, og byg Træmaster fra generatoren hen til maskinerne.', needs: 'Brændsel.', tip: 'Brug en grabber fra et kulbånd til at holde den fyldt.' },
+    boiler: { does: 'Koger vand til damp til dampmaskiner.', how: 'Vandpumpe → rør → kedel → rør → dampmaskine. Læg kul i kedlen.', needs: 'Vand + brændsel.', tip: 'Én kedel kan forsyne to dampmaskiner.' },
+    steam_engine: { does: 'Laver strøm (900 kW) af damp.', how: 'Forbind med rør til en kedel og sæt en elmast ved siden af.', needs: 'Damp.', tip: '' },
+    solar: { does: 'Gratis strøm om dagen (60 kW).', how: 'Placér inden for en elmasts område.', needs: 'Sollys.', tip: 'Kombinér med akkumulatorer til natten.' },
+    accumulator: { does: 'Lagrer overskydende strøm og giver den tilbage når der mangler.', how: 'Placér inden for en elmasts område.', needs: '', tip: '' },
+    reactor: { does: 'Kæmpe strømkilde (40 MW).', how: 'Læg grejsium-celler i og forbind med master.', needs: 'Grejsium-celler.', tip: '' },
+    small_pole: { does: 'Fører strøm. Maskiner i det blå område får strøm.', how: 'Byg masterne i en kæde fra strømkilden til maskinerne (højst 7,5 felter imellem).', needs: '', tip: 'Når du holder en mast, vises de blå forsyningsområder.' },
+    medium_pole: { does: 'Elmast med større område (7×7) og længere rækkevidde.', how: 'Som træmasten.', needs: '', tip: '' },
+    big_pole: { does: 'Fører strøm over lange afstande (30 felter).', how: 'Brug den til at forbinde fjerne områder.', needs: '', tip: 'Forsyner næsten ingen maskiner selv – brug små master ved siden af.' },
+    substation: { does: 'Stort forsyningsområde (18×18).', how: 'Placér midt i en fabrik.', needs: '', tip: '' },
+    lamp: { does: 'Lyser om natten.', how: 'Placér inden for en elmasts område.', needs: 'Strøm.', tip: '' },
+    belt: { does: 'Flytter genstande i pilens retning.', how: 'Hold venstre knap og træk for at bygge en linje – svinger automatisk. R roterer.', needs: '', tip: 'Bånd kan IKKE selv lægge ting i maskiner. Brug en grabber mellem bånd og maskine.' },
+    fast_belt: { does: 'Dobbelt så hurtigt bånd.', how: 'Kan bygges oven på gamle bånd for at opgradere.', needs: '', tip: '' },
+    express_belt: { does: 'Tre gange så hurtigt bånd.', how: 'Som hurtigbånd.', needs: '', tip: '' },
+    ug_belt: { does: 'Fører bånd under jorden (fx under andre bånd eller bygninger).', how: 'Placér indgangen, gå frem og placér den næste – den bliver automatisk til udgangen.', needs: '', tip: '' },
+    fast_ug_belt: { does: 'Hurtigt underjordisk bånd.', how: 'Som underjordisk bånd.', needs: '', tip: '' },
+    express_ug_belt: { does: 'Ekspres underjordisk bånd.', how: 'Som underjordisk bånd.', needs: '', tip: '' },
+    splitter: { does: 'Deler ét bånd til to, eller samler to bånd til ét.', how: 'Placér den på tværs af båndene. Klik på den for at vælge prioritet eller filter.', needs: '', tip: 'Med filter kan du sortere en bestemt genstand fra.' },
+    fast_splitter: { does: 'Splitter til hurtigbånd.', how: 'Som splitteren.', needs: '', tip: '' },
+    express_splitter: { does: 'Splitter til ekspresbånd.', how: 'Som splitteren.', needs: '', tip: '' },
+    merger: { does: 'Samler bånd fra bagsiden og begge sider til ét.', how: 'Placér den hvor båndene mødes, pilen peger mod output.', needs: '', tip: 'Et bånd der peger ind i siden af et andet bånd fletter også automatisk.' },
+    burner_inserter: { does: 'Flytter én ting ad gangen fra bagsiden til forsiden. Kører på kul.', how: 'Pilen peger hvor tingene lægges. Gult felt = tager fra, grønt felt = lægger i. Fx: bånd → grabber → ovn.', needs: 'Brændsel – den tager selv kul fra det den flytter, eller læg kul i den.', tip: 'Den bedste start-grabber: virker uden strøm.' },
+    inserter: { does: 'Flytter genstande fra bagsiden (gult felt) til forsiden (grønt felt).', how: 'Brug den mellem bånd, kister og maskiner. Den tager kun det, målet kan bruge.', needs: 'Strøm.', tip: 'Hvis der intet er foran, lægger den tingene på jorden.' },
+    fast_inserter: { does: 'Hurtigere grabber.', how: 'Som grabberen.', needs: 'Strøm.', tip: '' },
+    long_inserter: { does: 'Grabber der rækker 2 felter.', how: 'Nyttig til at tage fra et bånd bag et andet bånd.', needs: 'Strøm.', tip: '' },
+    filter_inserter: { does: 'Grabber der kun flytter én bestemt genstand.', how: 'Klik på den og vælg filter.', needs: 'Strøm.', tip: '' },
+    smart_inserter: { does: 'Filter + grænse: stopper når målet har nok.', how: 'Klik på den, vælg filter og grænse.', needs: 'Strøm.', tip: '' },
+    stack_inserter: { does: 'Flytter mange genstande pr. greb.', how: 'Som grabberen.', needs: 'Strøm.', tip: '' },
+    wood_chest: { does: 'Opbevarer genstande (16 pladser).', how: 'Klik for at åbne. Grabbere og bor kan fylde den.', needs: '', tip: 'Sæt et bor der peger ind i en kiste for at samle malm.' },
+    steel_chest: { does: 'Stor kiste (48 pladser).', how: 'Som trækisten.', needs: '', tip: '' },
+    large_storage: { does: 'Lager med 100 pladser.', how: '', needs: '', tip: '' },
+    container: { does: 'Kæmpe lager med 200 pladser.', how: '', needs: '', tip: '' },
+    provider_chest: { does: 'Logistikdroner henter varer herfra.', how: 'Fyld den (fx med grabbere). Skal ligge i en robothavns område.', needs: 'Robothavn + logistikdroner.', tip: '' },
+    requester_chest: { does: 'Logistikdroner bringer de varer, du anmoder om.', how: 'Klik og tilføj anmodninger.', needs: 'Robothavn + logistikdroner.', tip: '' },
+    storage_chest: { does: 'Droner lægger overskud og nedrevne bygninger her.', how: '', needs: 'Robothavn.', tip: '' },
+    pipe: { does: 'Fører væsker (vand, damp, olie ...).', how: 'Byg rør mellem maskiner. De forbinder sig selv.', needs: '', tip: 'Hvert rørnetværk kan kun have én væske – hold forskellige væsker adskilt.' },
+    ug_pipe: { does: 'Rør under jorden.', how: 'Placér to der peger mod hinanden.', needs: '', tip: '' },
+    pump: { does: 'Pumper væske fra bagsiden til forsiden og adskiller rørnetværk.', how: '', needs: 'Strøm.', tip: '' },
+    storage_tank: { does: 'Lagrer 25.000 enheder væske.', how: 'Forbind med rør.', needs: '', tip: '' },
+    roboport: { does: 'Hjem for droner, som bygger, river ned, reparerer og flytter varer.', how: 'Læg byggedroner/logistikdroner i den. Placér spøgelser eller byggeplaner inden for området.', needs: 'Strøm.', tip: '' },
+    wall: { does: 'Stopper fjender.', how: 'Byg en mur foran dine tårne.', needs: '', tip: '' },
+    turret_gun: { does: 'Skyder automatisk på fjender inden for rækkevidden.', how: 'Placér den og læg patroner i (klik på den). En grabber kan holde den fyldt.', needs: 'Patroner.', tip: 'Byg flere tårne sammen – og mure foran.' },
+    turret_laser: { does: 'Lasertårn der skyder med strøm.', how: 'Placér inden for en elmasts område.', needs: 'Strøm.', tip: '' },
+    turret_cannon: { does: 'Langtrækkende kanon med områdeskade.', how: 'Fyld kanongranater i.', needs: 'Kanongranater.', tip: '' },
+    radar: { does: 'Udforsker kortet omkring sig og viser fjender i nærheden.', how: 'Placér inden for en elmasts område.', needs: 'Strøm.', tip: '' },
+    core: { does: 'Grejs-kernen – spillets store slutprojekt.', how: 'Klik og aflever materialer etape for etape.', needs: 'Enorme mængder materialer.', tip: '' },
+  };
+
+  /* ------------------------ why is it stopped? ------------------------ */
+  const FIX = {
+    nopower: 'Ingen strøm: byg en strømkilde (Kulgenerator med kul) og Træmaster, så maskinen er inde i et blåt forsyningsområde.',
+    lowpower: 'For lidt strøm: byg flere generatorer, eller læg mere brændsel i dem.',
+    nofuel: 'Intet brændsel: klik på maskinen og læg kul eller træ i brændselspladsen (eller brug en grabber fra et kulbånd).',
+    starved: 'Mangler ingredienser: fyld dem i med hånden eller brug en grabber fra et bånd eller en kiste.',
+    outfull: 'Output er fuldt: tag produkterne ud (klik på maskinen) eller sæt en grabber/et bånd til at fjerne dem.',
+    noammo: 'Tårnet mangler ammunition: klik på det og læg patroner i.',
+    depleted: 'Der er ikke mere malm under boret – flyt det til et nyt felt.',
+  };
+
+  const H = { ent: E, fix: FIX };
+  GF.HELP = H;
+
+  H.textFor = function (type) {
+    const e = E[type];
+    if (!e) return '';
+    return e.does;
+  };
+
+  /* ------------------------------ guides ------------------------------ */
+  const GUIDES = [
+    ['start', 'Kom godt i gang', `
+<p>Målet er at bygge en fabrik der laver alting selv. Du starter med hænderne og bygger dig op:</p>
+<ol>
+<li><b>Mine</b> jern, kobber, kul og sten: hold <b>venstre</b> (eller højre) museknap på malmen. Træer giver træ.</li>
+<li><b>Craft</b> med <b>C</b>: klik på en opskrift. Mangler du mellemprodukter (fx tandhjul), laves de automatisk.</li>
+<li><b>Smelt</b> malm til plader i en <b>Stenovn</b> (husk brændsel!).</li>
+<li><b>Automatisér</b>: sæt <b>kulbor</b> på malm, så de fylder ovnene selv. Brug <b>bånd</b> og <b>grabbere</b> til at flytte ting.</li>
+<li>Byg <b>strøm</b> og <b>forsk</b> (T) for at låse op for samlemaskiner og meget mere.</li>
+<li><b>Forsvar</b> fabrikken mod krybere med tårne og mure.</li>
+</ol>
+<p>Hold musen over alt – tooltips forklarer hvad ting bruges til. Maskiner med et ⚠-ikon mangler noget: hold musen over dem for at se hvad.</p>`],
+    ['chains', 'Produktionskæder', `
+<p><b>Jern:</b> jernmalm → ovn → <b>jernplade</b> → tandhjul, rør, grabbere, bånd, patroner.</p>
+<p><b>Kobber:</b> kobbermalm → ovn → <b>kobberplade</b> → kobbertråd → <b>kredsløb</b> (sammen med jernplade).</p>
+<p><b>Sten:</b> sten → stenovn, eller i ovnen → <b>mursten</b> → mure.</p>
+<p><b>Kul:</b> brændsel til ovne, bor, kedler og generatorer. Senere til plast og granater.</p>
+<p><b>Forskning:</b> kobberplade + tandhjul → <b>Tandhjulspakke</b>. Grabber + bånd → <b>Logistikpakke</b>.</p>
+<p><b>Stål:</b> 5 jernplader i en ovn → stålbjælke (kræver forskning).</p>
+<p><b>Olie:</b> olieudvinder → raffinaderi → petrogas → kemifabrik → plast → avancerede kredsløb.</p>`],
+    ['logistics', 'Bånd & grabbere', `
+<p><b>Bånd</b> flytter ting i pilens retning. Træk med musen for at bygge en linje. Et bånd der peger ind i siden af et andet bånd fletter tingene ind.</p>
+<p><b>Grabbere</b> flytter ting fra <b>bagsiden</b> (gult felt) til <b>forsiden</b> (grønt felt, pilens retning). De kan tage fra bånd, kister og maskiner og lægge i maskiner, kister og på bånd.</p>
+<p>Typisk opsætning: <b>bor → bånd → grabber → ovn → grabber → bånd → kiste</b>.</p>
+<p><b>Kulgrabberen</b> virker uden strøm – den spiser selv lidt kul. Almindelige grabbere kræver strøm.</p>
+<p>Bor kan også spytte malm direkte ind i en ovn eller kiste lige foran sig.</p>`],
+    ['power', 'Strøm', `
+<p>1) Byg en <b>Kulgenerator</b> og læg kul i. 2) Byg <b>Træmaster</b> i en kæde (højst 7,5 felter mellem dem) hen til maskinerne. 3) Maskiner inde i det <b>blå område</b> omkring en mast får strøm.</p>
+<p>Top-bjælken viser produktion / behov. Er behovet større end produktionen, arbejder alt langsommere. Tryk <b>P</b> for detaljer.</p>
+<p>Senere: vandpumpe → kedel → dampmaskine (billigere strøm), solpaneler, akkumulatorer og grejsiumreaktoren.</p>`],
+    ['research', 'Forskning', `
+<p>Byg et <b>Forskningslab</b> med strøm og læg <b>forskningspakker</b> i. Tryk <b>T</b> og vælg en teknologi.</p>
+<p>Første mål: <b>Automatisering</b> (samlemaskiner), <b>Logistik</b> (splittere, underjordiske bånd) og <b>Logistikforskning</b> (grønne pakker).</p>
+<p>Automatisér produktionen af forskningspakker med samlemaskiner – så kører forskningen af sig selv.</p>`],
+    ['defense', 'Fjender & forsvar', `
+<p><b>Krybere</b> bor i reder langt fra startområdet. Din fabriks <b>larm</b> (røg/forurening) gør dem vrede, og så angriber de.</p>
+<p>Byg <b>Maskingeværtårne</b> med patroner og <b>mure</b> omkring fabrikken. Hold tårnene fyldt med grabbere.</p>
+<p>Du kan selv skyde med <b>mellemrum</b> eller ved at klikke på fjender. Ødelæg reder for at stoppe angrebene.</p>`],
+  ];
+
+  /* ------------------------------ window ------------------------------ */
+  const HW = { tab: 'start', sel: null };
+  GF.WIN.help = {
+    title: '❓ Hjælp & leksikon',
+    cls: 'w-help',
+    onOpen(arg) { if (arg && E[arg]) { HW.tab = 'buildings'; HW.sel = arg; } else if (arg && GUIDES.find((g) => g[0] === arg)) HW.tab = arg; },
+    sig: () => HW.tab + '|' + HW.sel,
+    render() {
+      let h = '<div class="help-wrap"><div class="help-nav">';
+      GUIDES.forEach(([k, n]) => { h += '<button class="hnav ' + (HW.tab === k ? 'on' : '') + '" data-a="htab" data-t="' + k + '">' + n + '</button>'; });
+      h += '<button class="hnav ' + (HW.tab === 'buildings' ? 'on' : '') + '" data-a="htab" data-t="buildings">Alle bygninger</button></div><div class="help-body scroll">';
+      if (HW.tab === 'buildings') {
+        const sel = HW.sel && E[HW.sel] ? HW.sel : null;
+        if (sel) h += H.detailHtml(sel) + '<div class="btn-row"><button class="btn sm" data-a="hback">← Alle bygninger</button></div>';
+        else {
+          GF.GROUPS.forEach(([g, n]) => {
+            const ids = Object.keys(E).filter((id) => GF.DEFS[id] && GF.DEFS[id].group === g);
+            if (!ids.length) return;
+            h += '<div class="sec-title">' + n + '</div><div class="help-list">' + ids.map((id) => '<div class="help-item" data-a="hsel" data-id="' + id + '">' + GF.Icons.html(id) + '<div><b>' + esc(GF.DEFS[id].name) + '</b><span>' + esc(E[id].does) + '</span></div></div>').join('') + '</div>';
+          });
+        }
+      } else {
+        const g = GUIDES.find((x) => x[0] === HW.tab);
+        h += '<h3>' + g[1] + '</h3>' + g[2];
+      }
+      return h + '</div></div>';
+    },
+    action(a, ds) {
+      if (a === 'htab') { HW.tab = ds.t; HW.sel = null; }
+      else if (a === 'hsel') HW.sel = ds.id;
+      else if (a === 'hback') HW.sel = null;
+    },
+  };
+
+  /** full description block for a building */
+  H.detailHtml = function (id) {
+    const e = E[id], d = GF.DEFS[id];
+    if (!e || !d) return '';
+    const r = GF.Craft.recipeFor(id) || GF.RECIPES[id];
+    let h = '<div class="help-detail"><div class="hd-title">' + GF.Icons.html(id) + '<b>' + esc(d.name) + '</b></div>';
+    h += '<p><b>Bruges til:</b> ' + esc(e.does) + '</p>';
+    if (e.how) h += '<p><b>Sådan:</b> ' + esc(e.how) + '</p>';
+    if (e.needs) h += '<p><b>Kræver:</b> ' + esc(e.needs) + '</p>';
+    if (e.tip) h += '<p class="tipline">💡 ' + esc(e.tip) + '</p>';
+    if (r) h += '<p><b>Opskrift:</b> ' + Object.keys(r.in).map((k) => r.in[k] + '× ' + esc(GF.itemName(k))).join(', ') + (GF.Craft.isUnlocked(r.id) ? '' : ' <span class="bad">(kræver forskning)</span>') + '</p>';
+    return h + '</div>';
+  };
+
+  /** short "how to use" block for machine windows */
+  H.entityBox = function (e) {
+    const x = E[e.type];
+    if (!x) return '';
+    let h = '<div class="howto"><b>Bruges til:</b> ' + esc(x.does) + (x.how ? '<br><b>Sådan:</b> ' + esc(x.how) : '') + (x.needs ? '<br><b>Kræver:</b> ' + esc(x.needs) : '') + '</div>';
+    if (e.warn && FIX[e.warn]) h += '<div class="fixbox">⚠ ' + esc(FIX[e.warn]) + '</div>';
+    return h;
+  };
+})(window.GF);
+
+</script>
+<script>
+/* =====================================================================
  * GREJS FACTORY — menu.js
  * Main menu (new game / continue / load / settings / controls /
  * credits), world-generation setup with map preview, and the animated
@@ -9906,8 +10384,7 @@ window.GF = window.GF || {};
         '<button class="btn big" data-mm="load">Load game</button>' +
         '<button class="btn big" data-mm="settings">Indstillinger</button>' +
         '<button class="btn big" data-mm="controls">Controls</button>' +
-        '<button class="btn big" data-mm="credits">Credits</button>' +
-        '<a class="btn big alley-back" href="GREJSALLEY.html">← Grejs Alley</a></div>' +
+        '<button class="btn big" data-mm="credits">Credits</button></div>' +
         '<div class="menu-foot">Grejs Factory v1.0 · Et originalt browser-fabriksspil · Kører 100% i din browser</div>';
     } else if (M.screen === 'new') {
       const ng = M.ng || (M.ng = { name: 'Min fabrik', seedStr: 'GREJS2026', size: '1024', resAmount: '1', resDensity: '1', enemyActivity: '1', enemyStrength: '1', start: 'normal', dayNight: 'true', dayLen: '600', difficulty: 'normal', tutorial: 'true' });
@@ -10196,11 +10673,19 @@ window.GF = window.GF || {};
   G.darkness = () => (1 - G.daylight()) * 0.82;
 
   /* ----------------------------- items ----------------------------- */
-  G.dropItem = function (x, y, id, n) {
+  G.dropItem = function (x, y, id, n, exact) {
     if (!id || n <= 0) return;
     for (const g of G.groundItems) if (g.id === id && Math.abs(g.x - x) < 0.6 && Math.abs(g.y - y) < 0.6) { g.n += n; return; }
-    G.groundItems.push({ id, n, x: x + (Math.random() - 0.5) * 0.4, y: y + (Math.random() - 0.5) * 0.4 });
+    const j = exact ? 0 : 0.4;
+    G.groundItems.push({ id, n, x: x + (Math.random() - 0.5) * j, y: y + (Math.random() - 0.5) * j });
     if (G.groundItems.length > 3000) G.groundItems.shift();
+  };
+
+  /** number of dropped items lying on tile (tx,ty) */
+  G.groundCount = function (tx, ty) {
+    let n = 0;
+    for (const g of G.groundItems) if (Math.floor(g.x) === tx && Math.floor(g.y) === ty) n += g.n;
+    return n;
   };
 
   /* -------------------------- reset / setup -------------------------- */
@@ -10297,7 +10782,10 @@ window.GF = window.GF || {};
     for (let i = 0; i < ups.length; i++) {
       const e = ups[i];
       if (e.dead) continue;
-      GF.Kinds[e.kind].update(e, dt);
+      try { GF.Kinds[e.kind].update(e, dt); } catch (err) {
+        // never let one broken entity stop the whole factory
+        if (!G._entErr) { G._entErr = true; console.error('[entity ' + e.type + ']', err); }
+      }
     }
     GF.Logistics.update(dt);
     GF.Enemies.update(dt);
