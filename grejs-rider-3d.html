@@ -304,6 +304,17 @@ body { position: fixed; inset: 0; }
 #screen-menu .mountains { height: 26vh; opacity: 0.8; }
 .menu-topbar, .menu-header, .menu-buttons, .menu-highscore { position: relative; z-index: 1; }
 .menu-topbar { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+.menu-top-right { display: flex; align-items: center; gap: 10px; }
+.alley-back {
+  display: inline-flex; align-items: center; height: 40px; padding: 0 16px;
+  border-radius: 999px; border: 2px solid var(--line); background: rgba(8, 20, 46, 0.7);
+  color: var(--white); text-decoration: none; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.06em;
+  white-space: nowrap; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  transition: border-color 0.2s ease, transform 0.14s ease;
+}
+.alley-back:hover { border-color: #5ee6ff; transform: translateY(-1px); }
+.alley-back:focus-visible { outline: 2px solid #5ee6ff; outline-offset: 2px; }
+@media (max-width: 420px) { .alley-back { padding: 0 12px; font-size: 0.75rem; } }
 .menu-level { display: flex; align-items: center; gap: 10px; }
 .level-badge {
   font-family: var(--font-title);
@@ -834,7 +845,10 @@ input[type='range']::-moz-range-thumb { width: 20px; height: 20px; border-radius
             <span id="menu-xp-text" class="xp-text">0 / 150 XP</span>
           </div>
         </div>
-        <button id="btn-mute" class="icon-btn" aria-label="Mute sound">🔊</button>
+        <div class="menu-top-right">
+          <a class="alley-back" href="GREJSALLEY.html" aria-label="Tilbage til Grejs Alley">← Grejs Alley</a>
+          <button id="btn-mute" class="icon-btn" aria-label="Mute sound">🔊</button>
+        </div>
       </div>
       <header class="menu-header">
         <h1 class="logo">
