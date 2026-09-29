@@ -598,6 +598,19 @@
       ctx.fillStyle=COL.cyan; roundRect(ctx,0*u,-2.15*u,0.75*u,0.4*u,u*0.15); ctx.fill();
       ctx.fillStyle="#2b6cff"; ctx.save(); ctx.translate(0.6*u,-0.9*u); ctx.rotate(-0.5); ctx.fillRect(0,-0.2*u,1.3*u,0.4*u); ctx.restore();
     }
+    else if(g==="grejsheroes"){
+      /* chunky knight head with plume, shield and a bouncing ball */
+      ctx.fillStyle=COL.violet; ctx.beginPath(); ctx.moveTo(-0.2*u,-2.3*u); ctx.quadraticCurveTo(1.2*u,-3.6*u,2.3*u,-2.6*u); ctx.quadraticCurveTo(1.2*u,-2.4*u,0.4*u,-2*u); ctx.closePath(); ctx.fill();
+      ctx.fillStyle="#f2c29a"; ctx.beginPath(); ctx.arc(0.3*u,-0.4*u,1.55*u,0,7); ctx.fill();
+      ctx.fillStyle="#b9c6db"; ctx.beginPath(); ctx.arc(0.3*u,-0.6*u,1.75*u,Math.PI,0); ctx.lineTo(2.05*u,0); ctx.lineTo(1.2*u,-0.6*u); ctx.lineTo(-0.6*u,-0.6*u); ctx.lineTo(-1.45*u,0); ctx.closePath(); ctx.fill();
+      ctx.fillRect(0.1*u,-1*u,0.4*u,1.2*u);
+      ctx.fillStyle=COL.bg; ctx.beginPath(); ctx.arc(-0.35*u,-0.05*u,u*0.2,0,7); ctx.arc(0.95*u,-0.05*u,u*0.2,0,7); ctx.fill();
+      ctx.fillStyle="#b9c6db"; roundRect(ctx,-0.9*u,1.1*u,2.4*u,1.7*u,u*0.5); ctx.fill();
+      ctx.fillStyle="#2f6fe0"; ctx.beginPath(); ctx.moveTo(-3*u,0.4*u); ctx.lineTo(-0.9*u,0.4*u); ctx.lineTo(-0.9*u,1.8*u); ctx.quadraticCurveTo(-1.1*u,2.9*u,-1.95*u,3.3*u); ctx.quadraticCurveTo(-2.8*u,2.9*u,-3*u,1.8*u); ctx.closePath(); ctx.fill();
+      ctx.fillStyle=COL.amber; ctx.font=`bold ${s*0.14}px "Bungee",sans-serif`; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("G",-1.95*u,1.75*u);
+      ctx.fillStyle=COL.amber; ctx.beginPath(); ctx.arc(2.6*u,1.8*u,u*0.5,0,7); ctx.fill();
+      ctx.fillStyle="rgba(255,210,80,.35)"; [[2.1,1.1,0.3],[1.7,0.5,0.22]].forEach(([x,y,r])=>{ ctx.beginPath(); ctx.arc(x*u,y*u,r*u,0,7); ctx.fill(); });
+    }
     else if(g==="grejscombat"){
       /* tank with turret on a sand strip, flag */
       ctx.fillStyle="#3b3524"; ctx.fillRect(-3.4*u,1.6*u,6.8*u,1.4*u);
@@ -771,6 +784,11 @@
   G({ id:"grejsjetpack", name:"Grejs Jetpack", tag:"arcade", href:"grejs-jetpack.html", isNew:true,
     desc:"Hurtigt jetpack-arcadespil — flyv gennem laboratoriet, undgå lasere og missiler, saml mønter og lås upgrades, power-ups og køretøjer op. Opens in its own page.",
     hint:"Hold Space / klik / tryk for at flyve" });
+
+  /* ---------------- GREJS HEROES (external page) ---------------- */
+  G({ id:"grejsheroes", name:"Grejs Heroes", tag:"arcade", href:"Grejs_Heroes.html", isNew:true,
+    desc:"Action-RPG med helte, hoppende kugler og bosser — kæmp gennem seks verdener, vælg upgrades og red Queen Langvad fra The Dark Grejs King. Opens in its own page.",
+    hint:"Træk for at flytte heltene · tap for specialangreb" });
 
   /* ---------------- GREJS COMBAT (external page) ---------------- */
   G({ id:"grejscombat", name:"Grejs Combat", tag:"classic", href:"grejs-combat.html", isNew:true,
