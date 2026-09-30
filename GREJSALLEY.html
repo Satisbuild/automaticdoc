@@ -653,6 +653,29 @@
       }
       ctx.strokeStyle="#fff"; ctx.lineWidth=s*0.025; roundRect(ctx,-2.9*u,-1*u,5.8*u,2*u,u*0.5); ctx.stroke();
     }
+    else if(g==="grejstanks"){
+      /* green hills with a crater, a tank firing along a dotted arc into an explosion */
+      ctx.fillStyle="#6b4424"; ctx.beginPath(); ctx.moveTo(-3.8*u,3.8*u); ctx.lineTo(-3.8*u,1.4*u);
+      ctx.quadraticCurveTo(-1.5*u,0.9*u,0.4*u,1.5*u); ctx.quadraticCurveTo(2*u,2*u,3.8*u,1.1*u); ctx.lineTo(3.8*u,3.8*u); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle=COL.green; ctx.lineWidth=s*0.035; ctx.beginPath(); ctx.moveTo(-3.8*u,1.4*u);
+      ctx.quadraticCurveTo(-1.5*u,0.9*u,0.4*u,1.5*u); ctx.quadraticCurveTo(2*u,2*u,3.8*u,1.1*u); ctx.stroke();
+      ctx.fillStyle=COL.bg; ctx.beginPath(); ctx.arc(2.3*u,1.75*u,u*0.75,0,Math.PI); ctx.fill();
+      /* tank */
+      ctx.fillStyle="#2a2833"; roundRect(ctx,-3.1*u,0.55*u,2.4*u,0.6*u,u*0.3); ctx.fill();
+      ctx.fillStyle=COL.green; ctx.beginPath(); ctx.moveTo(-3.05*u,0.6*u); ctx.lineTo(-2.95*u,0.05*u); ctx.lineTo(-0.95*u,0.05*u); ctx.lineTo(-0.7*u,0.6*u); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.arc(-1.95*u,0.05*u,u*0.5,Math.PI,0); ctx.fill();
+      ctx.strokeStyle="#cfd3dc"; ctx.lineWidth=s*0.03; ctx.beginPath(); ctx.moveTo(-1.85*u,-0.15*u); ctx.lineTo(-0.9*u,-0.95*u); ctx.stroke();
+      ctx.fillStyle="#cfd3dc"; [-2.7,-2.15,-1.6,-1.05].forEach(x=>{ ctx.beginPath(); ctx.arc(x*u,0.85*u,u*0.15,0,7); ctx.fill(); });
+      /* dotted trajectory */
+      ctx.fillStyle="rgba(255,255,255,.6)";
+      for(let i=1;i<=7;i++){ const t=i/8, x=-0.7*u+t*3.1*u, y=-1.1*u-Math.sin(t*Math.PI)*1.9*u+t*2.6*u; ctx.beginPath(); ctx.arc(x,y,u*0.09,0,7); ctx.fill(); }
+      /* explosion */
+      ctx.shadowColor=COL.amber; ctx.shadowBlur=s*0.08;
+      ctx.fillStyle=COL.coral; ctx.beginPath();
+      for(let i=0;i<16;i++){ const a=i/16*Math.PI*2, r=(i%2?0.55:1.05)*u; ctx.lineTo(2.3*u+Math.cos(a)*r,1.35*u+Math.sin(a)*r); }
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle=COL.amber; ctx.beginPath(); ctx.arc(2.3*u,1.35*u,u*0.4,0,7); ctx.fill(); ctx.shadowBlur=0;
+    }
     else if(g==="grejsnights"){
       /* launcher at top, dotted aim line, bouncing ball and rows of orange/blue pegs */
       ctx.fillStyle="#6b5bd6"; ctx.beginPath(); ctx.arc(0,-2.6*u,u*0.7,Math.PI,0); ctx.fill();
@@ -767,6 +790,11 @@
   G({ id:"grejsnights", name:"Grejs Nights", tag:"arcade", href:"grejs-nights.html", isNew:true,
     desc:"Farverigt fysik-puslespil — sigt, skyd og lad kuglen hoppe rundt mellem pegs. Ryd alle de orange for at klare banen. 100 levels, kampagne og figurer at låse op. Opens in its own page.",
     hint:"Sigt med mus / touch, klik for at skyde" });
+
+  /* ---------------- GREJS TANKS (external page) ---------------- */
+  G({ id:"grejstanks", name:"Grejs Tanks", tag:"arcade", href:"grejs-tanks.html", isNew:true,
+    desc:"Turbaseret tank-artilleri med ødelæggeligt terræn — 60 tanks, 40 våben, 10 verdener og 150 baner med bosser, opgraderinger og daglige udfordringer. Opens in its own page.",
+    hint:"Træk for at sigte · FIRE for at skyde · A/D kør" });
 
   /* ---------------- 8-BALL ONLINE (external site) ---------------- */
   G({ id:"eightball", name:"8-Ball Online", tag:"classic", href:"https://ball.systematisk.dk/", isNew:true,
