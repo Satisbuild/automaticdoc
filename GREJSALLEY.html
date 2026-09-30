@@ -653,6 +653,24 @@
       }
       ctx.strokeStyle="#fff"; ctx.lineWidth=s*0.025; roundRect(ctx,-2.9*u,-1*u,5.8*u,2*u,u*0.5); ctx.stroke();
     }
+    else if(g==="grejsnights"){
+      /* launcher at top, dotted aim line, bouncing ball and rows of orange/blue pegs */
+      ctx.fillStyle="#6b5bd6"; ctx.beginPath(); ctx.arc(0,-2.6*u,u*0.7,Math.PI,0); ctx.fill();
+      ctx.fillStyle="#8f80ff"; roundRect(ctx,-0.28*u,-2.7*u,0.56*u,1.1*u,u*0.2); ctx.fill();
+      ctx.fillStyle="rgba(255,255,255,.55)"; for(let i=1;i<=4;i++){ const t=i/5; ctx.beginPath(); ctx.arc(t*1.9*u,(-1.6+t*1.3+t*t*0.6)*u,u*0.1,0,7); ctx.fill(); }
+      ctx.fillStyle="#fff"; ctx.shadowColor="#fff"; ctx.shadowBlur=s*0.06; ctx.beginPath(); ctx.arc(2.1*u,0.25*u,u*0.32,0,7); ctx.fill(); ctx.shadowBlur=0;
+      const rows=[[-2.8,0.9],[-1.4,0.55],[0,0.4],[1.4,0.55],[2.8,0.9]];
+      const pegs=[];
+      rows.forEach(([x,y])=>{ pegs.push([x,y]); pegs.push([x+0.7,y+1.2]); });
+      pegs.forEach(([x,y],i)=>{
+        if(x>3.3) return;
+        const orange=(i%3!==1);
+        ctx.fillStyle=orange?"#ff7b16":"#3d8bff";
+        ctx.shadowColor=ctx.fillStyle; ctx.shadowBlur=s*0.05;
+        ctx.beginPath(); ctx.arc(x*u,y*u,u*0.34,0,7); ctx.fill();
+        ctx.shadowBlur=0; ctx.fillStyle="rgba(255,255,255,.45)"; ctx.beginPath(); ctx.arc((x-0.1)*u,(y-0.1)*u,u*0.1,0,7); ctx.fill();
+      });
+    }
     else if(g==="neonsnake"){
       ctx.strokeStyle=COL.cyan; ctx.lineWidth=s*0.09; ctx.lineCap="round"; ctx.lineJoin="round";
       ctx.shadowColor=COL.cyan; ctx.shadowBlur=s*0.12;
@@ -811,6 +829,11 @@
   G({ id:"grejscrush", name:"Grejs Crush", tag:"puzzle", href:"grejs-crush.html", isNew:true,
     desc:"Match-3 i slik-stil — byt brikker, lav kombinationer og specialbrikker, klar målene og ryk videre på verdenskortet. Opens in its own page.",
     hint:"Swipe / træk for at bytte brikker" });
+
+  /* ---------------- GREJS NIGHTS (external page) ---------------- */
+  G({ id:"grejsnights", name:"Grejs Nights", tag:"arcade", href:"grejs-nights.html", isNew:true,
+    desc:"Farverigt fysik-puslespil — sigt, skyd og lad kuglen hoppe rundt mellem pegs. Ryd alle de orange for at klare banen. 100 levels, kampagne og figurer at låse op. Opens in its own page.",
+    hint:"Sigt med mus / touch, klik for at skyde" });
 
   /* ---------------- 8-BALL ONLINE (external site) ---------------- */
   G({ id:"eightball", name:"8-Ball Online", tag:"classic", href:"https://ball.systematisk.dk/", isNew:true,
