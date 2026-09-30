@@ -1,0 +1,1700 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Automatikhjælpemidler</title>
+<meta name="description" content="El, motor, kabeldimensionering, hydraulik, pneumatik og talsystemer samlet i én værktøjskasse for automatikteknikere.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2322272A'/%3E%3Cpath d='M6 16c3-8 6-8 10 0s7 8 10 0' fill='none' stroke='%23FFB547' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>try{var t=localStorage.getItem('ah-tema');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<style>
+/* =========================================================
+   Tema — tavlegrå (RAL 7035), monteringsplade, panelinstrument
+   ========================================================= */
+:root{
+  --sans:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --cond:"Barlow Semi Condensed","Barlow",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  --bg:#D4D7D2; --side:#E3E5E1; --plate:#F2F3F0; --field:#FFFFFF;
+  --line:#C9CDC7; --line-2:#A9AEA8;
+  --ink:#22272A; --muted:#545C61; --faint:#80888D;
+  --blue:#1D58A6; --blue-soft:rgba(29,88,166,.14); --calc-bg:#E3EBF5;
+  --ok:#2B8A43; --bad:#B3261E; --bad-soft:rgba(179,38,30,.08);
+  --sel-bg:#22272A; --sel-ink:#F2F3F0;
+  --hole:#2A2F33; --rail-a:#F1F2F0; --rail-b:#A6ABA5;
+  --lcd:#12171A; --lcd-2:#182024; --lcd-line:#28323A; --lcd-k:#8E9AA1; --lcd-ink:#DCE2E5;
+  --led:#FFB547; --led-dim:#6A5331; --led-glow:rgba(255,181,71,.32);
+  --lift:0 1px 0 rgba(255,255,255,.7) inset, 0 1px 2px rgba(20,24,26,.06), 0 12px 28px -22px rgba(20,24,26,.35);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161A1D; --side:#111416; --plate:#1E2327; --field:#15191C;
+    --line:#2C3338; --line-2:#3F484F;
+    --ink:#E3E6E2; --muted:#A0A8AD; --faint:#6F787E;
+    --blue:#6FA8F2; --blue-soft:rgba(111,168,242,.16); --calc-bg:#1A2633;
+    --ok:#5BC77A; --bad:#FF8176; --bad-soft:rgba(255,129,118,.08);
+    --sel-bg:#E3E6E2; --sel-ink:#161A1D;
+    --hole:#0A0C0E; --rail-a:#4C535A; --rail-b:#252A2F;
+    --lcd:#0B0E10; --lcd-2:#11171A; --lcd-line:#232C32;
+    --lift:0 1px 0 rgba(255,255,255,.03) inset, 0 14px 30px -22px rgba(0,0,0,.8);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161A1D; --side:#111416; --plate:#1E2327; --field:#15191C;
+  --line:#2C3338; --line-2:#3F484F;
+  --ink:#E3E6E2; --muted:#A0A8AD; --faint:#6F787E;
+  --blue:#6FA8F2; --blue-soft:rgba(111,168,242,.16); --calc-bg:#1A2633;
+  --ok:#5BC77A; --bad:#FF8176; --bad-soft:rgba(255,129,118,.08);
+  --sel-bg:#E3E6E2; --sel-ink:#161A1D;
+  --hole:#0A0C0E; --rail-a:#4C535A; --rail-b:#252A2F;
+  --lcd:#0B0E10; --lcd-2:#11171A; --lcd-line:#232C32;
+  --lift:0 1px 0 rgba(255,255,255,.03) inset, 0 14px 30px -22px rgba(0,0,0,.8);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button,input,select,textarea{font:inherit;color:inherit}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+kbd{font:500 .72rem var(--mono);border:1px solid var(--line-2);border-bottom-width:2px;border-radius:3px;padding:0 4px;color:var(--muted);background:var(--field)}
+
+/* ---------- ramme ---------- */
+.app{display:grid;grid-template-columns:252px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;background:var(--side);border-right:1px solid var(--line);padding:18px 12px 16px}
+.brand-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 6px;margin-bottom:22px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);min-width:0}
+.mark{width:34px;height:34px;flex:none}
+.mark rect{fill:var(--sel-bg)}
+.mark path{fill:none;stroke:var(--led);stroke-width:2.6;stroke-linecap:round}
+.brand b{display:block;font:700 1.08rem/1.05 var(--cond);letter-spacing:-.005em}
+.brand small{display:block;font-size:.78rem;color:var(--faint);margin-top:2px}
+.back{display:flex;align-items:center;gap:8px;margin:0 0 16px;padding:7px 10px;border:1px solid var(--line-2);border-radius:4px;background:var(--field);color:var(--muted);text-decoration:none;font-size:.9rem;font-weight:500}
+.back:hover{color:var(--ink);border-color:var(--ink)}
+.back svg,.backbtn svg{width:16px;height:16px;flex:none}
+.backbtn{display:none;flex:none;width:32px;height:32px;place-items:center;border:1px solid var(--line-2);border-radius:4px;background:var(--field);color:var(--muted)}
+.backbtn:hover{color:var(--ink);border-color:var(--ink)}
+.side-btns{display:flex;gap:6px;flex:none}
+.themebtn{flex:none;width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line-2);border-radius:4px;background:var(--field);color:var(--muted);cursor:pointer}
+.themebtn:hover{color:var(--ink);border-color:var(--ink)}
+.themebtn svg{width:17px;height:17px}
+
+.nav{display:flex;flex-direction:column;gap:1px}
+.nav a{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:4px;color:var(--muted);text-decoration:none;font-weight:500;font-size:.96rem;position:relative}
+.nav a:hover{color:var(--ink);background:rgba(127,135,140,.1)}
+.nav a[aria-current="page"]{color:var(--ink);background:var(--plate);box-shadow:var(--lift)}
+.nav .k{margin-left:auto;font:500 .7rem var(--mono);color:var(--faint)}
+.wire{flex:none;width:18px;height:6px;border-radius:3px;background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0) 60%),var(--w,var(--line-2));box-shadow:inset 0 0 0 1px rgba(0,0,0,.18),0 0 0 1px rgba(255,255,255,.14)}
+.side-foot{margin-top:auto;padding:14px 8px 0;border-top:1px solid var(--line);font-size:.8rem;color:var(--faint);line-height:1.6}
+
+.main{min-width:0}
+.wrap{max-width:1180px;margin:0 auto;padding:40px 40px 32px}
+
+/* ---------- visning ---------- */
+.view{animation:vin .28s ease-out both}
+@keyframes vin{from{opacity:0;transform:translateY(4px)}}
+.vh{margin-bottom:26px;padding-left:18px;position:relative}
+.vh::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:6px;border-radius:3px;background:linear-gradient(90deg,rgba(255,255,255,.35),rgba(255,255,255,0) 60%),var(--w);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+h1{font:600 clamp(2rem,3.6vw,2.7rem)/1.05 var(--cond);letter-spacing:-.015em;margin:0 0 8px;overflow-wrap:break-word;hyphens:manual}
+.lead{margin:0;max-width:64ch;color:var(--muted);font-size:1.02rem}
+.fstrip{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.fstrip code{font:400 .8rem var(--mono);padding:3px 9px;border:1px solid var(--line-2);border-radius:3px;background:var(--plate);color:var(--ink)}
+
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));align-items:start}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,410px);gap:18px;align-items:start}
+.stack{display:grid;gap:18px;min-width:0}
+.sticky{position:sticky;top:24px}
+@media (max-width:1080px){.split{grid-template-columns:minmax(0,1fr)}.sticky{position:static}}
+
+/* ---------- plade ---------- */
+.plate{background:var(--plate);border:1px solid var(--line-2);border-radius:5px;box-shadow:var(--lift);min-width:0}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px 0}
+.ph h2{margin:0;font:600 1.18rem/1.2 var(--cond);letter-spacing:-.005em}
+.ph .note{font-size:.82rem;color:var(--faint)}
+.sec{padding:16px 18px 18px}
+.sec + .sec{border-top:1px solid var(--line)}
+.hint{margin:10px 0 0;font-size:.84rem;color:var(--muted)}
+.hint.top{margin:0 0 14px}
+.msg{margin:0 18px 16px;padding:9px 12px;border-left:3px solid var(--bad);background:var(--bad-soft);color:var(--bad);font-size:.88rem;border-radius:0 3px 3px 0}
+.msg:empty{display:none}
+
+/* ---------- felter ---------- */
+.fg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.fg.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:560px){.fg,.fg.c3{grid-template-columns:1fr}}
+.fg + .fg{margin-top:14px}
+.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
+.lbl{display:flex;align-items:baseline;gap:6px;font-size:.88rem;font-weight:500;color:var(--muted)}
+.lbl i{font:italic 500 .92rem var(--sans);color:var(--ink)}
+.lbl em{display:none;margin-left:auto;font-style:normal;font-size:.76rem;color:var(--blue)}
+.inp{display:flex;align-items:center;background:var(--field);border:1px solid var(--line-2);border-radius:3px;transition:border-color .12s,box-shadow .12s}
+.inp:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.inp input{flex:1;min-width:0;border:0;outline:0;background:transparent;padding:9px 11px;font:500 1.1rem var(--cond);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.inp input::placeholder{color:var(--faint);opacity:.7;font-weight:400}
+.inp .u{padding-right:11px;font-size:.88rem;color:var(--faint);white-space:nowrap}
+.fld.is-calc .inp{background:var(--calc-bg);border-style:dashed;border-color:var(--blue)}
+.fld.is-calc input{color:var(--blue)}
+.fld.is-calc .lbl em{display:inline}
+.fld.bad .inp{border-color:var(--bad)}
+
+.selw{position:relative}
+.selw::after{content:"";position:absolute;right:13px;top:50%;width:7px;height:7px;border-right:1.6px solid var(--muted);border-bottom:1.6px solid var(--muted);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.sel{appearance:none;-webkit-appearance:none;width:100%;background:var(--field);border:1px solid var(--line-2);border-radius:3px;padding:10px 34px 10px 11px;font:500 .94rem var(--sans);cursor:pointer}
+.sel:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.sel option{background:var(--plate);color:var(--ink)}
+
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line-2);border-radius:3px;background:var(--field);overflow:hidden}
+.seg label,.seg button{position:relative;padding:7px 14px;font:500 .92rem var(--sans);color:var(--muted);cursor:pointer;background:transparent;border:0;border-left:1px solid var(--line)}
+.seg > :first-child{border-left:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked),.seg button[aria-pressed="true"]{background:var(--sel-bg);color:var(--sel-ink)}
+.seg label:has(input:focus-visible){outline:2px solid var(--blue);outline-offset:-3px}
+.seg button:disabled{opacity:.35;cursor:not-allowed}
+.seg button{font-family:var(--cond);font-variant-numeric:tabular-nums}
+
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.opts{grid-template-columns:1fr}}
+.opt{position:relative;display:block;padding:10px 12px 11px;border:1px solid var(--line-2);border-radius:3px;background:var(--field);cursor:pointer}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt b{display:block;font:600 1.05rem/1.2 var(--cond)}
+.opt span{display:block;font-size:.84rem;color:var(--muted);line-height:1.35;margin-top:2px}
+.opt:hover{border-color:var(--muted)}
+.opt:has(input:checked){border-color:var(--sel-bg);box-shadow:inset 0 0 0 1px var(--sel-bg)}
+.opt:has(input:checked) b::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-left:8px;vertical-align:middle;box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 25%,transparent)}
+.opt:has(input:focus-visible){outline:2px solid var(--blue);outline-offset:2px}
+
+.tgl{display:flex;align-items:center;gap:11px;cursor:pointer;font-weight:500;user-select:none}
+.sw{appearance:none;-webkit-appearance:none;flex:none;margin:0;width:38px;height:22px;border-radius:11px;background:var(--line-2);position:relative;cursor:pointer;transition:background .15s}
+.sw::before{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--field);box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
+.sw:checked{background:var(--ok)}
+.sw:checked::before{transform:translateX(16px)}
+
+.btn{font:500 .88rem var(--sans);padding:6px 12px;border:1px solid var(--line-2);border-radius:3px;background:var(--field);color:var(--ink);cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--ink)}
+.btn.pri{background:var(--sel-bg);color:var(--sel-ink);border-color:var(--sel-bg)}
+.btn.pri:hover{opacity:.9}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 .86rem var(--cond);font-variant-numeric:tabular-nums;padding:3px 9px;border-radius:3px;border:1px solid var(--line-2);background:var(--field);color:var(--muted);cursor:pointer}
+.chip:hover{color:var(--ink);border-color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--sel-bg);color:var(--sel-ink);border-color:var(--sel-bg)}
+
+/* ---------- panelinstrument ---------- */
+.disp{margin:0 18px 18px;background:var(--lcd);border-radius:4px;padding:5px;box-shadow:inset 0 0 0 1px var(--lcd-line),inset 0 10px 26px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.4)}
+.disp-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--lcd-line);border-radius:3px;overflow:hidden}
+.disp-g.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:760px){.disp-g.c4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rd{background:var(--lcd-2);padding:11px 14px 12px;min-width:0}
+.rd.hero{grid-column:1/-1;padding:15px 16px 17px}
+.rd .k{font-size:.82rem;color:var(--lcd-k)}
+.rd .v{font:500 1.7rem/1.1 var(--cond);color:var(--led);font-variant-numeric:tabular-nums;text-shadow:0 0 14px var(--led-glow);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rd.hero .v{font-size:clamp(2.2rem,4vw,2.9rem)}
+.rd .v small{font-size:.55em;margin-left:5px;opacity:.72;text-shadow:none;font-weight:500}
+.rd .v.na{color:var(--led-dim);text-shadow:none}
+.rd .s{font-size:.8rem;color:var(--lcd-k);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---------- udregning ---------- */
+.calcw{position:relative;border-top:1px solid var(--line)}
+pre.calc{margin:0;padding:14px 92px 16px 18px;font:400 .8rem/1.8 var(--mono);color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;min-height:3.2em}
+pre.calc b{color:var(--ink);font-weight:500}
+pre.calc .dim{color:var(--faint)}
+.calcw .cp{position:absolute;top:10px;right:12px;padding:4px 10px;font-size:.8rem}
+
+/* ---------- tabeller ---------- */
+.dt{width:100%;border-collapse:collapse}
+.dt th,.dt td{padding:9px 18px;text-align:right;border-top:1px solid var(--line)}
+.dt thead th{border-top:0;font:600 .95rem var(--cond);color:var(--ink);padding-top:4px}
+.dt thead th span{font-weight:500;color:var(--faint)}
+.dt td:first-child,.dt th:first-child{text-align:left;color:var(--muted);font-size:.9rem;font-family:var(--sans)}
+.dt td{font:500 1.06rem var(--cond);font-variant-numeric:tabular-nums}
+.dt td small{font-size:.78em;color:var(--faint);margin-left:4px;font-weight:500}
+.dt tr.em td:not(:first-child){color:var(--ink);font-weight:600}
+@media (max-width:560px){.dt th,.dt td{padding:8px 12px}}
+
+.tabs{display:flex;overflow-x:auto;gap:2px;border-bottom:1px solid var(--line);padding:0 12px;scrollbar-width:thin}
+.tabs button{flex:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:13px 10px 11px;color:var(--muted);font:500 .9rem var(--sans);cursor:pointer;white-space:nowrap}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.tabpanel{padding:18px;overflow-x:auto}
+.tabpanel h3{margin:0 0 3px;font:600 1.05rem var(--cond)}
+.tabpanel .note{margin:0 0 14px;font-size:.86rem;color:var(--muted)}
+.tt{border-collapse:collapse;width:100%;font-size:.9rem;min-width:540px}
+.tt th,.tt td{border-bottom:1px solid var(--line);padding:7px 11px;text-align:right}
+.tt th{font:600 .88rem var(--cond);color:var(--muted);vertical-align:bottom}
+.tt td:first-child,.tt th:first-child{text-align:left}
+.tt td{font:500 1rem var(--cond);font-variant-numeric:tabular-nums}
+.tt td.nm{font:400 .9rem var(--sans)}
+.tt .colhit{background:var(--blue-soft)}
+.tt .rowhit td{background:rgba(127,135,140,.12)}
+.tt .cellhit{background:var(--sel-bg)!important;color:var(--sel-ink);font-weight:600}
+.tt .dim{color:var(--faint)}
+
+/* ---------- kabel ---------- */
+.big{padding:18px 16px 16px;background:var(--lcd-2);border-radius:3px 3px 0 0}
+.big .k{font-size:.82rem;color:var(--lcd-k)}
+.big .v{font:500 clamp(3rem,6vw,4rem)/1 var(--cond);color:var(--led);text-shadow:0 0 18px var(--led-glow);letter-spacing:-.01em;margin-top:6px;font-variant-numeric:tabular-nums}
+.big .v small{font-size:.38em;margin-left:6px;opacity:.72;text-shadow:none}
+.big .src{font-size:.86rem;color:var(--lcd-k);margin-top:10px;line-height:1.4}
+.big.ingen .v{font-size:1.5rem;line-height:1.25;color:#FF8A7E;text-shadow:none;letter-spacing:0}
+.meter{padding:0 16px 14px;background:var(--lcd-2)}
+.meter .bar{height:6px;border-radius:3px;background:#2A343B;overflow:hidden}
+.meter .bar i{display:block;height:100%;width:0;background:var(--led);box-shadow:0 0 10px var(--led-glow);transition:width .25s ease}
+.meter .bar i.hi{background:#FF8A7E;box-shadow:none}
+.meter .lab{display:flex;justify-content:space-between;font-size:.8rem;color:var(--lcd-k);margin-bottom:6px}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 16px;background:var(--lcd-2);border-top:1px solid var(--lcd-line);font-size:.86rem;color:var(--lcd-k)}
+.kv span:last-child{font:500 1.02rem var(--cond);font-variant-numeric:tabular-nums;color:var(--lcd-ink);text-align:right}
+.kv .ok{color:#7DDB94!important}
+.kv .no{color:#FF8A7E!important}
+.lines{border-radius:0 0 3px 3px;overflow:hidden}
+
+/* ---------- cylinder ---------- */
+.cylw{padding:4px 18px 16px}
+.cyl{display:block;width:100%;height:auto}
+.cyl .barrel{fill:var(--field);stroke:var(--ink);stroke-width:1.6}
+.cyl .cap{fill:var(--plate);stroke:var(--ink);stroke-width:1.6}
+.cyl .pist{fill:var(--ink)}
+.cyl .rod{fill:var(--plate);stroke:var(--ink);stroke-width:1.6}
+.cyl .eye{fill:var(--plate);stroke:var(--ink);stroke-width:1.6}
+.cyl .port{stroke:var(--ink);stroke-width:1.6;fill:none}
+.cyl .pl{font:600 13px var(--cond);fill:var(--muted);text-anchor:middle}
+.cyl .fluid{fill:var(--blue);opacity:.28;transform-box:fill-box;transform-origin:left center}
+.cyl.air .fluid{opacity:.14}
+.simrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}
+.simrow span{font-size:.84rem;color:var(--muted)}
+
+/* ---------- talsystemer ---------- */
+.nb-row{display:grid;grid-template-columns:9rem minmax(0,1fr);column-gap:18px;padding:13px 18px;border-top:1px solid var(--line)}
+.nb-row:first-child{border-top:0}
+.nb-name{padding-top:9px;font-weight:600}
+.nb-name label{cursor:pointer}
+.nb-name small{display:block;font-weight:400;font-size:.82rem;color:var(--faint)}
+.nb-base{display:flex;align-items:center;gap:8px}
+.nb-base input{width:4.2rem;padding:4px 7px;font:500 1rem var(--cond);background:var(--field);border:1px solid var(--line-2);border-radius:3px}
+.nb-base input:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.nb-ctl{display:flex;gap:8px;align-items:flex-start;min-width:0}
+.nb-in{flex:1;min-width:0;height:46px;padding:9px 12px;font:500 1.15rem/1.45 var(--mono);letter-spacing:.02em;background:var(--field);border:1px solid var(--line-2);border-radius:3px;resize:none;overflow:hidden;overflow-wrap:anywhere}
+.nb-in::placeholder{color:var(--faint);opacity:.7}
+.nb-in:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.nb-ctl .btn{height:46px;min-width:5.6rem}
+.nb-err{grid-column:2;margin:6px 0 0;color:var(--bad);font-size:.86rem}
+.nb-err:empty{display:none}
+.nb-row.invalid .nb-in{border-color:var(--bad);box-shadow:none}
+.nb-row.stale .nb-in{opacity:.4}
+@media (max-width:560px){
+  .nb-row{grid-template-columns:1fr;padding:13px 14px}
+  .nb-name{padding:0 0 7px}
+  .nb-err{grid-column:1}
+  .nb-ctl .btn{min-width:0}
+}
+.bits-bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px 24px}
+.bits-bar .wl{display:flex;align-items:center;gap:10px;font-weight:500}
+.bitdisp{padding:18px 16px 16px}
+.bitgrid{display:grid;grid-template-columns:repeat(2,max-content);gap:16px 26px}
+.bitgrid.stale{opacity:.35}
+@media (max-width:760px){.bitgrid{grid-template-columns:max-content}}
+.byte{display:flex;gap:3px}
+.byte .cell:nth-child(5){margin-left:9px}
+.cell{display:flex;flex-direction:column;align-items:center;gap:4px}
+.bit{width:30px;height:38px;padding:0;border-radius:3px;border:1px solid #2F3A42;background:#161E22;color:#56646C;font:500 1rem var(--mono);cursor:pointer;transition:background-color 80ms,color 80ms,box-shadow 80ms}
+.bit:hover{border-color:#5B6A73}
+.bit.on{background:var(--led);border-color:var(--led);color:#2B1D05;box-shadow:0 0 12px var(--led-glow)}
+.idx{font:500 .68rem var(--cond);font-variant-numeric:tabular-nums;color:var(--lcd-k);line-height:1}
+.idx.sign{color:var(--led)}
+.bitinfo{margin:16px 0 0;font-size:.9rem;color:var(--lcd-k);overflow-wrap:anywhere}
+.codes{display:grid;gap:5px;margin-top:12px;padding-top:12px;border-top:1px solid var(--lcd-line)}
+.codes:empty{display:none}
+.codes div{display:flex;gap:14px;align-items:baseline}
+.codes span{flex:none;width:3.4rem;font-size:.82rem;color:var(--lcd-k)}
+.codes code{font:500 .92rem var(--mono);color:var(--lcd-ink);overflow-wrap:anywhere}
+
+/* ---------- oversigt ---------- */
+.intro{margin:6px 0 34px}
+.intro h1{font:700 clamp(2.6rem,6.2vw,4.6rem)/.95 var(--cond);letter-spacing:-.025em;margin:0 0 14px}
+.intro .lead{font-size:1.1rem;max-width:58ch}
+.strip{position:relative;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;padding-top:14px}
+.term{position:relative;z-index:1;display:flex;flex-direction:column;padding:0 16px 14px;background:var(--plate);border:1px solid var(--line-2);border-radius:4px 4px 3px 3px;text-decoration:none;color:var(--ink);box-shadow:var(--lift);transition:transform .15s ease,box-shadow .15s ease}
+.term:hover{transform:translateY(-3px);box-shadow:var(--lift),0 18px 28px -20px rgba(0,0,0,.45)}
+.term:focus-visible{outline-offset:3px}
+.hole{position:relative;display:block;width:28px;height:30px;margin:0 auto;background:var(--hole);border-radius:0 0 4px 4px}
+.hole i{position:absolute;left:50%;top:-15px;width:12px;height:38px;margin-left:-6px;border-radius:0 0 6px 6px;background:linear-gradient(90deg,rgba(255,255,255,.4),rgba(255,255,255,0) 50%,rgba(0,0,0,.15)),var(--w)}
+.screw{position:relative;display:block;width:26px;height:26px;margin:9px auto 6px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FBFBFA,#B2B6B1 70%,#8E938D);box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+.screw::after{content:"";position:absolute;left:4px;right:4px;top:50%;height:3px;margin-top:-1.5px;background:#5E645F;border-radius:2px;transform:rotate(-38deg)}
+.term h3{margin:8px 0 4px;font:600 1.3rem/1.1 var(--cond);overflow-wrap:break-word;hyphens:manual}
+.term p{margin:0 0 12px;font-size:.9rem;color:var(--muted);line-height:1.45}
+.term code{font:400 .76rem/1.5 var(--mono);color:var(--blue);margin-bottom:14px}
+.term .tn{margin-top:auto;display:block;text-align:center;background:#FAFAF8;color:#22272A;border:1px solid var(--line-2);border-radius:2px;font:600 .95rem/1.5 var(--cond);font-variant-numeric:tabular-nums}
+@media (min-width:1240px){
+  .strip{grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+  .strip::before{content:"";position:absolute;left:-14px;right:-14px;top:124px;height:34px;border-radius:2px;background:linear-gradient(180deg,var(--rail-a) 0,var(--rail-b) 22%,var(--rail-a) 50%,var(--rail-b) 78%,var(--rail-a) 100%);box-shadow:0 1px 0 rgba(0,0,0,.2)}
+  .term{min-height:330px}
+}
+
+.credit{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 24px;font-size:.86rem;color:var(--faint)}
+.credit b{color:var(--muted);font-weight:600}
+
+/* ---------- mobil ---------- */
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{min-width:0;position:sticky;top:0;z-index:40;height:auto;padding:10px 12px 0;border-right:0;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--side) 92%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+  .brand-row{margin-bottom:6px;padding:0}
+  .brand small{display:none}
+  .mark{width:30px;height:30px}
+  .themebtn{width:32px;height:32px}
+  .back{display:none}
+  .backbtn{display:grid}
+  .nav{flex-direction:row;overflow-x:auto;gap:2px;margin:0 -12px;padding:0 12px 8px;scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav a{flex:none;padding:7px 11px;font-size:.92rem}
+  .nav .k{display:none}
+  .side-foot{display:none}
+  .wrap{padding:24px 16px 28px}
+  .ph{padding:14px 14px 0}
+  .sec{padding:14px}
+  .disp{margin:0 14px 14px}
+  .msg{margin:0 14px 14px}
+  pre.calc{padding:14px 14px 16px;padding-top:44px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- =================== SIDEBAR =================== -->
+<aside class="side">
+  <a class="back" href="index.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7M8 12h13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Tilbage til forsiden</a>
+  <div class="brand-row">
+    <a class="brand" href="#oversigt">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6"/><path d="M6 16c3-8 6-8 10 0s7 8 10 0"/></svg>
+      <span><b>Automatik&shy;hjælpemidler</b><small>Beregnere til hverdagen</small></span>
+    </a>
+    <span class="side-btns">
+    <a class="backbtn" href="index.html" aria-label="Tilbage til forsiden" title="Tilbage til forsiden"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7M8 12h13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    <button class="themebtn" id="themeBtn" type="button" aria-label="Skift mellem lyst og mørkt tema" title="Lyst / mørkt tema">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor"/></svg>
+    </button>
+    </span>
+  </div>
+  <nav class="nav" aria-label="Værktøjer">
+    <a href="#oversigt" data-nav="oversigt"><span class="wire" style="--w:#D6D9D4"></span>Oversigt<span class="k">0</span></a>
+    <a href="#el" data-nav="el"><span class="wire" style="--w:#7A4B2A"></span>El &amp; effekt<span class="k">1</span></a>
+    <a href="#motor" data-nav="motor"><span class="wire" style="--w:#16181A"></span>Motor<span class="k">2</span></a>
+    <a href="#kabel" data-nav="kabel"><span class="wire" style="--w:repeating-linear-gradient(90deg,#2E9A45 0 5px,#E6D02A 5px 10px)"></span>Kabeldimensionering<span class="k">3</span></a>
+    <a href="#hydraulik" data-nav="hydraulik"><span class="wire" style="--w:#1F63C6"></span>Hydraulik<span class="k">4</span></a>
+    <a href="#pneumatik" data-nav="pneumatik"><span class="wire" style="--w:#8C9297"></span>Pneumatik<span class="k">5</span></a>
+    <a href="#talsystemer" data-nav="talsystemer"><span class="wire" style="--w:#E8791E"></span>Talsystemer<span class="k">6</span></a>
+  </nav>
+  <div class="side-foot">Tast <kbd>0</kbd> til <kbd>6</kbd> for at skifte værktøj. Alt regner, mens du skriver, og komma virker som decimaltegn.</div>
+</aside>
+
+<main class="main"><div class="wrap">
+
+<!-- =================== OVERSIGT =================== -->
+<section class="view" id="v-oversigt" data-title="Oversigt">
+  <header class="intro">
+    <h1>Automatik&shy;hjælpemidler</h1>
+    <p class="lead">Seks beregnere til automatikteknikeren, samlet ét sted. Resultatet står klar, mens du skriver, og under hvert svar kan du se udregningen med dine egne tal sat ind.</p>
+  </header>
+  <div class="strip">
+    <a class="term" href="#el" style="--w:#7A4B2A"><span class="hole"><i></i></span><span class="screw"></span>
+      <h3>El &amp; effekt</h3><p>Ohms lov i alle retninger, effekt i DC og AC samt energiforbrug og elpris.</p><code>P = √3·U·I·cos φ</code><span class="tn">1</span></a>
+    <a class="term" href="#motor" style="--w:#16181A"><span class="hole"><i></i></span><span class="screw"></span>
+      <h3>Motor</h3><p>Mærkestrøm, akselmoment, poltal og slip for trefasede asynkronmotorer.</p><code>M = 9550·P / n</code><span class="tn">2</span></a>
+    <a class="term" href="#kabel" style="--w:repeating-linear-gradient(180deg,#2E9A45 0 9px,#E6D02A 9px 18px)"><span class="hole"><i></i></span><span class="screw"></span>
+      <h3>Kabel&shy;dimensionering</h3><p>Tværsnit efter DS/EN 60204-1 med korrektion, tabel 5 og spændingsfald.</p><code>Iz = Iz40·kt·ks</code><span class="tn">3</span></a>
+    <a class="term" href="#hydraulik" style="--w:#1F63C6"><span class="hole"><i></i></span><span class="screw"></span>
+      <h3>Hydraulik</h3><p>Kraft, hastighed, slagtid og returflow for en cylinder i begge retninger.</p><code>F = p·A / 10</code><span class="tn">4</span></a>
+    <a class="term" href="#pneumatik" style="--w:#8C9297"><span class="hole"><i></i></span><span class="screw"></span>
+      <h3>Pneumatik</h3><p>Tryk- og trækkraft samt luftforbrug pr. cyklus og pr. minut.</p><code>Q = A·s·(p+1,013)/1,013</code><span class="tn">5</span></a>
+    <a class="term" href="#talsystemer" style="--w:#E8791E"><span class="hole"><i></i></span><span class="screw"></span>
+      <h3>Talsystemer</h3><p>Decimal, binær, hex og oktal med klikbare bits, Gray-kode og BCD.</p><code>255 = 0xFF = 0o377</code><span class="tn">6</span></a>
+  </div>
+</section>
+
+<!-- =================== EL =================== -->
+<section class="view" id="v-el" data-title="El &amp; effekt" hidden>
+  <header class="vh" style="--w:#7A4B2A">
+    <h1>El &amp; effekt</h1>
+    <p class="lead">Ohms lov, effekt i DC, 1- og 3-faset samt energiforbrug og pris.</p>
+    <div class="fstrip"><code>U = R · I</code><code>P = U · I</code><code>P = I² · R</code><code>P = √3 · U · I · cos φ</code></div>
+  </header>
+
+  <div class="grid">
+    <article class="plate">
+      <div class="ph"><h2>Ohms lov</h2><button class="btn" type="button" id="o-clear">Ryd</button></div>
+      <div class="sec">
+        <p class="hint top">Udfyld to felter, så beregnes de to andre. Skriv i et beregnet felt for at bruge det som input i stedet.</p>
+        <div class="fg">
+          <label class="fld"><span class="lbl">Spænding <i>U</i><em>beregnet</em></span><span class="inp"><input id="o-u" type="text" inputmode="decimal" autocomplete="off" placeholder="fx 24"><span class="u">V</span></span></label>
+          <label class="fld"><span class="lbl">Strøm <i>I</i><em>beregnet</em></span><span class="inp"><input id="o-i" type="text" inputmode="decimal" autocomplete="off" placeholder="fx 2"><span class="u">A</span></span></label>
+          <label class="fld"><span class="lbl">Modstand <i>R</i><em>beregnet</em></span><span class="inp"><input id="o-r" type="text" inputmode="decimal" autocomplete="off" placeholder="fx 12"><span class="u">Ω</span></span></label>
+          <label class="fld"><span class="lbl">Effekt <i>P</i><em>beregnet</em></span><span class="inp"><input id="o-p" type="text" inputmode="decimal" autocomplete="off" placeholder="fx 48"><span class="u">W</span></span></label>
+        </div>
+      </div>
+      <p class="msg" id="o-msg"></p>
+      <div class="calcw"><pre class="calc" id="o-calc"></pre><button class="btn cp" type="button">Kopiér</button></div>
+    </article>
+
+    <article class="plate">
+      <div class="ph"><h2>Effekt</h2><button class="btn" type="button" id="pw-clear">Ryd</button></div>
+      <div class="sec">
+        <div class="seg" role="radiogroup" aria-label="System" style="margin-bottom:14px">
+          <label><input type="radio" name="pw-sys" value="dc"><span>DC</span></label>
+          <label><input type="radio" name="pw-sys" value="ac1"><span>1-faset</span></label>
+          <label><input type="radio" name="pw-sys" value="ac3" checked><span>3-faset</span></label>
+        </div>
+        <div class="fg">
+          <label class="fld"><span class="lbl">Spænding <i>U</i></span><span class="inp"><input id="pw-u" type="text" inputmode="decimal" autocomplete="off" value="400"><span class="u">V</span></span></label>
+          <label class="fld"><span class="lbl">Strøm <i>I</i></span><span class="inp"><input id="pw-i" type="text" inputmode="decimal" autocomplete="off" value="10"><span class="u">A</span></span></label>
+          <label class="fld" id="pw-cosf"><span class="lbl">Effektfaktor <i>cos φ</i></span><span class="inp"><input id="pw-cos" type="text" inputmode="decimal" autocomplete="off" value="0,85"></span></label>
+        </div>
+      </div>
+      <div class="disp"><div class="disp-g">
+        <div class="rd hero"><div class="k">Aktiv effekt P</div><div class="v" id="pw-P">—</div></div>
+        <div class="rd"><div class="k">Tilsyneladende S</div><div class="v" id="pw-S">—</div></div>
+        <div class="rd"><div class="k">Reaktiv Q</div><div class="v" id="pw-Q">—</div></div>
+      </div></div>
+      <p class="msg" id="pw-msg"></p>
+      <div class="calcw"><pre class="calc" id="pw-calc"></pre><button class="btn cp" type="button">Kopiér</button></div>
+    </article>
+
+    <article class="plate">
+      <div class="ph"><h2>Energiforbrug</h2><button class="btn" type="button" id="en-clear">Ryd</button></div>
+      <div class="sec">
+        <div class="fg">
+          <label class="fld"><span class="lbl">Effekt</span><span class="inp"><input id="en-p" type="text" inputmode="decimal" autocomplete="off" value="2,5"><span class="u">kW</span></span></label>
+          <label class="fld"><span class="lbl">Driftstid</span><span class="inp"><input id="en-t" type="text" inputmode="decimal" autocomplete="off" value="8"><span class="u">timer</span></span></label>
+          <label class="fld"><span class="lbl">Pris pr. kWh</span><span class="inp"><input id="en-pris" type="text" inputmode="decimal" autocomplete="off" value="2,25"><span class="u">kr</span></span></label>
+          <label class="fld"><span class="lbl">Driftsdage pr. år</span><span class="inp"><input id="en-d" type="text" inputmode="decimal" autocomplete="off" placeholder="valgfri" value="230"><span class="u">dage</span></span></label>
+        </div>
+      </div>
+      <div class="disp"><div class="disp-g">
+        <div class="rd"><div class="k">Forbrug</div><div class="v" id="en-kwh">—</div></div>
+        <div class="rd"><div class="k">Pris</div><div class="v" id="en-kr">—</div></div>
+        <div class="rd"><div class="k">Forbrug pr. år</div><div class="v" id="en-ykwh">—</div></div>
+        <div class="rd"><div class="k">Pris pr. år</div><div class="v" id="en-ykr">—</div></div>
+      </div></div>
+      <p class="msg" id="en-msg"></p>
+      <div class="calcw"><pre class="calc" id="en-calc"></pre><button class="btn cp" type="button">Kopiér</button></div>
+    </article>
+  </div>
+</section>
+
+<!-- =================== MOTOR =================== -->
+<section class="view" id="v-motor" data-title="Motor" hidden>
+  <header class="vh" style="--w:#16181A">
+    <h1>Asynkronmotor</h1>
+    <p class="lead">Mærkestrøm, akselmoment, poltal og slip for trefasede asynkronmotorer, regnet ud fra mærkepladen.</p>
+    <div class="fstrip"><code>P₁ = P₂ / η</code><code>I = P₁ / (√3 · U · cos φ)</code><code>M = 9550 · P₂ / n</code><code>nₛ = 120 · f / p</code></div>
+  </header>
+
+  <div class="split">
+    <article class="plate">
+      <div class="ph"><h2>Mærkepladedata</h2><button class="btn" type="button" id="m-clear">Ryd</button></div>
+      <div class="sec">
+        <div class="fg">
+          <label class="fld"><span class="lbl">Afgiven effekt <i>P₂</i></span><span class="inp"><input id="m-p" type="text" inputmode="decimal" autocomplete="off" value="4"><span class="u">kW</span></span></label>
+          <label class="fld"><span class="lbl">Netspænding <i>U</i></span><span class="inp"><input id="m-u" type="text" inputmode="decimal" autocomplete="off" value="400"><span class="u">V</span></span></label>
+          <label class="fld"><span class="lbl">Effektfaktor <i>cos φ</i></span><span class="inp"><input id="m-cos" type="text" inputmode="decimal" autocomplete="off" value="0,82"></span></label>
+          <label class="fld"><span class="lbl">Virkningsgrad <i>η</i></span><span class="inp"><input id="m-eta" type="text" inputmode="decimal" autocomplete="off" value="88"><span class="u">% eller 0,88</span></span></label>
+          <label class="fld"><span class="lbl">Omdrejninger <i>n</i></span><span class="inp"><input id="m-n" type="text" inputmode="decimal" autocomplete="off" value="1440"><span class="u">o/min</span></span></label>
+          <label class="fld"><span class="lbl">Netfrekvens <i>f</i></span><span class="inp"><input id="m-f" type="text" inputmode="decimal" autocomplete="off" value="50"><span class="u">Hz</span></span></label>
+        </div>
+        <p class="hint">Motorværnet indstilles normalt til motorens mærkestrøm. Ved stjerne-trekant-start sidder værnet i trekantgrenen og indstilles til I / √3.</p>
+      </div>
+    </article>
+
+    <article class="plate sticky">
+      <div class="ph"><h2>Resultat</h2><span class="note">3-faset asynkron</span></div>
+      <div class="sec" style="padding-bottom:0"></div>
+      <div class="disp"><div class="disp-g">
+        <div class="rd hero"><div class="k">Mærkestrøm I</div><div class="v" id="m-I">—</div><div class="s" id="m-Id"></div></div>
+        <div class="rd"><div class="k">Akselmoment M</div><div class="v" id="m-M">—</div></div>
+        <div class="rd"><div class="k">Optaget effekt P₁</div><div class="v" id="m-P1">—</div></div>
+        <div class="rd"><div class="k">Poltal</div><div class="v" id="m-pol">—</div><div class="s" id="m-ns"></div></div>
+        <div class="rd"><div class="k">Slip s</div><div class="v" id="m-slip">—</div><div class="s" id="m-tab"></div></div>
+      </div></div>
+      <p class="msg" id="m-msg"></p>
+      <div class="calcw"><pre class="calc" id="m-calc"></pre><button class="btn cp" type="button">Kopiér</button></div>
+    </article>
+  </div>
+</section>
+
+<!-- =================== KABEL =================== -->
+<section class="view" id="v-kabel" data-title="Kabeldimensionering" hidden>
+  <header class="vh" style="--w:repeating-linear-gradient(180deg,#2E9A45 0 9px,#E6D02A 9px 18px)">
+    <h1>Kabel&shy;dimensionering</h1>
+    <p class="lead">Maskininstallationer efter DS/EN 60204-1, tabel 6, D.1, D.2, D.3 og tabel 5. Vælg kreds, installation og korrektion, så finder beregneren det mindste tværsnit, der holder.</p>
+    <div class="fstrip"><code>Iz korr = Iz40 · kt · ks</code><code>Iz40 min ≥ In / (kt · ks)</code><code>Ib ≤ In &lt; Iz korr</code></div>
+  </header>
+
+  <div class="split">
+    <div class="stack">
+      <article class="plate">
+        <div class="ph"><h2>Kreds og strømme</h2></div>
+        <div class="sec">
+          <div class="seg" role="radiogroup" aria-label="Kredstype" style="margin-bottom:14px">
+            <label><input type="radio" name="k-type" value="effekt" checked><span>Effektkreds, trefaset</span></label>
+            <label><input type="radio" name="k-type" value="par"><span>Styrekreds / lederpar</span></label>
+          </div>
+          <div class="fg">
+            <label class="fld"><span class="lbl">Belastningsstrøm <i>Ib</i></span><span class="inp"><input id="k-ib" type="text" inputmode="decimal" autocomplete="off" value="14"><span class="u">A</span></span></label>
+            <label class="fld"><span class="lbl">Beskyttelsens mærkestrøm <i>In</i></span><span class="inp"><input id="k-in" type="text" inputmode="decimal" autocomplete="off" value="16"><span class="u">A</span></span></label>
+          </div>
+          <p class="hint">Ib er motorens fuldlaststrøm eller den samlede belastningsstrøm. In er mærkestrømmen på sikring eller motorværn, eller indstillingen på termorelæet.</p>
+        </div>
+      </article>
+
+      <article class="plate">
+        <div class="ph"><h2>Installationsmetode</h2><span class="note">Figur D.1</span></div>
+        <div class="sec">
+          <div class="opts" role="radiogroup" aria-label="Installationsmetode">
+            <label class="opt"><input type="radio" name="k-m" value="B1" checked><b>B1</b><span>Enkeltledere i rør eller kabelkanal</span></label>
+            <label class="opt"><input type="radio" name="k-m" value="B2"><b>B2</b><span>Flerlederkabler i rør eller kabelkanal</span></label>
+            <label class="opt"><input type="radio" name="k-m" value="C"><b>C</b><span>Kabler på væg, uden afstand</span></label>
+            <label class="opt"><input type="radio" name="k-m" value="E"><b>E</b><span>Kabler i åben kabelbakke</span></label>
+          </div>
+          <p class="hint" id="k-mtekst"></p>
+        </div>
+      </article>
+
+      <article class="plate">
+        <div class="ph"><h2>Korrektionsfaktorer</h2></div>
+        <div class="sec">
+          <div class="fg">
+            <label class="fld"><span class="lbl">Omgivelsestemperatur, kt (D.1)</span>
+              <span class="selw"><select id="k-temp" class="sel">
+                <option value="30">30 °C · kt 1,15</option>
+                <option value="35">35 °C · kt 1,08</option>
+                <option value="40" selected>40 °C · kt 1,00</option>
+                <option value="45">45 °C · kt 0,91</option>
+                <option value="50">50 °C · kt 0,82</option>
+                <option value="55">55 °C · kt 0,71</option>
+                <option value="60">60 °C · kt 0,58</option>
+              </select></span></label>
+            <label class="fld"><span class="lbl">Grundlag for ks</span>
+              <span class="selw"><select id="k-ksmode" class="sel">
+                <option value="d2" selected>Tabel D.2, flere kredse samlet</option>
+                <option value="d3">Tabel D.3, flere ledere i ét kabel</option>
+                <option value="manuel">Indtast ks selv</option>
+              </select></span></label>
+          </div>
+          <div class="fg" id="k-d2box">
+            <label class="fld"><span class="lbl">Placering af kablerne</span>
+              <span class="selw"><select id="k-d2row" class="sel">
+                <option value="b">B1 (kredse) og B2 (kabler)</option>
+                <option value="c">C, enkelt lag uden afstand</option>
+                <option value="e1">E, enkelt lag på perforeret bakke</option>
+                <option value="e23">E, 2 til 3 bakker over hinanden</option>
+                <option value="styre">Styrekredspar ≤ 0,5 mm²</option>
+              </select></span></label>
+            <label class="fld"><span class="lbl">Antal belastede kredse/kabler</span>
+              <span class="selw"><select id="k-d2n" class="sel">
+                <option value="1" selected>1, ingen reduktion</option>
+                <option value="2">2</option>
+                <option value="4">3 til 4</option>
+                <option value="6">5 til 6</option>
+                <option value="9">7 til 9</option>
+              </select></span></label>
+          </div>
+          <div class="fg" id="k-d3box" hidden>
+            <label class="fld"><span class="lbl">Belastede ledere/lederpar i kablet</span>
+              <span class="selw"><select id="k-d3n" class="sel">
+                <option value="3" selected>op til 3 ledere</option>
+                <option value="5">4 til 5</option>
+                <option value="7">6 til 7</option>
+                <option value="10">8 til 10</option>
+                <option value="24">11 til 24</option>
+              </select></span></label>
+            <p class="hint" style="align-self:end;margin:0">Gælder flerlederkabler op til 10 mm². Lederpar-kolonnen bruges automatisk ved styrekreds.</p>
+          </div>
+          <div class="fg" id="k-manbox" hidden>
+            <label class="fld"><span class="lbl">ks</span><span class="inp"><input id="k-ksman" type="text" inputmode="decimal" autocomplete="off" value="1,00"></span></label>
+          </div>
+          <p class="hint">Ligger Ib under 30 % af Iz, behøver du ikke reducere for gruppering (note til D.1.3).</p>
+        </div>
+      </article>
+
+      <article class="plate">
+        <div class="ph"><h2>Ekstra kontroller</h2></div>
+        <div class="sec">
+          <label class="tgl"><input type="checkbox" class="sw" id="k-t5" checked> Mindste tværsnit efter tabel 5</label>
+          <div class="fg" id="k-t5box" style="margin-top:12px">
+            <label class="fld"><span class="lbl">Placering og anvendelse</span>
+              <span class="selw"><select id="k-t5plac" class="sel">
+                <option value="ud_effekt_fast" selected>Uden for kapsling, effektkreds, fastgjort</option>
+                <option value="ud_effekt_bev">Uden for kapsling, effektkreds, hyppige bevægelser</option>
+                <option value="ud_styre">Uden for kapsling, styrekreds</option>
+                <option value="ud_data">Uden for kapsling, datakommunikation</option>
+                <option value="in_effekt">I kapsling, effektkreds, ikke bevægelig</option>
+                <option value="in_styre">I kapsling, styrekreds</option>
+                <option value="in_data">I kapsling, datakommunikation</option>
+              </select></span></label>
+            <label class="fld"><span class="lbl">Ledertype</span>
+              <span class="selw"><select id="k-t5leder" class="sel">
+                <option value="fleks">Enkeltleder, fleksibel (klasse 5/6)</option>
+                <option value="massiv">Enkeltleder, massiv/flertrådet (klasse 1/2)</option>
+                <option value="to_skaerm">Flerleder, to ledere, skærmet</option>
+                <option value="to_ikke">Flerleder, to ledere, ikke skærmet</option>
+                <option value="tre" selected>Flerleder, tre eller flere ledere</option>
+              </select></span></label>
+          </div>
+        </div>
+        <div class="sec">
+          <label class="tgl"><input type="checkbox" class="sw" id="k-sf"> Spændingsfald, højst 5 % (afsnit 12.5)</label>
+          <div id="k-sfbox" hidden>
+            <div class="fg c3" style="margin-top:12px">
+              <label class="fld"><span class="lbl">Kabellængde</span><span class="inp"><input id="k-L" type="text" inputmode="decimal" autocomplete="off" value="25"><span class="u">m</span></span></label>
+              <label class="fld"><span class="lbl">Net</span>
+                <span class="selw"><select id="k-U" class="sel">
+                  <option value="400|3">400 V, 3-faset</option>
+                  <option value="230|1">230 V, 1-faset</option>
+                  <option value="690|3">690 V, 3-faset</option>
+                  <option value="24|1">24 V DC</option>
+                </select></span></label>
+              <label class="fld"><span class="lbl">cos φ</span><span class="inp"><input id="k-cos" type="text" inputmode="decimal" autocomplete="off" value="0,85"></span></label>
+            </div>
+            <p class="hint">Regnet med kobber, ρ = 0,0225 Ω·mm²/m ved driftstemperatur. Kun ohmsk modstand.</p>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <article class="plate sticky" aria-live="polite">
+      <div class="ph"><h2>Resultat</h2><span class="note" id="k-resm"></span></div>
+      <div class="sec" style="padding-bottom:0"></div>
+      <div class="disp">
+        <div class="big" id="k-svar"><div class="k">Valgt tværsnit</div><div class="v" id="k-tal">—</div><div class="src" id="k-kilde"></div></div>
+        <div class="meter" id="k-meter"><div class="lab"><span>Udnyttelse Ib / Iz korr</span><span id="k-util"></span></div><div class="bar"><i id="k-bar"></i></div></div>
+        <div class="lines" id="k-lines"></div>
+      </div>
+      <div id="k-adv"></div>
+      <div class="calcw"><pre class="calc" id="k-calc" style="max-height:300px;overflow:auto"></pre><button class="btn cp" type="button">Kopiér</button></div>
+    </article>
+  </div>
+
+  <article class="plate" style="margin-top:18px">
+    <div class="tabs" role="tablist" aria-label="Tabeller">
+      <button role="tab" aria-selected="true" data-tab="t6">Tabel 6 · strømværdier</button>
+      <button role="tab" aria-selected="false" data-tab="td1">D.1 · kt</button>
+      <button role="tab" aria-selected="false" data-tab="td2">D.2 · gruppering</button>
+      <button role="tab" aria-selected="false" data-tab="td3">D.3 · flerleder</button>
+      <button role="tab" aria-selected="false" data-tab="t5">Tabel 5 · mindste tværsnit</button>
+      <button role="tab" aria-selected="false" data-tab="td4">D.4 · lederklasser</button>
+    </div>
+    <div class="tabpanel" id="k-tab" role="tabpanel"></div>
+  </article>
+  <p class="hint" style="margin-top:14px;max-width:80ch">Værdierne er indtastet fra kompendiets tabeller (DS/EN 60204-1 / IEC 60364-5-52). Beregningen dækker overbelastningsbeskyttelse, mindste tværsnit og spændingsfald, ikke kortslutningsholdbarhed, udkoblingsbetingelse eller berøringsbeskyttelse. Kontrollér altid mod gældende udgave af standarden.</p>
+</section>
+
+<!-- =================== HYDRAULIK =================== -->
+<section class="view" id="v-hydraulik" data-title="Hydraulik" hidden>
+  <header class="vh" style="--w:#1F63C6">
+    <h1>Hydraulikcylinder</h1>
+    <p class="lead">Kraft, hastighed, slagtid og returflow for en dobbeltvirkende cylinder, i begge retninger.</p>
+    <div class="fstrip"><code>A = π · D² / 4</code><code>F = p · A / 10</code><code>v = Q / A</code><code>t = s / v</code></div>
+  </header>
+
+  <div class="split">
+    <article class="plate">
+      <div class="ph"><h2>Cylinder og pumpe</h2><button class="btn" type="button" id="h-clear">Ryd</button></div>
+      <div class="sec">
+        <div class="fg">
+          <label class="fld"><span class="lbl">Tryk <i>p</i></span><span class="inp"><input id="h-p" type="text" inputmode="decimal" autocomplete="off" value="150"><span class="u">bar</span></span></label>
+          <label class="fld"><span class="lbl">Flow <i>Q</i></span><span class="inp"><input id="h-q" type="text" inputmode="decimal" autocomplete="off" value="20"><span class="u">l/min</span></span></label>
+          <label class="fld"><span class="lbl">Stempeldiameter <i>D</i></span><span class="inp"><input id="h-D" type="text" inputmode="decimal" autocomplete="off" value="50"><span class="u">mm</span></span></label>
+          <label class="fld"><span class="lbl">Stangdiameter <i>d</i></span><span class="inp"><input id="h-d" type="text" inputmode="decimal" autocomplete="off" value="28"><span class="u">mm</span></span></label>
+          <label class="fld"><span class="lbl">Slaglængde <i>s</i></span><span class="inp"><input id="h-s" type="text" inputmode="decimal" autocomplete="off" value="500"><span class="u">mm</span></span></label>
+          <label class="fld"><span class="lbl">Virkningsgrad <i>η</i></span><span class="inp"><input id="h-eta" type="text" inputmode="decimal" autocomplete="off" value="0,95"></span></label>
+        </div>
+        <p class="hint">Lad stangdiameter stå tom for kun at regne på stempelsiden. Sæt η til 1 for den teoretiske kraft.</p>
+      </div>
+      <div class="cylw">
+        <div id="h-cyl"></div>
+        <div class="simrow"><button class="btn pri" type="button" id="h-sim">Kør et slag</button><span id="h-simnote">Stangen kører ud og ind med de beregnede slagtider.</span></div>
+      </div>
+    </article>
+
+    <article class="plate sticky">
+      <div class="ph"><h2>Resultat</h2><span class="note">Udkørsel</span></div>
+      <div class="sec" style="padding-bottom:0"></div>
+      <div class="disp"><div class="disp-g">
+        <div class="rd hero"><div class="k">Kraft ud (teoretisk)</div><div class="v" id="h-rF">—</div><div class="s" id="h-rFe"></div></div>
+        <div class="rd"><div class="k">Hastighed ud</div><div class="v" id="h-rv">—</div><div class="s" id="h-rvm"></div></div>
+        <div class="rd"><div class="k">Cyklustid</div><div class="v" id="h-rt">—</div><div class="s" id="h-rts"></div></div>
+      </div></div>
+      <p class="msg" id="h-msg"></p>
+    </article>
+  </div>
+
+  <article class="plate" style="margin-top:18px">
+    <div class="ph"><h2>Begge retninger</h2><span class="note" id="h-phi"></span></div>
+    <div class="sec" style="padding:10px 0 4px">
+      <table class="dt"><thead><tr><th></th><th>Ud <span>(+)</span></th><th>Ind <span>(−)</span></th></tr></thead><tbody id="h-tb"></tbody></table>
+    </div>
+    <div class="calcw"><pre class="calc" id="h-calc"></pre><button class="btn cp" type="button">Kopiér</button></div>
+  </article>
+</section>
+
+<!-- =================== PNEUMATIK =================== -->
+<section class="view" id="v-pneumatik" data-title="Pneumatik" hidden>
+  <header class="vh" style="--w:#8C9297">
+    <h1>Pneumatikcylinder</h1>
+    <p class="lead">Tryk- og trækkraft samt luftforbrug for en dobbeltvirkende trykluftcylinder.</p>
+    <div class="fstrip"><code>F = p · A / 10</code><code>V = A · s</code><code>Nl = V · (p + 1,013) / 1,013</code></div>
+  </header>
+
+  <div class="split">
+    <article class="plate">
+      <div class="ph"><h2>Cylinder og drift</h2><button class="btn" type="button" id="n-clear">Ryd</button></div>
+      <div class="sec">
+        <div class="lbl" style="margin-bottom:7px">Standardstørrelser, stempel/stang (ISO 6432 og ISO 15552)</div>
+        <div class="chips" id="n-chips"></div>
+      </div>
+      <div class="sec">
+        <div class="fg">
+          <label class="fld"><span class="lbl">Arbejdstryk <i>p</i></span><span class="inp"><input id="n-p" type="text" inputmode="decimal" autocomplete="off" value="6"><span class="u">bar</span></span></label>
+          <label class="fld"><span class="lbl">Slaglængde <i>s</i></span><span class="inp"><input id="n-s" type="text" inputmode="decimal" autocomplete="off" value="200"><span class="u">mm</span></span></label>
+          <label class="fld"><span class="lbl">Stempeldiameter <i>D</i></span><span class="inp"><input id="n-D" type="text" inputmode="decimal" autocomplete="off" value="40"><span class="u">mm</span></span></label>
+          <label class="fld"><span class="lbl">Stangdiameter <i>d</i></span><span class="inp"><input id="n-d" type="text" inputmode="decimal" autocomplete="off" value="16"><span class="u">mm</span></span></label>
+          <label class="fld"><span class="lbl">Cykler pr. minut</span><span class="inp"><input id="n-c" type="text" inputmode="decimal" autocomplete="off" value="30" placeholder="valgfri"><span class="u">/min</span></span></label>
+          <label class="fld"><span class="lbl">Virkningsgrad <i>η</i></span><span class="inp"><input id="n-eta" type="text" inputmode="decimal" autocomplete="off" value="0,9"></span></label>
+        </div>
+        <p class="hint">η tager højde for friktion i pakninger. 0,9 er et typisk udgangspunkt; sæt 1 for teoretisk kraft.</p>
+      </div>
+      <div class="cylw"><div id="n-cyl"></div></div>
+    </article>
+
+    <article class="plate sticky">
+      <div class="ph"><h2>Resultat</h2><span class="note" id="n-size"></span></div>
+      <div class="sec" style="padding-bottom:0"></div>
+      <div class="disp"><div class="disp-g">
+        <div class="rd hero"><div class="k">Trykkraft ud (med η)</div><div class="v" id="n-rFo">—</div><div class="s" id="n-rFot"></div></div>
+        <div class="rd"><div class="k">Trækkraft ind</div><div class="v" id="n-rFi">—</div></div>
+        <div class="rd"><div class="k">Luft pr. cyklus</div><div class="v" id="n-rC">—</div></div>
+        <div class="rd hero"><div class="k">Luftforbrug</div><div class="v" id="n-rM">—</div><div class="s" id="n-rMh"></div></div>
+      </div></div>
+      <p class="msg" id="n-msg"></p>
+    </article>
+  </div>
+
+  <article class="plate" style="margin-top:18px">
+    <div class="ph"><h2>Begge retninger</h2><span class="note">Luft i normalliter (Nl), 1,013 bar og 0 °C</span></div>
+    <div class="sec" style="padding:10px 0 4px">
+      <table class="dt"><thead><tr><th></th><th>Ud <span>(+)</span></th><th>Ind <span>(−)</span></th></tr></thead><tbody id="n-tb"></tbody></table>
+    </div>
+    <div class="calcw"><pre class="calc" id="n-calc"></pre><button class="btn cp" type="button">Kopiér</button></div>
+  </article>
+</section>
+
+<!-- =================== TALSYSTEMER =================== -->
+<section class="view" id="v-talsystemer" data-title="Talsystemer" hidden>
+  <header class="vh" style="--w:#E8791E">
+    <h1>Talsystemer</h1>
+    <p class="lead">Skriv et tal i et vilkårligt felt, så regnes de andre om med det samme. Klik på de enkelte bits for at slå dem til og fra, præcis som en indgang på en PLC.</p>
+    <div class="fstrip"><code>255 = 0xFF = 0b1111 1111 = 0o377</code></div>
+  </header>
+
+  <article class="plate" style="max-width:900px">
+    <div class="nb-rows">
+      <div class="nb-row" data-base="10">
+        <div class="nb-name"><label for="t-10">Decimal</label><small>base 10</small></div>
+        <div class="nb-ctl"><textarea id="t-10" class="nb-in" rows="1" placeholder="fx 255" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea><button type="button" class="btn nb-cp">Kopiér</button></div>
+        <p class="nb-err" aria-live="polite"></p>
+      </div>
+      <div class="nb-row" data-base="2">
+        <div class="nb-name"><label for="t-2">Binær</label><small>base 2</small></div>
+        <div class="nb-ctl"><textarea id="t-2" class="nb-in" rows="1" placeholder="fx 1111 1111" inputmode="numeric" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea><button type="button" class="btn nb-cp">Kopiér</button></div>
+        <p class="nb-err" aria-live="polite"></p>
+      </div>
+      <div class="nb-row" data-base="16">
+        <div class="nb-name"><label for="t-16">Hexadecimal</label><small>base 16</small></div>
+        <div class="nb-ctl"><textarea id="t-16" class="nb-in" rows="1" placeholder="fx FF" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea><button type="button" class="btn nb-cp">Kopiér</button></div>
+        <p class="nb-err" aria-live="polite"></p>
+      </div>
+      <div class="nb-row" data-base="8">
+        <div class="nb-name"><label for="t-8">Oktal</label><small>base 8</small></div>
+        <div class="nb-ctl"><textarea id="t-8" class="nb-in" rows="1" placeholder="fx 377" inputmode="numeric" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea><button type="button" class="btn nb-cp">Kopiér</button></div>
+        <p class="nb-err" aria-live="polite"></p>
+      </div>
+      <div class="nb-row" data-base="custom">
+        <div class="nb-name">
+          <div class="nb-base"><label for="t-c">Base</label><input id="t-base" type="number" min="2" max="36" value="36" aria-label="Vælg base mellem 2 og 36"></div>
+          <small>vælg selv, 2 til 36</small>
+        </div>
+        <div class="nb-ctl"><textarea id="t-c" class="nb-in" rows="1" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea><button type="button" class="btn nb-cp">Kopiér</button></div>
+        <p class="nb-err" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <div class="sec" style="border-top:1px solid var(--line)">
+      <div class="bits-bar">
+        <div class="wl"><span id="t-wl">Bitbredde</span>
+          <div class="seg" id="t-width" role="group" aria-labelledby="t-wl">
+            <button type="button" data-w="8">8</button><button type="button" data-w="16">16</button><button type="button" data-w="32">32</button><button type="button" data-w="64">64</button><button type="button" data-w="128">128</button>
+          </div>
+        </div>
+        <label class="tgl"><input type="checkbox" class="sw" id="t-signed"> Med fortegn (toerkomplement)</label>
+      </div>
+    </div>
+    <div class="disp"><div class="bitdisp">
+      <div class="bitgrid" id="t-grid"></div>
+      <p class="bitinfo" id="t-info" aria-live="polite"></p>
+      <div class="codes" id="t-codes"></div>
+    </div></div>
+    <div class="sec" style="border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;justify-content:space-between">
+      <label class="tgl"><input type="checkbox" class="sw" id="t-group" checked> Gruppér cifre</label>
+      <span class="hint" style="margin:0">Virker med hele tal i alle størrelser, også negative. Præfikser som 0x, 0b og 0o accepteres.</span>
+    </div>
+  </article>
+</section>
+
+<footer class="credit">
+  <span>Udviklet af <b>Automatikteknikerne</b></span>
+  <span>Automation, teknik og innovation</span>
+</footer>
+
+</div></main>
+</div>
+
+<script>
+/* =========================================================
+   Fælles hjælpere
+   ========================================================= */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const num = v => { const s = String(v ?? '').replace(/\s/g, '').replace(',', '.'); if (!s) return NaN; const x = Number(s); return Number.isFinite(x) ? x : NaN; };
+const pct = v => { let x = num(String(v ?? '').replace('%', '')); if (x > 1) x /= 100; return x; };
+const fa = x => {
+  if (!Number.isFinite(x)) return '—';
+  const a = Math.abs(x);
+  if (a !== 0 && a < 0.01) return x.toLocaleString('da-DK', { maximumSignificantDigits: 3 });
+  const d = a >= 1000 ? 0 : a >= 100 ? 1 : a >= 1 ? 2 : 3;
+  return x.toLocaleString('da-DK', { maximumFractionDigits: d });
+};
+const fx = (x, d) => Number.isFinite(x) ? x.toLocaleString('da-DK', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—';
+const fi = x => Math.abs(x) >= 1e4
+  ? x.toLocaleString('da-DK', { useGrouping: false, maximumFractionDigits: 0 })
+  : x.toLocaleString('da-DK', { useGrouping: false, maximumSignificantDigits: 5 });
+/* værdi med SI-præfiks som HTML til panelinstrument */
+function si(x, unit, allowMilli = true) {
+  if (!Number.isFinite(x)) return null;
+  const a = Math.abs(x); let p = '', s = x;
+  if (a >= 1e6) { p = 'M'; s = x / 1e6; }
+  else if (a >= 1e3) { p = 'k'; s = x / 1e3; }
+  else if (allowMilli && a > 0 && a < 1) { p = 'm'; s = x * 1e3; }
+  return fa(s) + '<small>' + p + unit + '</small>';
+}
+const vu = (x, unit) => Number.isFinite(x) ? fa(x) + '<small>' + unit + '</small>' : null;
+function show(id, html) {
+  const el = document.getElementById(id);
+  if (html == null) { el.textContent = '—'; el.classList.add('na'); }
+  else { el.innerHTML = html; el.classList.remove('na'); }
+}
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; }
+  catch {
+    const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.append(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch {} ta.remove(); return ok;
+  }
+}
+$$('.calcw .cp').forEach(b => b.addEventListener('click', async () => {
+  const ok = await copyText(b.parentElement.querySelector('pre').textContent);
+  b.textContent = ok ? 'Kopieret' : 'Kunne ikke kopiere';
+  clearTimeout(b._t); b._t = setTimeout(() => b.textContent = 'Kopiér', 1400);
+}));
+const onInputs = (root, fn) => { root.addEventListener('input', fn); root.addEventListener('change', fn); };
+
+/* =========================================================
+   Navigation og tema
+   ========================================================= */
+(() => {
+  const order = ['oversigt', 'el', 'motor', 'kabel', 'hydraulik', 'pneumatik', 'talsystemer'];
+  const views = $$('.view'), links = $$('[data-nav]');
+  function go() {
+    let id = location.hash.slice(1);
+    if (!order.includes(id)) id = 'oversigt';
+    views.forEach(v => v.hidden = v.id !== 'v-' + id);
+    links.forEach(a => a.dataset.nav === id ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
+    const v = document.getElementById('v-' + id);
+    document.title = id === 'oversigt' ? 'Automatikhjælpemidler' : v.dataset.title.replace('&amp;', '&') + ' · Automatikhjælpemidler';
+    const active = links.find(a => a.dataset.nav === id);
+    if (active && window.matchMedia('(max-width:900px)').matches) active.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }
+  addEventListener('hashchange', () => { go(); window.scrollTo(0, 0); });
+  go();
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.target;
+    if (t.closest && t.closest('input,textarea,select,[contenteditable]')) return;
+    const i = '0123456'.indexOf(e.key);
+    if (i >= 0) location.hash = order[i];
+  });
+
+  $('#themeBtn').addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme')
+      || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('ah-tema', next); } catch {}
+  });
+})();
+
+/* =========================================================
+   El: Ohms lov
+   ========================================================= */
+(() => {
+  const K = ['u', 'i', 'r', 'p'], U = { u: 'V', i: 'A', r: 'Ω', p: 'W' }, N = { u: 'U', i: 'I', r: 'R', p: 'P' };
+  const F = {};
+  K.forEach(k => { const inp = $('#o-' + k); F[k] = { inp, fld: inp.closest('.fld'), auto: false }; });
+  const msg = $('#o-msg'), out = $('#o-calc');
+  let order = [];
+  const q = (x, k) => fa(x) + ' ' + U[k];
+
+  function reset(keys) { keys.forEach(k => { F[k].fld.classList.remove('is-calc'); if (F[k].auto) { F[k].inp.value = ''; F[k].auto = false; } }); }
+
+  function solve() {
+    msg.textContent = '';
+    const v = {}; order.forEach(k => v[k] = num(F[k].inp.value));
+    const bad = order.filter(k => !Number.isFinite(v[k]));
+    K.forEach(k => F[k].fld.classList.toggle('bad', bad.includes(k)));
+    const rest = K.filter(k => !order.includes(k));
+    if (order.length < 2 || bad.length) {
+      reset(rest);
+      if (bad.length) msg.textContent = 'Skriv kun tal, fx 24 eller 0,5.';
+      out.innerHTML = order.length < 2 ? '<span class="dim">Udfyld to felter for at se udregningen.</span>' : '';
+      return;
+    }
+    let { u, i, r, p } = v; const L = [];
+    switch ([...order].sort().join('')) {
+      case 'iu': r = u / i; p = u * i;
+        L.push(`R = U / I = ${fa(u)} / ${fa(i)} = <b>${q(r, 'r')}</b>`, `P = U · I = ${fa(u)} · ${fa(i)} = <b>${q(p, 'p')}</b>`); break;
+      case 'ru': i = u / r; p = u * u / r;
+        L.push(`I = U / R = ${fa(u)} / ${fa(r)} = <b>${q(i, 'i')}</b>`, `P = U² / R = ${fa(u)}² / ${fa(r)} = <b>${q(p, 'p')}</b>`); break;
+      case 'pu': i = p / u; r = u * u / p;
+        L.push(`I = P / U = ${fa(p)} / ${fa(u)} = <b>${q(i, 'i')}</b>`, `R = U² / P = ${fa(u)}² / ${fa(p)} = <b>${q(r, 'r')}</b>`); break;
+      case 'ir': u = i * r; p = i * i * r;
+        L.push(`U = R · I = ${fa(r)} · ${fa(i)} = <b>${q(u, 'u')}</b>`, `P = I² · R = ${fa(i)}² · ${fa(r)} = <b>${q(p, 'p')}</b>`); break;
+      case 'ip': u = p / i; r = p / (i * i);
+        L.push(`U = P / I = ${fa(p)} / ${fa(i)} = <b>${q(u, 'u')}</b>`, `R = P / I² = ${fa(p)} / ${fa(i)}² = <b>${q(r, 'r')}</b>`); break;
+      case 'pr': u = Math.sqrt(p * r); i = Math.sqrt(p / r);
+        L.push(`U = √(P · R) = √(${fa(p)} · ${fa(r)}) = <b>${q(u, 'u')}</b>`, `I = √(P / R) = √(${fa(p)} / ${fa(r)}) = <b>${q(i, 'i')}</b>`); break;
+    }
+    const res = { u, i, r, p };
+    if (rest.some(k => !Number.isFinite(res[k]) || res[k] < 0 && (k === 'r'))) {
+      msg.textContent = 'Den kombination giver ikke et gyldigt resultat. Tjek for nul eller negative værdier.';
+      rest.forEach(k => F[k].auto = true); reset(rest); out.innerHTML = ''; return;
+    }
+    rest.forEach(k => { F[k].inp.value = fi(res[k]); F[k].auto = true; F[k].fld.classList.add('is-calc'); });
+    order.forEach(k => F[k].fld.classList.remove('is-calc'));
+    out.innerHTML = `<span class="dim">Kendt: ${order.map(k => N[k] + ' = ' + q(v[k], k)).join(' og ')}</span>\n` + L.join('\n');
+  }
+
+  K.forEach(k => F[k].inp.addEventListener('input', () => {
+    F[k].auto = false;
+    order = order.filter(x => x !== k);
+    if (F[k].inp.value.trim() !== '') order.push(k);
+    while (order.length > 2) order.shift();
+    solve();
+  }));
+  $('#o-clear').addEventListener('click', () => { K.forEach(k => { F[k].inp.value = ''; F[k].auto = false; }); order = []; solve(); F.u.inp.focus(); });
+
+  F.u.inp.value = '24'; F.i.inp.value = '2'; order = ['u', 'i']; solve();
+})();
+
+/* =========================================================
+   El: effekt
+   ========================================================= */
+(() => {
+  const card = $('#pw-u').closest('.plate');
+  function calc() {
+    const sys = $('input[name=pw-sys]:checked').value;
+    $('#pw-cosf').hidden = sys === 'dc';
+    const u = num($('#pw-u').value), i = num($('#pw-i').value);
+    let cos = sys === 'dc' ? 1 : num($('#pw-cos').value);
+    const msg = $('#pw-msg'); msg.textContent = '';
+    if (sys !== 'dc' && Number.isFinite(cos) && (cos < 0 || cos > 1)) { msg.textContent = 'cos φ skal ligge mellem 0 og 1.'; cos = NaN; }
+    const k = sys === 'ac3' ? Math.sqrt(3) : 1;
+    const S = k * u * i, P = S * cos, sin = Math.sqrt(Math.max(0, 1 - cos * cos)), Q = S * sin;
+    const phi = Math.acos(cos) * 180 / Math.PI;
+    show('pw-P', si(P, 'W', false));
+    show('pw-S', sys === 'dc' ? null : si(S, 'VA', false));
+    show('pw-Q', sys === 'dc' ? null : si(Q, 'var', false));
+    const L = [];
+    if (Number.isFinite(P)) {
+      if (sys === 'dc') L.push(`P = U · I = ${fa(u)} · ${fa(i)} = <b>${fa(P)} W</b>`);
+      else {
+        const ks = sys === 'ac3' ? '√3 · ' : '', kn = sys === 'ac3' ? '1,732 · ' : '';
+        L.push(`S = ${ks}U · I = ${kn}${fa(u)} · ${fa(i)} = <b>${fa(S)} VA</b>`);
+        L.push(`P = S · cos φ = ${fa(S)} · ${fa(cos)} = <b>${fa(P)} W</b>`);
+        L.push(`Q = S · sin φ = ${fa(S)} · ${fa(sin)} = <b>${fa(Q)} var</b>`);
+        L.push(`<span class="dim">φ = arccos ${fa(cos)} = ${fx(phi, 1)}°</span>`);
+      }
+    } else L.push('<span class="dim">Udfyld spænding og strøm.</span>');
+    $('#pw-calc').innerHTML = L.join('\n');
+  }
+  onInputs(card, calc);
+  $('#pw-clear').addEventListener('click', () => { $('#pw-u').value = ''; $('#pw-i').value = ''; calc(); $('#pw-u').focus(); });
+  calc();
+})();
+
+/* =========================================================
+   El: energi
+   ========================================================= */
+(() => {
+  const card = $('#en-p').closest('.plate');
+  function calc() {
+    const p = num($('#en-p').value), t = num($('#en-t').value), pris = num($('#en-pris').value), d = num($('#en-d').value);
+    const kwh = p * t, kr = kwh * pris, y = kwh * d, ykr = y * pris;
+    show('en-kwh', vu(kwh, 'kWh'));
+    show('en-kr', Number.isFinite(kr) ? fx(kr, 2) + '<small>kr</small>' : null);
+    show('en-ykwh', Number.isFinite(y) ? (y >= 1e4 ? fa(y / 1000) + '<small>MWh</small>' : fa(y) + '<small>kWh</small>') : null);
+    show('en-ykr', Number.isFinite(ykr) ? fa(ykr) + '<small>kr</small>' : null);
+    const L = [];
+    if (Number.isFinite(kwh)) {
+      L.push(`E = P · t = ${fa(p)} kW · ${fa(t)} h = <b>${fa(kwh)} kWh</b>`);
+      if (Number.isFinite(kr)) L.push(`Pris = ${fa(kwh)} kWh · ${fx(pris, 2)} kr = <b>${fx(kr, 2)} kr</b>`);
+      if (Number.isFinite(y)) L.push(`År = ${fa(kwh)} kWh · ${fa(d)} dage = <b>${fa(y)} kWh</b>` + (Number.isFinite(ykr) ? ` = <b>${fa(ykr)} kr</b>` : ''));
+    } else L.push('<span class="dim">Udfyld effekt og driftstid.</span>');
+    $('#en-calc').innerHTML = L.join('\n');
+  }
+  onInputs(card, calc);
+  $('#en-clear').addEventListener('click', () => { ['en-p', 'en-t', 'en-pris', 'en-d'].forEach(id => $('#' + id).value = ''); calc(); $('#en-p').focus(); });
+  calc();
+})();
+
+/* =========================================================
+   Motor
+   ========================================================= */
+(() => {
+  const g = k => $('#m-' + k), root = $('#v-motor');
+  function calc() {
+    const P = num(g('p').value), U = num(g('u').value), cf = num(g('cos').value), n = num(g('n').value);
+    const f = num(g('f').value) || 50, eta = pct(g('eta').value);
+    const msg = []; 
+    let cfOk = cf, etaOk = eta;
+    if (Number.isFinite(cf) && (cf <= 0 || cf > 1)) { msg.push('cos φ skal ligge mellem 0 og 1.'); cfOk = NaN; }
+    if (Number.isFinite(eta) && (eta <= 0 || eta > 1)) { msg.push('Virkningsgraden skal ligge mellem 0 og 100 %.'); etaOk = NaN; }
+    const P1 = P * 1000 / etaOk;
+    const I = P1 / (Math.sqrt(3) * U * cfOk);
+    const M = 9550 * P / n;
+    let ns = NaN, pol = NaN;
+    if (n > 0 && f > 0) for (const pp of [2, 4, 6, 8, 10, 12, 16, 24]) { const s = 120 * f / pp; if (s > n) { ns = s; pol = pp; } }
+    if (n > 0 && !Number.isFinite(ns)) msg.push('Omdrejningstallet er højere end synkronhastigheden for en 2-polet motor.');
+    const slip = (ns - n) / ns * 100;
+    const loss = P1 / 1000 - P;
+
+    show('m-I', vu(I, 'A'));
+    $('#m-Id').textContent = Number.isFinite(I) ? `Trekantgren ved Y/Δ-start: ${fa(I / Math.sqrt(3))} A` : '';
+    show('m-M', vu(M, 'Nm'));
+    show('m-P1', vu(P1 / 1000, 'kW'));
+    show('m-pol', Number.isFinite(pol) ? pol + '<small>-polet</small>' : null);
+    $('#m-ns').textContent = Number.isFinite(ns) ? `Synkron: ${fa(ns)} o/min` : '';
+    show('m-slip', vu(slip, '%'));
+    $('#m-tab').textContent = Number.isFinite(loss) ? `Tab: ${fa(loss)} kW` : '';
+    $('#m-msg').innerHTML = msg.join('<br>');
+
+    const L = [];
+    if (Number.isFinite(P1)) L.push(`P₁ = P₂ / η = ${fa(P)} kW / ${fa(etaOk)} = <b>${fa(P1 / 1000)} kW</b>`);
+    if (Number.isFinite(I)) L.push(`I  = P₁ / (√3 · U · cos φ) = ${fa(P1)} / (1,732 · ${fa(U)} · ${fa(cfOk)}) = <b>${fa(I)} A</b>`);
+    if (Number.isFinite(M)) L.push(`M  = 9550 · P₂ / n = 9550 · ${fa(P)} / ${fa(n)} = <b>${fa(M)} Nm</b>`);
+    if (Number.isFinite(ns)) {
+      L.push(`nₛ = 120 · f / p = 120 · ${fa(f)} / ${pol} = <b>${fa(ns)} o/min</b>`);
+      L.push(`s  = (nₛ − n) / nₛ = (${fa(ns)} − ${fa(n)}) / ${fa(ns)} = <b>${fa(slip)} %</b>`);
+    }
+    if (Number.isFinite(I)) L.push(`<span class="dim">Y/Δ: I / √3 = ${fa(I)} / 1,732 = ${fa(I / Math.sqrt(3))} A</span>`);
+    $('#m-calc').innerHTML = L.length ? L.join('\n') : '<span class="dim">Udfyld mærkepladedata.</span>';
+  }
+  onInputs(root, calc);
+  $('#m-clear').addEventListener('click', () => { ['p', 'u', 'cos', 'eta', 'n'].forEach(k => g(k).value = ''); g('f').value = '50'; calc(); g('p').focus(); });
+  calc();
+})();
+
+/* =========================================================
+   Kabeldimensionering (DS/EN 60204-1)
+   ========================================================= */
+(() => {
+  const R = $('#v-kabel'), g = id => document.getElementById('k-' + id);
+  const T6 = [
+    {s:0.75,B1:8.6,B2:8.5,C:9.8,E:10.4},{s:1.0,B1:10.3,B2:10.1,C:11.7,E:12.4},{s:1.5,B1:13.5,B2:13.1,C:15.2,E:16.1},
+    {s:2.5,B1:18.3,B2:17.4,C:21,E:22},{s:4,B1:24,B2:23,C:28,E:30},{s:6,B1:31,B2:30,C:36,E:37},{s:10,B1:44,B2:40,C:50,E:52},
+    {s:16,B1:59,B2:54,C:66,E:70},{s:25,B1:77,B2:70,C:84,E:88},{s:35,B1:96,B2:86,C:104,E:110},{s:50,B1:117,B2:103,C:125,E:133},
+    {s:70,B1:149,B2:130,C:160,E:171},{s:95,B1:180,B2:156,C:194,E:207},{s:120,B1:208,B2:179,C:225,E:240}
+  ];
+  const T6PAR = [{s:0.20,B1:null,B2:4.3,C:4.4,E:4.4},{s:0.5,B1:null,B2:7.5,C:7.5,E:7.8},{s:0.75,B1:null,B2:9.0,C:9.5,E:10}];
+  const KT = {30:1.15,35:1.08,40:1.00,45:0.91,50:0.82,55:0.71,60:0.58};
+  const D2 = {
+    b:{navn:'B1 (kredse) og B2 (kabler)',v:{2:0.80,4:0.65,6:0.57,9:0.50}},
+    c:{navn:'C, enkelt lag uden afstand',v:{2:0.85,4:0.75,6:0.72,9:0.70}},
+    e1:{navn:'E, enkelt lag på perforeret bakke',v:{2:0.88,4:0.77,6:0.73,9:0.72}},
+    e23:{navn:'E, 2 til 3 bakker',v:{2:0.86,4:0.76,6:0.71,9:0.66}},
+    styre:{navn:'Styrekredspar ≤ 0,5 mm²',v:{2:0.76,4:0.57,6:0.48,9:0.40}}
+  };
+  const D2N = {2:'2',4:'3 til 4',6:'5 til 6',9:'7 til 9'};
+  const D3 = [{n:1,ledere:null,par:1.0},{n:3,ledere:1.0,par:null},{n:5,ledere:0.75,par:0.39},{n:7,ledere:0.65,par:0.34},{n:10,ledere:0.55,par:0.29},{n:24,ledere:0.40,par:0.21}];
+  const T5 = {
+    ud_effekt_fast:{navn:'Uden for kapsling, effektkreds, fastgjort',v:{fleks:1.0,massiv:1.5,to_skaerm:0.75,to_ikke:0.75,tre:0.75}},
+    ud_effekt_bev:{navn:'Uden for kapsling, effektkreds, hyppige bevægelser',v:{fleks:1.0,massiv:null,to_skaerm:0.75,to_ikke:0.75,tre:0.75}},
+    ud_styre:{navn:'Uden for kapsling, styrekreds',v:{fleks:1.0,massiv:1.0,to_skaerm:0.2,to_ikke:0.5,tre:0.2}},
+    ud_data:{navn:'Uden for kapsling, datakommunikation',v:{fleks:null,massiv:null,to_skaerm:null,to_ikke:null,tre:0.08}},
+    in_effekt:{navn:'I kapsling, effektkreds, ikke bevægelig',v:{fleks:0.75,massiv:0.75,to_skaerm:0.75,to_ikke:0.75,tre:0.75}},
+    in_styre:{navn:'I kapsling, styrekreds',v:{fleks:0.2,massiv:0.2,to_skaerm:0.2,to_ikke:0.2,tre:0.2}},
+    in_data:{navn:'I kapsling, datakommunikation',v:{fleks:null,massiv:null,to_skaerm:null,to_ikke:null,tre:0.08}}
+  };
+  const MT = {
+    B1:'B1: rør og kabelkanalsystemer, der holder og beskytter ledere eller enlederkabler.',
+    B2:'B2: som B1, men med flerlederkabler i røret eller kanalen.',
+    C:'C: flerlederkabler i fri luft, vandret eller lodret på væggen uden afstand mellem kablerne.',
+    E:'E: flerlederkabler i fri luft, lagt i åbne kabelbakker.'
+  };
+  const RHO = 0.0225;
+  const f2 = (x, d = 2) => x === null || !Number.isFinite(x) ? '—' : x.toLocaleString('da-DK', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const fS = x => x.toLocaleString('da-DK', { maximumFractionDigits: 2 });
+  let S = {}, tab = 't6';
+
+  function beregn() {
+    const par = R.querySelector('input[name=k-type]:checked').value === 'par';
+    const metode = R.querySelector('input[name=k-m]:checked').value;
+    const Ib = num(g('ib').value), In = num(g('in').value);
+    const temp = +g('temp').value, kt = KT[temp];
+
+    const ksmode = g('ksmode').value;
+    let ks = 1, ksTekst = 'ingen reduktion', d2hit = null, d3hit = null;
+    if (ksmode === 'd2') {
+      const r = g('d2row').value, n = +g('d2n').value;
+      if (n > 1) { ks = D2[r].v[n]; ksTekst = D2[r].navn + ', ' + D2N[n] + ' kredse/kabler (tabel D.2)'; d2hit = { r, n }; }
+      else ksTekst = '1 kreds, tabel D.2 giver ingen reduktion';
+    } else if (ksmode === 'd3') {
+      const n = +g('d3n').value, rk = D3.find(x => x.n === n), v = par ? rk.par : rk.ledere;
+      if (v !== null) { ks = v; ksTekst = 'op til ' + n + (par ? ' lederpar' : ' belastede ledere') + ' (tabel D.3)'; d3hit = { n, par }; }
+    } else {
+      const v = num(g('ksman').value); if (Number.isFinite(v) && v > 0) { ks = v; ksTekst = 'indtastet manuelt'; }
+    }
+
+    const tabel = par ? T6PAR : T6, fejl = [];
+    if (!Number.isFinite(Ib) || !Number.isFinite(In)) fejl.push('Udfyld både Ib og In.');
+    if (Number.isFinite(Ib) && Number.isFinite(In) && Ib > In) fejl.push('Ib er større end In, så beskyttelsen kobler ud under normal drift. Vælg en større In.');
+    if (par && metode === 'B1') fejl.push('Metode B1 kan ikke bruges til lederpar i tabel 6. Vælg B2, C eller E.');
+
+    const Izmin = In / (kt * ks);
+    let valgt = null;
+    for (const r of tabel) { const iz = r[metode]; if (iz == null) continue; if (iz * kt * ks >= In - 1e-9) { valgt = r; break; } }
+
+    let s5 = null, s5navn = '';
+    if (g('t5').checked) {
+      const p = g('t5plac').value, l = g('t5leder').value;
+      s5 = T5[p].v[l]; s5navn = T5[p].navn;
+      if (s5 === null) fejl.push('Tabel 5 tillader ikke den kombination af placering og ledertype.');
+    }
+
+    let sf = null;
+    if (g('sf').checked && Number.isFinite(Ib)) {
+      const [U, faser] = g('U').value.split('|').map(Number);
+      const L = num(g('L').value), cf = num(g('cos').value);
+      if (Number.isFinite(L) && Number.isFinite(cf)) {
+        const k = faser === 3 ? Math.sqrt(3) * cf : 2 * cf;
+        const dU = s => k * Ib * L * RHO / s;
+        let sMin = null;
+        for (const r of tabel) { if (r[metode] == null) continue; if (dU(r.s) / U * 100 <= 5) { sMin = r.s; break; } }
+        sf = { U, faser, L, cf, dU, sMin };
+        if (sMin === null) fejl.push('Spændingsfaldet er over 5 % selv ved største tværsnit i tabel 6. Afkort kablet eller hæv spændingen.');
+      }
+    }
+
+    const kand = [{ s: valgt ? valgt.s : null, grund: 'strømværdien' }];
+    if (s5) kand.push({ s: s5, grund: 'tabel 5' });
+    if (sf && sf.sMin) kand.push({ s: sf.sMin, grund: 'spændingsfaldet' });
+    const gyl = kand.filter(k => k.s !== null);
+    let endelig = null, grund = '';
+    if (valgt && gyl.length) {
+      const maxS = Math.max(...gyl.map(k => k.s));
+      endelig = maxS; grund = gyl.filter(k => k.s === maxS).map(k => k.grund).join(' og ');
+      const r = tabel.find(x => x.s >= endelig - 1e-9); if (r) endelig = r.s;
+    }
+
+    const izTab = valgt ? valgt[metode] : null;
+    const izKorr = izTab !== null ? izTab * kt * ks : null;
+    const graense = izKorr !== null && Math.abs(izKorr - In) < 1e-9;
+    const ok = izKorr !== null && Number.isFinite(Ib) && Number.isFinite(In) && Ib <= In && In < izKorr;
+
+    S = { par, metode, Ib, In, temp, kt, ks, ksTekst, Izmin, valgt, izTab, izKorr, endelig, grund, s5, s5navn, sf, fejl, ok, graense, d2hit, d3hit };
+    vis(); tegnTab();
+  }
+
+  function vis() {
+    const d = S;
+    g('resm').textContent = 'Metode ' + d.metode + ', ' + d.temp + ' °C';
+    g('mtekst').textContent = MT[d.metode];
+    const svar = g('svar');
+    if (!d.valgt) {
+      svar.classList.add('ingen');
+      g('tal').textContent = 'Intet tværsnit passer';
+      g('kilde').textContent = Number.isFinite(d.In) ? 'Tabel 6 rækker ikke til In = ' + f2(d.In, 1) + ' A med de valgte faktorer.' : 'Udfyld Ib og In.';
+      g('meter').hidden = true;
+    } else {
+      svar.classList.remove('ingen');
+      g('tal').innerHTML = fS(d.endelig) + '<small>mm²</small>';
+      g('kilde').textContent = 'Bestemt af ' + d.grund + (d.endelig !== d.valgt.s ? '. Strømværdien alene ville give ' + fS(d.valgt.s) + ' mm².' : '.');
+      const u = d.Ib / d.izKorr;
+      g('meter').hidden = !Number.isFinite(u);
+      g('util').textContent = fx(u * 100, 0) + ' %';
+      g('bar').style.width = Math.min(100, Math.max(0, u * 100)) + '%';
+      g('bar').classList.toggle('hi', u > 1);
+    }
+    g('adv').innerHTML = d.fejl.length ? '<p class="msg">' + d.fejl.join('<br>') + '</p>' : '';
+
+    const L = [], line = (a, b, cls) => L.push('<div class="kv"><span>' + a + '</span><span' + (cls ? ' class="' + cls + '"' : '') + '>' + b + '</span></div>');
+    line('kt (tabel D.1)', f2(d.kt));
+    line('ks', f2(d.ks));
+    line('Iz40 min = In / (kt · ks)', f2(d.Izmin, 1) + ' A');
+    if (d.valgt) {
+      line('Iz40 fra tabel 6', f2(d.izTab, 1) + ' A');
+      line('Iz korrigeret', f2(d.izKorr, 1) + ' A');
+      line('Kontrol Ib ≤ In &lt; Iz korr', d.ok ? 'Opfyldt' : d.graense ? 'Grænsetilfælde' : 'Ikke opfyldt', d.ok ? 'ok' : 'no');
+    }
+    if (d.s5) line('Mindste tværsnit, tabel 5', fS(d.s5) + ' mm²');
+    if (d.sf && d.endelig) { const p = d.sf.dU(d.endelig) / d.sf.U * 100; line('Spændingsfald ved ' + fS(d.sf.L) + ' m', f2(p) + ' %', p <= 5 ? 'ok' : 'no'); }
+    g('lines').innerHTML = L.join('');
+    g('calc').textContent = tekst(d);
+  }
+
+  function tekst(d) {
+    if (!d.valgt) return 'Ingen løsning med de valgte forudsætninger.\nIn = ' + f2(d.In, 1) + ' A kræver Iz40 ≥ ' + f2(d.Izmin, 1) + ' A, hvilket er ud over tabel 6 for metode ' + d.metode + '.';
+    const l = [];
+    l.push('KABELDIMENSIONERING, DS/EN 60204-1');
+    l.push('Kreds:         ' + (d.par ? 'styrekreds / lederpar' : 'effektkreds, trefaset'));
+    l.push('Installation:  metode ' + d.metode);
+    l.push('Ib = ' + f2(d.Ib, 1) + ' A    In = ' + f2(d.In, 1) + ' A', '');
+    l.push('kt = ' + f2(d.kt) + '   (' + d.temp + ' °C, tabel D.1)');
+    l.push('ks = ' + f2(d.ks) + '   (' + d.ksTekst + ')', '');
+    l.push('Iz40 min ≥ In / (kt · ks)');
+    l.push('Iz40 min ≥ ' + f2(d.In, 1) + ' / (' + f2(d.kt) + ' · ' + f2(d.ks) + ') = ' + f2(d.Izmin, 1) + ' A', '');
+    l.push('Tabel 6, metode ' + d.metode + ': nærmeste større er ' + f2(d.izTab, 1) + ' A  →  ' + fS(d.valgt.s) + ' mm²');
+    l.push('Iz korr = ' + f2(d.izTab, 1) + ' · ' + f2(d.kt) + ' · ' + f2(d.ks) + ' = ' + f2(d.izKorr, 1) + ' A');
+    l.push('Kontrol: ' + f2(d.Ib, 1) + ' ≤ ' + f2(d.In, 1) + ' < ' + f2(d.izKorr, 1) + '   ' + (d.ok ? 'OK' : 'IKKE OPFYLDT'));
+    if (d.s5) l.push('', 'Tabel 5, ' + d.s5navn + ': mindst ' + fS(d.s5) + ' mm²');
+    if (d.sf) {
+      const p = d.sf.dU(d.endelig) / d.sf.U * 100;
+      l.push('', 'Spændingsfald: ' + fS(d.sf.L) + ' m, ' + d.sf.U + ' V, cos φ ' + f2(d.sf.cf));
+      l.push('ΔU = ' + (d.sf.faser === 3 ? '√3' : '2') + ' · I · L · ρ · cos φ / S = ' + f2(p) + ' % ved ' + fS(d.endelig) + ' mm²  (grænse 5 %)  ' + (p <= 5 ? 'OK' : 'FOR STORT'));
+    }
+    l.push('', 'VALGT TVÆRSNIT: ' + fS(d.endelig) + ' mm²  (bestemt af ' + d.grund + ')');
+    return l.join('\n');
+  }
+
+  function tegnTab() {
+    const d = S, p = g('tab');
+    if (tab === 't6') {
+      const rows = d.par ? T6PAR : T6;
+      let h = '<h3>Tabel 6, strømværdier Iz for PVC-isolerede kobberledere ved 40 °C</h3><p class="note">' + (d.par ? 'Lederpar i styrekredse.' : 'Trefasede kredse.') + ' Den markerede celle er den værdi, beregningen bruger.</p><table class="tt"><thead><tr><th>mm²</th>' +
+        ['B1', 'B2', 'C', 'E'].map(m => '<th class="' + (m === d.metode ? 'colhit' : '') + '">' + m + '</th>').join('') + '</tr></thead><tbody>';
+      for (const r of rows) {
+        const hit = d.valgt && d.valgt.s === r.s;
+        h += '<tr class="' + (hit ? 'rowhit' : '') + '"><td>' + fS(r.s) + '</td>';
+        for (const m of ['B1', 'B2', 'C', 'E']) {
+          const v = r[m], cls = (hit && m === d.metode) ? 'cellhit' : (m === d.metode ? 'colhit' : '');
+          h += '<td class="' + cls + '">' + (v === null ? '<span class="dim">ikke brugbar</span>' : f2(v, 1)) + '</td>';
+        }
+        h += '</tr>';
+      }
+      p.innerHTML = h + '</tbody></table>';
+    } else if (tab === 'td1') {
+      let h = '<h3>Tabel D.1, temperaturkorrektionsfaktor kt</h3><p class="note">Tabel 6 gælder ved 40 °C. Ved anden omgivelsestemperatur ganges med kt. Maksimal ledertemperatur for PVC er 70 °C.</p><table class="tt"><thead><tr><th>Omgivende lufttemperatur, °C</th><th>kt</th></tr></thead><tbody>';
+      for (const t in KT) h += '<tr class="' + (+t === d.temp ? 'rowhit' : '') + '"><td>' + t + '</td><td class="' + (+t === d.temp ? 'cellhit' : '') + '">' + f2(KT[t]) + '</td></tr>';
+      p.innerHTML = h + '</tbody></table>';
+    } else if (tab === 'td2') {
+      const cols = [2, 4, 6, 9];
+      let h = '<h3>Tabel D.2, reduktionsfaktor ks ved gruppering</h3><p class="note">Bruges når flere belastede kabler eller kredse ligger samlet. Ligger Ib under 30 % af Iz, behøver Iz ikke reduceres.</p><table class="tt"><thead><tr><th>Installationsmetode</th>' + cols.map(c => '<th>' + D2N[c] + '</th>').join('') + '</tr></thead><tbody>';
+      for (const k in D2) {
+        const rh = d.d2hit && d.d2hit.r === k;
+        h += '<tr class="' + (rh ? 'rowhit' : '') + '"><td class="nm">' + D2[k].navn + '</td>';
+        for (const c of cols) h += '<td class="' + ((rh && d.d2hit.n === c) ? 'cellhit' : '') + '">' + f2(D2[k].v[c]) + '</td>';
+        h += '</tr>';
+      }
+      p.innerHTML = h + '</tbody></table>';
+    } else if (tab === 'td3') {
+      let h = '<h3>Tabel D.3, reduktionsfaktor ks for flerlederkabler op til 10 mm²</h3><p class="note">Gælder flerlederkabler med ligeligt belastede ledere eller lederpar.</p><table class="tt"><thead><tr><th>Antal belastede ledere/lederpar</th><th>Ledere &gt; 1 mm²</th><th>Lederpar 0,25 til 0,75 mm²</th></tr></thead><tbody>';
+      for (const r of D3) {
+        const rh = d.d3hit && d.d3hit.n === r.n;
+        h += '<tr class="' + (rh ? 'rowhit' : '') + '"><td>' + r.n + '</td><td class="' + (rh && !d.d3hit.par ? 'cellhit' : '') + '">' + (r.ledere === null ? '<span class="dim">–</span>' : f2(r.ledere)) + '</td><td class="' + (rh && d.d3hit.par ? 'cellhit' : '') + '">' + (r.par === null ? '<span class="dim">–</span>' : f2(r.par)) + '</td></tr>';
+      }
+      p.innerHTML = h + '</tbody></table>';
+    } else if (tab === 't5') {
+      const cols = [['fleks', 'Enkeltleder fleksibel, kl. 5/6'], ['massiv', 'Enkeltleder massiv, kl. 1/2'], ['to_skaerm', 'To ledere, skærmet'], ['to_ikke', 'To ledere, ikke skærmet'], ['tre', 'Tre eller flere ledere']];
+      const vP = g('t5').checked ? g('t5plac').value : null, vL = g('t5leder').value;
+      let h = '<h3>Tabel 5, kobberlederes mindste tværsnitsareal</h3><p class="note">Alle tværsnit i mm².</p><table class="tt"><thead><tr><th>Placering og anvendelse</th>' + cols.map(c => '<th>' + c[1] + '</th>').join('') + '</tr></thead><tbody>';
+      for (const k in T5) {
+        const rh = vP === k;
+        h += '<tr class="' + (rh ? 'rowhit' : '') + '"><td class="nm">' + T5[k].navn + '</td>';
+        for (const c of cols) { const v = T5[k].v[c[0]]; h += '<td class="' + (rh && vL === c[0] ? 'cellhit' : '') + '">' + (v === null ? '<span class="dim">–</span>' : fS(v)) + '</td>'; }
+        h += '</tr>';
+      }
+      p.innerHTML = h + '</tbody></table>';
+    } else {
+      p.innerHTML = '<h3>Tabel D.4, klassifikation af ledere</h3><p class="note">Fra IEC 60228.</p><table class="tt"><thead><tr><th>Klasse</th><th style="text-align:left">Beskrivelse</th><th style="text-align:left">Anvendelse</th></tr></thead><tbody>' +
+        [['1', 'Massive kobber- eller aluminiumsledere', 'Faste installationer'], ['2', 'Flertrådede ledere af kobber eller aluminium', 'Faste installationer'], ['5', 'Fleksible flertrådede kobberledere', 'Maskininstallationer med vibrationer, forbindelse til bevægelige dele'], ['6', 'Fleksible flertrådede kobberledere, mere fleksible end klasse 5', 'Hyppige bevægelser']]
+        .map(r => '<tr><td>' + r[0] + '</td><td class="nm" style="text-align:left">' + r[1] + '</td><td class="nm" style="text-align:left">' + r[2] + '</td></tr>').join('') + '</tbody></table>';
+    }
+  }
+
+  $$('.tabs button', R).forEach(b => b.addEventListener('click', () => {
+    $$('.tabs button', R).forEach(x => x.setAttribute('aria-selected', 'false'));
+    b.setAttribute('aria-selected', 'true'); tab = b.dataset.tab; tegnTab();
+  }));
+  g('ksmode').addEventListener('change', e => { g('d2box').hidden = e.target.value !== 'd2'; g('d3box').hidden = e.target.value !== 'd3'; g('manbox').hidden = e.target.value !== 'manuel'; });
+  g('t5').addEventListener('change', e => g('t5box').hidden = !e.target.checked);
+  g('sf').addEventListener('change', e => g('sfbox').hidden = !e.target.checked);
+  $$('input[name=k-m]', R).forEach(r => r.addEventListener('change', () => {
+    const m = R.querySelector('input[name=k-m]:checked').value;
+    g('d2row').value = m === 'C' ? 'c' : m === 'E' ? 'e1' : 'b';
+  }));
+  $$('input[name=k-type]', R).forEach(r => r.addEventListener('change', () => {
+    const par = R.querySelector('input[name=k-type]:checked').value === 'par';
+    if (par) {
+      if (R.querySelector('input[name=k-m]:checked').value === 'B1') R.querySelector('input[name=k-m][value=B2]').checked = true;
+      g('t5plac').value = 'in_styre';
+    } else if (g('t5plac').value === 'in_styre') g('t5plac').value = 'ud_effekt_fast';
+  }));
+  onInputs(R, beregn);
+  beregn();
+})();
+
+/* =========================================================
+   Cylinderskitse (fælles for hydraulik og pneumatik)
+   ========================================================= */
+const TRAVEL = 240;
+function cylinder(el, air) {
+  el.innerHTML = `<svg viewBox="0 0 640 118" class="cyl${air ? ' air' : ''}" role="img" aria-label="Skitse af dobbeltvirkende cylinder med port A og B">
+    <path class="port" d="M46 28V10M282 28V10"/>
+    <text x="34" y="14" class="pl">A</text><text x="270" y="14" class="pl">B</text>
+    <rect class="barrel" x="20" y="28" width="280" height="64" rx="4"/>
+    <rect class="fluid" x="24" y="32" width="8" height="56"/>
+    <g class="mv">
+      <rect class="rod" x="46" y="53" width="318" height="14" rx="2"/>
+      <circle class="eye" cx="372" cy="60" r="9"/>
+      <rect class="pist" x="32" y="31" width="14" height="58" rx="2"/>
+    </g>
+    <rect class="cap" x="12" y="24" width="12" height="72" rx="2"/>
+    <rect class="cap" x="296" y="24" width="12" height="72" rx="2"/>
+  </svg>`;
+  return el.firstElementChild;
+}
+function simulate(svg, tOut, tIn, note) {
+  if (!(tOut > 0 && tIn > 0) || !Number.isFinite(tOut + tIn)) { note.textContent = 'Udfyld flow, diametre og slaglængde for at køre et slag.'; return; }
+  const mv = svg.querySelector('.mv'), fl = svg.querySelector('.fluid');
+  mv.getAnimations().forEach(a => a.cancel()); fl.getAnimations().forEach(a => a.cancel());
+  const maxT = Math.max(tOut, tIn), k = maxT > 6 ? 6 / maxT : 1;
+  const a = Math.max(tOut * k, 0.25) * 1000, b = Math.max(tIn * k, 0.25) * 1000, hold = 450, tot = a + hold + b;
+  const o1 = a / tot, o2 = (a + hold) / tot, opt = { duration: tot, easing: 'linear' };
+  const sc = (8 + TRAVEL) / 8;
+  mv.animate([{ transform: 'translateX(0px)', offset: 0 }, { transform: `translateX(${TRAVEL}px)`, offset: o1 }, { transform: `translateX(${TRAVEL}px)`, offset: o2 }, { transform: 'translateX(0px)', offset: 1 }], opt);
+  fl.animate([{ transform: 'scaleX(1)', offset: 0 }, { transform: `scaleX(${sc})`, offset: o1 }, { transform: `scaleX(${sc})`, offset: o2 }, { transform: 'scaleX(1)', offset: 1 }], opt);
+  note.textContent = k < 1 ? `Ud ${fa(tOut)} s, ind ${fa(tIn)} s. Afspillet ${fa(1 / k)} gange hurtigere.` : `Ud ${fa(tOut)} s, ind ${fa(tIn)} s, i realtid.`;
+}
+
+/* ---------- geometri ---------- */
+function geometry(Draw, dRaw) {
+  const D = num(Draw), dTxt = String(dRaw).trim(), d = dTxt ? num(dTxt) : 0;
+  const err = [];
+  if (dTxt && !Number.isFinite(d)) err.push('Stangdiameteren skal være et tal.');
+  if (D > 0 && d >= D) err.push('Stangen kan ikke være tykkere end stemplet.');
+  const ok = D > 0 && Number.isFinite(d) && d >= 0 && d < D;
+  const A = ok ? Math.PI * D * D / 4 : NaN, a = ok ? Math.PI * d * d / 4 : NaN;
+  return { D, d, A, a, Ar: A - a, err, hasRod: !!dTxt };
+}
+const row = (label, o, i, em) => `<tr${em ? ' class="em"' : ''}><td>${label}</td><td>${o ?? '—'}</td><td>${i ?? '—'}</td></tr>`;
+
+/* =========================================================
+   Hydraulik
+   ========================================================= */
+(() => {
+  const R = $('#v-hydraulik'), g = k => $('#h-' + k);
+  const svg = cylinder(g('cyl'), false);
+  let last = {};
+  function calc() {
+    const p = num(g('p').value), Q = num(g('q').value), s = num(g('s').value);
+    let eta = pct(g('eta').value); if (!Number.isFinite(eta) || eta <= 0) eta = 1;
+    const G = geometry(g('D').value, g('d').value), { A, a, Ar } = G;
+    const Fo = p * A / 10, Fi = p * Ar / 10;
+    const qmm = Q * 1e6 / 60, vo = qmm / A, vi = qmm / Ar, to = s / vo, ti = s / vi;
+    const Vo = A * s / 1e6, Vi = Ar * s / 1e6, Ro = Q * Ar / A, Ri = Q * A / Ar, phi = A / Ar;
+    last = { to, ti };
+
+    show('h-rF', si(Fo, 'N', false));
+    g('rFe').textContent = Number.isFinite(Fo) ? `Med η ${fa(eta)}: ${fa(Fo * eta / 1000)} kN` : '';
+    show('h-rv', vu(vo, 'mm/s'));
+    g('rvm').textContent = Number.isFinite(vo) ? `${fa(vo * 60 / 1000)} m/min` : '';
+    show('h-rt', vu(to + ti, 's'));
+    g('rts').textContent = Number.isFinite(to + ti) ? `Ud ${fa(to)} s, ind ${fa(ti)} s` : '';
+    g('phi').textContent = Number.isFinite(phi) && G.hasRod ? `Arealforhold φ = A / Aᵣ = ${fx(phi, 2)}` : '';
+    g('msg').innerHTML = G.err.join('<br>');
+
+    const kN = x => Number.isFinite(x) ? fa(x / 1000) + '<small>kN</small>' : null;
+    g('tb').innerHTML =
+      row('Virksomt areal', vu(A / 100, 'cm²'), vu(Ar / 100, 'cm²')) +
+      row('Kraft, teoretisk', kN(Fo), kN(Fi), true) +
+      row(`Kraft med η ${fa(eta)}`, kN(Fo * eta), kN(Fi * eta)) +
+      row('Hastighed', vu(vo, 'mm/s'), vu(vi, 'mm/s'), true) +
+      row('Slagtid', vu(to, 's'), vu(ti, 's')) +
+      row('Oliemængde', vu(Vo, 'l'), vu(Vi, 'l')) +
+      row('Returflow til tank', vu(Ro, 'l/min'), vu(Ri, 'l/min'));
+
+    const L = [];
+    if (Number.isFinite(A)) {
+      L.push(`A  = π · D² / 4 = π · ${fa(G.D)}² / 4 = <b>${fa(A)} mm²</b>  (${fa(A / 100)} cm²)`);
+      if (G.hasRod) L.push(`Aᵣ = A − π · d² / 4 = ${fa(A)} − ${fa(a)} = <b>${fa(Ar)} mm²</b>`);
+    }
+    if (Number.isFinite(Fo)) L.push(`F  = p · A / 10 = ${fa(p)} · ${fa(A)} / 10 = <b>${fa(Fo)} N</b>` + (G.hasRod ? `   ind: ${fa(p)} · ${fa(Ar)} / 10 = <b>${fa(Fi)} N</b>` : ''));
+    if (Number.isFinite(vo)) {
+      L.push(`Q  = ${fa(Q)} l/min · 1 000 000 / 60 = ${fa(qmm)} mm³/s`);
+      L.push(`v  = Q / A = ${fa(qmm)} / ${fa(A)} = <b>${fa(vo)} mm/s</b>` + (G.hasRod ? `   ind: ${fa(qmm)} / ${fa(Ar)} = <b>${fa(vi)} mm/s</b>` : ''));
+    }
+    if (Number.isFinite(to)) L.push(`t  = s / v = ${fa(s)} / ${fa(vo)} = <b>${fa(to)} s</b>` + (G.hasRod ? `   ind: ${fa(s)} / ${fa(vi)} = <b>${fa(ti)} s</b>` : ''));
+    if (G.hasRod && Number.isFinite(Ri)) L.push(`<span class="dim">Returflow ved indkørsel = Q · A / Aᵣ = ${fa(Ri)} l/min. Dimensionér returfilter og ventiler efter den.</span>`);
+    g('calc').innerHTML = L.length ? L.join('\n') : '<span class="dim">Udfyld tryk, diametre og flow.</span>';
+  }
+  onInputs(R, calc);
+  g('sim').addEventListener('click', () => simulate(svg, last.to, last.ti, g('simnote')));
+  g('clear').addEventListener('click', () => { ['p', 'q', 'D', 'd', 's'].forEach(k => g(k).value = ''); g('eta').value = '0,95'; calc(); g('p').focus(); });
+  calc();
+})();
+
+/* =========================================================
+   Pneumatik
+   ========================================================= */
+(() => {
+  const R = $('#v-pneumatik'), g = k => $('#n-' + k);
+  cylinder(g('cyl'), true);
+  const SIZES = [[12, 6], [16, 6], [20, 8], [25, 10], [32, 12], [40, 16], [50, 20], [63, 20], [80, 25], [100, 25], [125, 32]];
+  g('chips').innerHTML = SIZES.map(([D, d]) => `<button type="button" class="chip" data-d="${D}" data-r="${d}" aria-pressed="false">Ø${D}/${d}</button>`).join('');
+  $$('.chip', g('chips')).forEach(c => c.addEventListener('click', () => { g('D').value = c.dataset.d; g('d').value = c.dataset.r; calc(); }));
+  const PA = 1.013;
+  function calc() {
+    const p = num(g('p').value), s = num(g('s').value), c = num(g('c').value);
+    let eta = pct(g('eta').value); if (!Number.isFinite(eta) || eta <= 0) eta = 1;
+    const G = geometry(g('D').value, g('d').value), { A, a, Ar } = G;
+    const Fo = p * A / 10, Fi = p * Ar / 10;
+    const k = (p + PA) / PA;
+    const Vo = A * s / 1e6, Vi = Ar * s / 1e6, No = Vo * k, Ni = Vi * k, Nc = No + Ni, Nm = Nc * c;
+
+    $$('.chip', g('chips')).forEach(ch => ch.setAttribute('aria-pressed', String(+ch.dataset.d === G.D && +ch.dataset.r === G.d)));
+    g('size').textContent = G.D > 0 ? `Ø${fa(G.D)}` + (G.hasRod ? `/${fa(G.d)}` : '') + ' mm' : '';
+    show('n-rFo', si(Fo * eta, 'N', false));
+    g('rFot').textContent = Number.isFinite(Fo) ? `Teoretisk ${fa(Fo)} N` : '';
+    show('n-rFi', si(Fi * eta, 'N', false));
+    show('n-rC', vu(Nc, 'Nl'));
+    show('n-rM', vu(Nm, 'Nl/min'));
+    g('rMh').textContent = Number.isFinite(Nm) ? `${fa(Nm * 60 / 1000)} m³/h ved ${fa(c)} cykler pr. minut` : 'Angiv cykler pr. minut for at se forbruget over tid';
+    g('msg').innerHTML = G.err.join('<br>');
+
+    g('tb').innerHTML =
+      row('Virksomt areal', vu(A / 100, 'cm²'), vu(Ar / 100, 'cm²')) +
+      row('Kraft, teoretisk', vu(Fo, 'N'), vu(Fi, 'N')) +
+      row(`Kraft med η ${fa(eta)}`, vu(Fo * eta, 'N'), vu(Fi * eta, 'N'), true) +
+      row('Cylindervolumen', vu(Vo, 'l'), vu(Vi, 'l')) +
+      row('Luftforbrug', vu(No, 'Nl'), vu(Ni, 'Nl'), true);
+
+    const L = [];
+    if (Number.isFinite(A)) {
+      L.push(`A  = π · D² / 4 = π · ${fa(G.D)}² / 4 = <b>${fa(A)} mm²</b>`);
+      if (G.hasRod) L.push(`Aᵣ = A − π · d² / 4 = ${fa(A)} − ${fa(a)} = <b>${fa(Ar)} mm²</b>`);
+    }
+    if (Number.isFinite(Fo)) {
+      L.push(`F ud  = p · A / 10 · η = ${fa(p)} · ${fa(A)} / 10 · ${fa(eta)} = <b>${fa(Fo * eta)} N</b>`);
+      L.push(`F ind = p · Aᵣ / 10 · η = ${fa(p)} · ${fa(Ar)} / 10 · ${fa(eta)} = <b>${fa(Fi * eta)} N</b>`);
+    }
+    if (Number.isFinite(Nc)) {
+      L.push(`Nl ud  = A · s · (p + 1,013) / 1,013 = ${fa(Vo)} l · ${fx(k, 3)} = <b>${fa(No)} Nl</b>`);
+      L.push(`Nl ind = Aᵣ · s · (p + 1,013) / 1,013 = ${fa(Vi)} l · ${fx(k, 3)} = <b>${fa(Ni)} Nl</b>`);
+      L.push(`Pr. cyklus = ${fa(No)} + ${fa(Ni)} = <b>${fa(Nc)} Nl</b>` + (Number.isFinite(Nm) ? `   ·  ${fa(c)} /min = <b>${fa(Nm)} Nl/min</b>` : ''));
+      L.push('<span class="dim">Slanger og døde volumener mellem ventil og cylinder er ikke medregnet.</span>');
+    }
+    g('calc').innerHTML = L.length ? L.join('\n') : '<span class="dim">Udfyld tryk og diametre.</span>';
+  }
+  onInputs(R, calc);
+  g('clear').addEventListener('click', () => { ['p', 's', 'D', 'd', 'c'].forEach(k => g(k).value = ''); g('eta').value = '0,9'; calc(); g('p').focus(); });
+  calc();
+})();
+
+/* =========================================================
+   Talsystemer
+   ========================================================= */
+(() => {
+  const R = $('#v-talsystemer');
+  const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
+  const WIDTHS = [8, 16, 32, 64, 128], MAX_BIT_VIEW = 128;
+  const GROUP_SIZE = { 2: 4, 8: 3, 10: 3, 16: 2 }, PREFIX = { 2: '0b', 8: '0o', 16: '0x' };
+  const state = { value: 255n, signed: false, width: 8, manualWidth: 0, group: true };
+  const customBaseInput = $('#t-base'), grid = $('#t-grid'), info = $('#t-info'), codes = $('#t-codes');
+  const signedBox = $('#t-signed'), groupBox = $('#t-group'), segButtons = $$('#t-width button');
+  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const clampBase = n => { n = parseInt(n, 10); return Number.isNaN(n) ? 36 : Math.min(36, Math.max(2, n)); };
+
+  const rows = $$('.nb-row', R).map(row => ({
+    row, input: row.querySelector('textarea'), err: row.querySelector('.nb-err'), copyBtn: row.querySelector('.nb-cp'),
+    base: () => row.dataset.base === 'custom' ? clampBase(customBaseInput.value) : Number(row.dataset.base)
+  }));
+  const customRow = rows.find(f => f.row.dataset.base === 'custom');
+
+  function allowedText(base) {
+    if (base === 2) return '0 og 1';
+    if (base <= 10) return `0 til ${base - 1}`;
+    if (base === 11) return '0 til 9 og A';
+    return `0 til 9 og A til ${DIGITS[base - 1].toUpperCase()}`;
+  }
+  function parse(raw, base) {
+    let s = raw.replace(/[\s_]/g, '').toLowerCase();
+    if (!s) return { empty: true };
+    let negative = false;
+    if (s[0] === '-' || s[0] === '\u2212') { negative = true; s = s.slice(1); } else if (s[0] === '+') s = s.slice(1);
+    if (PREFIX[base] && s.startsWith(PREFIX[base])) s = s.slice(2);
+    if (!s) return { error: 'Skriv mindst ét ciffer.' };
+    if (/[.,]/.test(s)) return { error: 'Kun hele tal kan omregnes, så fjern komma eller punktum.' };
+    const B = BigInt(base); let v = 0n;
+    for (const ch of s) {
+      const d = DIGITS.indexOf(ch);
+      if (d < 0 || d >= base) return { error: `„${ch.toUpperCase()}“ findes ikke i base ${base}. Brug ${allowedText(base)}.` };
+      v = v * B + BigInt(d);
+    }
+    return { value: negative ? -v : v };
+  }
+  function groupDigits(s, size) { const parts = []; for (let i = s.length; i > 0; i -= size) parts.unshift(s.slice(Math.max(0, i - size), i)); return parts.join(' '); }
+  function formatValue(v, base) {
+    const neg = v < 0n; let s = (neg ? -v : v).toString(base);
+    if (base > 10) s = s.toUpperCase();
+    const size = state.group ? GROUP_SIZE[base] : 0;
+    if (size) s = groupDigits(s, size);
+    return (neg ? '-' : '') + s;
+  }
+
+  const bitLength = n => n === 0n ? 0 : n.toString(2).length;
+  function fits(v, w, signed) { const W = BigInt(w); if (signed) { const half = 1n << (W - 1n); return v >= -half && v < half; } return v >= 0n && v < (1n << W); }
+  function neededWidth(v, signed) {
+    for (const w of WIDTHS) if (fits(v, w, signed)) return w;
+    const bits = signed ? (v < 0n ? bitLength(-v - 1n) : bitLength(v)) + 1 : bitLength(v);
+    return Math.ceil(bits / 8) * 8;
+  }
+  function updateWidth() { state.width = Math.max(neededWidth(state.value ?? 0n, state.signed), state.manualWidth); }
+  const toPattern = (v, w) => v < 0n ? (1n << BigInt(w)) + v : v;
+  function fromPattern(p, w, signed) { const W = BigInt(w); return signed && ((p >> (W - 1n)) & 1n) ? p - (1n << W) : p; }
+
+  function autosize(el) { el.style.height = 'auto'; el.style.height = (el.scrollHeight + 2) + 'px'; }
+  function clearMarks() { rows.forEach(f => { f.row.classList.remove('invalid', 'stale'); f.err.textContent = ''; }); grid.classList.remove('stale'); }
+  function render(skip) {
+    clearMarks();
+    rows.forEach(f => { if (f !== skip) f.input.value = state.value === null ? '' : formatValue(state.value, f.base()); autosize(f.input); });
+    customRow.input.placeholder = `fx ${formatValue(255n, customRow.base())}`;
+    renderBits();
+  }
+  function buildGrid(W) {
+    grid.innerHTML = ''; grid.dataset.w = W;
+    for (let b = W / 8 - 1; b >= 0; b--) {
+      const byte = document.createElement('div'); byte.className = 'byte';
+      for (let k = 7; k >= 0; k--) {
+        const i = b * 8 + k;
+        const cell = document.createElement('div'); cell.className = 'cell';
+        const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'bit'; btn.dataset.i = i;
+        const idx = document.createElement('span'); idx.className = 'idx'; idx.textContent = i; idx.setAttribute('aria-hidden', 'true');
+        cell.append(btn, idx); byte.append(cell);
+      }
+      grid.append(byte);
+    }
+  }
+  const da = n => n.toLocaleString('da-DK');
+  function renderBits() {
+    const v = state.value ?? 0n, W = state.width, need = neededWidth(v, state.signed);
+    signedBox.checked = state.signed;
+    segButtons.forEach(b => { const w = Number(b.dataset.w); b.disabled = w < need; b.setAttribute('aria-pressed', String(w === W)); });
+    if (W > MAX_BIT_VIEW) {
+      grid.hidden = true; grid.dataset.w = '';
+      info.textContent = `Tallet fylder ${W} bits. Bitvisningen går op til ${MAX_BIT_VIEW} bits, men felterne ovenfor virker stadig.`;
+    } else {
+      grid.hidden = false;
+      if (Number(grid.dataset.w) !== W) buildGrid(W);
+      const pattern = toPattern(v, W); let ones = 0;
+      grid.querySelectorAll('.cell').forEach(cell => {
+        const btn = cell.firstElementChild, i = Number(btn.dataset.i), on = ((pattern >> BigInt(i)) & 1n) === 1n;
+        if (on) ones++;
+        btn.textContent = on ? '1' : '0'; btn.classList.toggle('on', on); btn.setAttribute('aria-pressed', String(on));
+        const isSign = state.signed && i === W - 1;
+        btn.setAttribute('aria-label', isSign ? `Bit ${i}, fortegnsbit` : `Bit ${i}`); btn.title = isSign ? 'Fortegnsbit' : '';
+        cell.lastElementChild.classList.toggle('sign', isSign);
+      });
+      const BW = BigInt(W);
+      const lo = state.signed ? -(1n << (BW - 1n)) : 0n, hi = state.signed ? (1n << (BW - 1n)) - 1n : (1n << BW) - 1n;
+      info.textContent = `${W} bits ${state.signed ? 'med' : 'uden'} fortegn rummer ${da(lo)} til ${da(hi)}. ${ones} ${ones === 1 ? 'bit er' : 'bits er'} slået til.`;
+    }
+    // Ekstra koder, nyttige ved encodere og tommelhjul
+    if (state.value !== null && state.value >= 0n) {
+      const x = state.value, gray = x ^ (x >> 1n), dec = x.toString();
+      const gs = gray.toString(2), grp = s => state.group ? groupDigits(s, 4) : s;
+      let h = `<div><span>Gray</span><code>${grp(gs)}</code></div>`;
+      if (dec.length <= 24) h += `<div><span>BCD</span><code>${[...dec].map(c => Number(c).toString(2).padStart(4, '0')).join(state.group ? ' ' : '')}</code></div>`;
+      if (x >= 32n && x <= 126n) h += `<div><span>ASCII</span><code>${esc(String.fromCharCode(Number(x)))}</code></div>`;
+      codes.innerHTML = h;
+    } else codes.innerHTML = '';
+  }
+
+  function onFieldInput(f) {
+    autosize(f.input);
+    const r = parse(f.input.value, f.base());
+    if (r.error) {
+      clearMarks(); f.row.classList.add('invalid'); f.err.textContent = r.error;
+      rows.forEach(o => { if (o !== f) o.row.classList.add('stale'); }); grid.classList.add('stale'); return;
+    }
+    state.value = r.empty ? null : r.value;
+    if (state.value !== null && state.value < 0n) state.signed = true;
+    updateWidth(); render(f);
+  }
+  rows.forEach(f => {
+    f.input.addEventListener('input', () => onFieldInput(f));
+    f.input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); f.input.blur(); } });
+    f.input.addEventListener('blur', () => { if (!f.row.classList.contains('invalid') && state.value !== null) { f.input.value = formatValue(state.value, f.base()); autosize(f.input); } });
+    f.copyBtn.addEventListener('click', async () => {
+      const text = f.input.value.replace(/\s/g, ''); if (!text) return;
+      const ok = await copyText(text);
+      f.copyBtn.textContent = ok ? 'Kopieret' : 'Fejl';
+      clearTimeout(f.timer); f.timer = setTimeout(() => f.copyBtn.textContent = 'Kopiér', 1500);
+    });
+  });
+  function refreshCustom() {
+    if (customRow.row.classList.contains('invalid')) { onFieldInput(customRow); return; }
+    customRow.input.value = state.value === null ? '' : formatValue(state.value, customRow.base());
+    customRow.input.placeholder = `fx ${formatValue(255n, customRow.base())}`;
+    autosize(customRow.input);
+  }
+  customBaseInput.addEventListener('input', refreshCustom);
+  customBaseInput.addEventListener('blur', () => { customBaseInput.value = clampBase(customBaseInput.value); refreshCustom(); });
+  grid.addEventListener('click', e => {
+    const btn = e.target.closest('.bit'); if (!btn) return;
+    const W = state.width, pattern = toPattern(state.value ?? 0n, W) ^ (1n << BigInt(btn.dataset.i));
+    state.value = fromPattern(pattern, W, state.signed); state.manualWidth = W; render(null);
+  });
+  signedBox.addEventListener('change', () => {
+    const W = state.width;
+    if (state.value !== null) { const p = toPattern(state.value, W); state.signed = signedBox.checked; state.value = fromPattern(p, W, state.signed); }
+    else state.signed = signedBox.checked;
+    updateWidth(); render(null);
+  });
+  segButtons.forEach(b => b.addEventListener('click', () => { state.manualWidth = Number(b.dataset.w); updateWidth(); render(null); }));
+  groupBox.addEventListener('change', () => { state.group = groupBox.checked; render(null); });
+
+  const resizeAll = () => { if (!R.hidden) rows.forEach(f => autosize(f.input)); };
+  addEventListener('resize', resizeAll);
+  addEventListener('hashchange', () => requestAnimationFrame(resizeAll));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(resizeAll);
+  updateWidth(); render(null);
+  requestAnimationFrame(resizeAll);
+})();
+</script>
+</body>
+</html>
