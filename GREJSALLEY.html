@@ -703,68 +703,6 @@
     ctx.restore();
   }
 
-  /* ---------------- BREAKOUT ---------------- */
-  G({ id:"breakout", name:"Brick Bash", tag:"arcade", w:480, h:480,
-    desc:"Bounce the ball, wipe out every brick. Three balls.",
-    hint:"Mouse / drag / arrows to move the paddle",
-    mount(env){
-      const {ctx,w,h,canvas}=env;
-      const PW=86,PH=12, R=7, cols=9, rows=5, bw=(w-40)/cols, bh=20;
-      let px,bx,by,vx,vy,bricks,lives,score,stuck,over,won;
-      function reset(){
-        px=w/2-PW/2; stuck=true; over=false; won=false; lives=3; score=0;
-        bx=w/2; by=h-40; vx=0; vy=0;
-        bricks=[];
-        for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)bricks.push({x:20+c*bw,y:60+r*bh,r, alive:true});
-        env.score(0); env.status("Click / press A to launch");
-      }
-      env.reset=reset;
-      const launch=()=>{ if(stuck&&!over){ stuck=false; vx=rnd(-160,160); vy=-260; } };
-      env.on(canvas,"pointermove",e=>{ const p=pointer(e,canvas); px=clamp(p.x-PW/2,0,w-PW); if(stuck)bx=px+PW/2; });
-      env.on(canvas,"pointerdown",e=>{ if(over){reset();return;} launch(); });
-      env.on(window,"keydown",e=>{
-        const k=e.key.toLowerCase();
-        if(k==="arrowleft"||k==="a"){px=clamp(px-34,0,w-PW); if(stuck)bx=px+PW/2;}
-        else if(k==="arrowright"||k==="d"){px=clamp(px+34,0,w-PW); if(stuck)bx=px+PW/2;}
-        else if(k===" "){ over?reset():launch(); }
-        if(k.startsWith("arrow")||k===" ")e.preventDefault();
-      });
-      env.loop.fn=(dt)=>{
-        if(!stuck&&!over){
-          bx+=vx*dt; by+=vy*dt;
-          if(bx<R){bx=R;vx=-vx;} if(bx>w-R){bx=w-R;vx=-vx;}
-          if(by<R){by=R;vy=-vy;}
-          if(by>=h-30-R && by<=h-30 && bx>px && bx<px+PW && vy>0){
-            vy=-Math.abs(vy); const hit=(bx-(px+PW/2))/(PW/2); vx=clamp(vx+hit*160,-320,320);
-          }
-          for(const b of bricks){
-            if(!b.alive)continue;
-            if(bx>b.x-R && bx<b.x+bw+R && by>b.y-R && by<b.y+bh+R){
-              b.alive=false; score+=10; env.score(score);
-              const overlapX=Math.min(bx-(b.x-R),(b.x+bw+R)-bx);
-              const overlapY=Math.min(by-(b.y-R),(b.y+bh+R)-by);
-              if(overlapX<overlapY)vx=-vx; else vy=-vy;
-              break;
-            }
-          }
-          if(bricks.every(b=>!b.alive)){ over=true; won=true; env.saveHi(score); env.status("Cleared! A / click for another rack"); }
-          if(by>h+R){
-            lives--;
-            if(lives<=0){ over=true; env.saveHi(score); env.status("Out of balls — A / click to retry"); }
-            else { stuck=true; bx=px+PW/2; by=h-40; env.status("Ball "+(4-lives)+" — click / A to launch"); }
-          }
-        }
-        paintBg(ctx,w,h);
-        bricks.forEach((b,i)=>{ if(!b.alive)return; ctx.fillStyle=`hsl(${(i*23)%360} 70% 60%)`; roundRect(ctx,b.x+1,b.y+1,bw-2,bh-2,4); ctx.fill(); });
-        ctx.fillStyle=COL.cyan; roundRect(ctx,px,h-30,PW,PH,6); ctx.fill();
-        ctx.fillStyle=COL.ink; ctx.beginPath(); ctx.arc(bx,by,R,0,7); ctx.fill();
-        ctx.fillStyle=COL.muted; ctx.font='12px "DM Mono", monospace';
-        ctx.fillText("BALLS "+Math.max(0,lives), 12, h-8);
-      };
-      reset(); env.loop.start();
-      return {};
-    }});
-
   /* ---------------- GREJS BLASTERS (external page) ---------------- */
   G({ id:"blaster", name:"Grejs Blasters", tag:"puzzle", href:"grejs-blasters.html",
     desc:"Blokpuslespil i neon-look — træk klodser ud på et 8×8 bræt og ryd rækker og kolonner. Opens in its own page.",
@@ -774,11 +712,6 @@
   G({ id:"grejsworld3d", name:"Cross GrejsWorld 3D", tag:"arcade", href:"cross_grejsworld_3d.html",
     desc:"3D voxel-andeeventyr i Grejsdalen — kryds veje, floder og togskinner uden at blive ramt. Opens in its own page.",
     hint:"Piltaster / WASD eller skærmknapper" });
-
-  /* ---------------- NEON SNAKE (external page) ---------------- */
-  G({ id:"neonsnake", name:"Neon Snake", tag:"reflex", href:"neon_snake.html",
-    desc:"Glasagtig neon-slange med pulserende glow. Spis, voks, styr uden om din egen hale. Opens in its own page.",
-    hint:"Piltaster eller swipe på mobil" });
 
   /* ---------------- DYBE GRUBER DELUXE (external page) ---------------- */
   G({ id:"dybegruber", name:"Dybe Gruber Deluxe", tag:"arcade", href:"dybe-gruber-deluxe.html", isNew:true,
@@ -1079,46 +1012,6 @@
       return {};
     }});
 
-  /* ---------------- FLAP ---------------- */
-  G({ id:"flap", name:"Neon Flap", tag:"reflex", w:400, h:480,
-    desc:"Tap to flap, thread the gaps. One nudge and you're paste.",
-    hint:"Space / click / ▲ to flap",
-    mount(env){
-      const {ctx,w,h,canvas}=env, R=13, GAP=140, PW=58;
-      let y,vy,pipes,score,dead,started;
-      function reset(){ y=h/2; vy=0; pipes=[]; score=0; dead=false; started=false; env.score(0); env.status("Flap to start"); }
-      env.reset=reset;
-      const flap=()=>{ if(dead){reset();return;} started=true; vy=-300; };
-      env.on(canvas,"pointerdown",flap);
-      env.on(window,"keydown",e=>{ const k=e.key.toLowerCase(); if(k===" "||k==="arrowup"||k==="w"){flap();e.preventDefault();} });
-      env.loop.fn=(dt)=>{
-        if(started&&!dead){
-          vy+=1300*dt; y+=vy*dt;
-          const spd=150+score*4;
-          if(!pipes.length||pipes[pipes.length-1].x<w-210) pipes.push({x:w, gy:rnd(70,h-70-GAP), passed:false});
-          pipes.forEach(p=>p.x-=spd*dt);
-          pipes=pipes.filter(p=>p.x>-PW);
-          for(const p of pipes){
-            if(!p.passed && p.x+PW<80-R){ p.passed=true; score++; env.score(score); env.saveHi(score); }
-            if(80+R>p.x && 80-R<p.x+PW && (y-R<p.gy || y+R>p.gy+GAP)) dead=true;
-          }
-          if(y+R>h||y-R<0) dead=true;
-          if(dead) env.status("Down — space / click to retry");
-        }
-        paintBg(ctx,w,h);
-        pipes.forEach(p=>{
-          ctx.fillStyle=COL.green;
-          roundRect(ctx,p.x,0,PW,p.gy,6); ctx.fill();
-          roundRect(ctx,p.x,p.gy+GAP,PW,h-p.gy-GAP,6); ctx.fill();
-        });
-        ctx.fillStyle=COL.amber;
-        ctx.beginPath(); ctx.arc(80,y,R,0,7); ctx.fill();
-        ctx.fillStyle="#1a1330"; ctx.beginPath(); ctx.arc(85,y-3,3,0,7); ctx.fill();
-      };
-      reset(); env.loop.start();
-      return {};
-    }});
-
   /* ---------------- TUNNEL ---------------- */
   G({ id:"tunnel", name:"Tunnel", tag:"reflex", w:520, h:340,
     desc:"Hold to rise, release to drop. The cave keeps tightening around you.",
@@ -1161,73 +1054,6 @@
       return {};
     }});
 
-  /* ---------------- HOP OP ---------------- */
-  G({ id:"hopop", name:"Hop Op", tag:"arcade", w:380, h:480,
-    desc:"Bounce ever upward from ledge to ledge. Don't look down.",
-    hint:"◀▶ / A,D to steer",
-    mount(env){
-      const {ctx,w,h}=env, PW=64, PH=12;
-      let x,y,vy,plats,camY,score,dead,keys;
-      const gen=py=>({x:rnd(0,w-PW),y:py,move:Math.random()<0.22?rnd(28,58)*(Math.random()<.5?-1:1):0});
-      function reset(){ x=w/2; y=h-90; vy=0; camY=0; score=0; dead=false; keys={}; plats=[{x:w/2-PW/2,y:h-44,move:0}]; for(let i=1;i<12;i++)plats.push(gen(h-44-i*46)); }
-      env.reset=reset;
-      env.on(window,"keydown",e=>{ const k=e.key.toLowerCase(); keys[k]=true; if(k===" "&&dead)reset(); if(k.startsWith("arrow")||k===" ")e.preventDefault(); });
-      env.on(window,"keyup",e=>{ keys[e.key.toLowerCase()]=false; });
-      env.loop.fn=(dt)=>{
-        if(!dead){
-          const dir=(keys["arrowright"]||keys["d"]?1:0)-(keys["arrowleft"]||keys["a"]?1:0);
-          x+=dir*280*dt;
-          if(x<-14)x=w+14; if(x>w+14)x=-14;
-          vy+=1550*dt; y+=vy*dt;
-          plats.forEach(p=>{ if(p.move){ p.x+=p.move*dt; if(p.x<0||p.x>w-PW)p.move*=-1; } });
-          if(vy>0){ for(const p of plats){ if(x+12>p.x&&x-12<p.x+PW&&y+14>p.y&&y+14<p.y+PH+12){ vy=-640; break; } } }
-          if(y<camY+h*0.42){ camY=y-h*0.42; }
-          const climbed=Math.max(0,Math.floor(-camY/10));
-          if(climbed>score){ score=climbed; env.score(score); env.saveHi(score); }
-          plats=plats.filter(p=>p.y<camY+h+24);
-          while(plats.length<12){ const topY=Math.min(...plats.map(p=>p.y)); plats.push(gen(topY-rnd(38,54))); }
-          if(y>camY+h+24){ dead=true; env.saveHi(score); env.status("Fell at "+score+" — space to climb again"); }
-        }
-        paintBg(ctx,w,h);
-        plats.forEach(p=>{ ctx.fillStyle=p.move?COL.amber:COL.green; roundRect(ctx,p.x,p.y-camY,PW,PH,5); ctx.fill(); });
-        ctx.fillStyle=dead?COL.coral:COL.cyan; roundRect(ctx,x-12,y-camY-14,24,24,7); ctx.fill();
-      };
-      reset(); env.loop.start();
-      return {};
-    }});
-
-  /* ---------------- LYS UD ---------------- */
-  G({ id:"lysud", name:"Lys Ud", tag:"puzzle", w:420, h:420,
-    desc:"Every tap flips a plus-shape of lamps. Get the whole board dark.",
-    hint:"Click / tap a cell",
-    mount(env){
-      const {ctx,w,h,canvas}=env, N=5, C=w/N;
-      let g,moves,done;
-      const tog=(x,y)=>{ if(x>=0&&x<N&&y>=0&&y<N)g[y][x]=!g[y][x]; };
-      const press=(x,y)=>{ tog(x,y); tog(x-1,y); tog(x+1,y); tog(x,y-1); tog(x,y+1); };
-      const dark=()=>g.every(r=>r.every(v=>!v));
-      function reset(){ g=Array.from({length:N},()=>Array(N).fill(false)); do{ for(let i=0;i<rand(7)+6;i++)press(rand(N),rand(N)); }while(dark()); moves=0; done=false; env.score(0); env.status("All lamps off wins"); }
-      env.reset=reset;
-      env.on(canvas,"pointerdown",e=>{
-        if(done){reset();return;}
-        const p=pointer(e,canvas), x=Math.floor(p.x/C), y=Math.floor(p.y/C);
-        if(x<0||x>=N||y<0||y>=N)return;
-        press(x,y); moves++; env.score(moves);
-        if(dark()){ done=true; env.saveHi(Math.max(50,900-moves*30)); env.status("Dark! "+moves+" moves — click to reshuffle"); }
-      });
-      env.on(window,"keydown",e=>{ if(e.key===" "&&done){reset();e.preventDefault();} });
-      env.loop.fn=()=>{
-        paintBg(ctx,w,h);
-        for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-          ctx.fillStyle=g[y][x]?COL.amber:"#241c3c";
-          roundRect(ctx,x*C+5,y*C+5,C-10,C-10,10); ctx.fill();
-          if(g[y][x]){ ctx.fillStyle="rgba(255,255,255,.22)"; roundRect(ctx,x*C+12,y*C+12,C-24,(C-24)/2,6); ctx.fill(); }
-        }
-        ctx.fillStyle=COL.muted; ctx.font='11px "DM Mono", monospace'; ctx.fillText("MOVES "+moves,8,h-6);
-      };
-      reset(); env.loop.start();
-      return {};
-    }});
 
   /* ---------------- TÅRN ---------------- */
   G({ id:"taarn", name:"Tårn", tag:"reflex", w:360, h:480,
