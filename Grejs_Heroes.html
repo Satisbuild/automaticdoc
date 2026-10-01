@@ -437,12 +437,11 @@ const Save = {
     if (raw) {
       try {
         const old = JSON.parse(raw);
-        if ((old.v || 1) < 2) {
-          // v1 → v2: new 10-world campaign. Keep heroes, gear, currency & upgrades; restart the map.
-          delete old.progress; delete old.endless; delete old.quests; delete old.shop;
-          old.v = CONFIG.SAVE_VERSION; old.migrated = true;
-        }
-        d = deepMerge(d, old);
+        if ((old.v || 1) < CONFIG.SAVE_VERSION) {
+          // Older save → full progress reset for the new version. Only sound/graphics settings survive.
+          d.settings = deepMerge(d.settings, old.settings || {});
+          d.seenIntro = !!old.seenIntro; d.migrated = true;
+        } else d = deepMerge(d, old);
       } catch (e) { /* corrupt save → defaults */ }
     }
     // sanity
@@ -6705,7 +6704,7 @@ function boot() {
   window.addEventListener('beforeunload', () => Save.save());
   if (!Save.ok) setTimeout(() => UI.toast('⚠️ Storage unavailable — progress will not be saved', ''), 800);
   if (Save.data.seenIntro) Game.setState('MENU'); else Game.startIntro();
-  if (Save.data.migrated) { delete Save.data.migrated; Save.save(); setTimeout(() => UI.dialog('GREJS HEROES 2.0', '<div style="font-size:54px">🎉</div>A brand new <b>10-world campaign</b> with 150 levels!<br><br>Your heroes, gear, coins, gems and upgrades came with you — but the map starts over.<br><br><b>12 new heroes · 10 new enemies · 4 new bosses</b>', [{ label: "LET'S GO!", cls: 'green' }]), 600); }
+  if (Save.data.migrated) { delete Save.data.migrated; Save.save(); setTimeout(() => UI.dialog('GREJS HEROES 2.0', '<div style="font-size:54px">🎉</div>A brand new <b>10-world campaign</b> with 150 levels!<br><br>Everyone starts fresh: all progress has been reset for the new version.<br><br><b>12 new heroes · 10 new enemies · 4 new bosses</b>', [{ label: "LET'S GO!", cls: 'green' }]), 600); }
   requestAnimationFrame(gameLoop);
 }
 try { boot(); }
