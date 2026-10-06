@@ -46,6 +46,26 @@ body[data-world="sorthul"]{
   --sky1:#000000;--sky2:#1a0a20;--ground1:#3e3350;--ground2:#281f38;--ground3:#15101f;
   --rock1:#141019;--rock2:#0e0b13;--rock3:#241c30;--beam:#c07030;--beam2:#5a3010;
   --shaft:#030205;--helmet:#ffffff;--shirt:#ff5a3a;--truck:#ffb04a;--truck2:#6a3aa0;--steel:#b0a0c8}
+body[data-world="kvante"]{
+  --bg:#020c0c;--bg2:#06302c;--panel:#06201e;--panel2:#0a2b28;--edge:#1fa89a;--accent:#5affd8;--accent2:#0a5a4c;--muted:#9fd8cc;
+  --sky1:#010808;--sky2:#063a36;--ground1:#3affd0;--ground2:#0f6a5c;--ground3:#063a33;
+  --rock1:#0b2522;--rock2:#081c1a;--rock3:#123a35;--beam:#2ab8a5;--beam2:#0d5a50;
+  --shaft:#020a09;--helmet:#ffffff;--shirt:#ff4fd8;--truck:#5affd8;--truck2:#1a6a7a;--steel:#9ff5e5}
+body[data-world="drage"]{
+  --bg:#120302;--bg2:#3d0a04;--panel:#2a0703;--panel2:#360b05;--edge:#c23a12;--accent:#ff6a2a;--accent2:#7a1a00;--muted:#f0b8a0;
+  --sky1:#2a0505;--sky2:#c2380e;--ground1:#3a1a12;--ground2:#26100b;--ground3:#160806;
+  --rock1:#2c0f0a;--rock2:#230b07;--rock3:#45180e;--beam:#8a3a1a;--beam2:#4a1a08;
+  --shaft:#0e0302;--helmet:#ffcf2e;--shirt:#2a8a3a;--truck:#ff6a2a;--truck2:#6a1a08;--steel:#c08a6a}
+body[data-world="tid"]{
+  --bg:#110c05;--bg2:#3a2a12;--panel:#261b0c;--panel2:#302310;--edge:#a8823a;--accent:#ffd98a;--accent2:#7a5a1a;--muted:#dcc9a0;
+  --sky1:#3a2a18;--sky2:#d8b070;--ground1:#c8a46a;--ground2:#8a6a3a;--ground3:#5a4422;
+  --rock1:#33271a;--rock2:#2a2014;--rock3:#4a3a24;--beam:#b8924a;--beam2:#6a4a1a;
+  --shaft:#120d06;--helmet:#e8c06a;--shirt:#3a6a8a;--truck:#c8a46a;--truck2:#6a4a2a;--steel:#e8d0a0}
+body[data-world="grejs"]{
+  --bg:#0c0414;--bg2:#3a0a4a;--panel:#22082e;--panel2:#2c0b3b;--edge:#ff4fb0;--accent:#ffe14a;--accent2:#8a3a00;--muted:#f0c8ff;
+  --sky1:#2a0a5a;--sky2:#ff7ac8;--ground1:#ffe14a;--ground2:#ff4fb0;--ground3:#7a2aa0;
+  --rock1:#2a0d38;--rock2:#220a2e;--rock3:#45175a;--beam:#ff4fb0;--beam2:#7a1a5a;
+  --shaft:#0e0414;--helmet:#ffe14a;--shirt:#4fd8ff;--truck:#ffe14a;--truck2:#ff4fb0;--steel:#ffd0f0}
 
 *{box-sizing:border-box}
 html{background:#0c0806}html,body{margin:0;min-height:100%}
@@ -86,7 +106,7 @@ header{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px
 #goal .gp{color:var(--muted);font-size:12px;min-width:38px;text-align:right}
 #goal.done .gb i{background:linear-gradient(90deg,#58c968,#b8ffb0)}
 
-/* ---------- surface ---------- */
+
 #surface{position:relative;height:215px;overflow:hidden;background:linear-gradient(var(--sky1),var(--sky2) 80%)}
 #scenery,#gdeco{position:absolute;inset:0;pointer-events:none}
 .sun{position:absolute;top:18px;right:12%;width:52px;height:52px;border-radius:50%;background:radial-gradient(#fff9c4,#ffe05a 60%);box-shadow:0 0 40px 10px #ffe05a88}
@@ -124,6 +144,25 @@ header{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px
 .bhdisk.front{clip-path:inset(52% 0 0 0)}
 @keyframes bhp{to{filter:blur(1.5px) brightness(1.35)}}
 .bh{position:absolute;top:32px;left:50%;width:70px;height:70px;margin-left:-35px;border-radius:50%;background:#000;box-shadow:0 0 0 3px #ffd9a0,0 0 22px 8px #ff9f43aa,0 0 80px 26px #b36bff44}
+.qgrid{position:absolute;left:-20%;right:-20%;bottom:40px;height:120px;background:linear-gradient(#5affd844 1px,transparent 1px) 0 0/100% 18px,linear-gradient(90deg,#5affd844 1px,transparent 1px) 0 0/34px 100%;transform:perspective(160px) rotateX(55deg);transform-origin:bottom;-webkit-mask:linear-gradient(transparent,#000);mask:linear-gradient(transparent,#000)}
+.atom{position:absolute;width:56px;height:56px;border-radius:50%;border:2px solid #5affd8aa;animation:spin 4s linear infinite}
+.atom:before,.atom:after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid #ff4fd8aa;transform:rotate(60deg) scaleY(.35)}
+.atom:after{border-color:#ffe14aaa;transform:rotate(-60deg) scaleY(.35)}
+.atom i{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px;border-radius:50%;background:#fff;box-shadow:0 0 14px 4px #5affd8}
+.lava{position:absolute;left:0;right:0;bottom:40px;height:24px;background:linear-gradient(90deg,#ff5a1a,#ffb02a,#ff3a0a,#ffc04a,#ff5a1a);background-size:200% 100%;filter:blur(3px);animation:lava 6s linear infinite;opacity:.8}
+@keyframes lava{to{background-position:200% 0}}
+.dragon{position:absolute;font-size:34px;animation:fly linear infinite;filter:drop-shadow(0 0 8px #ff6a2a)}
+@keyframes fly{from{transform:translateX(-120px) scaleX(-1)}to{transform:translateX(110vw) scaleX(-1)}}
+.ember{position:absolute;bottom:50px;width:4px;height:4px;border-radius:50%;background:#ffb02a;box-shadow:0 0 6px #ff6a2a;animation:ember 4s ease-in infinite}
+@keyframes ember{from{transform:translateY(0);opacity:1}to{transform:translateY(-170px) translateX(20px);opacity:0}}
+.clock{position:absolute;border-radius:50%;background:radial-gradient(#fff8e8,#e8d0a0 70%);border:5px solid #8a6a3a;box-shadow:0 0 22px #ffd98a66,inset 0 0 0 2px #fff5}
+.clock:before,.clock:after{content:"";position:absolute;left:50%;bottom:50%;width:3px;margin-left:-1.5px;background:#3a2a12;border-radius:2px;transform-origin:bottom}
+.clock:before{height:38%;animation:spin 6s linear infinite}.clock:after{height:28%;width:4px;animation:spin 60s linear infinite}
+.hglass{position:absolute;font-size:30px;animation:flip 4s ease-in-out infinite}
+@keyframes flip{0%,40%{transform:rotate(0)}50%,90%{transform:rotate(180deg)}100%{transform:rotate(360deg)}}
+.rainbow{position:absolute;left:50%;bottom:20px;width:440px;height:220px;margin-left:-220px;border-radius:220px 220px 0 0;opacity:.75;
+  background:radial-gradient(circle at 50% 100%,transparent 0 58%,#8a4fff 58% 63%,#4f8aff 63% 68%,#4fd8a0 68% 73%,#ffe14a 73% 78%,#ff9a3a 78% 83%,#ff4f6a 83% 88%,transparent 88%)}
+.spark{position:absolute;font-size:18px;animation:hover 3s ease-in-out infinite alternate}
 .ground{position:absolute;left:0;right:0;bottom:0;height:56px;background:linear-gradient(var(--ground1) 0 12px,var(--ground2) 12px 30px,var(--ground3))}
 .deco{position:absolute;bottom:50px}
 .blink{animation:blinkA 1.2s steps(1) infinite}@keyframes blinkA{50%{opacity:.15}}
@@ -151,7 +190,7 @@ header{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px
 .panel{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 14px;background:linear-gradient(var(--panel2),var(--panel));border-bottom:4px solid #0008}
 .info{flex:1;min-width:170px}.stats{font-size:12px;color:var(--muted);margin:2px 0 6px}.panel .stats{margin:0}.btns{display:flex;gap:6px;flex-wrap:wrap}
 
-/* ---------- mine ---------- */
+
 #mine{position:relative;border-top:6px solid var(--ground3)}
 #col{position:absolute;left:0;top:0;bottom:0;width:var(--col);overflow:hidden;cursor:pointer;border-right:5px solid var(--beam2);
   background:linear-gradient(90deg,var(--shaft) 0 10px,var(--steel) 10px 14px,#0005 14px 16px,transparent 16px calc(100% - 16px),#0005 calc(100% - 16px) calc(100% - 14px),var(--steel) calc(100% - 14px) calc(100% - 10px),var(--shaft) calc(100% - 10px)),
@@ -236,6 +275,22 @@ body.space .otank{display:block;fill:#cfd6e0;stroke:#7a8494;stroke-width:1}
 .cardGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.miniCard{background:#ffffff0d;border:1px solid #ffffff1c;border-radius:9px;padding:8px}.miniCard b{display:block;font-size:13px}.miniCard small{color:var(--muted)}
 .ach{padding:8px;border-radius:8px;background:#ffffff0a;margin:5px 0;border:1px solid #ffffff18}.ach.done{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}.ach small{display:block;color:var(--muted)}
 .setting{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #ffffff18}
+#acctBtn{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block}
+#acctBtn.on{background:color-mix(in srgb,var(--accent) 30%,var(--beam))}
+.sync{font-size:11px;color:var(--muted);font-weight:700}
+.form{display:grid;gap:7px;margin:6px 0 4px}
+.form input{font:inherit;font-weight:700;padding:9px 10px;border-radius:9px;border:2px solid #ffffff22;background:#0006;color:var(--text);outline:none;user-select:text;-webkit-user-select:text}
+.form input:focus{border-color:var(--accent)}
+.form .row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.err{color:#ffb0a0;font-size:12px;font-weight:800;min-height:16px}
+.lbtabs{display:flex;gap:5px;margin:4px 0 8px}.lbtabs button{flex:1;font-size:12px;padding:6px 4px;background:#ffffff12;box-shadow:none}.lbtabs button.on{background:var(--accent);color:#1a1000}
+.lb{display:grid;gap:4px}
+.lbr{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;background:#ffffff0a;font-size:13px;font-weight:800}
+.lbr .rk{color:var(--muted);text-align:center}.lbr .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lbr .sc{color:var(--accent);white-space:nowrap}
+.lbr .nm small{color:var(--muted);font-weight:700;margin-left:4px}
+.lbr.r1{background:linear-gradient(90deg,#ffd84a33,#ffffff08)}.lbr.r2{background:linear-gradient(90deg,#d9e2ee33,#ffffff08)}.lbr.r3{background:linear-gradient(90deg,#d9823f33,#ffffff08)}
+.lbr.me{box-shadow:inset 0 0 0 2px var(--accent)}
+.muted{color:var(--muted);font-size:12px}
 
 .float{position:fixed;pointer-events:none;font-weight:900;color:var(--accent);text-shadow:0 2px 0 #000;animation:rise 1.1s ease-out forwards;z-index:80}
 @keyframes rise{to{transform:translateY(-50px);opacity:0}}
@@ -287,7 +342,7 @@ body.compact{--row:124px}body.noanim *{animation:none!important;transition:none!
   #shop{width:92px;height:78px}#road{right:100px}
   .wtab{flex:0 0 auto;min-width:64px;padding:6px 7px;gap:5px}.wtab .wi{font-size:17px}.wtab .lg{display:none}.wtab .sh{display:inline}#worldbar{padding:7px 8px;gap:6px}
   .info.card{max-width:none}
-  .logo{display:none}#cash{font-size:21px;min-width:0}
+  .logo{display:none}#cash{font-size:21px;min-width:0}.topbtn .lg{display:none}header{gap:6px;padding:7px 8px}.topbtn{padding:6px 8px}
   #goal{padding:6px 8px;font-size:12px}
   .portalrow{flex-direction:column;height:auto;padding:14px}.portalrow .pt{text-align:center}.partlist{justify-content:center}
   .rkwrap{height:120px;width:58px}
@@ -302,6 +357,8 @@ body.compact{--row:124px}body.noanim *{animation:none!important;transition:none!
   <span id="rate">0 / sek</span>
   <span id="boost"></span>
   <span class="sp"></span>
+  <button class="topbtn" data-act="panel" data-i="rank" title="Rangliste (R)">🏅<span class="lg"> Rangliste</span></button>
+  <button class="topbtn" data-act="panel" data-i="acct" id="acctBtn" title="Konto og cloud-save">👤<span class="lg"> Log ind</span></button>
   <button class="topbtn" data-act="mode" id="modeBtn" title="Købsmængde (M)">Køb ×1</button>
   <button class="topbtn" data-act="sound" id="soundBtn" title="Lyd">🔊</button>
   <button class="topbtn" data-act="panel" data-i="stats" title="Statistik">📊</button>
@@ -364,9 +421,11 @@ body.compact{--row:124px}body.noanim *{animation:none!important;transition:none!
   Ansæt managers, så det kører af sig selv – også når du er væk (op til 3 timer).
   Hver skakt fordobler sin produktion ved niveau 25, 50, 100, 200 osv. Hver achievement giver <b>+2 % produktion</b>, og hver ny verden du når giver <b>+10 %</b> i alle verdener.<br>
   <b>Glimtesten:</b> Hold øje med overfladen – en glimtende sten dukker op engang imellem. Klik på den for en pengepræmie eller <b>TURBO ×3</b>.<br>
-  <b>Verdener:</b> Åbn alle 10 skakter og betal portalen for at komme fra Kulminen til Guld og videre til Diamant. Derfra går det ud i rummet: byg en <b>raket</b> i tre dele (motor, brændstoftank og kapsel) og affyr den mod <b>Månen</b>, <b>Mars</b>, <b>Saturns ringe</b>, <b>Stjernetågen</b> og til sidst <b>Det sorte hul</b>.
-  Hver verden har sine egne penge, og verdener du har forladt, bliver ved med at arbejde, hvis de har managers.<br>
-  <b>Genveje:</b> <kbd>E</kbd>/<kbd>mellemrum</kbd> elevator · <kbd>S</kbd> sælg · <kbd>M</kbd> købsmængde
+  <b>Verdener:</b> Åbn alle 10 skakter og betal portalen for at komme fra Kulminen til Guld og videre til Diamant. Derfra går det ud i rummet: byg en <b>raket</b> i tre dele og affyr den mod <b>Månen</b>, <b>Mars</b>, <b>Saturns ringe</b>, <b>Stjernetågen</b> og <b>Det sorte hul</b>.
+  Gennem det sorte hul bygger du en <b>ormehulsgenerator</b> i fire dele og rejser videre til <b>Kvanteriget</b>, <b>Dragernes rige</b>, <b>Tidens ende</b> og til sidst <b>Grejsverset</b>.<br>
+  <b>Én pengepung:</b> Alle verdener deler de samme penge, så verdener du har forladt, bliver ved med at give penge, hvis de har managers. Til gengæld bliver hver ny verden markant dyrere end den forrige.<br>
+  <b>Konto og rangliste:</b> Opret en konto med navn og kode for at komme på ranglisten og gemme dit spil i skyen, så du kan spille videre på en anden enhed.<br>
+  <b>Genveje:</b> <kbd>E</kbd>/<kbd>mellemrum</kbd> elevator · <kbd>S</kbd> sælg · <kbd>M</kbd> købsmængde · <kbd>R</kbd> rangliste
 </footer>
 
 <div id="sidePanel">
@@ -380,6 +439,20 @@ body.compact{--row:124px}body.noanim *{animation:none!important;transition:none!
 <script>
 (()=>{
 const KEY='dybe-gruber-verdener-v3'; // samme nøgle – gamle saves fortsætter
+const ACCT_KEY='dybe-gruber-konto';
+// =====================================================================
+// CLOUD-SERVER – konto, rangliste og cloud-save.
+// Peger på Dybe Gruber-delen af grejs-serveren (server/dybe.js, se DYBE-API.md).
+// Spillet kalder CLOUD_API + '/api/...'. '' = kun lokalt, ingen netværk.
+// Test: localStorage.setItem('dybeCloudApi','http://localhost:3000/dybe')
+// =====================================================================
+const CLOUD_API='https://grejsdata.systematisk.dk/dybe';
+const API=(()=>{let b=CLOUD_API;
+ try{let o=localStorage.getItem('dybeCloudApi');if(o!==null)b=o}catch(e){}
+ return b.trim().replace(/\/+$/,'')})();
+// Hver verden er COST_STEP gange dyrere (i forhold til hvad den giver) end den forrige,
+// og billetten/raketten/ormehullet videre stiger yderligere med TICKET_STEP pr. verden.
+const COST_STEP=1.5,TICKET_STEP=2;
 const WORLDS=[
  {id:'kul',name:'Kulminen',short:'Kul',icon:'⛏️',g:1.15,sc:14,pc:['#8d6e63','#ffd34e'],tc:'#fff',travelBg:'linear-gradient(#4fa8e0,#6e4a2f)',
   ores:[['Kul','#3a3a3a'],['Kobber','#d9823f'],['Tin','#c3cbd0'],['Jern','#9aa3ad'],['Zink','#a9c3d8'],['Nikkel','#d6cda6'],['Bly','#7c86a0'],['Sølv','#eef2f6'],['Kvarts','#f5e9ff'],['Obsidian','#7b54b8']]},
@@ -396,45 +469,62 @@ const WORLDS=[
  {id:'taage',name:'Stjernetågen',short:'Tåge',icon:'🌌',g:1.166,sc:17,via:'rocket',space:true,tc:'#fff',travelBg:'radial-gradient(circle at 42% 42%,#ffc0f5,#ff5fd0 18%,#7a2aa0 40%,#1a0630 72%)',
   ores:[['Stjernestøv','#ffe9a8'],['Tågegas','#ff7ad9'],['Kosmisk kvarts','#c8a6ff'],['Pulsarsten','#7af0ff'],['Supernovaglas','#ff9f6b'],['Kometis','#bfffe8'],['Plasmakrystal','#ff5fd0'],['Nordlyssten','#6bffb8'],['Galaksesten','#9f8bff'],['Stjernekerne','#fff6d0']]},
  {id:'sorthul',name:'Det sorte hul',short:'Sort hul',icon:'🕳️',g:1.168,sc:18,via:'rocket',space:true,tc:'#ffcf8a',travelBg:'radial-gradient(circle,#000 0 13%,#ffd9a0 16%,#ff5a3a 23%,#3a0a3a 44%,#000 74%)',
-  ores:[['Mørkt stof','#8a7ac0'],['Antistof','#ff4fd8'],['Kvarkstof','#ff9f43'],['Neutronium','#9fb8ff'],['Tidskrystal','#7fffd4'],['Gravitonsten','#c86bff'],['Rumtidsglas','#8ff3ff'],['Hawkingsten','#ffd84a'],['Uendelighedssten','#ffffff'],['Singularitet','#ff3b6b']]}
-].map((w,k)=>({...w,m:Math.pow(1e3,k),ticket:k?2.5e14*Math.pow(1e3,k-1):0}));
-const PARTS=[['Motor','🔥',.2],['Brændstoftank','⛽',.3],['Kapsel','🧑‍🚀',.5]];
+  ores:[['Mørkt stof','#8a7ac0'],['Antistof','#ff4fd8'],['Kvarkstof','#ff9f43'],['Neutronium','#9fb8ff'],['Tidskrystal','#7fffd4'],['Gravitonsten','#c86bff'],['Rumtidsglas','#8ff3ff'],['Hawkingsten','#ffd84a'],['Uendelighedssten','#ffffff'],['Singularitet','#ff3b6b']]},
+ {id:'kvante',name:'Kvanteriget',short:'Kvante',icon:'⚛️',g:1.17,sc:18,via:'warp',space:true,pc:['#5affd8','#ff4fd8'],tc:'#5affd8',travelBg:'radial-gradient(circle,#e8fff8,#5affd8 18%,#0a5a4c 42%,#010808 75%)',
+  ores:[['Kvarkstøv','#9ff5e5'],['Foton','#fff6a0'],['Neutrino','#a0c8ff'],['Gluon','#ff9ad8'],['Boson','#7affb0'],['Higgs-krystal','#ffd84a'],['Tachyon','#ff6a6a'],['Strengsten','#c8a0ff'],['Kvanteskum','#5affd8'],['Superposition','#ffffff']]},
+ {id:'drage',name:'Dragernes rige',short:'Drage',icon:'🐉',g:1.172,sc:19,via:'warp',pc:['#ff6a2a','#ffd84a'],tc:'#ffd84a',travelBg:'radial-gradient(circle,#fff0a0,#ff9a2a 20%,#c2380e 44%,#120302 78%)',
+  ores:[['Svovl','#f0e04a'],['Lavasten','#ff5a1a'],['Dragemalm','#b0403a'],['Ildopal','#ff9a3a'],['Drageskæl','#3ac06a'],['Fønikssten','#ffb02a'],['Magmarubin','#ff2a4a'],['Drageæg','#c8a0ff'],['Ildkrone','#ffd84a'],['Dragehjerte','#ff3a8a']]},
+ {id:'tid',name:'Tidens ende',short:'Tid',icon:'⏳',g:1.174,sc:19,via:'warp',pc:['#ffd98a','#a8823a'],tc:'#3a2a12',travelBg:'radial-gradient(circle,#fff8e0,#ffd98a 24%,#8a6a3a 50%,#110c05 80%)',
+  ores:[['Tidssand','#e8d0a0'],['Tandhjul','#b8924a'],['Bronze','#cd7f32'],['Messing','#e0c050'],['Urfossil','#a89070'],['Fortidsrav','#ffa83a'],['Pendulsten','#c0c8d0'],['Timeglasperle','#ffe8b0'],['Evighedsguld','#ffd700'],['Nuet','#ffffff']]},
+ {id:'grejs',name:'Grejsverset',short:'Grejs',icon:'👑',g:1.176,sc:20,via:'warp',pc:['#ff4fb0','#ffe14a'],tc:'#fff',travelBg:'conic-gradient(from 0deg,#ff4f6a,#ff9a3a,#ffe14a,#4fd8a0,#4f8aff,#8a4fff,#ff4f6a)',
+  ores:[['Grejsstøv','#ffd0f0'],['Grejsium','#ff4fb0'],['Grejsonit','#4fd8ff'],['Regnbuesten','#ff9a3a'],['Glimmergrejs','#ffe14a'],['Grejskrystal','#a0ffd8'],['Hypergrejs','#8a4fff'],['Megagrejs','#ff4f6a'],['Ultragrejs','#4f8aff'],['Den Gyldne Grejs','#ffd700']]}
+].map((w,k)=>({...w,m:Math.pow(1e3,k),c:Math.pow(1e3,k)*Math.pow(COST_STEP,k),ticket:k?2.5e14*Math.pow(1e3,k-1)*Math.pow(COST_STEP,k)*Math.pow(TICKET_STEP,k-1):0}));
+const GATES={
+ rocket:{name:'Raket',verb:'Affyr raketten',parts:[['Motor','🔥',.2],['Brændstoftank','⛽',.3],['Kapsel','🧑‍🚀',.5]]},
+ warp:{name:'Ormehulsgenerator',verb:'Åbn ormehullet',parts:[['Kvantekerne','⚛️',.15],['Stabilisator','🧲',.2],['Tidsanker','⏳',.25],['Navigator','🧭',.4]]}
+};
+const gateOf=nx=>GATES[WORLDS[nx].via]||null;
 const N=10,MIL=[25,50,100,200,300,400,500,750,1000],SHAFT_T=3.5,LOAD_T=.45,OFFLINE_CAP=3*3600,BOOST=3;
 const bonus=l=>MIL.reduce((b,m)=>l>=m?b*2:b,1),nextMil=l=>MIL.find(m=>m>l),prevMil=l=>[0,...MIL].filter(m=>m<=l).pop();
-const P10=i=>Math.pow(10,i),M=w=>WORLDS[w].m;
+const P10=i=>Math.pow(10,i),M=w=>WORLDS[w].m,C=w=>WORLDS[w].c;
 const achMult=()=>1+.02*Object.keys(S.ach).length;
 const expMult=()=>1+.1*(S.unlocked-1);
 const boostOn=()=>Date.now()<(S.boostUntil||0);
 const shaftYield=(w,i,l,noBoost)=>3*l*M(w)*P10(i)*bonus(l)*achMult()*expMult()*(!noBoost&&boostOn()?BOOST:1);
 const elevCap=(w,l)=>35*M(w)*Math.pow(1.2,l-1),elevSpeed=l=>Math.min(6,1+.05*(l-1));
 const whCap=(w,l)=>30*M(w)*Math.pow(1.2,l-1),whTrip=l=>Math.max(1.5,5/(1+.04*(l-1)));
-const UPG={shaft:(w,i)=>({base:15*M(w)*P10(i),g:WORLDS[w].g}),elev:w=>({base:60*M(w),g:1.21}),wh:w=>({base:50*M(w),g:1.21})};
-const newShaftCost=(w,i)=>1000*M(w)*Math.pow(WORLDS[w].sc,i-1),shaftMgrCost=(w,i)=>150*M(w)*P10(i),elevMgr=w=>800*M(w),whMgr=w=>500*M(w);
-const partCost=(nx,k)=>WORLDS[nx].ticket*PARTS[k][2];
+const UPG={shaft:(w,i)=>({base:15*C(w)*P10(i),g:WORLDS[w].g}),elev:w=>({base:60*C(w),g:1.21}),wh:w=>({base:50*C(w),g:1.21})};
+const newShaftCost=(w,i)=>1000*C(w)*Math.pow(WORLDS[w].sc,i-1),shaftMgrCost=(w,i)=>150*C(w)*P10(i),elevMgr=w=>800*C(w),whMgr=w=>500*C(w);
+const partCost=(nx,k)=>WORLDS[nx].ticket*gateOf(nx).parts[k][2];
 const SUF=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc','Ud','Dd','Td','Qad','Qid','Sxd','Spd','Ocd','Nod','Vg'];
 const fmt=n=>{if(!isFinite(n))return '∞';if(n<1000)return Math.floor(n).toString();let i=0;while(n>=1000&&i<SUF.length-1){n/=1000;i++}if(n>=1000)return (n*Math.pow(1000,i)).toExponential(2);return (n<10?n.toFixed(2):n<100?n.toFixed(1):Math.floor(n))+SUF[i]};
 const rnd=(a,b)=>a+Math.random()*(b-a);
 
 function newShaft(){return{lvl:1,mgr:false,stored:0,working:false,t:0}}
-function freshWorld(w){return{cash:30*M(w),stock:0,total:0,sales:0,clicks:0,maxCash:30*M(w),rocket:0,shafts:[newShaft()],
+function freshWorld(w){return{stock:0,total:0,sales:0,clicks:0,rocket:0,shafts:[newShaft()],
  elev:{lvl:1,mgr:false,busy:false,p:0,target:0,phase:'idle',timer:0,load:0},wh:{lvl:1,mgr:false,busy:false,phase:'idle',t:0,load:0}}}
-function fresh(){return{v:4,cur:0,unlocked:1,worlds:[freshWorld(0)],settings:{compact:false,animations:true,sound:true},ach:{},lastDaily:0,lucky:0,parts:0,boostUntil:0,created:Date.now(),saved:Date.now()}}
-function valid(d){return d&&(d.v===3||d.v===4)&&Array.isArray(d.worlds)&&d.worlds.length>=1&&d.worlds.every(w=>w&&Array.isArray(w.shafts)&&w.elev&&w.wh)}
+function fresh(){return{v:5,cash:30,lifetime:0,maxCash:30,cur:0,unlocked:1,worlds:[freshWorld(0)],settings:{compact:false,animations:true,sound:true},ach:{},lastDaily:0,lucky:0,parts:0,boostUntil:0,bestRank:0,acct:false,created:Date.now(),saved:Date.now()}}
+function valid(d){return d&&d.v>=3&&d.v<=5&&Array.isArray(d.worlds)&&d.worlds.length>=1&&d.worlds.every(w=>w&&Array.isArray(w.shafts)&&w.elev&&w.wh)}
 function migrate(d){
- d.v=4;d.settings={compact:false,animations:true,sound:true,...d.settings};d.ach=d.ach||{};
- d.lucky=d.lucky||0;d.parts=d.parts||0;d.boostUntil=d.boostUntil||0;
- d.worlds=d.worlds.slice(0,WORLDS.length);d.worlds.forEach(W=>{W.rocket=W.rocket||0;W.maxCash=W.maxCash||W.cash});
+ if(d.v<5){ // v4 → v5: hver verdens egne penge lægges sammen i én fælles pengepung
+  d.cash=d.worlds.reduce((a,W)=>a+(+W.cash||0),0);d.maxCash=d.worlds.reduce((a,W)=>Math.max(a,+W.maxCash||0),d.cash);
+  d.lifetime=d.worlds.reduce((a,W)=>a+(+W.total||0),0);d.worlds.forEach(W=>{delete W.cash;delete W.maxCash})}
+ d.v=5;d.settings={compact:false,animations:true,sound:true,...d.settings};d.ach=d.ach||{};
+ d.lucky=d.lucky||0;d.parts=d.parts||0;d.boostUntil=d.boostUntil||0;d.bestRank=d.bestRank||0;
+ if(!isFinite(d.cash)||d.cash<0)d.cash=0;d.lifetime=+d.lifetime||0;d.maxCash=Math.max(+d.maxCash||0,d.cash);
+ d.worlds=d.worlds.slice(0,WORLDS.length);d.worlds.forEach(W=>{W.rocket=W.rocket||0});
  d.unlocked=Math.min(d.worlds.length,WORLDS.length);d.cur=Math.max(0,Math.min(d.cur||0,d.unlocked-1));return d}
 function load(){try{let d=JSON.parse(localStorage.getItem(KEY));if(valid(d))return migrate(d)}catch(e){}return null}
 let S=load()||fresh(),mode=1,earnLog=[],R=[],ER={},LR=null,PR=null,ROW=150,roadW=300,CABH=100,lastFx=0,shownCash=0,dirty=true,uiAcc=0,busyTravel=false;
 const $=id=>document.getElementById(id);
 const CW=()=>S.worlds[S.cur];
 function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function earn(w,x){S.cash+=x;S.lifetime+=x;S.worlds[w].total+=x;if(S.cash>S.maxCash)S.maxCash=S.cash}
 function toast(t){let x=document.createElement('div');x.className='toast';x.textContent=t;document.body.appendChild(x);setTimeout(()=>x.remove(),2600)}
 function floatMsg(t,x,y){let f=document.createElement('div');f.className='float';f.textContent=t;f.style.left=x+'px';f.style.top=y+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),1200)}
 const earnRate=()=>earnLog.reduce((a,x)=>a+x[1],0)/10;
 
-/* ---------- lyd ---------- */
+// ---------- lyd ----------
 let AC=null;
 function snd(type){
  if(!S.settings.sound)return;
@@ -452,15 +542,15 @@ function snd(type){
   g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.09,now+.25);g.gain.exponentialRampToValueAtTime(.0001,now+2.2);o.connect(g);g.connect(AC.destination);o.start(now);o.stop(now+2.3);tone(1047,0,.3,'triangle',.06)}
 }
 
-/* ---------- økonomi ---------- */
+// ---------- økonomi ----------
 function priceN(u,l,n){let c0=u.base*Math.pow(u.g,l-1);return c0*(Math.pow(u.g,n)-1)/(u.g-1)}
-function countFor(u,l,cash){if(mode!=='max')return mode;let c0=u.base*Math.pow(u.g,l-1);let n=Math.floor(Math.log(cash*(u.g-1)/c0+1)/Math.log(u.g));return Math.max(1,n||1)}
-function buyUp(u,o,si){let W=CW(),n=countFor(u,o.lvl,W.cash),c=priceN(u,o.lvl,n);
- if(W.cash>=c){let b0=bonus(o.lvl);W.cash-=c;o.lvl+=n;snd('buy');
+function countFor(u,l,cash,ms){if(mode==='mil')return ms?Math.max(1,(nextMil(l)||l+1)-l):1;if(mode!=='max')return mode;let c0=u.base*Math.pow(u.g,l-1);let n=Math.floor(Math.log(cash*(u.g-1)/c0+1)/Math.log(u.g));return Math.max(1,n||1)}
+function buyUp(u,o,si){let n=countFor(u,o.lvl,S.cash,si!=null),c=priceN(u,o.lvl,n);
+ if(S.cash>=c){let b0=bonus(o.lvl);S.cash-=c;o.lvl+=n;snd('buy');
   if(si!=null&&bonus(o.lvl)>b0){let f=bonus(o.lvl)/b0;toast('⚡ Skakt '+(si+1)+' nåede niveau '+prevMil(o.lvl)+' – produktion ×'+f+'!');snd('big');let r=R[si];if(r){r.row.classList.remove('flash');void r.row.offsetWidth;r.row.classList.add('flash')}}
   return true}
  snd('no');return false}
-function hire(o,c){let W=CW();if(!o.mgr&&W.cash>=c){W.cash-=c;o.mgr=true;snd('buy');toast('👔 Manager ansat – kører nu automatisk!');return true}return false}
+function hire(o,c){if(!o.mgr&&S.cash>=c){S.cash-=c;o.mgr=true;snd('buy');toast('👔 Manager ansat – kører nu automatisk!');return true}return false}
 function startElev(W){let E=W.elev;if(E.busy)return;E.busy=true;E.target=1;E.phase='move'}
 function startWh(w){let W=S.worlds[w],T=W.wh;if(T.busy||W.stock<=0)return;let take=Math.min(whCap(w,T.lvl),W.stock);W.stock-=take;T.load=take;T.busy=true;T.phase='go';T.t=0}
 function coins(n,from){
@@ -471,7 +561,7 @@ function coins(n,from){
   setTimeout(()=>c.remove(),800+k*55)}
  setTimeout(()=>{let el=$('cash');el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump')},650);
 }
-function sell(w,x){let W=S.worlds[w];W.cash+=x;W.total+=x;W.sales++;W.maxCash=Math.max(W.maxCash,W.cash);
+function sell(w,x){earn(w,x);S.worlds[w].sales++;
  if(w===S.cur){earnLog.push([performance.now(),x]);let n=performance.now();
   if(n-lastFx>300){lastFx=n;let r=$('shop').getBoundingClientRect();if(r.bottom>0)floatMsg('+'+fmt(x),r.left+r.width/2-24,r.top+10);snd('sell');coins(4)}}}
 
@@ -487,38 +577,43 @@ function act(a,i){
   case 'mgr-w':hire(W.wh,whMgr(w));break
   case 'elev':startElev(W);break
   case 'truck':startWh(w);break
-  case 'newshaft':{let n=W.shafts.length,c=newShaftCost(w,n);if(n<N&&W.cash>=c){W.cash-=c;W.shafts.push(newShaft());build();snd('big');toast('⛏ Ny skakt: '+WORLDS[w].ores[n][0]+'!');save()}else snd('no');break}
+  case 'newshaft':{let n=W.shafts.length,c=newShaftCost(w,n);if(n<N&&S.cash>=c){S.cash-=c;W.shafts.push(newShaft());build();snd('big');toast('⛏ Ny skakt: '+WORLDS[w].ores[n][0]+'!');save()}else snd('no');break}
   case 'portal':{let nx=w+1;if(nx>=WORLDS.length||busyTravel)break;
     if(S.unlocked>nx){travel(nx);break}
-    let nw=WORLDS[nx];
-    if(nw.via==='rocket'){let k=W.rocket||0;
-     if(k<3){let c=partCost(nx,k);if(W.cash>=c){W.cash-=c;W.rocket=k+1;S.parts=(S.parts||0)+1;snd('big');toast(PARTS[k][1]+' '+PARTS[k][0]+' bygget! ('+(k+1)+'/3)');save()}else snd('no')}
-     else if(W.shafts.length>=N){S.worlds[nx]=freshWorld(nx);S.unlocked=nx+1;save();launch(nx)}
-     else{snd('no');toast('🔒 Åbn alle 10 skakter før du kan affyre raketten')}}
-    else{let c=nw.ticket;if(W.shafts.length>=N&&W.cash>=c){W.cash-=c;S.worlds[nx]=freshWorld(nx);S.unlocked=nx+1;save();snd('big');travel(nx,true)}else snd('no')}
+    let nw=WORLDS[nx],G=gateOf(nx);
+    if(G){let k=W.rocket||0,np=G.parts.length;
+     if(k<np){let c=partCost(nx,k);if(S.cash>=c){S.cash-=c;W.rocket=k+1;S.parts=(S.parts||0)+1;snd('big');toast(G.parts[k][1]+' '+G.parts[k][0]+' bygget! ('+(k+1)+'/'+np+')');save()}else snd('no')}
+     else if(W.shafts.length>=N){unlockWorld(nx);if(nw.via==='rocket')launch(nx);else{snd('big');travel(nx,true)}}
+     else{snd('no');toast('🔒 Åbn alle 10 skakter først')}}
+    else{let c=nw.ticket;if(W.shafts.length>=N&&S.cash>=c){S.cash-=c;unlockWorld(nx);snd('big');travel(nx,true)}else snd('no')}
     break}
   case 'world':{if(busyTravel)break;if(i<S.unlocked){if(i!==S.cur)travel(i)}
     else if(i>S.unlocked)toast('❓ Noget ukendt venter længere ude i universet...');
-    else{let pw=WORLDS[i-1],nw=WORLDS[i];toast('🔒 Åbn alle 10 skakter i '+pw.name+(nw.via==='rocket'?' og byg en raket (':' og betal portalen (')+fmt(nw.ticket)+')')}break}
+    else{let pw=WORLDS[i-1],G=gateOf(i);toast('🔒 Åbn alle 10 skakter i '+pw.name+(G?' og byg en '+G.name.toLowerCase()+' (':' og betal portalen (')+fmt(WORLDS[i].ticket)+')')}break}
   case 'lucky':{if(!luckyEnd)break;let el=$('lucky'),r=el.getBoundingClientRect();el.classList.remove('show');luckyEnd=0;luckyAt=performance.now()+rnd(60,140)*1000;S.lucky=(S.lucky||0)+1;snd('lucky');
     if(Math.random()<.5){S.boostUntil=Math.max(Date.now(),S.boostUntil||0)+30000;toast('⚡ TURBO! ×3 produktion i 30 sekunder');floatMsg('⚡ ×3',r.left,r.top)}
-    else{let g=Math.max(Math.max(offlineRate(w),earnRate())*120,60*M(w));W.cash+=g;W.total+=g;W.maxCash=Math.max(W.maxCash,W.cash);toast('💎 Heldigt fund! +'+fmt(g));floatMsg('+'+fmt(g),r.left,r.top);coins(7,r)}
+    else{let g=Math.max(Math.max(totalRate(),earnRate())*120,60*C(w));earn(w,g);toast('💎 Heldigt fund! +'+fmt(g));floatMsg('+'+fmt(g),r.left,r.top);coins(7,r)}
     break}
   case 'goal':{let t=goal()[2],el=t==='lock'&&LR?LR.row:t==='gate'&&PR?PR.row:null;if(el)el.scrollIntoView({behavior:'smooth',block:'center'});else $('mine').scrollIntoView({behavior:'smooth',block:'start'});break}
-  case 'mode':mode=mode===1?10:mode===10?100:mode===100?'max':1;$('modeBtn').textContent='Køb '+(mode==='max'?'MAX':'×'+mode);break
+  case 'mode':mode=mode===1?10:mode===10?100:mode===100?'mil':mode==='mil'?'max':1;$('modeBtn').textContent='Køb '+(mode==='max'?'MAX':mode==='mil'?'→milepæl':'×'+mode);break
+  case 'acct':acctAction(i);break
+  case 'lbtab':lbBy=i;openPanel('rank');break
   case 'sound':S.settings.sound=!S.settings.sound;$('soundBtn').textContent=S.settings.sound?'🔊':'🔇';snd('buy');save();if($('sidePanel').classList.contains('open')&&$('sideTitle').textContent.includes('Indst'))openPanel('settings');break
   case 'panel':openPanel(i);break
   case 'closePanel':$('sidePanel').classList.remove('open');break
   case 'toggleCompact':S.settings.compact=!S.settings.compact;applySettings();openPanel('settings');save();break
   case 'toggleAnim':S.settings.animations=!S.settings.animations;applySettings();openPanel('settings');save();break
   case 'export':{let data=btoa(unescape(encodeURIComponent(JSON.stringify(S))));navigator.clipboard?.writeText(data);toast('💾 Save kopieret til udklipsholder');break}
-  case 'import':{let v=prompt('Indsæt din save-kode:');if(v){try{let d=JSON.parse(decodeURIComponent(escape(atob(v.trim()))));if(!valid(d))throw 0;S=migrate(d);save();build();toast('📥 Save importeret')}catch(err){alert('Ugyldig save-kode')}}break}
-  case 'wipe':if(confirm('Vil du starte helt forfra? Alle verdener bliver slettet.')){localStorage.removeItem(KEY);S=fresh();earnLog=[];build();save();$('sidePanel').classList.remove('open');toast('Spillet er nulstillet')}break
+  case 'import':{let v=prompt('Indsæt din save-kode:');if(v){try{let d=JSON.parse(decodeURIComponent(escape(atob(v.trim()))));if(!valid(d))throw 0;S=migrate(d);S.acct=!!acct||S.acct;save();build();cloudSave(true);toast('📥 Save importeret')}catch(err){alert('Ugyldig save-kode')}}break}
+  case 'wipe':if(confirm('Vil du starte helt forfra? Alle verdener bliver slettet'+(acct?' – også din cloud-save (din bedste score på ranglisten bliver stående).':'.'))){localStorage.removeItem(KEY);let a=S.acct;S=fresh();S.acct=a;earnLog=[];build();save();cloudSave(true);$('sidePanel').classList.remove('open');toast('Spillet er nulstillet')}break
  }
 }
 document.addEventListener('click',e=>{let t=e.target.closest('[data-act]');if(!t||t.disabled)return;e.stopPropagation();let d=t.dataset.i;act(t.dataset.act,d==null?'':isNaN(+d)?d:+d)});
-addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||busyTravel||/INPUT|TEXTAREA/.test(e.target.tagName))return;let k=e.key.toLowerCase();
- if(k==='e'||k===' '){e.preventDefault();act('elev')}else if(k==='s')act('truck');else if(k==='m')act('mode')});
+addEventListener('keydown',e=>{if(e.key==='Enter'&&/^acct(Name|Pin)$/.test(e.target.id)){e.preventDefault();acctAction('login');return}
+ if(e.ctrlKey||e.metaKey||e.altKey||busyTravel||/INPUT|TEXTAREA/.test(e.target.tagName))return;let k=e.key.toLowerCase();
+ if(k==='e'||k===' '){e.preventDefault();act('elev')}else if(k==='s')act('truck');else if(k==='m')act('mode');else if(k==='r')act('panel','rank')});
+
+function unlockWorld(nx){S.worlds[nx]=freshWorld(nx);S.unlocked=nx+1;let g=30*C(nx);S.cash+=g;save();cloudSave(true);setTimeout(()=>toast('🎁 Startkapital i '+WORLDS[nx].name+': '+fmt(g)),2600)}
 
 function travel(w,isNew){
  if(!S.worlds[w])return;
@@ -539,7 +634,7 @@ function launch(nx){
  setTimeout(()=>{L.className=''},500+3*850+1500+900);
 }
 
-/* ---------- simulation ---------- */
+// ---------- simulation ----------
 function updateWorld(w,dt){
  let W=S.worlds[w],cur=w===S.cur;
  W.shafts.forEach((s,i)=>{if(!s.working&&s.mgr){s.working=true;s.t=0}if(s.working){s.t+=dt;if(s.t>=SHAFT_T){s.stored+=shaftYield(w,i,s.lvl);if(cur)chips(i);if(s.mgr)s.t-=SHAFT_T;else{s.t=0;s.working=false}}}});
@@ -560,22 +655,24 @@ function offlineRate(w){
  let n=W.shafts.length,rt=2*n/elevSpeed(W.elev.lvl)+(n+1)*LOAD_T;
  return Math.min(prod,elevCap(w,W.elev.lvl)/rt,whCap(w,W.wh.lvl)/whTrip(W.wh.lvl));
 }
+const totalRate=()=>S.worlds.reduce((a,W,w)=>a+offlineRate(w),0);
 function grantAway(sec,popup){
- let t=Math.min(sec,OFFLINE_CAP),lines=[];
- S.worlds.forEach((W,w)=>{let g=offlineRate(w)*t;if(g>0){W.cash+=g;W.total+=g;W.maxCash=Math.max(W.maxCash,W.cash);lines.push(WORLDS[w].icon+' '+WORLDS[w].name+': 💰 '+fmt(g))}});
+ let t=Math.min(sec,OFFLINE_CAP),lines=[],sum=0;
+ S.worlds.forEach((W,w)=>{let g=offlineRate(w)*t;if(g>0){earn(w,g);sum+=g;lines.push(WORLDS[w].icon+' '+WORLDS[w].name+': 💰 '+fmt(g))}});
  if(!lines.length)return;dirty=true;
+ if(lines.length>1)lines.push('<span style="color:var(--text)">I alt: 💰 '+fmt(sum)+'</span>');
  if(popup){$('modalAmt').innerHTML=lines.join('<br>');$('modalText').textContent='Dine managers arbejdede i '+Math.floor(t/60)+' minutter'+(sec>OFFLINE_CAP?' (maks 3 timer).':'.');$('modal').style.display='flex'}
- else toast('💤 Offline-indtjening: '+lines.join(' · '));
+ else toast('💤 Offline-indtjening: 💰 '+fmt(sum));
 }
 $('modalOk').onclick=()=>$('modal').style.display='none';
 
-/* ---------- glimtesten ---------- */
+// ---------- glimtesten ----------
 let luckyAt=performance.now()+rnd(35,70)*1000,luckyEnd=0;
 function luckyTick(now){let el=$('lucky');
  if(luckyEnd){if(now>luckyEnd){el.classList.remove('show');luckyEnd=0;luckyAt=now+rnd(50,120)*1000}}
  else if(now>luckyAt&&!document.hidden&&!busyTravel){el.style.left=rnd(18,62)+'%';el.style.bottom=rnd(80,150)+'px';el.classList.add('show');luckyEnd=now+13000}}
 
-/* ---------- achievements ---------- */
+// ---------- achievements ----------
 const wl=i=>S.worlds[i],sumW=k=>S.worlds.reduce((a,W)=>a+(W[k]||0),0),maxLvl=()=>Math.max(...S.worlds.flatMap(W=>W.shafts.map(s=>s.lvl))),wFull=i=>!!wl(i)&&wl(i).shafts.length>=N;
 const ACH=[
  ['first','Første salg','Sælg din første last',()=>sumW('sales')>=1],
@@ -602,6 +699,21 @@ const ACH=[
  ['taage','Stjernesejler','Nå frem til Stjernetågen',()=>S.unlocked>=7],
  ['sorthul','Begivenhedshorisont','Rejs ind i Det sorte hul',()=>S.unlocked>=8],
  ['univers','Universets mester','Åbn alle 10 skakter i Det sorte hul',()=>wFull(7)],
+ ['warp','Ormehulsingeniør','Byg den første del til ormehulsgeneratoren',()=>!!wl(7)&&(wl(7).rocket||0)>=1],
+ ['kvante','Spooky action','Rejs ind i Kvanteriget',()=>S.unlocked>=9],
+ ['kvantefuld','Kvantemekaniker','Åbn alle 10 skakter i Kvanteriget',()=>wFull(8)],
+ ['drage','Dragetæmmer','Rejs til Dragernes rige',()=>S.unlocked>=10],
+ ['dragefuld','Dragens skat','Åbn alle 10 skakter i Dragernes rige',()=>wFull(9)],
+ ['tid','Tidsrejsende','Nå frem til Tidens ende',()=>S.unlocked>=11],
+ ['tidfuld','Herre over tiden','Åbn alle 10 skakter i Tidens ende',()=>wFull(10)],
+ ['grejs','Grejs!','Nå frem til Grejsverset',()=>S.unlocked>=12],
+ ['grejsfuld','Den Gyldne Grejs','Åbn alle 10 skakter i Grejsverset',()=>wFull(11)],
+ ['grejsmester','Grejsmester','Niveau 500 i alle skakter i Grejsverset',()=>wFull(11)&&wl(11).shafts.every(s=>s.lvl>=500)],
+ ['konto','Med på listen','Opret en konto og kom på ranglisten',()=>!!S.acct],
+ ['top10','Top 10','Kom i top 10 på ranglisten',()=>S.bestRank>0&&S.bestRank<=10],
+ ['top1','Nummer ét','Bliv nummer 1 på ranglisten',()=>S.bestRank===1],
+ ['billion','Milliardær','Tjen 1 milliard i alt',()=>S.lifetime>=1e9],
+ ['quad','Grejsillionær','Tjen 1 Qa (10¹⁵) i alt',()=>S.lifetime>=1e15],
  ['lucky','Heldig sten','Klik på en glimtende sten',()=>(S.lucky||0)>=1],
  ['lucky25','Stenjæger','Klik på 25 glimtende sten',()=>(S.lucky||0)>=25],
  ['lvl500','Uendelig dybde','Nå niveau 500 i en skakt',()=>maxLvl()>=500],
@@ -610,10 +722,10 @@ const ACH=[
 function checkAchievements(){ACH.forEach(a=>{if(!S.ach[a[0]]&&a[3]()){S.ach[a[0]]=Date.now();toast('🏆 '+a[1]+' – +2 % produktion!');snd('big');dirty=true}})}
 function dailyBonus(){
  let day=Math.floor(Date.now()/86400000);
- if(S.lastDaily!==day){S.lastDaily=day;let W=CW(),b=Math.max(100*M(S.cur),W.total*.005);W.cash+=b;toast('🎁 Daglig bonus: '+fmt(b));save()}
+ if(S.lastDaily!==day){S.lastDaily=day;let b=Math.max(100*C(S.cur),totalRate()*600);earn(S.cur,b);toast('🎁 Daglig bonus: '+fmt(b));save()}
 }
 
-/* ---------- grafik ---------- */
+// ---------- grafik ----------
 const MINER=`<svg class="miner" viewBox="0 0 66 74">
  <ellipse cx="31" cy="71" rx="18" ry="3" fill="#0007"/>
  <polygon class="beam" points="42,13 66,0 66,30" fill="#fff4b0"/>
@@ -677,7 +789,21 @@ const SHOPS={
  mars:DOME('MARSKOLONI','#ffcfb0','#7a2a14','#ffb38a'),
  saturn:DOME('RINGHAVN','#fff0c8','#4a5a80','#ffe3a3'),
  taage:DOME('STJERNEBØRS','#ffc0f5','#5a2080','#ff8ae8'),
- sorthul:DOME('KVANTEBANK','#ffd9a0','#3a1a4a','#ffb04a')
+ sorthul:DOME('KVANTEBANK','#ffd9a0','#3a1a4a','#ffb04a'),
+ kvante:DOME('PARTIKELBØRS','#5affd8','#0a4a40','#5affd8'),
+ drage:`<svg viewBox="0 0 116 96"><rect x="14" y="40" width="88" height="56" fill="#3a1a12" stroke="#ff6a2a" stroke-width="2"/>
+  ${[14,34,54,74,94].map(x=>`<rect x="${x}" y="30" width="8" height="12" fill="#3a1a12" stroke="#ff6a2a" stroke-width="2"/>`).join('')}
+  <rect x="4" y="22" width="20" height="74" fill="#4a2216" stroke="#ff6a2a" stroke-width="2"/><polygon points="2,24 14,2 26,24" fill="#c2380e"/>
+  <rect x="92" y="22" width="20" height="74" fill="#4a2216" stroke="#ff6a2a" stroke-width="2"/><polygon points="90,24 102,2 114,24" fill="#c2380e"/>
+  <path d="M44 96 V70 A14 14 0 0 1 72 70 V96Z" fill="#1a0806" stroke="#ffd84a" stroke-width="2"/>
+  <rect x="30" y="46" width="56" height="14" rx="3" fill="#ffd84a"/><text x="58" y="56.5" text-anchor="middle" font-size="8.5" font-weight="900" fill="#5a1a00" font-family="Trebuchet MS,sans-serif">DRAGESKAT</text>
+  <circle class="blink" cx="14" cy="50" r="3" fill="#ffb02a"/><circle class="blink" cx="102" cy="50" r="3" fill="#ffb02a"/></svg>`,
+ tid:`<svg viewBox="0 0 116 96"><polygon points="8,34 58,6 108,34" fill="#8a6a3a" stroke="#ffd98a" stroke-width="2"/>
+  <rect x="12" y="34" width="92" height="62" fill="#d8b070" stroke="#6a4a1a" stroke-width="2"/>
+  ${[18,36,72,90].map(x=>`<rect x="${x}" y="40" width="8" height="56" fill="#e8d0a0" stroke="#8a6a3a"/>`).join('')}
+  <circle cx="58" cy="56" r="14" fill="#fff8e8" stroke="#6a4a1a" stroke-width="3"/><line x1="58" y1="56" x2="58" y2="46" stroke="#3a2a12" stroke-width="2"/><line x1="58" y1="56" x2="65" y2="59" stroke="#3a2a12" stroke-width="2"/>
+  <rect x="34" y="76" width="48" height="13" rx="3" fill="#3a2a12"/><text x="58" y="85.5" text-anchor="middle" font-size="8" font-weight="900" fill="#ffd98a" font-family="Trebuchet MS,sans-serif">TIDSBANK</text></svg>`,
+ grejs:DOME('GREJSBANK','#ffe14a','#7a1a5a','#ff4fb0')
 };
 const PINE=(x,s)=>`<svg class="deco" style="left:${x};width:${26*s}px;height:${46*s}px" viewBox="0 0 26 46"><rect x="11" y="36" width="4" height="10" fill="#5a3a1a"/><polygon points="13,0 26,22 0,22" fill="#2f7a34"/><polygon points="13,10 26,38 0,38" fill="#276a2c"/></svg>`;
 const CACTUS=(x,s)=>`<svg class="deco" style="left:${x};width:${24*s}px;height:${40*s}px" viewBox="0 0 24 40"><rect x="9" y="4" width="6" height="36" rx="3" fill="#3f8f4a"/><rect x="1" y="14" width="5" height="12" rx="2.5" fill="#3f8f4a"/><rect x="1" y="23" width="10" height="4" rx="2" fill="#3f8f4a"/><rect x="18" y="10" width="5" height="12" rx="2.5" fill="#3f8f4a"/><rect x="13" y="19" width="10" height="4" rx="2" fill="#3f8f4a"/></svg>`;
@@ -714,7 +840,23 @@ const SCENERY={
   ${CRYST('24%',1.1,'#ff8ae8')}${CRYST('31%',.7,'#7af0ff')}${CRYST('60%',1,'#7af0ff')}${CRYST('68%',.8,'#ff8ae8')}`,
  sorthul:()=>`<div class="stars" style="box-shadow:${starShadow(31,150)}"></div><div class="bhdisk"></div><div class="bh"></div><div class="bhdisk front"></div>
   <div class="hill" style="left:-6%;width:56%;height:56px;background:#2e2540"></div><div class="hill" style="left:44%;width:70%;height:44px;background:#261e36"></div>
-  ${CRYST('28%',.8,'#c86bff')}${CRYST('66%',.7,'#ffb04a')}`
+  ${CRYST('28%',.8,'#c86bff')}${CRYST('66%',.7,'#ffb04a')}`,
+ kvante:()=>`<div class="stars" style="box-shadow:${starShadow(41,90)}"></div><div class="qgrid"></div>
+  <div class="atom" style="top:24px;right:14%"><i></i></div><div class="atom" style="top:70px;left:16%;width:34px;height:34px;animation-duration:2.5s"><i></i></div><div class="atom" style="top:30px;left:44%;width:24px;height:24px;animation-duration:1.8s"><i></i></div>
+  ${CRYST('26%',.9,'#5affd8')}${CRYST('60%',1,'#ff4fd8')}${CRYST('68%',.6,'#5affd8')}`,
+ drage:()=>`<div class="sun big" style="background:radial-gradient(#fff0a0,#ff5a1a 70%);box-shadow:0 0 80px 30px #ff3a0a88;top:90px"></div>
+  <div class="volcano" style="left:6%;width:240px;height:130px;background:linear-gradient(#5a2a1a,#2a0f08)"></div><div class="volcano" style="left:52%;width:300px;height:150px;background:linear-gradient(#5a2a1a,#2a0f08)"></div>
+  <div class="lava"></div>
+  <div class="dragon" style="top:20px;animation-duration:22s">🐉</div><div class="dragon" style="top:64px;font-size:22px;animation-duration:31s;animation-delay:-14s">🐲</div>
+  ${[12,28,40,58,73,86].map((x,k)=>`<div class="ember" style="left:${x}%;animation-delay:${-k*.7}s"></div>`).join('')}`,
+ tid:()=>`<div class="clock" style="top:18px;right:12%;width:84px;height:84px"></div><div class="clock" style="top:46px;left:10%;width:46px;height:46px;opacity:.8"></div><div class="clock" style="top:16px;left:40%;width:30px;height:30px;opacity:.6"></div>
+  <div class="pyr" style="left:30%;width:160px;height:96px;background:linear-gradient(100deg,#e8c890 50%,#b8924a 50%)"></div>
+  <div class="hill" style="left:-8%;width:60%;height:70px;background:#d8b070"></div><div class="hill" style="left:44%;width:72%;height:54px;background:#c8a060"></div>
+  <div class="hglass" style="left:24%;bottom:56px">⏳</div><div class="hglass" style="left:66%;bottom:56px;animation-delay:-2s">⌛</div>`,
+ grejs:()=>`<div class="stars" style="box-shadow:${starShadow(51,90)}"></div><div class="rainbow"></div>
+  <div class="hill" style="left:-8%;width:60%;height:70px;background:#ff9ad8"></div><div class="hill" style="left:42%;width:74%;height:56px;background:#ff7ac8"></div>
+  ${[['10%',20,'👑'],['26%',60,'✨'],['46%',26,'💎'],['62%',70,'⭐'],['78%',30,'✨'],['88%',80,'🌈']].map(([x,y,e],k)=>`<div class="spark" style="left:${x};top:${y}px;animation-delay:${-k*.6}s">${e}</div>`).join('')}
+  ${CRYST('30%',1,'#ffe14a')}${CRYST('58%',.8,'#4fd8ff')}`
 };
 const GDECO={maane:()=>[['14%',60],['40%',38],['55%',80],['80%',44]].map(([x,w])=>`<div class="crater" style="left:${x};width:${w}px"></div>`).join('')};
 
@@ -747,14 +889,16 @@ function build(){
   $('rows').appendChild(l);LR={row:l,btn:l.querySelector('button')}}
  PR=null;
  if(w<WORLDS.length-1){let nx=WORLDS[w+1],p=document.createElement('div');p.className='row lockrow portalrow';p.style.setProperty('--shade','.35');
-  if(nx.via==='rocket'){
-   p.innerHTML=`<div class="rkwrap">${ROCKET(0)}</div><div class="pt"><b>🚀 Raket til ${nx.icon} ${nx.name}</b><div class="partlist">${PARTS.map(q=>`<span>${q[1]} ${q[0]}</span>`).join('')}</div><div class="req"></div><button class="rocket" data-act="portal" style="margin-top:6px"><span></span><small></small></button></div>`;
-   $('rows').appendChild(p);PR={row:p,rocket:true,wrap:p.querySelector('.rkwrap'),rps:p.querySelectorAll('.rp'),chips:p.querySelectorAll('.partlist span'),rq1:p.querySelector('.req'),btn:p.querySelector('button')}}
+  let G=gateOf(w+1);
+  if(G){let rk=nx.via==='rocket',list=`<div class="partlist">${G.parts.map(q=>`<span>${q[1]} ${q[0]}</span>`).join('')}</div>`;
+   p.innerHTML=(rk?`<div class="rkwrap">${ROCKET(0)}</div>`:`<div class="portal off" style="--pc1:${nx.pc[0]};--pc2:${nx.pc[1]}"></div>`)+
+    `<div class="pt"><b>${rk?'🚀':'🌀'} ${G.name} til ${nx.icon} ${nx.name}</b>${list}<div class="req"></div><button class="${rk?'rocket':'ice'}" data-act="portal" style="margin-top:6px"><span></span><small></small></button></div>`;
+   $('rows').appendChild(p);PR={row:p,gate:G,rocket:rk,wrap:p.querySelector('.rkwrap'),portal:p.querySelector('.portal'),rps:p.querySelectorAll('.rp'),chips:p.querySelectorAll('.partlist span'),rq1:p.querySelector('.req'),btn:p.querySelector('button')}}
   else{
    p.innerHTML=`<div class="portal" style="--pc1:${nx.pc[0]};--pc2:${nx.pc[1]}"></div><div class="pt"><b>${nx.icon} Portal til ${nx.name}</b><div class="req"></div><div class="req"></div><button class="${w===0?'gold':'ice'}" data-act="portal" style="margin-top:6px"><span></span><small></small></button></div>`;
    $('rows').appendChild(p);let rq=p.querySelectorAll('.req');PR={row:p,portal:p.querySelector('.portal'),rq1:rq[0],rq2:rq[1],btn:p.querySelector('button')}}}
- else{let b=document.createElement('div');b.className='bedrock';b.textContent='🕳️ Begivenhedshorisonten – længere ud kan man ikke komme. Du har nået universets ende!';$('rows').appendChild(b)}
- shownCash=W.cash;dirty=true;
+ else{let b=document.createElement('div');b.className='bedrock';b.textContent='👑 Grejsverset – længere kan man ikke komme. Du har nået enden af alt! Kæmp dig op ad ranglisten 🏅';$('rows').appendChild(b)}
+ shownCash=S.cash;dirty=true;
  applySettings();
 }
 function measure(){ROW=parseFloat(getComputedStyle(document.body).getPropertyValue('--row'))||150;roadW=Math.max(40,$('road').clientWidth-60);CABH=$('cabin').offsetHeight||100}
@@ -769,16 +913,16 @@ function T(el,v){if(el._v!==v){el._v=v;el.textContent=v}}
 function Dis(el,v){if(el.disabled!==v)el.disabled=v}
 function Show(el,v){let d=v?'':'none';if(el.style.display!==d)el.style.display=d}
 function Cls(el,c,v){if(el.classList.contains(c)!==v)el.classList.toggle(c,v)}
-function btnUp(btn,u,lvl,cash){let n=countFor(u,lvl,cash),c=priceN(u,lvl,n);T(btn.children[0],'⬆ Niv. +'+n);T(btn.children[1],'💰 '+fmt(c));Dis(btn,cash<c)}
+function btnUp(btn,u,lvl,cash,ms){let n=countFor(u,lvl,cash,ms),c=priceN(u,lvl,n);T(btn.children[0],'⬆ Niv. +'+n);T(btn.children[1],'💰 '+fmt(c));Dis(btn,cash<c)}
 function btnMgr(btn,o,c,cash){if(o.mgr){T(btn.children[0],'👔 Manager');T(btn.children[1],'ansat ✓');btn.classList.add('hired');Dis(btn,true)}else{T(btn.children[0],'Ansæt manager');T(btn.children[1],'💰 '+fmt(c));btn.classList.remove('hired');Dis(btn,cash<c)}}
 
 function goal(){
  let w=S.cur,W=CW(),wd=WORLDS[w],n=W.shafts.length;
- if(n<N){let c=newShaftCost(w,n);return['⛏ Grav skakt '+(n+1)+' · '+wd.ores[n][0],W.cash/c,'lock']}
+ if(n<N){let c=newShaftCost(w,n);return['⛏ Grav skakt '+(n+1)+' · '+wd.ores[n][0],S.cash/c,'lock']}
  let nx=w+1;
- if(nx<WORLDS.length&&S.unlocked<=nx){let nw=WORLDS[nx];
-  if(nw.via==='rocket'){let k=W.rocket||0;if(k<3){let c=partCost(nx,k);return[PARTS[k][1]+' Byg raketdel '+(k+1)+'/3: '+PARTS[k][0],W.cash/c,'gate']}return['🚀 Raketten er klar – affyr den mod '+nw.name+'!',1,'gate']}
-  return['✨ Åbn portalen til '+nw.name,W.cash/nw.ticket,'gate']}
+ if(nx<WORLDS.length&&S.unlocked<=nx){let nw=WORLDS[nx],G=gateOf(nx);
+  if(G){let k=W.rocket||0,np=G.parts.length;if(k<np){let c=partCost(nx,k),q=G.parts[k];return[q[1]+' Byg '+G.name.toLowerCase()+' '+(k+1)+'/'+np+': '+q[0],S.cash/c,'gate']}return[(nw.via==='rocket'?'🚀 Raketten er klar – affyr den mod ':'🌀 Ormehullet er klar – rejs til ')+nw.name+'!',1,'gate']}
+  return['✨ Åbn portalen til '+nw.name,S.cash/nw.ticket,'gate']}
  let mn=Math.min(...W.shafts.map(s=>s.lvl)),t=nextMil(mn);
  if(t)return['⬆ Få alle skakter op på niveau '+t,mn/t,'top'];
  if(nx<WORLDS.length)return['➜ Rejs videre til '+WORLDS[nx].name,1,'gate'];
@@ -787,8 +931,8 @@ function goal(){
 
 function renderFast(dt){
  let w=S.cur,W=CW();
- if(W.cash<shownCash||!isFinite(shownCash))shownCash=W.cash;
- else{shownCash+=(W.cash-shownCash)*Math.min(1,dt*10);if(W.cash-shownCash<Math.max(1,W.cash*1e-3))shownCash=W.cash}
+ if(S.cash<shownCash||!isFinite(shownCash))shownCash=S.cash;
+ else{shownCash+=(S.cash-shownCash)*Math.min(1,dt*10);if(S.cash-shownCash<Math.max(1,S.cash*1e-3))shownCash=S.cash}
  T($('cash'),'💰 '+fmt(shownCash));
  let E=W.elev;$('cabin').style.transform=`translateY(${E.p*ROW+(ROW-CABH)/2}px)`;
  let H=W.wh,x=H.phase==='go'?H.t:H.phase==='back'?1-H.t:0;$('truck').style.transform=`translateX(${Math.min(1,x)*roadW}px)`;
@@ -797,44 +941,52 @@ function renderFast(dt){
 function renderUI(){
  let w=S.cur,W=CW(),now=performance.now();
  while(earnLog.length&&now-earnLog[0][0]>10000)earnLog.shift();
- T($('rate'),fmt(earnRate())+' / sek');T($('pile'),'🪨 '+fmt(W.stock));
+ T($('pile'),'🪨 '+fmt(W.stock));
  let bs=Math.ceil(((S.boostUntil||0)-Date.now())/1000);Show($('boost'),bs>0);if(bs>0)T($('boost'),'⚡ TURBO ×3 · '+bs+'s');
- S.worlds.forEach((X,i)=>{let el=$('wcash'+i);if(el)T(el,'💰 '+fmt(X.cash))});
- for(let i=S.unlocked;i<WORLDS.length;i++){let el=$('wcash'+i);if(el)T(el,i===S.unlocked?'Låst':'')}
+ const cash=S.cash;
+ S.worlds.forEach((X,i)=>{let el=$('wcash'+i);if(el){let r=offlineRate(i);T(el,r>0?'⚙ '+fmt(r)+'/s':'manuel')}});
+ for(let i=S.unlocked;i<WORLDS.length;i++){let el=$('wcash'+i);if(el)T(el,i===S.unlocked?'🔒 '+fmt(WORLDS[i].ticket):'')}
  let E=W.elev;T($('cabinLoad'),fmt(E.load));$('cabinFill').style.height=Math.min(1,E.load/elevCap(w,E.lvl))*50+'px';
  Show($('cabinHint'),!E.busy&&!E.mgr);Cls($('headframe'),'spin',E.busy);
- T(ER.stats,`Niv. ${E.lvl} · Kap. ${fmt(elevCap(w,E.lvl))} · Fart ${elevSpeed(E.lvl).toFixed(2)} etager/s`);btnUp(ER.up,UPG.elev(w),E.lvl,W.cash);btnMgr(ER.mgr,E,elevMgr(w),W.cash);
+ T(ER.stats,`Niv. ${E.lvl} · Kap. ${fmt(elevCap(w,E.lvl))} · Fart ${elevSpeed(E.lvl).toFixed(2)} etager/s`);btnUp(ER.up,UPG.elev(w),E.lvl,cash);btnMgr(ER.mgr,E,elevMgr(w),cash);
  let H=W.wh,tr=$('truck'),back=H.phase==='back'?'scaleX(-1)':'none';if(tr.firstElementChild.style.transform!==back)tr.firstElementChild.style.transform=back;Cls(tr,'moving',H.busy);
  Show($('tload'),H.load>0);T($('truckLabel'),H.load>0?fmt(H.load):'');Show($('truckLabel'),H.load>0);Show($('truckHint'),!H.busy&&!H.mgr&&W.stock>0);
- T($('wStats'),`Niv. ${H.lvl} · Kap. ${fmt(whCap(w,H.lvl))} · Tur ${whTrip(H.lvl).toFixed(1)} s`);btnUp($('wUp'),UPG.wh(w),H.lvl,W.cash);btnMgr($('wMgr'),H,whMgr(w),W.cash);
+ T($('wStats'),`Niv. ${H.lvl} · Kap. ${fmt(whCap(w,H.lvl))} · Tur ${whTrip(H.lvl).toFixed(1)} s`);btnUp($('wUp'),UPG.wh(w),H.lvl,cash);btnMgr($('wMgr'),H,whMgr(w),cash);
  W.shafts.forEach((s,i)=>{let r=R[i];if(!r)return;T(r.stored,fmt(s.stored));Cls(r.cart,'full',s.stored>0);Show(r.hint,!s.working&&!s.mgr);Show(r.mtag,s.mgr);
   let nm=nextMil(s.lvl),pm=prevMil(s.lvl);T(r.stats,`Niv. ${s.lvl} · ${fmt(shaftYield(w,i,s.lvl))} pr. tur`+(nm?` · ×2 ved niv. ${nm}`:' · MAKS bonus'));
   r.mbar.style.width=(nm?(s.lvl-pm)/(nm-pm)*100:100)+'%';
-  btnUp(r.up,UPG.shaft(w,i),s.lvl,W.cash);btnMgr(r.mgr,s,shaftMgrCost(w,i),W.cash)});
- if(LR){let c=newShaftCost(w,W.shafts.length);T(LR.btn.children[1],'💰 '+fmt(c));Dis(LR.btn,W.cash<c)}
+  btnUp(r.up,UPG.shaft(w,i),s.lvl,cash,true);btnMgr(r.mgr,s,shaftMgrCost(w,i),cash)});
+ if(LR){let c=newShaftCost(w,W.shafts.length);T(LR.btn.children[1],'💰 '+fmt(c));Dis(LR.btn,cash<c)}
  if(PR){let nx=w+1,open=S.unlocked>nx,ok1=W.shafts.length>=N,b0=PR.btn.children[0],b1=PR.btn.children[1];
-  if(PR.rocket){let k=open?3:(W.rocket||0);
-   PR.rps.forEach((g,j)=>Cls(g,'on',j<k));PR.chips.forEach((c,j)=>Cls(c,'done',j<k));Cls(PR.wrap,'ready',k>=3&&(open||ok1));
-   if(open){T(PR.rq1,'✔ Raketten står klar på rampen');PR.rq1.className='req ok';T(b0,'Flyv dertil ➜');T(b1,'');Dis(PR.btn,false)}
-   else{T(PR.rq1,(ok1?'✔':'✖')+` Alle 10 skakter åbne før affyring (${W.shafts.length}/10)`);PR.rq1.className='req '+(ok1?'ok':'no');
-    if(k<3){let c=partCost(nx,k);T(b0,`🔧 Byg ${PARTS[k][0].toLowerCase()} (${k+1}/3)`);T(b1,'💰 '+fmt(c));Dis(PR.btn,W.cash<c)}
-    else{T(b0,'🚀 Affyr raketten!');T(b1,ok1?'Klar til start':'Mangler skakter');Dis(PR.btn,!ok1)}}}
-  else{let c=WORLDS[nx].ticket,ok2=W.cash>=c;Cls(PR.portal,'off',!open&&!(ok1&&ok2));
+  if(PR.gate){let G=PR.gate,np=G.parts.length,k=open?np:(W.rocket||0);
+   PR.chips.forEach((c,j)=>Cls(c,'done',j<k));
+   if(PR.rocket){PR.rps.forEach((g,j)=>Cls(g,'on',j<k));Cls(PR.wrap,'ready',k>=np&&(open||ok1))}
+   else{Cls(PR.portal,'off',!(k>=np&&(open||ok1)));PR.portal.style.opacity=(.35+.65*k/np).toFixed(2)}
+   if(open){T(PR.rq1,PR.rocket?'✔ Raketten står klar på rampen':'✔ Ormehullet er stabilt');PR.rq1.className='req ok';T(b0,(PR.rocket?'Flyv':'Rejs')+' dertil ➜');T(b1,'');Dis(PR.btn,false)}
+   else{T(PR.rq1,(ok1?'✔':'✖')+` Alle 10 skakter åbne før afgang (${W.shafts.length}/10)`);PR.rq1.className='req '+(ok1?'ok':'no');
+    if(k<np){let c=partCost(nx,k);T(b0,`🔧 Byg ${G.parts[k][0].toLowerCase()} (${k+1}/${np})`);T(b1,'💰 '+fmt(c));Dis(PR.btn,cash<c)}
+    else{T(b0,PR.rocket?'🚀 Affyr raketten!':'🌀 Åbn ormehullet!');T(b1,ok1?'Klar til afgang':'Mangler skakter');Dis(PR.btn,!ok1)}}}
+  else{let c=WORLDS[nx].ticket,ok2=cash>=c;Cls(PR.portal,'off',!open&&!(ok1&&ok2));
    if(open){T(PR.rq1,'✔ Portalen er åben');PR.rq1.className='req ok';T(PR.rq2,'');T(b0,'Rejs dertil ➜');T(b1,'');Dis(PR.btn,false)}
    else{T(PR.rq1,(ok1?'✔':'✖')+` Åbn alle 10 skakter (${W.shafts.length}/10)`);PR.rq1.className='req '+(ok1?'ok':'no');
-    T(PR.rq2,(ok2?'✔':'✖')+` Betal ${fmt(c)} (du har ${fmt(W.cash)})`);PR.rq2.className='req '+(ok2?'ok':'no');
+    T(PR.rq2,(ok2?'✔':'✖')+` Betal ${fmt(c)} (du har ${fmt(cash)})`);PR.rq2.className='req '+(ok2?'ok':'no');
     T(b0,'✨ Åbn portalen');T(b1,'💰 '+fmt(c));Dis(PR.btn,!(ok1&&ok2))}}}
+ T($('rate'),fmt(Math.max(earnRate(),totalRate()))+' / sek');
  let g=goal(),p=Math.max(0,Math.min(1,g[1]));T($('goalTxt'),'🎯 '+g[0]);$('goalFill').style.width=(p*100).toFixed(1)+'%';T($('goalPct'),Math.floor(p*100)+' %');Cls($('goal'),'done',p>=1);
 }
 function openPanel(which){
- let title=which==='stats'?'📊 Statistik':which==='ach'?'🏆 Achievements':'⚙️ Indstillinger';$('sideTitle').textContent=title;let W=CW(),wd=WORLDS[S.cur];
- if(which==='stats'){$('sideContent').innerHTML=`<div class="miniCard" style="margin-bottom:7px"><b>${wd.icon} ${wd.name}</b></div><div class="cardGrid">
+ let title={stats:'📊 Statistik',ach:'🏆 Achievements',rank:'🏅 Rangliste',acct:'👤 Konto'}[which]||'⚙️ Indstillinger';$('sideTitle').textContent=title;let W=CW(),wd=WORLDS[S.cur];
+ if(which==='rank'||which==='acct'){$('sideContent').innerHTML=which==='rank'?rankHTML():acctHTML();if(which==='rank')loadLeaderboard()}
+ else if(which==='stats'){$('sideContent').innerHTML=`<div class="cardGrid" style="margin-bottom:7px">
+ <div class="miniCard"><b>💰 Tjent i alt</b><small>${fmt(S.lifetime)}</small></div><div class="miniCard"><b>💵 Flest penge</b><small>${fmt(S.maxCash)}</small></div>
+ <div class="miniCard"><b>⚙ Auto, alle verdener</b><small>${fmt(totalRate())} / sek</small></div><div class="miniCard"><b>🗺 Verdener</b><small>${S.unlocked} / ${WORLDS.length}</small></div>
+ </div><div class="miniCard" style="margin-bottom:7px"><b>${wd.icon} ${wd.name}</b></div><div class="cardGrid">
  <div class="miniCard"><b>💰 Tjent her</b><small>${fmt(W.total)}</small></div><div class="miniCard"><b>🚚 Salg</b><small>${fmt(W.sales)}</small></div>
  <div class="miniCard"><b>⛏ Klik</b><small>${fmt(W.clicks)}</small></div><div class="miniCard"><b>🕳 Skakter</b><small>${W.shafts.length}/${N}</small></div>
- <div class="miniCard"><b>⬆ Højeste niveau</b><small>${Math.max(...W.shafts.map(x=>x.lvl))}</small></div><div class="miniCard"><b>💵 Flest penge</b><small>${fmt(W.maxCash)}</small></div>
- <div class="miniCard"><b>⚙ Auto-indtjening</b><small>${fmt(offlineRate(S.cur))} / sek</small></div><div class="miniCard"><b>🏆 Achievements</b><small>+${Math.round((achMult()-1)*100)} % produktion</small></div>
- <div class="miniCard"><b>🧭 Ekspeditioner</b><small>+${Math.round((expMult()-1)*100)} % produktion</small></div><div class="miniCard"><b>✨ Glimtesten</b><small>${S.lucky||0} fundet</small></div>
- </div><br><div class="miniCard"><b>Verdener låst op</b><small>${S.unlocked} / ${WORLDS.length}</small></div>`}
+ <div class="miniCard"><b>⬆ Højeste niveau</b><small>${Math.max(...W.shafts.map(x=>x.lvl))}</small></div><div class="miniCard"><b>⚙ Auto her</b><small>${fmt(offlineRate(S.cur))} / sek</small></div>
+ <div class="miniCard"><b>🏆 Achievements</b><small>+${Math.round((achMult()-1)*100)} % produktion</small></div><div class="miniCard"><b>🧭 Ekspeditioner</b><small>+${Math.round((expMult()-1)*100)} % produktion</small></div>
+ <div class="miniCard"><b>✨ Glimtesten</b><small>${S.lucky||0} fundet</small></div><div class="miniCard"><b>💸 Pris-niveau</b><small>×${fmt(Math.pow(COST_STEP,S.cur))} dyrere</small></div>
+ </div>`}
  else if(which==='ach'){let n=Object.keys(S.ach).length;$('sideContent').innerHTML=`<div class="miniCard"><b>${n} / ${ACH.length} låst op</b><small>Bonus lige nu: +${n*2} % produktion i alle verdener</small></div>`+ACH.map(a=>`<div class="ach ${S.ach[a[0]]?'done':''}"><b>${S.ach[a[0]]?'🏆':'🔒'} ${a[1]}</b><small>${a[2]}</small></div>`).join('')}
  else{$('sideContent').innerHTML=`
  <div class="setting"><span>Kompakt mine</span><button data-act="toggleCompact">${S.settings.compact?'Til':'Fra'}</button></div>
@@ -843,9 +995,93 @@ function openPanel(which){
  <div style="margin-top:12px;display:grid;gap:6px"><button class="ice" data-act="export">💾 Eksportér save</button><button data-act="import">📥 Importér save</button><button data-act="wipe" style="background:var(--red);box-shadow:0 3px 0 #7a2323">🗑 Start helt forfra</button></div>`}
  $('sidePanel').classList.add('open')
 }
+// ---------- konto, cloud-save og rangliste ----------
+let acct=null,lbBy='best',lbCache={},syncMsg='',lastCloud=0,cloudBusy=false;
+try{acct=JSON.parse(localStorage.getItem(ACCT_KEY))}catch(e){}
+if(!acct||!acct.token||!acct.name)acct=null;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+function setAcct(a){acct=a;try{a?localStorage.setItem(ACCT_KEY,JSON.stringify(a)):localStorage.removeItem(ACCT_KEY)}catch(e){}updAcctBtn()}
+function updAcctBtn(){let b=$('acctBtn');b.innerHTML='👤<span class="lg"> '+(acct?esc(acct.name):'Log ind')+'</span>';b.title=acct?'Logget ind som '+acct.name:'Konto og cloud-save';Cls(b,'on',!!acct)}
+async function api(path,opt={}){
+ if(!API)throw Object.assign(new Error('Rangliste og cloud-save er slået fra i denne version'),{offline:true});
+ let ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),10000),r;
+ try{r=await fetch(API+path,{method:opt.method||'GET',signal:ctl.signal,body:opt.body?JSON.stringify(opt.body):undefined,
+   headers:{...(opt.body?{'Content-Type':'application/json'}:{}),...(acct&&!opt.noAuth?{Authorization:'Bearer '+acct.token}:{})}})}
+ catch(e){throw Object.assign(new Error('Kan ikke få forbindelse til serveren'),{offline:true})}
+ finally{clearTimeout(tm)}
+ let d=await r.json().catch(()=>({}));
+ if(!r.ok)throw Object.assign(new Error(d.error||'Serverfejl ('+r.status+')'),{status:r.status});
+ return d}
+const cloudStats=()=>({score:S.lifetime,unlocked:S.unlocked,ach:Object.keys(S.ach).length,maxLvl:maxLvl(),world:WORLDS[S.unlocked-1].id});
+async function cloudSave(force){
+ if(!acct||cloudBusy)return;if(!force&&Date.now()-lastCloud<25000)return;
+ cloudBusy=true;save();
+ try{await api('/api/save',{method:'PUT',body:{save:JSON.stringify(S),stats:cloudStats()}});lastCloud=Date.now();
+  syncMsg='☁️ Gemt i skyen kl. '+new Date().toLocaleTimeString('da-DK',{hour:'2-digit',minute:'2-digit'})}
+ catch(e){syncMsg='⚠️ '+e.message;if(e.status===401){setAcct(null);toast('Du er blevet logget ud – log ind igen')}}
+ finally{cloudBusy=false;refreshAcctPanel()}}
+function cloudBeacon(){ // når siden lukkes/skjules – fetch kan blive afbrudt, sendBeacon kan ikke
+ if(!API||!acct||!navigator.sendBeacon||Date.now()-lastCloud<5000)return;
+ try{if(navigator.sendBeacon(API+'/api/save',new Blob([JSON.stringify({token:acct.token,save:JSON.stringify(S),stats:cloudStats()})],{type:'text/plain'})))lastCloud=Date.now()}catch(e){}}
+function useSave(d){S=d;S.acct=true;earnLog=[];build();save();let away=(Date.now()-(d.saved||Date.now()))/1000;if(away>30)grantAway(away,false)}
+const parseSave=str=>{try{let d=str?JSON.parse(str):null;return valid(d)?migrate(d):null}catch(e){return null}};
+async function cloudStartup(){
+ if(!acct)return;
+ try{let c=parseSave((await api('/api/save')).save);
+  if(c&&(c.lifetime>S.lifetime*1.0001+1||(c.lifetime>=S.lifetime&&c.saved>S.saved+5000))){useSave(c);toast('☁️ Hentede dit spil fra skyen')}
+  else{S.acct=true;await cloudSave(true)}}
+ catch(e){syncMsg='⚠️ '+e.message;if(e.status===401){setAcct(null);toast('Log ind igen for at gemme i skyen')}}}
+async function acctAction(a){
+ const setErr=t=>{let el=$('acctErr');if(el)el.textContent=t};
+ if(a==='logout'){if(!confirm('Log ud? Dit spil bliver stadig gemt på denne enhed.'))return;await cloudSave(true);api('/api/logout',{method:'POST',body:{}}).catch(()=>{});setAcct(null);syncMsg='';refreshAcctPanel();return}
+ if(a==='sync'){await cloudSave(true);toast(syncMsg||'☁️ Gemt');return}
+ let name=(($('acctName')||{}).value||'').trim(),pin=($('acctPin')||{}).value||'';
+ if(name.length<3)return setErr('Skriv et navn (mindst 3 tegn)');if(pin.length<4)return setErr('Koden skal være mindst 4 tegn');
+ setErr('Vent...');
+ try{
+  if(a==='register'){
+   S.acct=true;save();let d=await api('/api/register',{method:'POST',noAuth:true,body:{name,pin,save:JSON.stringify(S),stats:cloudStats()}});
+   setAcct({name:d.name,token:d.token});lastCloud=Date.now();syncMsg='☁️ Dit spil gemmes nu i skyen';toast('🎉 Konto oprettet – velkommen '+d.name+'!');snd('big')}
+  else{
+   let d=await api('/api/login',{method:'POST',noAuth:true,body:{name,pin}});setAcct({name:d.name,token:d.token});
+   let c=parseSave(d.save);
+   if(c&&!(S.lifetime>c.lifetime*1.0001+1&&confirm(`Denne enhed har mere fremskridt (💰 ${fmt(S.lifetime)} tjent) end din cloud-save (💰 ${fmt(c.lifetime)}).\n\nOK = behold denne enhed og gem den i skyen\nAnnuller = hent spillet fra skyen`))){useSave(c);toast('👋 Velkommen tilbage '+d.name+' – spillet er hentet fra skyen')}
+   else{S.acct=true;await cloudSave(true);toast('👋 Logget ind som '+d.name)}}
+  lbCache={};refreshAcctPanel()}
+ catch(e){if(a==='register')S.acct=!!acct;setErr(e.message)}}
+const LB_TABS=[['best','💰 Mest tjent'],['unlocked','🗺 Verdener'],['ach','🏆 Achiev.']];
+const lbVal=(p,by)=>by==='best'?'💰 '+fmt(p.best||0):by==='unlocked'?((WORLDS[Math.min(WORLDS.length,Math.max(1,p.unlocked||1))-1].icon)+' '+(p.unlocked||1)+'/'+WORLDS.length):'🏆 '+(p.ach||0);
+async function loadLeaderboard(){
+ let by=lbBy;
+ try{let d=await api('/api/leaderboard?by='+by+'&limit=50');lbCache[by]=d;
+  if(d.me&&by==='best'&&(!S.bestRank||d.me.rank<S.bestRank))S.bestRank=d.me.rank}
+ catch(e){lbCache[by]={error:e.message}}
+ if(panelIs('Rangliste'))$('sideContent').innerHTML=rankHTML()}
+function rankHTML(){
+ let d=lbCache[lbBy],h=`<div class="lbtabs">${LB_TABS.map(([k,t])=>`<button data-act="lbtab" data-i="${k}" class="${k===lbBy?'on':''}">${t}</button>`).join('')}</div>`;
+ if(!acct)h+=`<div class="miniCard" style="margin-bottom:8px"><b>Vil du med på listen?</b><small>Opret en konto med navn og kode – så kommer du med, og dit spil gemmes i skyen.</small><div style="margin-top:6px"><button class="buy" data-act="panel" data-i="acct">👤 Opret konto / log ind</button></div></div>`;
+ if(!d)return h+'<div class="muted">Henter rangliste...</div>';
+ if(d.error)return h+`<div class="err">⚠️ ${esc(d.error)}</div><div class="muted">Spillet virker stadig – ranglisten kommer tilbage, når serveren svarer.</div>`;
+ if(d.me)h+=`<div class="miniCard" style="margin-bottom:8px"><b>Din placering: #${d.me.rank} af ${d.players}</b><small>${lbVal(d.me,lbBy)}</small></div>`;
+ if(!d.top.length)return h+'<div class="muted">Ingen på listen endnu – bliv den første!</div>';
+ return h+'<div class="lb">'+d.top.map((p,k)=>{let wi=WORLDS.find(x=>x.id===p.world);
+  return `<div class="lbr r${k+1} ${d.me&&p.name===d.me.name?'me':''}"><span class="rk">${k<3?['🥇','🥈','🥉'][k]:'#'+(k+1)}</span><span class="nm">${esc(p.name)}<small>${wi?wi.icon:''}</small></span><span class="sc">${lbVal(p,lbBy)}</span></div>`}).join('')+
+  `</div><div class="muted" style="margin-top:8px">${d.players} spillere i alt · opdateres hvert halve minut</div>`}
+function acctHTML(){
+ if(acct)return `<div class="miniCard"><b>Logget ind som ${esc(acct.name)}</b><small class="sync">${esc(syncMsg||'☁️ Dit spil gemmes automatisk i skyen')}</small></div>
+  <div class="muted" style="margin:8px 0">Log ind med samme navn og kode på en anden enhed for at spille videre dér.</div>
+  <div style="display:grid;gap:6px"><button class="ice" data-act="acct" data-i="sync">☁️ Gem i skyen nu</button><button data-act="panel" data-i="rank">🏅 Se ranglisten</button><button data-act="acct" data-i="logout" style="background:var(--red);box-shadow:0 3px 0 #7a2323">Log ud</button></div>`;
+ return `<div class="muted">Med en konto kommer du på ranglisten, og dit spil gemmes i skyen, så du kan fortsætte på en anden enhed.</div>
+  <div class="form"><input id="acctName" maxlength="16" placeholder="Navn (vises på ranglisten)" autocomplete="username"><input id="acctPin" type="password" maxlength="64" placeholder="Kode (mindst 4 tegn)" autocomplete="current-password">
+  <div class="err" id="acctErr"></div>
+  <div class="row2"><button class="buy" data-act="acct" data-i="register">✨ Opret konto</button><button class="ice" data-act="acct" data-i="login">🔑 Log ind</button></div></div>
+  <div class="muted">Brug ikke en kode, du også bruger andre steder.</div>`}
+const panelIs=t=>$('sidePanel').classList.contains('open')&&$('sideTitle').textContent.includes(t);
+function refreshAcctPanel(){if(panelIs('Konto'))$('sideContent').innerHTML=acctHTML()}
+
 function applySettings(){document.body.classList.toggle('compact',S.settings.compact);document.body.classList.toggle('noanim',!S.settings.animations);$('soundBtn').textContent=S.settings.sound?'🔊':'🔇';measure()}
 
-build();dailyBonus();
+build();dailyBonus();updAcctBtn();cloudStartup();
 let away=(Date.now()-(S.saved||Date.now()))/1000;if(away>30)grantAway(away,true);
 let last=performance.now();
 function frame(now){let dt=(now-last)/1000;last=now;
@@ -856,7 +1092,8 @@ function frame(now){let dt=(now-last)/1000;last=now;
  requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 setInterval(checkAchievements,1000);setInterval(save,4000);
-addEventListener('beforeunload',save);document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
+setInterval(()=>cloudSave(false),30000);setInterval(()=>{if(panelIs('Rangliste'))loadLeaderboard()},30000);
+addEventListener('beforeunload',()=>{save();cloudBeacon()});document.addEventListener('visibilitychange',()=>{if(document.hidden){save();cloudBeacon()}});
 window.__DG={get S(){return S},act,build,travel,launch,renderUI};
 })();
 </script>
