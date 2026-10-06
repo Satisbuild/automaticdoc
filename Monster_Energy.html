@@ -129,6 +129,24 @@
   #canWrap:hover{transform:scale(1.02);}
   #canWrap.squash{transform:scale(0.94) rotate(-1.5deg);}
   #theCan{display:block;height:min(420px,48vh);width:auto;}
+  #banSign{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:150%;max-width:340px;aspect-ratio:1;z-index:4;cursor:not-allowed;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    filter:drop-shadow(0 0 18px rgba(224,36,47,0.6));
+    animation:banIn 0.35s ease-out;
+  }
+  #banSign[hidden]{display:none;}
+  #banSign svg{position:absolute;inset:0;width:100%;height:100%;}
+  #banSign .banText{
+    position:relative;margin-top:62%;padding:6px 14px;border-radius:8px;
+    background:#e0242f;color:#fff;font-family:var(--display);font-weight:800;
+    font-size:1.3rem;letter-spacing:1px;text-align:center;line-height:1.1;
+  }
+  #banSign .banText span{display:block;font-size:1.7rem;font-variant-numeric:tabular-nums;}
+  @keyframes banIn{from{opacity:0;transform:translate(-50%,-50%) scale(1.6);}to{opacity:1;transform:translate(-50%,-50%) scale(1);}}
+  #canWrap:has(#banSign:not([hidden])){cursor:not-allowed;}
+  #canWrap:has(#banSign:not([hidden])) #theCan{filter:grayscale(1) brightness(0.6);}
   #hint{margin-top:16px;color:var(--muted);font-size:0.8rem;position:relative;z-index:2;}
 
   .floater{
@@ -457,6 +475,13 @@
         <rect x="18" y="392" width="144" height="10" fill="#00000012"/>
         <ellipse cx="90" cy="402" rx="72" ry="7" fill="#b9c0c6"/>
       </svg>
+      <div id="banSign" hidden aria-live="assertive">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="100" cy="100" r="88" fill="rgba(255,255,255,0.12)" stroke="#e0242f" stroke-width="20"/>
+          <line x1="38" y1="38" x2="162" y2="162" stroke="#e0242f" stroke-width="20" stroke-linecap="round"/>
+        </svg>
+        <div class="banText">Klik-pause<span id="banCount">60s</span></div>
+      </div>
     </div>
     <div id="hint">Click the can. Watch for golden cans.</div>
     <div id="toasts" aria-live="polite"></div>
@@ -1572,17 +1597,58 @@ function floater(x, y, text, gold){
   zone.appendChild(f);
   setTimeout(()=>f.remove(), 900);
 }
+/* Klik-grænse: højst 9 klik tæller pr. sekund. Klik ud over det ignoreres.
+   Mere end 9 klik i sekundet i over 10 sekunder i træk: advarsel.
+   Fortsætter det 10 sekunder mere: forbudt-skilt og ingen klik i 1 minut. */
+const MAX_CLICKS_PER_SEC = 9;
+const BAN_MS = 60000;
+let attemptTimes = [];   // alle klik, også dem der blev blokeret
+let spamSince = 0, spamWarned = false, banUntil = 0, banTimer = null;
+function startBan(){
+  banUntil = performance.now() + BAN_MS;
+  spamSince = 0; spamWarned = false;
+  attemptTimes = []; clickTimes = [];
+  const sign = $('banSign');
+  sign.hidden = false;
+  const update = ()=>{
+    const left = banUntil - performance.now();
+    if(left <= 0){
+      clearInterval(banTimer); banTimer = null; banUntil = 0;
+      sign.hidden = true;
+      return;
+    }
+    $('banCount').textContent = Math.ceil(left/1000) + 's';
+  };
+  update();
+  banTimer = setInterval(update, 250);
+}
 function doClick(clientX, clientY){
+  const now = performance.now();
+  if(banUntil && now < banUntil) return;
+  attemptTimes.push(now);
+  attemptTimes = attemptTimes.filter(t=>now-t<1000);
+  if(attemptTimes.length>=15) S.flags.speed = true;
+  if(attemptTimes.length>MAX_CLICKS_PER_SEC){
+    if(!spamSince) spamSince = now;
+    else if(!spamWarned && now-spamSince>=10000){
+      toast('Slap af fætter guf, det går lige hurtigt nok', '');
+      spamWarned = true;
+    }
+    else if(spamWarned && now-spamSince>=20000){
+      startBan();
+      return;
+    }
+  } else { spamSince = 0; spamWarned = false; }
+  clickTimes = clickTimes.filter(t=>now-t<1000);
+  if(clickTimes.length>=MAX_CLICKS_PER_SEC) return;
+  clickTimes.push(now);
+
   const amount = C.click;
   earn(amount, true);
   S.clicksRun++; S.clicksAll++;
   const zr = zone.getBoundingClientRect();
   floater(clientX - zr.left + (Math.random()*30-15), clientY - zr.top - 10, '+'+fmt(amount, true));
   bubbleBurst(clientX - zr.left, clientY - zr.top);
-  const now = performance.now();
-  clickTimes.push(now);
-  clickTimes = clickTimes.filter(t=>now-t<1000);
-  if(clickTimes.length>=15) S.flags.speed = true;
   canWrap.classList.add('squash');
   setTimeout(()=>canWrap.classList.remove('squash'), 80);
   const counter = $('counter');
