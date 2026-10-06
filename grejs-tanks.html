@@ -8747,7 +8747,10 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       };
       box.querySelector('[data-reg]').onclick = () => go('reg');
       box.querySelector('[data-login]').onclick = () => go('login');
-      box.querySelector('[data-pin]').onkeydown = (e) => e.key === 'Enter' && go('login');
+      // block body: returning false from an on-handler would cancel every keypress
+      box.querySelector('[data-pin]').onkeydown = (e) => {
+        if (e.key === 'Enter') go('login');
+      };
       return box;
     },
 
