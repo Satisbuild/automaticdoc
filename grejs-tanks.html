@@ -2498,7 +2498,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
 /* ---- js/weapons.js ---- */
 /* =====================================================================
  * GREJS TANKS - weapons.js
- * Data-driven weapon / projectile definitions (40 weapons).
+ * Data-driven weapon / projectile definitions (80 weapons).
  *
  * Fields:
  *  type     projectile behavior: ballistic | bounce | roll | drill | pierce
@@ -2556,8 +2556,51 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
     { id: 'blackhole', name: 'Black Hole', icon: '◐', cat: 'energy', type: 'ballistic', dmg: 110, r: 72, ammo: 1, pull: 150, trail: 'glow', color: '#b36bff', size: 9, glow: true, good: ['groups'], level: 35, price: 5600, sound: 'plasma', desc: 'Collapses into a singularity that sucks tanks in.' },
     { id: 'hellfire', name: 'Hellfire', icon: '♆', cat: 'rocket', type: 'homing', dmg: 58, r: 36, ammo: 1, homing: 2.0, count: 3, seq: 0.22, spread: 6, speed: 1.0, grav: 0.7, trail: 'fire', color: '#ff3d1a', size: 6, sprite: 'rocket', good: ['groups', 'far'], level: 36, price: 6000, sound: 'rocket', desc: 'Three homing rockets in rapid succession.' },
     { id: 'solar', name: 'Solar Flare', icon: '☀', cat: 'energy', type: 'ballistic', dmg: 175, r: 82, ammo: 1, speed: 0.9, grav: 0.5, wind: 0.2, burn: { dmg: 20, turns: 2, r: 90 }, trail: 'fire', color: '#ffdd55', size: 12, glow: true, good: ['big', 'groups'], level: 38, price: 7000, sound: 'plasma', desc: 'A miniature sun. Enormous blast and burning ground.' },
-    { id: 'nuke', name: 'Nuclear Bomb', icon: '☢', cat: 'explosive', type: 'ballistic', dmg: 260, r: 125, ammo: 1, speed: 0.95, trail: 'smoke', color: '#d8ff3a', size: 11, sprite: 'nuke', good: ['big', 'groups'], level: 40, price: 9000, sound: 'heavyfire', desc: 'The ultimate weapon. Devastating radius. Handle with care.' }
+    { id: 'nuke', name: 'Nuclear Bomb', icon: '☢', cat: 'explosive', type: 'ballistic', dmg: 260, r: 125, ammo: 1, speed: 0.95, trail: 'smoke', color: '#d8ff3a', size: 11, sprite: 'nuke', good: ['big', 'groups'], level: 40, price: 9000, sound: 'heavyfire', desc: 'The ultimate weapon. Devastating radius. Handle with care.' },
+    // ---- extra arsenal ----
+    { id: 'pebble', name: 'Pebble Shot', icon: '·', cat: 'shell', type: 'ballistic', dmg: 34, r: 24, ammo: 6, speed: 1.08, trail: 'dot', color: '#d9d2c3', size: 3, good: ['far'], level: 1, price: 150, desc: 'Small, fast and plentiful. Six shots per battle.' },
+    { id: 'twin_shell', name: 'Twin Shell', icon: '⁚', cat: 'shell', type: 'ballistic', dmg: 44, r: 30, ammo: 3, count: 2, spread: 3, trail: 'dot', color: '#ffe08a', size: 4, good: ['groups'], level: 1, price: 200, desc: 'Two shells side by side.' },
+    { id: 'skipper', name: 'Skipper', icon: '◌', cat: 'explosive', type: 'bounce', dmg: 50, r: 34, ammo: 3, bounces: 2, trail: 'dot', color: '#9fe', size: 6, sprite: 'bomb', good: ['bunker'], level: 2, price: 300, desc: 'A small bomb that skips twice before going off.' },
+    { id: 'firecracker', name: 'Firecracker', icon: '🧨', cat: 'explosive', type: 'cluster', dmg: 30, r: 26, ammo: 3, sub: { n: 4, dmg: 18, r: 20, spd: 220 }, trail: 'spark', color: '#ff4a4a', size: 5, sprite: 'bomb', good: ['groups'], level: 2, price: 350, desc: 'Pops into four little blasts.' },
+    { id: 'bottle_rocket', name: 'Bottle Rocket', icon: '🎆', cat: 'rocket', type: 'ballistic', dmg: 55, r: 32, ammo: 4, speed: 1.2, grav: 0.7, wind: 0.8, trail: 'spark', color: '#ff8a3d', size: 5, sprite: 'rocket', good: ['far'], level: 3, price: 450, sound: 'rocket', desc: 'Cheap, quick rocket with a flat arc.' },
+    { id: 'mud_ball', name: 'Mud Ball', icon: '🟤', cat: 'special', type: 'dirt', dmg: 0, r: 50, ammo: 3, trail: 'dot', color: '#8a5a32', size: 7, good: ['bunker'], level: 3, price: 400, desc: 'A smaller dirt bomb. Quick cover or a trap.' },
+    { id: 'burst', name: 'Burst Fire', icon: '⋮', cat: 'shell', type: 'ballistic', dmg: 26, r: 22, ammo: 3, count: 3, seq: 0.1, spread: 1, trail: 'dot', color: '#fff2a8', size: 3, good: ['far'], level: 4, price: 550, desc: 'Three quick shells along the same line.' },
+    { id: 'frost_dart', name: 'Frost Dart', icon: '❅', cat: 'elemental', type: 'ballistic', dmg: 30, r: 26, ammo: 2, speed: 1.25, grav: 0.7, freeze: 1, trail: 'ice', color: '#bff', size: 4, good: ['far'], level: 5, price: 800, sound: 'freeze', desc: 'Fast icy dart that freezes on a hit.' },
+    { id: 'grenade', name: 'Grenade', icon: '💣', cat: 'explosive', type: 'bounce', dmg: 80, r: 44, ammo: 2, bounces: 1, trail: 'smoke', color: '#6b8e23', size: 7, sprite: 'bomb', good: ['big'], level: 6, price: 950, desc: 'Bounces once and explodes with a punch.' },
+    { id: 'buckshot', name: 'Buckshot', icon: '⁖', cat: 'shell', type: 'ballistic', dmg: 18, r: 18, ammo: 3, count: 10, spread: 18, speed: 0.9, trail: 'dot', color: '#ffe08a', size: 3, good: ['groups'], level: 7, price: 1050, desc: 'Ten pellets in a huge cone.' },
+    { id: 'drill_bit', name: 'Drill Bit', icon: '🔩', cat: 'special', type: 'drill', dmg: 60, r: 32, ammo: 3, drill: 90, trail: 'dot', color: '#c9c9d6', size: 5, sprite: 'drill', good: ['under'], level: 8, price: 1150, sound: 'drill', desc: 'A small drill that digs 90 units down.' },
+    { id: 'spark_ball', name: 'Spark Ball', icon: '✧', cat: 'energy', type: 'ballistic', dmg: 50, r: 34, ammo: 3, grav: 0.6, chain: { n: 2, dmg: 30, range: 320 }, trail: 'spark', color: '#fff27a', size: 6, glow: true, good: ['groups'], level: 9, price: 1250, sound: 'zap', desc: 'Floaty orb that zaps two nearby tanks.' },
+    { id: 'big_bertha', name: 'Big Bertha', icon: '⬛', cat: 'shell', type: 'ballistic', dmg: 125, r: 56, ammo: 1, speed: 0.92, grav: 1.1, trail: 'smoke', color: '#a08060', size: 10, good: ['big'], level: 10, price: 1500, sound: 'heavyfire', desc: 'An enormous, slow cannonball.' },
+    { id: 'smart_rocket', name: 'Smart Rocket', icon: '🛰', cat: 'rocket', type: 'homing', dmg: 62, r: 34, ammo: 2, homing: 1.6, speed: 1.05, grav: 0.75, trail: 'smoke', color: '#7fd0ff', size: 5, sprite: 'rocket', good: ['far'], level: 11, price: 1650, sound: 'rocket', desc: 'Gently steers toward the closest enemy.' },
+    { id: 'toxic_shell', name: 'Toxic Shell', icon: '🧪', cat: 'elemental', type: 'ballistic', dmg: 48, r: 34, ammo: 2, poison: { dmg: 18, turns: 2, r: 60 }, trail: 'toxic', color: '#a6ff4d', size: 6, good: ['big'], level: 12, price: 1750, sound: 'poison', desc: 'Leaves a small poison pool.' },
+    { id: 'pinball', name: 'Pinball', icon: '🔘', cat: 'explosive', type: 'bounce', dmg: 64, r: 38, ammo: 2, bounces: 6, trail: 'glow', color: '#e0e0ff', size: 6, sprite: 'bomb', good: ['bunker'], level: 13, price: 1850, desc: 'Bounces six times. Hard to predict, hard to dodge.' },
+    { id: 'starburst', name: 'Starburst', icon: '✷', cat: 'energy', type: 'split', dmg: 30, r: 28, ammo: 2, sub: { n: 7, dmg: 28, r: 26, spread: 0.5 }, trail: 'glow', color: '#ffd1ff', size: 6, glow: true, good: ['groups'], level: 14, price: 1950, sound: 'plasma', desc: 'Bursts into seven glowing shards at the apex.' },
+    { id: 'boulder', name: 'Boulder', icon: '🪨', cat: 'explosive', type: 'roll', dmg: 120, r: 50, ammo: 1, trail: 'dot', color: '#8a8a8a', size: 10, sprite: 'bomb', good: ['big', 'bunker'], level: 15, price: 2150, desc: 'A huge rolling rock that crushes what it meets.' },
+    { id: 'railgun', name: 'Railgun', icon: '┅', cat: 'energy', type: 'laser', dmg: 120, r: 16, ammo: 1, range: 2200, color: '#4dd2ff', good: ['far'], level: 16, price: 2300, sound: 'laser', desc: 'Long, straight high-power beam.' },
+    { id: 'blizzard', name: 'Blizzard', icon: '🌨', cat: 'elemental', type: 'rain', dmg: 18, r: 22, ammo: 1, sub: { n: 10, dmg: 18, r: 22, width: 160 }, freeze: 1, trail: 'ice', color: '#dff6ff', size: 7, good: ['groups'], level: 17, price: 2450, sound: 'freeze', desc: 'Snows icy chunks over a wide area.' },
+    { id: 'magma_ball', name: 'Magma Ball', icon: '🌋', cat: 'elemental', type: 'roll', dmg: 70, r: 42, ammo: 2, burn: { dmg: 20, turns: 3, r: 70 }, trail: 'fire', color: '#ff5a1a', size: 8, good: ['bunker'], level: 18, price: 2600, sound: 'burn', desc: 'Rolls along the ground leaving fire behind.' },
+    { id: 'dirt_wall', name: 'Earth Wall', icon: '🧱', cat: 'special', type: 'dirt', dmg: 0, r: 105, ammo: 1, trail: 'dot', color: '#7a5030', size: 9, good: ['bunker'], level: 19, price: 1900, desc: 'A giant dirt ball. Bury enemies completely.' },
+    { id: 'carpet_bomb', name: 'Carpet Bomb', icon: '🛩', cat: 'special', type: 'marker', dmg: 10, r: 14, ammo: 1, marker: { kind: 'bombs', n: 9, dmg: 34, r: 30, spread: 260 }, trail: 'spark', color: '#ff4040', size: 5, good: ['groups'], level: 20, price: 2900, desc: 'Nine bombs spread over a wide strip.' },
+    { id: 'phantom', name: 'Phantom Rocket', icon: '🌀', cat: 'rocket', type: 'ghost', dmg: 70, r: 38, ammo: 2, speed: 1.1, grav: 0.8, trail: 'glow', color: '#b0a0ff', size: 6, sprite: 'rocket', good: ['bunker'], level: 21, price: 3050, sound: 'rocket', desc: 'A ghost rocket that passes through hills on the way up.' },
+    { id: 'lance', name: 'Earth Lance', icon: '⤓', cat: 'shell', type: 'pierce', dmg: 85, r: 30, ammo: 2, pierce: 380, speed: 1.2, trail: 'spark', color: '#f0e0c0', size: 5, good: ['under'], level: 22, price: 3150, desc: 'Pierces 380 units of ground.' },
+    { id: 'siege', name: 'Siege Shell', icon: '🏰', cat: 'shell', type: 'ballistic', dmg: 135, r: 58, ammo: 1, speed: 1.2, grav: 1.9, trail: 'smoke', color: '#c08050', size: 9, good: ['bunker', 'big'], level: 23, price: 3300, sound: 'heavyfire', desc: 'Drops almost straight down onto hidden targets.' },
+    { id: 'swarm', name: 'Swarm', icon: '🐝', cat: 'rocket', type: 'homing', dmg: 26, r: 24, ammo: 1, homing: 2.8, count: 6, seq: 0.12, spread: 10, speed: 0.95, grav: 0.6, trail: 'smoke', color: '#ffcc33', size: 4, sprite: 'rocket', good: ['groups'], level: 24, price: 3550, sound: 'rocket', desc: 'Six mini homing rockets.' },
+    { id: 'mole', name: 'Mole Bomb', icon: '🐀', cat: 'special', type: 'tunnel', dmg: 70, r: 38, ammo: 3, drill: 220, trail: 'dot', color: '#a08070', size: 5, sprite: 'drill', good: ['under'], level: 25, price: 3650, sound: 'drill', desc: 'Cheaper tunneler that pops up under the enemy.' },
+    { id: 'comet', name: 'Comet Swarm', icon: '💫', cat: 'special', type: 'marker', dmg: 10, r: 14, ammo: 1, marker: { kind: 'meteor', n: 3, dmg: 80, r: 50, spread: 200 }, trail: 'spark', color: '#ffb84d', size: 5, good: ['groups', 'big'], level: 26, price: 3950, desc: 'Three meteors crash around the marker.' },
+    { id: 'void_orb', name: 'Void Orb', icon: '⚫', cat: 'energy', type: 'ghost', dmg: 105, r: 50, ammo: 1, grav: 0.7, pull: 80, trail: 'glow', color: '#7a4dff', size: 8, glow: true, good: ['bunker'], level: 27, price: 4050, sound: 'plasma', desc: 'Phases through ground and pulls tanks together.' },
+    { id: 'tornado', name: 'Tornado', icon: '🌪', cat: 'energy', type: 'ballistic', dmg: 40, r: 70, ammo: 1, knock: 4.5, trail: 'glow', color: '#cfe8ff', size: 8, glow: true, good: ['groups'], level: 28, price: 4150, desc: 'Gigantic knockback that hurls tanks away.' },
+    { id: 'emp_rocket', name: 'EMP Rocket', icon: '📡', cat: 'rocket', type: 'homing', dmg: 50, r: 60, ammo: 1, homing: 2.0, emp: 2, trail: 'spark', color: '#7af', size: 6, sprite: 'rocket', good: ['far'], level: 29, price: 4300, sound: 'zap', desc: 'Homing rocket that knocks out shields and abilities.' },
+    { id: 'plague', name: 'Plague Cloud', icon: '🦠', cat: 'elemental', type: 'cluster', dmg: 30, r: 30, ammo: 1, sub: { n: 6, dmg: 16, r: 24, spd: 220 }, poison: { dmg: 32, turns: 3, r: 120 }, trail: 'toxic', color: '#7dff4a', size: 8, good: ['groups'], level: 30, price: 4450, sound: 'poison', desc: 'Huge, lasting poison cloud.' },
+    { id: 'claymore', name: 'Claymores', icon: '✴', cat: 'explosive', type: 'mines', dmg: 95, r: 50, ammo: 1, count: 5, spread: 10, trail: 'dot', color: '#ff7a4d', size: 5, good: ['groups', 'big'], level: 31, price: 4600, desc: 'Lays five powerful mines.' },
+    { id: 'storm_lance', name: 'Storm Lance', icon: '🔱', cat: 'energy', type: 'laser', dmg: 85, r: 14, ammo: 1, range: 1800, chain: { n: 3, dmg: 40, range: 400 }, color: '#fff27a', good: ['groups', 'far'], level: 32, price: 4800, sound: 'zap', desc: 'Lightning beam that also chains to nearby tanks.' },
+    { id: 'aftershock', name: 'Aftershock', icon: '🌊', cat: 'special', type: 'ballistic', dmg: 80, r: 44, ammo: 1, quake: { dmg: 110, range: 500 }, trail: 'smoke', color: '#c9a06a', size: 9, good: ['groups', 'bunker'], level: 33, price: 5100, desc: 'A massive quake that hits grounded tanks 500 units away.' },
+    { id: 'deep_strike', name: 'Deep Strike', icon: '⏬', cat: 'explosive', type: 'drill', dmg: 175, r: 66, ammo: 1, drill: 200, trail: 'smoke', color: '#9a9ab0', size: 10, sprite: 'drill', good: ['under', 'bunker', 'big'], level: 35, price: 5400, sound: 'heavyfire', desc: 'Drills deep, then detonates with huge force.' },
+    { id: 'hydra_mirv', name: 'Hydra MIRV', icon: '🐉', cat: 'rocket', type: 'split', dmg: 40, r: 32, ammo: 1, sub: { n: 8, dmg: 48, r: 36, spread: 0.45 }, speed: 1.05, trail: 'fire', color: '#ff3d1a', size: 8, sprite: 'rocket', good: ['groups'], level: 37, price: 6500, sound: 'rocket', desc: 'Releases eight warheads at the apex.' },
+    { id: 'armageddon', name: 'Armageddon', icon: '🔥', cat: 'special', type: 'marker', dmg: 10, r: 14, ammo: 1, marker: { kind: 'meteor', n: 6, dmg: 110, r: 64, spread: 320 }, trail: 'spark', color: '#ff3d1a', size: 6, good: ['groups', 'big'], level: 42, price: 10000, desc: 'Six giant meteors rain down from the sky.' },
+    { id: 'antimatter', name: 'Antimatter', icon: '⚛', cat: 'energy', type: 'ballistic', dmg: 230, r: 110, ammo: 1, speed: 0.95, grav: 0.6, pull: 120, trail: 'glow', color: '#ff66ff', size: 11, glow: true, good: ['big', 'groups'], level: 45, price: 12000, sound: 'plasma', desc: 'Annihilates everything and pulls in what survives.' },
+    { id: 'grejs_bomb', name: 'Grejs Bomb', icon: '👑', cat: 'explosive', type: 'cluster', dmg: 200, r: 120, ammo: 1, sub: { n: 10, dmg: 50, r: 40, spd: 340 }, burn: { dmg: 30, turns: 3, r: 160 }, speed: 0.95, trail: 'fire', color: '#ffd23f', size: 12, sprite: 'nuke', good: ['big', 'groups'], level: 50, price: 15000, sound: 'heavyfire', desc: 'The legendary weapon of Grejs World. Burns the whole map.' }
   ];
+  W.sort((a, b) => a.level - b.level);
 
   // Ability-only weapons (used by special abilities, not purchasable)
   const ABILITY_WEAPONS = [
@@ -2900,7 +2943,33 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
     { id: 'boss_9', name: 'Sky Fortress', world: 9, hp: 5200, armor: 32, dmg: 1.0, acc: 0.72, scale: 2.0, vis: { chassis: 'long', turret: 'twin', barrel: 'pod', move: 'hover', body: '#eceff1', accent: '#1565c0', deco: ['lights', 'crown'] },
       phases: [{ w: ['homing', 'rocket'] }, { at: 0.66, w: ['mirv', 'thunder'], enter: 'barrage', say: 'All batteries fire!' }, { at: 0.33, w: ['laser', 'hellfire'], enter: 'shield', say: 'Fortress shields at maximum!' }] },
     { id: 'boss_10', name: 'Omega Dreadnought', world: 10, hp: 6500, armor: 36, dmg: 1.05, acc: 0.75, scale: 2.2, vis: { chassis: 'heavy', turret: 'twin', barrel: 'double', move: 'tracks', body: '#1b1b1b', accent: '#ff1744', deco: ['core', 'spikes', 'crown', 'horns'] },
-      phases: [{ w: ['mega_rocket', 'heavy_shell'] }, { at: 0.75, w: ['hellfire', 'mortar'], enter: 'summon', summon: 'bulwark', say: 'Reinforcements!' }, { at: 0.5, w: ['nuke', 'laser'], enter: 'barrage', say: 'Dreadnought goes nuclear!' }, { at: 0.25, w: ['solar', 'blackhole'], enter: 'heal', say: 'Omega protocol activated!' }] }
+      phases: [{ w: ['mega_rocket', 'heavy_shell'] }, { at: 0.75, w: ['hellfire', 'mortar'], enter: 'summon', summon: 'bulwark', say: 'Reinforcements!' }, { at: 0.5, w: ['nuke', 'laser'], enter: 'barrage', say: 'Dreadnought goes nuclear!' }, { at: 0.25, w: ['solar', 'blackhole'], enter: 'heal', say: 'Omega protocol activated!' }] },
+    { id: 'boss_11', name: 'King of Buses', world: 11, hp: 7000, armor: 36, dmg: 1.05, acc: 0.75, scale: 2.2, vis: { chassis: 'long', turret: 'box', barrel: 'thick', move: 'bigwheels', body: '#ffc107', accent: '#212121', deco: ['lights', 'exhaust', 'crown'] },
+      phases: [{ w: ['big_bertha', 'rocket'] }, { at: 0.66, w: ['carpet_bomb', 'mortar'], enter: 'summon', summon: 'raider', say: 'All aboard the pain bus!' }, { at: 0.33, w: ['mega_rocket', 'swarm'], enter: 'rage', say: 'Next stop: your doom!' }] },
+    { id: 'boss_12', name: 'Big Joe', world: 12, hp: 7500, armor: 36, dmg: 1.08, acc: 0.76, scale: 2.2, vis: { chassis: 'round', turret: 'dome', barrel: 'pod', move: 'bigwheels', body: '#1e88e5', accent: '#ff5252', deco: ['crown', 'horns', 'lights'] },
+      phases: [{ w: ['pinball', 'heavy_shell'] }, { at: 0.66, w: ['starburst', 'grenade'], enter: 'shield', say: 'Joe says: nope!' }, { at: 0.33, w: ['hydra_mirv', 'boulder'], enter: 'barrage', say: 'JOE SMASH!' }] },
+    { id: 'boss_13', name: 'Bog Monarch', world: 13, hp: 7800, armor: 36, dmg: 1.08, acc: 0.76, scale: 2.1, vis: { chassis: 'round', turret: 'twin', barrel: 'pod', move: 'hover', body: '#558b2f', accent: '#cddc39', deco: ['horns', 'camo'] },
+      phases: [{ w: ['toxic_shell', 'poison'] }, { at: 0.66, w: ['plague', 'acid'], enter: 'summon', summon: 'plaguer', say: 'Rise from the bog!' }, { at: 0.33, w: ['acid', 'plague'], enter: 'heal', say: 'The swamp heals its king!' }] },
+    { id: 'boss_14', name: 'Prism Golem', world: 14, hp: 8200, armor: 38, dmg: 1.1, acc: 0.78, scale: 2.1, vis: { chassis: 'hex', turret: 'orb', barrel: 'rail', move: 'tracks', body: '#b388ff', accent: '#ffffff', deco: ['crystals', 'core', 'crown'] },
+      phases: [{ w: ['railgun', 'plasma'] }, { at: 0.66, w: ['starburst', 'laser'], enter: 'shield', say: 'Crystal armor!' }, { at: 0.33, w: ['storm_lance', 'railgun'], enter: 'freeze', say: 'Shatter!' }] },
+    { id: 'boss_15', name: 'Captain Cannonbeard', world: 15, hp: 8600, armor: 38, dmg: 1.12, acc: 0.78, scale: 2.2, vis: { chassis: 'long', turret: 'twin', barrel: 'double', move: 'tracks', body: '#5d4037', accent: '#212121', deco: ['spikes', 'crown', 'patches'] },
+      phases: [{ w: ['big_bertha', 'heavy_shell'] }, { at: 0.66, w: ['buckshot', 'mortar'], enter: 'barrage', say: 'Fire the broadside!' }, { at: 0.33, w: ['siege', 'carpet_bomb'], enter: 'summon', summon: 'howitzer', say: 'All hands on deck!' }] },
+    { id: 'boss_16', name: 'Sugar Rush', world: 16, hp: 9000, armor: 38, dmg: 1.12, acc: 0.8, scale: 2.1, vis: { chassis: 'round', turret: 'dome', barrel: 'coil', move: 'hover', body: '#ff4081', accent: '#ffffff', deco: ['lights', 'crown'] },
+      phases: [{ w: ['firecracker', 'bouncer'] }, { at: 0.66, w: ['starburst', 'pinball'], enter: 'heal', say: 'Sugar high!' }, { at: 0.33, w: ['swarm', 'cluster'], enter: 'rage', say: 'SUGAR CRASH!' }] },
+    { id: 'boss_17', name: 'The Phantom', world: 17, hp: 9400, armor: 40, dmg: 1.15, acc: 0.8, scale: 2.1, vis: { chassis: 'wedge', turret: 'orb', barrel: 'dish', move: 'hover', body: '#37305a', accent: '#b388ff', deco: ['core', 'horns'] },
+      phases: [{ w: ['ghost', 'phantom'] }, { at: 0.66, w: ['void_orb', 'ghost'], enter: 'shield', say: 'You cannot touch me...' }, { at: 0.33, w: ['phantom', 'blackhole'], enter: 'summon', summon: 'photon', say: 'Spirits, awaken!' }] },
+    { id: 'boss_18', name: 'Mecha Overseer', world: 18, hp: 9800, armor: 42, dmg: 1.15, acc: 0.82, scale: 2.2, vis: { chassis: 'heavy', turret: 'tower', barrel: 'rail', move: 'tracks', body: '#90a4ae', accent: '#00e5ff', deco: ['lights', 'core', 'exhaust'] },
+      phases: [{ w: ['railgun', 'smart_rocket'] }, { at: 0.66, w: ['emp_rocket', 'hellfire'], enter: 'summon', summon: 'juggernaut', say: 'Production line online!' }, { at: 0.33, w: ['storm_lance', 'swarm'], enter: 'airstrike', say: 'Drones deployed!' }] },
+    { id: 'boss_19', name: 'Storm Tyrant', world: 19, hp: 10300, armor: 42, dmg: 1.18, acc: 0.82, scale: 2.2, vis: { chassis: 'hex', turret: 'tower', barrel: 'coil', move: 'tracks', body: '#455a64', accent: '#ffeb3b', deco: ['spikes', 'lights', 'crown'] },
+      phases: [{ w: ['lightning', 'spark_ball'] }, { at: 0.66, w: ['thunder', 'storm_lance'], enter: 'barrage', say: 'Feel the storm!' }, { at: 0.33, w: ['tornado', 'thunder'], enter: 'rage', say: 'HURRICANE!' }] },
+    { id: 'boss_20', name: 'Inferno Leviathan', world: 20, hp: 10800, armor: 44, dmg: 1.2, acc: 0.84, scale: 2.3, vis: { chassis: 'heavy', turret: 'box', barrel: 'thick', move: 'hover', body: '#bf360c', accent: '#ffab00', deco: ['core', 'spikes', 'horns'] },
+      phases: [{ w: ['magma_ball', 'fire'] }, { at: 0.66, w: ['napalm', 'comet'], enter: 'meteor', say: 'The ocean boils!' }, { at: 0.33, w: ['solar', 'napalm'], enter: 'heal', say: 'Reborn in flame!' }] },
+    { id: 'boss_21', name: 'Star Devourer', world: 21, hp: 11400, armor: 46, dmg: 1.22, acc: 0.85, scale: 2.3, vis: { chassis: 'round', turret: 'orb', barrel: 'dish', move: 'hover', body: '#263238', accent: '#e040fb', deco: ['core', 'crown', 'lights'] },
+      phases: [{ w: ['plasma', 'void_orb'] }, { at: 0.66, w: ['blackhole', 'comet'], enter: 'shield', say: 'Event horizon!' }, { at: 0.33, w: ['antimatter', 'railgun'], enter: 'meteor', say: 'I will eat the stars!' }] },
+    { id: 'boss_22', name: 'Doom Warden', world: 22, hp: 12000, armor: 48, dmg: 1.25, acc: 0.86, scale: 2.4, vis: { chassis: 'heavy', turret: 'twin', barrel: 'double', move: 'tracks', body: '#212121', accent: '#d50000', deco: ['spikes', 'horns', 'crown', 'core'] },
+      phases: [{ w: ['siege', 'mega_rocket'] }, { at: 0.75, w: ['hydra_mirv', 'deep_strike'], enter: 'summon', summon: 'juggernaut', say: 'Guards!' }, { at: 0.5, w: ['nuke', 'claymore'], enter: 'barrage', say: 'None shall pass!' }, { at: 0.25, w: ['armageddon', 'solar'], enter: 'heal', say: 'The fortress feeds me!' }] },
+    { id: 'boss_23', name: 'Grejs the Eternal', world: 23, hp: 13500, armor: 50, dmg: 1.3, acc: 0.88, scale: 2.5, vis: { chassis: 'heavy', turret: 'tower', barrel: 'double', move: 'tracks', body: '#6a1b9a', accent: '#ffd23f', deco: ['crown', 'core', 'spikes', 'horns', 'lights'] },
+      phases: [{ w: ['grejs_bomb', 'mega_rocket'] }, { at: 0.8, w: ['hydra_mirv', 'railgun'], enter: 'summon', summon: 'juggernaut', say: 'Kneel before Grejs!' }, { at: 0.6, w: ['antimatter', 'swarm'], enter: 'barrage', say: 'You dare challenge me?!' }, { at: 0.4, w: ['armageddon', 'storm_lance'], enter: 'shield', say: 'Grejs is eternal!' }, { at: 0.2, w: ['nuke', 'grejs_bomb'], enter: 'rage', say: 'THIS IS GREJS WORLD!' }] }
   ];
 
   GT.Enemies = {
@@ -2920,7 +2989,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
 /* ---- js/worlds.js ---- */
 /* =====================================================================
  * GREJS TANKS - worlds.js
- * 10 themed worlds: visuals, atmosphere, physics tweaks, music,
+ * 23 themed worlds: visuals, atmosphere, physics tweaks, music,
  * enemy pools, level templates and unlock requirements.
  * ===================================================================== */
 (function () {
@@ -3047,6 +3116,162 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       enemies: ['juggernaut', 'lancer', 'hydra', 'boomer', 'volt', 'plaguer', 'howitzer', 'homer', 'blaster'],
       templates: ['mountain', 'fortress', 'pits', 'twin_peaks', 'bunker', 'canyon', 'stairs', 'tunnels'],
       features: { craters: 3, metal: 1 }, stars: 255, lavaLevel: 910, big: true
+    },
+    {
+      id: 11, name: 'Buss World', sub: "Roads, bus stops and traffic jams", icon: '🚌',
+      sky: ['#ffb347','#ffe9b0'], sun: { color: '#fff4c0', x: 0.7, y: 0.15, r: 52 },
+      hills: ['#9aa3ad', '#6f7882'], clouds: '#ffffff',
+      terrain: { top: '#4a4a4f', top2: '#ffd23f', soil: ['#6a6a70', '#4c4c52', '#323236'], speck: '#ffd23f', topDepth: 10, metal: '#e0a020' },
+      deco: ['sign', 'lamp', 'tire', 'crate', 'barrel_deco', 'wreck'], ambient: 'sparks',
+      gravity: 1, wind: 7, hazard: null,
+      music: { id: 'm11', bpm: 110, root: 45, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, 2, 3, 4], lead: 'square', bass: 'sawtooth', drums: 'basic', seed: 1221, density: 0.5 },
+      enemies: ['raider', 'boomer', 'rocketeer', 'juggernaut', 'howitzer', 'blaster', 'homer'],
+      templates: ['flat', 'stairs', 'plateaus', 'fortress', 'bunker', 'rolling', 'cliffs'],
+      features: { metal: 2, craters: 2 }, stars: 285
+    },
+    {
+      id: 12, name: 'Joe World', sub: "Joe's wild backyard kingdom", icon: '🧢',
+      sky: ['#6ad1ff','#d8f5ff'], sun: { color: '#ffffff', x: 0.25, y: 0.14, r: 50 },
+      hills: ['#66bb6a', '#43a047'], clouds: '#ffffff',
+      terrain: { top: '#43c463', top2: '#7cf08a', soil: ['#a0603a', '#7c4628', '#563018'], speck: '#d09060', topDepth: 14 },
+      deco: ['tree', 'mushroom', 'windmill', 'flower', 'snowman', 'flag'], ambient: 'leaves',
+      gravity: 0.85, wind: 8, hazard: null,
+      music: { id: 'm12', bpm: 113, root: 50, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, 3, 3, 4], lead: 'sawtooth', bass: 'sawtooth', drums: 'boss', seed: 1332, density: 0.5 },
+      enemies: ['hydra', 'boomer', 'homer', 'plaguer', 'lancer', 'volt', 'juggernaut'],
+      templates: ['twin_peaks', 'hill', 'pits', 'tunnels', 'valley', 'mountain', 'rolling'],
+      features: { platforms: 2, caves: 1 }, stars: 315
+    },
+    {
+      id: 13, name: 'Toxic Swamp', sub: "Bubbling poison everywhere", icon: '🐸',
+      sky: ['#2b3a1a','#7a9a3a'], sun: { color: '#d8ff8a', x: 0.6, y: 0.18, r: 46 },
+      hills: ['#3b5a2a', '#2a401c'], clouds: '#9ab07a',
+      terrain: { top: '#4f7a2a', top2: '#7ab040', soil: ['#3a4a22', '#2a3618', '#1a220e'], speck: '#9dff3a', topDepth: 10 },
+      deco: ['dead_tree', 'mushroom', 'fern', 'barrel_deco', 'skull'], ambient: 'spores',
+      gravity: 1, wind: 5, hazard: { type: 'acid', color: '#9dff3a', dmg: 70 },
+      music: { id: 'm13', bpm: 116, root: 55, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, 4, 3, 4], lead: 'triangle', bass: 'sawtooth', drums: 'soft', seed: 1443, density: 0.5 },
+      enemies: ['plaguer', 'hydra', 'mender', 'burrower', 'homer', 'boomer', 'scorcher'],
+      templates: ['pits', 'valley', 'tunnels', 'rolling', 'bunker', 'canyon', 'hill'],
+      features: { craters: 3 }, stars: 345, lavaLevel: 900
+    },
+    {
+      id: 14, name: 'Crystal Caves', sub: "Glittering underground halls", icon: '💎',
+      sky: ['#1a1040','#5a3a9a'], sun: { color: '#d0a0ff', x: 0.5, y: 0.15, r: 40, glow: true },
+      hills: ['#3a2a6a', '#24184a'], clouds: null,
+      terrain: { top: '#9a7aff', top2: '#d0b8ff', soil: ['#5a4a9a', '#40327a', '#281e52'], speck: '#ffffff', topDepth: 8 },
+      deco: ['ice_crystal', 'ice_crystal', 'moon_rock', 'rock', 'mushroom'], ambient: 'fireflies',
+      gravity: 1, wind: 2, hazard: null,
+      music: { id: 'm14', bpm: 119, root: 60, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, 5, 3, 4], lead: 'sine', bass: 'sawtooth', drums: 'basic', seed: 1554, density: 0.5 },
+      enemies: ['photon', 'lancer', 'volt', 'aegis', 'frosty', 'burrower', 'marksman'],
+      templates: ['tunnels', 'mountain', 'stairs', 'cliffs', 'plateaus', 'bunker', 'twin_peaks'],
+      features: { caves: 3 }, stars: 375
+    },
+    {
+      id: 15, name: 'Pirate Coast', sub: "Cannons, sand and salty winds", icon: '🏴‍☠️',
+      sky: ['#3a8ad8','#bfe6ff'], sun: { color: '#fff6c0', x: 0.8, y: 0.16, r: 54 },
+      hills: ['#e8d090', '#c8b070'], clouds: '#ffffff',
+      terrain: { top: '#f0d890', top2: '#fff0b8', soil: ['#c09858', '#9a7840', '#705628'], speck: '#fff8d0', topDepth: 16 },
+      deco: ['palm', 'palm', 'barrel_deco', 'skull', 'flag_enemy', 'crate'], ambient: 'sand',
+      gravity: 1, wind: 10, hazard: null,
+      music: { id: 'm15', bpm: 122, root: 48, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, 1, 3, 4], lead: 'square', bass: 'sawtooth', drums: 'boss', seed: 1665, density: 0.5 },
+      enemies: ['howitzer', 'rocketeer', 'marksman', 'boomer', 'hydra', 'juggernaut', 'blaster'],
+      templates: ['cliffs', 'hill', 'valley', 'canyon', 'rolling', 'plateaus', 'twin_peaks'],
+      features: { craters: 2 }, stars: 405
+    },
+    {
+      id: 16, name: 'Candy Land', sub: "Sweet hills with a bitter fight", icon: '🍭',
+      sky: ['#ff8ad8','#ffe0f4'], sun: { color: '#ffffff', x: 0.3, y: 0.15, r: 50 },
+      hills: ['#ffb0e0', '#ff88cc'], clouds: '#ffffff',
+      terrain: { top: '#ff6ab0', top2: '#ffc0e0', soil: ['#a0603a', '#804828', '#5a3018'], speck: '#7ad8ff', topDepth: 14 },
+      deco: ['mushroom', 'flower', 'bush', 'snowman', 'flag'], ambient: 'fireflies',
+      gravity: 0.9, wind: 6, hazard: null,
+      music: { id: 'm16', bpm: 125, root: 53, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, 2, 3, 4], lead: 'sawtooth', bass: 'sawtooth', drums: 'soft', seed: 1776, density: 0.5 },
+      enemies: ['boomer', 'hydra', 'volt', 'homer', 'lancer', 'plaguer', 'juggernaut'],
+      templates: ['rolling', 'twin_peaks', 'hill', 'pits', 'plateaus', 'valley', 'stairs'],
+      features: { platforms: 1 }, stars: 435
+    },
+    {
+      id: 17, name: 'Haunted Hollow', sub: "Ghosts drift between the graves", icon: '👻',
+      sky: ['#0f0a1f','#3a2a5a'], sun: { color: '#e0e8ff', x: 0.75, y: 0.15, r: 46 },
+      hills: ['#2a2040', '#1a1428'], clouds: '#5a5070',
+      terrain: { top: '#3a3a4a', top2: '#5a5a70', soil: ['#2a2830', '#1e1c24', '#121016'], speck: '#8a7aff', topDepth: 8 },
+      deco: ['dead_tree', 'skull', 'ruin', 'sign', 'lamp'], ambient: 'ash',
+      gravity: 1, wind: 6, hazard: { type: 'swamp', color: '#6a4aaa', dmg: 60 },
+      music: { id: 'm17', bpm: 128, root: 58, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, 3, 3, 4], lead: 'triangle', bass: 'sawtooth', drums: 'basic', seed: 1887, density: 0.5 },
+      enemies: ['photon', 'plaguer', 'burrower', 'lancer', 'hydra', 'volt', 'homer'],
+      templates: ['tunnels', 'pits', 'bunker', 'mountain', 'cliffs', 'valley', 'fortress'],
+      features: { craters: 2, caves: 2 }, stars: 465, lavaLevel: 915
+    },
+    {
+      id: 18, name: 'Robot Factory', sub: "Machines building machines", icon: '🤖',
+      sky: ['#2a3440','#6a8098'], sun: { color: '#a0e8ff', x: 0.5, y: 0.2, r: 44, glow: true },
+      hills: ['#3a4450', '#262e38'], clouds: '#7a8a9a',
+      terrain: { top: '#7d8796', top2: '#a8b4c4', soil: ['#4a525c', '#363c44', '#22262c'], speck: '#4dd2ff', topDepth: 8, metal: '#9aa8b8' },
+      deco: ['pipe', 'antenna', 'crate', 'lamp', 'chimney', 'dome'], ambient: 'sparks',
+      gravity: 1, wind: 4, hazard: null,
+      music: { id: 'm18', bpm: 131, root: 46, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, 4, 3, 4], lead: 'sine', bass: 'sawtooth', drums: 'boss', seed: 1998, density: 0.5 },
+      enemies: ['juggernaut', 'volt', 'lancer', 'photon', 'aegis', 'rocketeer', 'homer'],
+      templates: ['fortress', 'stairs', 'bunker', 'plateaus', 'cliffs', 'tunnels', 'flat'],
+      features: { metal: 5 }, stars: 495
+    },
+    {
+      id: 19, name: 'Thunder Peaks', sub: "Mountains in an endless storm", icon: '⛈️',
+      sky: ['#2a3040','#6a7088'], sun: { color: '#ffffff', x: 0.2, y: 0.15, r: 36 },
+      hills: ['#4a5060', '#30343f'], clouds: '#5a6070',
+      terrain: { top: '#6a7080', top2: '#9098a8', soil: ['#4a4e58', '#363a42', '#22252b'], speck: '#fff27a', topDepth: 8 },
+      deco: ['rock', 'pine_snow', 'antenna', 'dead_tree', 'windmill'], ambient: 'rain',
+      gravity: 1, wind: 12, hazard: null,
+      music: { id: 'm19', bpm: 134, root: 51, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, 5, 3, 4], lead: 'square', bass: 'sawtooth', drums: 'soft', seed: 2109, density: 0.5 },
+      enemies: ['volt', 'lancer', 'marksman', 'howitzer', 'homer', 'aegis', 'juggernaut'],
+      templates: ['mountain', 'twin_peaks', 'cliffs', 'stairs', 'hill', 'canyon', 'plateaus'],
+      features: { craters: 2 }, stars: 525
+    },
+    {
+      id: 20, name: 'Lava Ocean', sub: "A sea of fire with stepping stones", icon: '🔥',
+      sky: ['#2a0505','#c0300a'], sun: { color: '#ffaa2a', x: 0.5, y: 0.2, r: 90, glow: true },
+      hills: null, clouds: '#6a2a1a',
+      terrain: { top: '#3a2420', top2: '#5a3a30', soil: ['#2a1814', '#1c100c', '#100806'], speck: '#ff7a1a', topDepth: 8 },
+      deco: ['lava_rock', 'vent', 'skull', 'spikes_deco', 'dead_tree'], ambient: 'embers',
+      gravity: 1, wind: 6, hazard: { type: 'void' },
+      music: { id: 'm20', bpm: 137, root: 56, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, 1, 3, 4], lead: 'sawtooth', bass: 'sawtooth', drums: 'basic', seed: 2220, density: 0.5 },
+      enemies: ['scorcher', 'juggernaut', 'blaster', 'hydra', 'howitzer', 'boomer', 'plaguer'],
+      templates: ['islands'],
+      features: {}, stars: 555, void: true
+    },
+    {
+      id: 21, name: 'Deep Space', sub: "Fighting among the asteroids", icon: '🪐',
+      sky: ['#000005','#0a0a2a'], sun: { color: '#ff8a4f', x: 0.2, y: 0.2, r: 100, planet: true },
+      hills: null, clouds: null,
+      terrain: { top: '#8a8090', top2: '#b0a8b8', soil: ['#5a5260', '#40384a', '#282230'], speck: '#4dd2ff', topDepth: 6 },
+      deco: ['moon_rock', 'antenna', 'dome', 'flag'], ambient: 'stars',
+      gravity: 0.4, wind: 0, hazard: { type: 'void' },
+      music: { id: 'm21', bpm: 110, root: 61, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, 2, 3, 4], lead: 'triangle', bass: 'sawtooth', drums: 'boss', seed: 2331, density: 0.5 },
+      enemies: ['photon', 'lancer', 'volt', 'homer', 'aegis', 'marksman', 'juggernaut'],
+      templates: ['islands'],
+      features: { craters: 4 }, stars: 585, skyStars: true, void: true
+    },
+    {
+      id: 22, name: 'Doom Fortress', sub: "The gate before the end", icon: '🏯',
+      sky: ['#1a0505','#5a1010'], sun: { color: '#ff3a3a', x: 0.5, y: 0.2, r: 80, glow: true },
+      hills: ['#2a0c10', '#1a0608'], clouds: '#3a1a1a',
+      terrain: { top: '#4a3030', top2: '#6a4040', soil: ['#3a2222', '#2a1616', '#180c0c'], speck: '#ff3a2a', topDepth: 8, metal: '#5a5f6a' },
+      deco: ['ruin', 'spikes_deco', 'flag_enemy', 'wreck', 'chimney'], ambient: 'embers',
+      gravity: 1, wind: 9, hazard: { type: 'lava', color: '#ff2a1a', dmg: 80 },
+      music: { id: 'm22', bpm: 113, root: 49, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, 3, 3, 4], lead: 'sine', bass: 'sawtooth', drums: 'soft', seed: 2442, density: 0.5 },
+      enemies: ['juggernaut', 'lancer', 'hydra', 'volt', 'howitzer', 'homer', 'blaster', 'plaguer', 'boomer'],
+      templates: ['fortress', 'bunker', 'mountain', 'stairs', 'pits', 'canyon', 'tunnels'],
+      features: { metal: 4, craters: 3 }, stars: 615, lavaLevel: 905, big: true
+    },
+    {
+      id: 23, name: 'Grejs World', sub: "The legendary home of Grejs", icon: '👑',
+      sky: ['#3a1a6a','#ffb347'], sun: { color: '#ffd23f', x: 0.5, y: 0.14, r: 70, glow: true },
+      hills: ['#5a3a8a', '#3a2460'], clouds: '#ffe0a0',
+      terrain: { top: '#ffd23f', top2: '#fff0a0', soil: ['#7a4a9a', '#5a3478', '#3a2050'], speck: '#ffd23f', topDepth: 14, metal: '#ffd23f' },
+      deco: ['flag', 'tree', 'ruin', 'windmill', 'dome', 'flower'], ambient: 'fireflies',
+      gravity: 1, wind: 10, hazard: { type: 'lava', color: '#ffb300', dmg: 100 },
+      music: { id: 'm23', bpm: 116, root: 54, scale: [0, 2, 3, 5, 7, 8, 10], prog: [0, 4, 3, 4], lead: 'square', bass: 'sawtooth', drums: 'basic', seed: 2553, density: 0.5 },
+      enemies: ['juggernaut', 'lancer', 'hydra', 'volt', 'homer', 'boomer', 'plaguer', 'howitzer', 'blaster', 'photon'],
+      templates: ['mountain', 'fortress', 'twin_peaks', 'pits', 'bunker', 'canyon', 'stairs', 'tunnels', 'cliffs'],
+      features: { craters: 3, metal: 2, platforms: 1 }, stars: 645, lavaLevel: 900, big: true
     }
   ];
 
@@ -3086,7 +3311,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
 /* ---- js/levels.js ---- */
 /* =====================================================================
  * GREJS TANKS - levels.js
- * Deterministic level generator: 10 worlds x 15 levels = 150 levels.
+ * Deterministic level generator: 23 worlds x 15 levels = 345 levels.
  * Each level varies terrain template, map width, wind, enemies,
  * spawn positions, events and features. Level 15 of each world is
  * the boss. Increase LEVELS_PER_WORLD or add worlds to extend.
@@ -3108,7 +3333,20 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
     7: ['Touchdown', 'Crater Hop', 'Dark Side', 'Moon Dust', 'Lunar Lab', 'Tranquility', 'Orbit Ridge', 'Zero-G Zone', 'Rover Tracks', 'Earthrise', 'Silent Sea', 'Comet Tail', 'Star Base', 'Eclipse Point'],
     8: ['Assembly Line', 'Steel Mill', 'Smog Alley', 'Conveyor', 'Pipe Works', 'Power Plant', 'Crane Yard', 'Blast Furnace', 'Rivet Row', 'Gearbox', 'Refinery', 'Scrap Press', 'Coolant Tanks', 'Iron Gate'],
     9: ['Cloud Nine', 'Sky Harbor', 'Floating Isles', 'Wind Temple', 'Eagle Nest', 'Rainbow Bridge', 'High Winds', 'Stratosphere', 'Air Castle', 'Storm Front', 'Sky Garden', 'Thunder Head', 'Falling Stars', 'Heaven\'s Edge'],
-    10: ['No Man\'s Land', 'Trench Line', 'Red Horizon', 'Siege Works', 'Iron Rain', 'Blood Ridge', 'War Machine', 'Last Stand', 'Doom Valley', 'Fortress Omega', 'Inferno', 'Point of No Return', 'Armageddon', 'Final Gate']
+    10: ['No Man\'s Land', 'Trench Line', 'Red Horizon', 'Siege Works', 'Iron Rain', 'Blood Ridge', 'War Machine', 'Last Stand', 'Doom Valley', 'Fortress Omega', 'Inferno', 'Point of No Return', 'Armageddon', 'Final Gate'],
+    11: ['Bus Stop', 'Rush Hour', 'Route 66', 'Traffic Jam', 'Double Decker', 'Depot', 'Ticket Booth', 'Night Bus', 'Detour', 'Road Works', 'Last Stop', 'Highway Chase', 'Terminal', 'The Big Garage'],
+    12: ['Joe\'s Gate', 'Backyard', 'Treehouse', 'Joe\'s Garden', 'Sandbox', 'Trampoline Hill', 'Garden Gnomes', 'Pool Party', 'Shed Siege', 'BBQ Grill', 'Lawnmower Road', 'Joe\'s Fort', 'Rooftop', 'Joe\'s Throne'],
+    13: ['Murky Shore', 'Frog Pond', 'Bubble Bog', 'Rotten Log', 'Mosquito Marsh', 'Sludge Pit', 'Witch Hut', 'Gas Vents', 'Leech Lake', 'Fungus Grove', 'Slime Falls', 'Sunken Ruins', 'Black Water', 'Bog Heart'],
+    14: ['Glimmer Gate', 'Shard Hall', 'Amethyst Way', 'Echo Chamber', 'Quartz Bridge', 'Geode', 'Prism Pass', 'Deep Glow', 'Crystal Lake', 'Gem Mine', 'Mirror Maze', 'Diamond Core', 'Radiant Hall', 'Prism Throne'],
+    15: ['Shipwreck', 'Parrot Bay', 'Skull Rock', 'Treasure Dig', 'Plank Walk', 'Rum Cove', 'Cannon Cliffs', 'Smuggler\'s Cave', 'Kraken Reef', 'Black Sail', 'Lighthouse', 'Mutiny', 'Gold Hoard', 'Captain\'s Deck'],
+    16: ['Gumdrop Hill', 'Lollipop Lane', 'Chocolate River', 'Cotton Clouds', 'Jelly Fields', 'Candy Cane Pass', 'Cookie Fort', 'Marshmallow Peak', 'Caramel Falls', 'Licorice Maze', 'Cupcake Castle', 'Sour Swamp', 'Sugar Mountain', 'Sweet Throne'],
+    17: ['Graveyard Gate', 'Spooky Path', 'Crooked House', 'Bone Field', 'Whisper Woods', 'Crypt', 'Bat Cave', 'Moonlit Hill', 'Ghost Town', 'Pumpkin Patch', 'Cursed Well', 'Haunted Manor', 'Shadow Lake', 'Phantom Hall'],
+    18: ['Loading Bay', 'Bolt Alley', 'Circuit Board', 'Laser Grid', 'Robot Arms', 'Server Farm', 'Battery Row', 'Weld Works', 'Gear Tower', 'Control Room', 'Clone Vats', 'Core Reactor', 'Mainframe', 'Overseer Hub'],
+    19: ['Rain Gate', 'Thunder Road', 'Lightning Rod', 'Hail Hill', 'Cloud Burst', 'Storm Watch', 'Gale Ridge', 'Static Peak', 'Eye of the Storm', 'Monsoon', 'Tempest', 'Sky Crack', 'Thunder Throne', 'Final Bolt'],
+    20: ['Fire Steps', 'Ember Isles', 'Magma Reef', 'Burning Tide', 'Ash Atoll', 'Lava Surf', 'Cinder Rocks', 'Molten Bay', 'Fire Fountain', 'Boiling Deep', 'Obsidian Isle', 'Flame Strait', 'Inferno Sea', 'Leviathan\'s Lair'],
+    21: ['Launch Pad', 'Asteroid Belt', 'Space Junk', 'Nebula', 'Ring World', 'Orbit Station', 'Dark Matter', 'Comet Run', 'Solar Wind', 'Wormhole', 'Supernova', 'Gravity Well', 'Event Horizon', 'Void Core'],
+    22: ['Outer Wall', 'Spike Gate', 'Moat of Fire', 'Barracks', 'Armory', 'Dungeon', 'Iron Bridge', 'War Room', 'Tower of Doom', 'Torture Yard', 'Siege Ramp', 'Inner Keep', 'Throne Steps', 'Doom Gate'],
+    23: ['Welcome to Grejs', 'Grejs Village', 'Golden Fields', 'Grejs River', 'Royal Road', 'Grejs Market', 'Hall of Heroes', 'Grejs Mountain', 'Crown Valley', 'Golden Bridge', 'Grejs Castle', 'Royal Garden', 'Throne Room', 'Grejs Summit']
   };
 
   const EVENTS = {
@@ -3131,7 +3369,20 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
     7: ['meteors', 'platforms', 'crates', 'double'],
     8: ['barrels', 'platforms', 'double', 'wind'],
     9: ['wind', 'platforms', 'lowgrav', 'crates'],
-    10: ['meteors', 'barrels', 'double', 'toxic', 'platforms', 'wind']
+    10: ['meteors', 'barrels', 'double', 'toxic', 'platforms', 'wind'],
+    11: ['barrels', 'crates', 'double', 'wind'],
+    12: ['platforms', 'lowgrav', 'crates', 'double', 'barrels'],
+    13: ['toxic', 'toxic', 'double', 'meteors'],
+    14: ['platforms', 'double', 'lowgrav', 'crates'],
+    15: ['wind', 'wind', 'barrels', 'crates'],
+    16: ['lowgrav', 'crates', 'platforms', 'double'],
+    17: ['toxic', 'meteors', 'double', 'platforms'],
+    18: ['barrels', 'platforms', 'double', 'meteors'],
+    19: ['wind', 'wind', 'meteors', 'double'],
+    20: ['meteors', 'double', 'wind', 'crates'],
+    21: ['meteors', 'lowgrav', 'platforms', 'double'],
+    22: ['meteors', 'barrels', 'double', 'toxic', 'platforms', 'wind'],
+    23: ['meteors', 'barrels', 'double', 'toxic', 'platforms', 'wind', 'crates']
   };
 
   const cache = {};
@@ -3161,8 +3412,10 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
     else if (w === 1) count = l <= 4 ? 1 : l <= 9 ? (l % 2 ? 1 : 2) : 2;
     else if (w <= 3) count = l <= 3 ? 1 : l <= 9 ? 2 : r.int(2, 3);
     else if (w <= 7) count = l <= 2 ? 2 : r.int(2, 3);
-    else count = l <= 2 ? 2 : r.int(2, 4);
-    if (count > 1 && r() < 0.15 && l < 10) count--;
+    else if (w <= 10) count = l <= 2 ? 2 : r.int(2, 4);
+    else count = l <= 2 ? 3 : r.int(3, 4);
+    // hard mode: often an extra enemy on later levels of each world
+    if (!isBoss && l >= 5 && r() < 0.5) count = Math.min(5, count + 1);
 
     const pool = world.enemies.slice(0, Math.min(world.enemies.length, 2 + Math.floor(l / 3)));
     const enemies = [];
@@ -3172,7 +3425,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       enemies.push({ type: 'boss', boss: GT.Enemies.boss(w).id });
       if (w >= 4) enemies.push({ type: r.pick(pool) });
       // world 9 gets a second escort; the final boss summons its own reinforcements instead
-      if (w === 9) enemies.push({ type: r.pick(pool) });
+      if (w === 9 || w >= 11) enemies.push({ type: r.pick(pool) });
     }
 
     // --- difficulty scalar 0..~10
@@ -3597,7 +3850,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         if (lv.isBoss) {
           if (!d.bosses[lv.world]) {
             out.blueprints += 2;
-            out.unlocks.push({ kind: 'world', text: lv.world < GT.Worlds.count ? 'Path to ' + GT.Worlds.get(lv.world + 1).name + ' opened!' : 'You conquered the Final War!' });
+            out.unlocks.push({ kind: 'world', text: lv.world < GT.Worlds.count ? 'Path to ' + GT.Worlds.get(lv.world + 1).name + ' opened!' : 'You conquered Grejs World!' });
           }
           d.bosses[lv.world] = true;
           st.bossKills++;
@@ -5165,10 +5418,10 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       // human-like error: shrinks with accuracy & repeated attempts
       t.shotsAt = (t.shotsAt || 0) + 1;
       // the AI "learns" over its first shots, but never becomes a perfect computer
-      const learn = Math.max(0.6, 1 - 0.1 * (t.shotsAt - 1));
-      const err = (1 - Math.min(t.acc, t.isBoss ? 0.88 : 0.85)) * learn;
+      const learn = Math.max(0.4, 1 - 0.15 * (t.shotsAt - 1));
+      const err = (1 - Math.min(t.acc, t.isBoss ? 0.93 : 0.9)) * learn;
       // occasionally a clearly bad shot (nerves, misjudged wind)
-      const wobble = Math.random() < 0.12 ? 2.2 : 1;
+      const wobble = Math.random() < 0.06 ? 2.2 : 1;
       // straight-line weapons are trivial to aim, so give them extra angular error
       const straight = pick.o.w.type === 'laser' ? 4 : 1;
       const ang = U.clamp(pick.r.ang + gauss() * 5 * err * wobble * straight, 0, 180);
@@ -5332,14 +5585,16 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
 
     _makeEnemy(type, multi) {
       const e = GT.Enemies.get(type);
-      const d = this.diff;
+      // difficulty grows slower after world 10 so the late worlds stay beatable
+      const d = this.diff <= 10 ? this.diff : 10 + (this.diff - 10) * 0.5;
+      const HARD = 1.3; // global boost to enemy hp and damage
       const t = this._baseTank({
         team: 'enemy', id: e.id, name: e.name, vis: Object.assign({}, e.vis, { deco: (e.vis.deco || []).concat(['visor']) }),
         scale: e.vis.size || 1, ai: e.ai, split: e.split,
-        maxHp: Math.round(e.hp * (1 + 0.27 * d)), armor: Math.round(e.armor + d * 1.6),
-        dmgMult: e.dmg * (1 + 0.14 * d) * (multi || 1), launch: PH.SPEED_BASE * (e.power + d * 1.5),
+        maxHp: Math.round(e.hp * (1 + 0.27 * d) * HARD), armor: Math.round(e.armor + d * 1.6),
+        dmgMult: e.dmg * (1 + 0.14 * d) * (multi || 1) * HARD, launch: PH.SPEED_BASE * (e.power + d * 1.5),
         speedStat: e.ai === 'mover' || e.ai === 'kamikaze' ? 140 : 90, radiusMult: 1, stability: 55,
-        acc: Math.min(0.8, e.acc + d * 0.03), specialMult: 1 + d * 0.06
+        acc: Math.min(0.9, e.acc + 0.12 + d * 0.03), specialMult: 1 + d * 0.06
       });
       t.hp = t.maxHp;
       t.maxFuel = 150 * (t.speedStat / 100);
@@ -5357,13 +5612,14 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
 
     _makeBoss(id) {
       const B = GT.Enemies.bosses.find((x) => x.id === id) || GT.Enemies.bosses[0];
-      const d = this.diff;
+      const d = this.diff <= 10 ? this.diff : 10 + (this.diff - 10) * 0.5;
+      const HARD = 1.3;
       const t = this._baseTank({
         team: 'enemy', id: B.id, name: B.name, vis: Object.assign({}, B.vis, { deco: (B.vis.deco || []).concat(['visor']) }),
         scale: B.scale, ai: 'boss', isBoss: true, bossDef: B, phaseIdx: 0, pendingPhase: null,
-        maxHp: Math.round(B.hp * (0.55 - 0.02 * B.world)), armor: B.armor, dmgMult: B.dmg * 0.85 * (1 + 0.12 * d),
+        maxHp: Math.round(B.hp * Math.max(0.3, 0.55 - 0.02 * B.world) * HARD), armor: B.armor, dmgMult: B.dmg * 0.85 * (1 + 0.12 * d) * HARD,
         launch: PH.SPEED_BASE * (110 + d * 1.5), speedStat: 60, radiusMult: 1.1, stability: 100,
-        acc: Math.min(0.8, B.acc + d * 0.015), specialMult: 1 + d * 0.08
+        acc: Math.min(0.9, B.acc + 0.08 + d * 0.015), specialMult: 1 + d * 0.08
       });
       t.hp = t.maxHp;
       t.maxFuel = 90;
