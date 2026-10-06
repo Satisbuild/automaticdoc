@@ -287,6 +287,15 @@ h2, h3, .logo, .btn, .fire { font-family: var(--font-h); letter-spacing: 0.5px; 
 .seg button { padding: 5px 10px; border-radius: 9px; font-weight: 900; font-size: 0.78em; }
 .seg button.on { background: var(--yellow); color: #3a2400; }
 input[type=range] { width: 150px; accent-color: var(--yellow); }
+/* ---------- leaderboard / cloud account ---------- */
+.acct-form { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.acct-form input { width: 100%; border-radius: 12px; background: rgba(0,0,0,0.35); color: #fff; border: 2px solid var(--line); padding: 9px 12px; font: inherit; font-weight: 800; user-select: text; -webkit-user-select: text; }
+.acct-form input:focus { outline: none; border-color: var(--yellow); }
+.acct-form .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.acct-err { color: #ff8a8a; font-weight: 800; font-size: 0.8em; min-height: 1.2em; }
+.item.me { box-shadow: 0 0 0 3px var(--yellow), 0 4px 0 rgba(0,0,0,0.3); }
+.item .rk { font-family: var(--font-h); font-size: 1.3em; }
+.lb-note { color: var(--muted); font-weight: 800; font-size: 0.8em; text-align: center; padding: 6px; }
 textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,0,0.35); color: #fff; border: 2px solid var(--line); padding: 8px; font-family: monospace; font-size: 11px; user-select: text; -webkit-user-select: text; }
 
 /* ---------- BATTLE HUD ---------- */
@@ -400,7 +409,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
   .head h2 { font-size: 1.2em; }
   .menu-wrap { padding-top: 34px; gap: 6px; }
   .logo span { font-size: 26px; } .logo b { font-size: 44px; }
-  .menu-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); width: min(860px, 96vw); }
+  .menu-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); width: min(940px, 96vw); }
   .btn-menu { font-size: 18px; } .btn-menu span { font-size: 9px; }
   .ts-wrap, .garage, .weapons { flex-direction: row; overflow: hidden; }
   .g-left, .w-left { max-height: none; flex: 1.1; }
@@ -452,6 +461,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
           <button class="btn btn-menu" data-go="challenges">📅<span>Challenges</span><i class="badge" id="badge-ch"></i></button>
           <button class="btn btn-menu" data-go="achievements">🏆<span>Achievements</span></button>
           <button class="btn btn-menu" data-go="collection">📚<span>Collection</span></button>
+          <button class="btn btn-menu" data-go="leaderboard">🥇<span>Leaderboard</span></button>
           <button class="btn btn-menu" data-go="settings">⚙️<span>Settings</span></button>
         </div>
       </div>
@@ -577,6 +587,13 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       <header class="head"><button class="btn-back" data-back>‹</button><h2>Collection</h2><div class="topbar inline" data-topbar></div></header>
       <div class="tabs" id="col-tabs"></div>
       <div class="scroll"><div class="list-wrap" id="col-body"></div></div>
+    </section>
+
+    <!-- ================= LEADERBOARD ================= -->
+    <section class="screen" id="scr-leaderboard">
+      <header class="head"><button class="btn-back" data-back>‹</button><h2>Leaderboard</h2><div class="topbar inline" data-topbar></div></header>
+      <div class="tabs" id="lb-tabs"></div>
+      <div class="scroll"><div class="list-wrap" id="lb-body"></div></div>
     </section>
 
     <!-- ================= SETTINGS ================= -->
@@ -893,6 +910,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       } catch (e) {
         console.warn('[Save] failed', e);
       }
+      if (GT.Cloud) GT.Cloud.schedule();
     },
 
     reset() {
@@ -976,6 +994,239 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
     weaponLevel(id) {
       return this.data.weaponLevels[id] || 1;
     }
+  });
+})();
+
+</script>
+  <script>
+/* ---- js/cloud.js ---- */
+/* =====================================================================
+ * GREJS TANKS - cloud.js
+ * Optional account (name + pin), cloud save and leaderboards, served by
+ * the Grejs backend (tanks.js on the server, see TANKS-API.md).
+ * Everything here is best-effort: without an account, or while the
+ * server is unreachable, the game keeps playing from localStorage.
+ * ===================================================================== */
+(function () {
+  'use strict';
+  const GT = window.GT;
+
+  // The game calls CLOUD_API + '/api/...'. '' = local only, no network.
+  // Test: localStorage.setItem('tanksCloudApi', 'http://localhost:3000/tanks')
+  const CLOUD_API = 'https://grejsdata.systematisk.dk/tanks';
+  const API = (() => {
+    let b = CLOUD_API;
+    try { const o = localStorage.getItem('tanksCloudApi'); if (o !== null) b = o; } catch (e) { /* ignore */ }
+    return b.trim().replace(/\/+$/, '');
+  })();
+  const ACCT_KEY = 'grejsTanksAccount';
+  const PUSH_EVERY = 20000; // at most one upload per 20s while playing
+
+  let acct = null;
+  try { acct = JSON.parse(localStorage.getItem(ACCT_KEY)); } catch (e) { /* ignore */ }
+  if (!acct || !acct.token || !acct.name) acct = null;
+
+  // `synced` stays false until this device has compared its save with the
+  // cloud copy. Until then nothing is uploaded, so a stale device that
+  // boots offline can never overwrite progress made elsewhere.
+  // main.js runs the first startup() after boot; schedule() only retries it.
+  let synced = false, busy = false, lastPush = 0, timer = null, lastTry = Date.now();
+
+  // Fingerprint of the save the cloud is known to hold. Only a real change
+  // is uploaded - Save.save() also runs on every page unload, and a stale
+  // tab being closed must not push its old copy over newer progress.
+  // savedAt and settings are left out: they change without any progress.
+  let uploaded = '';
+  const fingerprint = (d) => JSON.stringify(Object.assign({}, d, { savedAt: 0, settings: 0 }));
+  const changed = () => fingerprint(GT.Save.data) !== uploaded;
+
+  /** progress of a save object, compared lexicographically */
+  function progress(d) {
+    let stars = 0;
+    for (const k in d.stars || {}) stars += d.stars[k] || 0;
+    return [stars, Object.keys(d.completed || {}).length, (d.unlockedTanks || []).length, d.xp || 0];
+  }
+  function cmp(a, b) {
+    const pa = progress(a), pb = progress(b);
+    for (let i = 0; i < pa.length; i++) if (pa[i] !== pb[i]) return pa[i] - pb[i];
+    return 0;
+  }
+  function parse(str) {
+    try {
+      const d = str ? JSON.parse(str) : null;
+      return d && typeof d === 'object' && 'coins' in d ? d : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  const Cloud = (GT.Cloud = {
+    enabled: !!API,
+    status: '',
+    get account() {
+      return acct;
+    },
+
+    setAccount(a) {
+      acct = a;
+      try { a ? localStorage.setItem(ACCT_KEY, JSON.stringify(a)) : localStorage.removeItem(ACCT_KEY); } catch (e) { /* ignore */ }
+    },
+
+    async api(path, opt) {
+      opt = opt || {};
+      if (!API) throw Object.assign(new Error('Online features are switched off in this version'), { offline: true });
+      const ctl = new AbortController();
+      const tm = setTimeout(() => ctl.abort(), 10000);
+      let r;
+      try {
+        r = await fetch(API + path, {
+          method: opt.method || 'GET',
+          signal: ctl.signal,
+          body: opt.body ? JSON.stringify(opt.body) : undefined,
+          headers: Object.assign(opt.body ? { 'Content-Type': 'application/json' } : {}, acct && !opt.noAuth ? { Authorization: 'Bearer ' + acct.token } : {})
+        });
+      } catch (e) {
+        throw Object.assign(new Error('Cannot reach the server'), { offline: true });
+      } finally {
+        clearTimeout(tm);
+      }
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        if (r.status === 401 && acct && !opt.noAuth) this.signedOut();
+        throw Object.assign(new Error(d.error || 'Server error (' + r.status + ')'), { status: r.status });
+      }
+      return d;
+    },
+
+    signedOut() {
+      this.setAccount(null);
+      synced = false;
+      this.status = '';
+      if (GT.UI) GT.UI.toast('☁️', 'You were logged out', 'Log in again on the Leaderboard screen');
+    },
+
+    /** Replace local progress with a cloud save, keeping this device's settings. */
+    useCloud(c) {
+      const settings = GT.Save.data.settings;
+      GT.Save.data = GT.Save.merge(GT.Save.defaults(), c);
+      GT.Save.data.settings = settings;
+      synced = true;
+      GT.Save.validate(); // also saves locally
+      GT.Progress.autoUnlockTanks();
+      uploaded = fingerprint(GT.Save.data);
+      if (GT.UI && GT.UI.current) GT.UI.home();
+    },
+
+    /** Called from Save.save(): queue an upload. */
+    schedule() {
+      if (!acct || !API) return;
+      if (!synced) {
+        // still waiting for the first comparison - retry it, not an upload
+        if (!busy && Date.now() - lastTry > 30000) this.startup();
+        return;
+      }
+      if (timer) return;
+      timer = setTimeout(() => {
+        timer = null;
+        this.push();
+      }, Math.max(0, lastPush + PUSH_EVERY - Date.now()));
+    },
+
+    /** Upload the save if it changed since the last upload (or always, with force). */
+    async push(force) {
+      if (!acct || !synced || busy) return;
+      const fp = fingerprint(GT.Save.data);
+      if (!force && fp === uploaded) return;
+      busy = true;
+      lastPush = Date.now();
+      try {
+        await this.api('/api/save', { method: 'PUT', body: { save: JSON.stringify(GT.Save.data) } });
+        uploaded = fp;
+        this.status = '☁️ Saved to the cloud at ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } catch (e) {
+        this.status = '⚠️ ' + e.message;
+      } finally {
+        busy = false;
+      }
+      if (changed()) this.schedule(); // progress made while the upload was in flight
+    },
+
+    /** Page is closing or hidden: fetch may be cut off, sendBeacon is not. */
+    beacon() {
+      if (!acct || !synced || !API || !navigator.sendBeacon || !changed()) return;
+      try {
+        const body = JSON.stringify({ token: acct.token, save: JSON.stringify(GT.Save.data) });
+        if (navigator.sendBeacon(API + '/api/save', new Blob([body], { type: 'text/plain' }))) uploaded = fingerprint(GT.Save.data);
+      } catch (e) { /* ignore */ }
+    },
+
+    /** On boot (and on retry): compare with the cloud copy and keep the one with more progress. */
+    async startup() {
+      if (!acct || !API || busy) return;
+      busy = true;
+      lastTry = Date.now();
+      let c = null;
+      try {
+        c = parse((await this.api('/api/save')).save);
+      } catch (e) {
+        this.status = '⚠️ ' + e.message;
+        busy = false;
+        return;
+      }
+      busy = false;
+      const L = GT.Save.data;
+      const diff = c ? cmp(c, L) : -1;
+      if (c && (diff > 0 || (diff === 0 && (c.savedAt || 0) > (L.savedAt || 0) + 5000))) {
+        this.useCloud(c);
+        if (GT.UI) GT.UI.toast('☁️', 'Progress loaded from the cloud', 'Welcome back, ' + acct.name + '!');
+      } else {
+        synced = true;
+        if (c) uploaded = fingerprint(c);
+        await this.push(); // only uploads when this device differs from the cloud
+      }
+    },
+
+    async register(name, pin) {
+      const d = await this.api('/api/register', { method: 'POST', noAuth: true, body: { name, pin, save: JSON.stringify(GT.Save.data) } });
+      this.setAccount({ name: d.name, token: d.token });
+      synced = true;
+      uploaded = fingerprint(GT.Save.data);
+      lastPush = Date.now();
+      this.status = '☁️ Your progress is now saved in the cloud';
+      return d;
+    },
+
+    /** Logs in. Returns { cloud, localBetter } so the UI can ask which save to keep. */
+    async login(name, pin) {
+      const d = await this.api('/api/login', { method: 'POST', noAuth: true, body: { name, pin } });
+      this.setAccount({ name: d.name, token: d.token });
+      synced = false;
+      const c = parse(d.save);
+      return { name: d.name, cloud: c, localBetter: !c || cmp(GT.Save.data, c) > 0 };
+    },
+
+    /** After login: keep this device's progress and upload it. */
+    async keepLocal() {
+      synced = true;
+      await this.push(true);
+    },
+
+    async logout() {
+      if (synced) await this.push();
+      this.api('/api/logout', { method: 'POST', body: {} }).catch(() => {});
+      this.setAccount(null);
+      synced = false;
+      this.status = '';
+    },
+
+    leaderboard(by) {
+      return this.api('/api/leaderboard?by=' + encodeURIComponent(by) + '&limit=50');
+    }
+  });
+
+  window.addEventListener('pagehide', () => Cloud.beacon());
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) Cloud.beacon();
   });
 })();
 
@@ -8349,9 +8600,15 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       wrap.append(ex, im);
       io.appendChild(wrap);
       body.appendChild(io);
+      const acct = GT.Cloud.account;
+      const cl = U.el('div', 'set-row', `<div>☁️ Cloud account<small>${acct ? 'Logged in as ' + esc(acct.name) + ' - progress is saved to the cloud' : 'Log in to join the leaderboard and back up your progress'}</small></div>`);
+      const cb = U.el('button', 'btn small', acct ? 'Manage' : 'Log in');
+      cb.onclick = () => this.go('leaderboard');
+      cl.appendChild(cb);
+      body.appendChild(cl);
       const rs = U.el('div', 'set-row', '<div>🗑️ Reset save<small>Delete ALL progress and start over</small></div>');
       const rb = U.el('button', 'btn red small', 'RESET');
-      rb.onclick = () => this.confirm('Reset save?', 'All coins, tanks, stars and upgrades will be deleted. This cannot be undone.', 'Delete everything', () => {
+      rb.onclick = () => this.confirm('Reset save?', 'All coins, tanks, stars and upgrades will be deleted' + (acct ? ', on this device AND in your cloud save' : '') + '. This cannot be undone.', 'Delete everything', () => {
         GT.Save.reset();
         this.gSel = null;
         this.toast('🗑️', 'Save reset', 'Welcome back, Rookie!');
@@ -8360,6 +8617,132 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       rs.appendChild(rb);
       body.appendChild(rs);
       body.appendChild(U.el('div', 'set-row', '<div>⌨️ Controls<small>Drag on the battlefield to aim (angle + power) · ←/→ or A/D move · ↑/↓ angle · W/S power · Space fire · 1-9 / Q/E weapons · F special · Z overview · Esc pause</small></div>'));
+    },
+
+    /* ================================================================
+     * LEADERBOARD + CLOUD ACCOUNT
+     * ================================================================ */
+    lbTab: 'stars',
+    lbData: {},
+    enter_leaderboard() {
+      const tabs = $('#lb-tabs');
+      const T = [['stars', '⭐ Stars'], ['worlds', '🗺️ Worlds'], ['tanks', '🚜 Tanks']];
+      tabs.innerHTML = '';
+      for (const [k, n] of T) {
+        const b = U.el('button', this.lbTab === k ? 'on' : '', n);
+        b.onclick = () => {
+          this.lbTab = k;
+          snd('click');
+          this.enter_leaderboard();
+        };
+        tabs.appendChild(b);
+      }
+      this.renderLeaderboard();
+      this.loadLeaderboard();
+    },
+    async loadLeaderboard() {
+      const by = this.lbTab;
+      try {
+        this.lbData[by] = await GT.Cloud.leaderboard(by);
+      } catch (e) {
+        this.lbData[by] = { error: e.message };
+      }
+      if (this.current === 'leaderboard' && this.lbTab === by) this.renderLeaderboard();
+    },
+    lbValue(p, by) {
+      if (by === 'worlds') return `🗺️ ${p.worlds || 1} / ${GT.Worlds.count}`;
+      if (by === 'tanks') return `🚜 ${p.tanks || 0} / ${GT.Tanks.list.length}`;
+      return `⭐ ${p.stars || 0} / ${GT.Levels.total() * 3}`;
+    },
+    renderLeaderboard() {
+      const body = $('#lb-body');
+      const by = this.lbTab, d = this.lbData[by];
+      const acct = GT.Cloud.account;
+      body.innerHTML = '';
+      body.appendChild(this.accountCard());
+      if (!d) return body.appendChild(U.el('div', 'lb-note', 'Loading leaderboard...'));
+      if (d.error) return body.appendChild(U.el('div', 'lb-note', `⚠️ ${esc(d.error)}<br>The game still works - the leaderboard comes back when the server answers.`));
+      if (d.me) {
+        const rank = d.me.rank ? `#${d.me.rank} of ${d.players}` : 'Not ranked yet';
+        body.appendChild(U.el('div', 'summary', `<div class="pill">Your rank: ${rank}</div><div class="pill">${this.lbValue(d.me, by)}</div>`));
+        if (!d.me.rank) body.appendChild(U.el('div', 'lb-note', 'Finish a level to appear on the leaderboard.'));
+      }
+      if (!d.top.length) return body.appendChild(U.el('div', 'lb-note', 'Nobody on the board yet - be the first!'));
+      d.top.forEach((p, i) => {
+        const me = acct && d.me && p.name === d.me.name;
+        const it = U.el('div', 'item' + (me ? ' me' : ''));
+        it.appendChild(U.el('div', 'ii rk', i < 3 ? ['🥇', '🥈', '🥉'][i] : '#' + (i + 1)));
+        it.appendChild(U.el('div', 'ib', `<b>${esc(p.name)}</b><p>⭐ ${p.stars || 0} · 🗺️ ${p.worlds || 1} · 🚜 ${p.tanks || 0}</p>`));
+        it.appendChild(U.el('div', 'ir', this.lbValue(p, by)));
+        body.appendChild(it);
+      });
+      body.appendChild(U.el('div', 'lb-note', `${d.players} player${d.players === 1 ? '' : 's'} on the board`));
+    },
+    accountCard() {
+      const C = GT.Cloud, acct = C.account;
+      const box = U.el('div', 'sec');
+      if (!C.enabled) {
+        box.innerHTML = '<h4>☁️ Online</h4><div class="lb-note">Online features are switched off in this version.</div>';
+        return box;
+      }
+      if (acct) {
+        box.innerHTML = `<h4>☁️ Logged in as ${esc(acct.name)}</h4><div class="lb-note">${esc(C.status || '☁️ Your progress is saved to the cloud automatically')}<br>Log in with the same name and pin on another device to continue there.</div>
+          <div class="acct-form"><div class="row" style="justify-content:center"><button class="btn small" data-sync>☁️ Save now</button><button class="btn gray small" data-out>Log out</button></div></div>`;
+        box.querySelector('[data-sync]').onclick = async () => {
+          snd('click');
+          await C.keepLocal();
+          this.toast('☁️', C.status || 'Saved');
+          this.renderLeaderboard();
+        };
+        box.querySelector('[data-out]').onclick = () =>
+          this.confirm('Log out?', 'Your progress stays saved on this device and in the cloud.', 'Log out', async () => {
+            await C.logout();
+            this.lbData = {};
+            this.enter_leaderboard();
+          });
+        return box;
+      }
+      box.innerHTML = `<h4>☁️ Join the leaderboard</h4><div class="lb-note" style="text-align:left;padding:0">Create an account to get on the leaderboard and keep your progress in the cloud, so you can continue on another device.</div>
+        <div class="acct-form"><input data-name maxlength="16" placeholder="Name (shown on the leaderboard)" autocomplete="username"><input data-pin type="password" maxlength="64" placeholder="Pin (at least 4 characters)" autocomplete="current-password">
+        <div class="acct-err" data-err></div><div class="row"><button class="btn yellow small" data-reg>Create account</button><button class="btn small" data-login>Log in</button></div></div>`;
+      const err = (t) => (box.querySelector('[data-err]').textContent = t);
+      const go = async (kind) => {
+        snd('click');
+        const name = box.querySelector('[data-name]').value.trim(), pin = box.querySelector('[data-pin]').value;
+        if (name.length < 3) return err('Enter a name (at least 3 characters)');
+        if (pin.length < 4) return err('The pin must be at least 4 characters');
+        err('Please wait...');
+        try {
+          if (kind === 'reg') {
+            const d = await C.register(name, pin);
+            this.toast('🎉', 'Account created', 'Welcome, ' + d.name + '!');
+          } else {
+            const r = await C.login(name, pin);
+            if (r.cloud && r.localBetter) {
+              // Dismissing the modal decides nothing: the next save re-runs the
+              // boot comparison, which keeps whichever copy has more progress.
+              await new Promise((done) => {
+                const m = this.modal(`<h2>Which progress?</h2><p>This device has more progress than your cloud save.</p>
+                  <p>This device: ⭐ ${GT.Save.totalStars()} · Cloud: ⭐ ${Object.values(r.cloud.stars || {}).reduce((a, b) => a + (b || 0), 0)}</p>
+                  <div class="row"><button class="btn gray" data-cloud>Use cloud save</button><button class="btn yellow" data-local>Keep this device</button></div>`, { onClose: done });
+                m.querySelector('[data-cloud]').onclick = () => { this.closeModal(); C.useCloud(r.cloud); };
+                m.querySelector('[data-local]').onclick = () => { this.closeModal(); C.keepLocal(); };
+              });
+            } else if (r.cloud) C.useCloud(r.cloud);
+            else await C.keepLocal();
+            this.toast('👋', 'Logged in as ' + r.name);
+          }
+          this.lbData = {};
+          if (this.current === 'leaderboard') this.enter_leaderboard();
+          else this.show('leaderboard');
+        } catch (e) {
+          err(e.message);
+        }
+      };
+      box.querySelector('[data-reg]').onclick = () => go('reg');
+      box.querySelector('[data-login]').onclick = () => go('login');
+      box.querySelector('[data-pin]').onkeydown = (e) => e.key === 'Enter' && go('login');
+      return box;
     },
 
     checkAch() {
@@ -8937,7 +9320,10 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       GT.Game.init(document.getElementById('game'));
       GT.UI.initStatic();
       setLoad(1, 'Ready! (' + ok + ' levels)');
-      setTimeout(() => GT.UI.show('menu', {}, true), 250);
+      setTimeout(() => {
+        GT.UI.show('menu', {}, true);
+        GT.Cloud.startup(); // compare with the cloud save when logged in
+      }, 250);
       window.addEventListener('beforeunload', () => GT.Save.save());
     } catch (e) {
       console.error('[Boot] failed', e);
