@@ -5711,7 +5711,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
     setAim(angle, power) {
       if (!this.isPlayerTurn()) return;
       const p = this.player;
-      if (angle != null) p.aim = U.clamp(angle, 0, 180);
+      if (angle != null) p.aim = U.clamp(angle, -80, 260);
       if (power != null) p.power = U.clamp(power, 1, 100);
     }
     nudgeAim(da, dp) {
@@ -5744,8 +5744,8 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       const m = R.muzzle(p, p.aim);
       const dx = wx - m.px, dy = m.py - wy;
       let ang = U.deg(Math.atan2(dy, dx));
-      if (dy < 0) ang = dx >= 0 ? 0 : 180;
-      p.aim = U.clamp(ang, 0, 180);
+      if (ang < -90) ang += 360; // below horizontal on the left -> 180..270
+      p.aim = U.clamp(ang, -80, 260);
       // power from distance (in screen pixels, converted by UI)
     }
     pointerTap(wx, wy) {
@@ -6736,10 +6736,11 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       const dx = dir * t.moveSpeed * dt;
       const nx = U.clamp(t.x + dx, 25, this.W - 25);
       if (nx === t.x) return false;
-      const climb = (t.hover ? 18 : 12) * s;
-      if (T.isSolid(nx + dir * 18 * s, t.y - 24 * s)) return false; // overhang / wall at head height
+      // generous step height so tanks can drive up crater walls and out of holes
+      const climb = (t.hover ? 34 : 28) * s;
       const ny = T.surfaceY(nx, t.y - climb);
       if (ny <= t.y - climb) return false; // wall
+      if (T.isSolid(nx, ny - 22 * s)) return false; // overhang / ceiling over the new spot
       // platform (moving) block
       t.x = nx;
       if (ny - t.y <= climb * 1.4) t.y = ny;
@@ -7546,14 +7547,14 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
           ctx.lineWidth = 2.5;
           ctx.beginPath();
           ctx.moveTo(m.x, m.y);
-          ctx.lineTo(m.x + Math.cos(a) * 500, m.y - Math.sin(a) * 500);
+          ctx.lineTo(m.x + Math.cos(a) * 1400, m.y - Math.sin(a) * 1400);
           ctx.stroke();
           ctx.setLineDash([]);
         } else {
           const v = p.launch * (p.power / 100) * w.speed;
-          const res = PH.simulate({ x: m.x, y: m.y, vx: Math.cos(a) * v, vy: -Math.sin(a) * v, g: this.gravity * w.grav, wind: 0, terrain: this.terrain, maxT: 5, collect: true, ghost: w.type === 'ghost' });
+          const res = PH.simulate({ x: m.x, y: m.y, vx: Math.cos(a) * v, vy: -Math.sin(a) * v, g: this.gravity * w.grav, wind: 0, terrain: this.terrain, maxT: 8, collect: true, ghost: w.type === 'ghost' });
           const pts = res.path;
-          const frac = mode === 'short' ? 0.22 : mode === 'long' ? 0.75 : 0.42;
+          const frac = mode === 'short' ? 0.4 : mode === 'long' ? 1 : 0.75;
           const n = Math.floor(pts.length / 2 * frac);
           for (let i = 0; i < n; i += 3) {
             const k = 1 - i / n;
@@ -8658,8 +8659,13 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       const body = $('#lb-body');
       const by = this.lbTab, d = this.lbData[by];
       const acct = GT.Cloud.account;
+      // keep the login form (and whatever is typed in it) when the board re-renders,
+      // e.g. when the leaderboard finishes loading while the player is typing
+      const oldForm = !acct && body.querySelector('[data-pin]') ? body.firstElementChild : null;
+      const focused = oldForm && oldForm.contains(document.activeElement) ? document.activeElement : null;
       body.innerHTML = '';
-      body.appendChild(this.accountCard());
+      body.appendChild(oldForm || this.accountCard());
+      if (focused) focused.focus();
       if (!d) return body.appendChild(U.el('div', 'lb-note', 'Loading leaderboard...'));
       if (d.error) return body.appendChild(U.el('div', 'lb-note', `⚠️ ${esc(d.error)}<br>The game still works - the leaderboard comes back when the server answers.`));
       if (d.me) {
@@ -9102,7 +9108,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         const dist = Math.hypot(dx, dy);
         if (dist < 12) return;
         let ang = U.deg(Math.atan2(dy, dx));
-        if (dy < 0) ang = dx >= 0 ? 0 : 180;
+        if (ang < -90) ang += 360; // below horizontal on the left -> 180..270
         const ref = Math.min(b.cw, b.ch) * 0.42;
         b.setAim(ang, U.clamp((dist / ref) * 100, 5, 100));
       };
