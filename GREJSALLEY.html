@@ -653,6 +653,23 @@
       }
       ctx.strokeStyle="#fff"; ctx.lineWidth=s*0.025; roundRect(ctx,-2.9*u,-1*u,5.8*u,2*u,u*0.5); ctx.stroke();
     }
+    else if(g==="grejsfarm"){
+      /* sun, red barn and rows of crops on green fields */
+      ctx.fillStyle=COL.amber; ctx.beginPath(); ctx.arc(2.6*u,-2.5*u,u*0.7,0,7); ctx.fill();
+      ctx.fillStyle="#3f8f3a"; ctx.beginPath(); ctx.moveTo(-3.8*u,3.8*u); ctx.lineTo(-3.8*u,0.9*u);
+      ctx.quadraticCurveTo(0,0.3*u,3.8*u,0.9*u); ctx.lineTo(3.8*u,3.8*u); ctx.closePath(); ctx.fill();
+      /* barn */
+      ctx.fillStyle="#c8432f"; ctx.fillRect(-3.1*u,-0.9*u,2.6*u,2*u);
+      ctx.fillStyle="#8e2a1c"; ctx.beginPath(); ctx.moveTo(-3.4*u,-0.85*u); ctx.lineTo(-1.8*u,-2.3*u); ctx.lineTo(-0.2*u,-0.85*u); ctx.closePath(); ctx.fill();
+      ctx.fillStyle="#fff3d8"; ctx.fillRect(-2.25*u,0.05*u,0.9*u,1.05*u);
+      ctx.strokeStyle="#c8432f"; ctx.lineWidth=s*0.012; ctx.beginPath(); ctx.moveTo(-2.25*u,0.05*u); ctx.lineTo(-1.35*u,1.1*u); ctx.moveTo(-1.35*u,0.05*u); ctx.lineTo(-2.25*u,1.1*u); ctx.stroke();
+      /* crop rows */
+      for(let r=0;r<3;r++){
+        const y=(1.6+r*0.75)*u;
+        ctx.fillStyle="#6b4424"; roundRect(ctx,0.1*u,y-0.18*u,3.4*u,0.36*u,u*0.18); ctx.fill();
+        for(let i=0;i<5;i++){ ctx.fillStyle=r===1?COL.amber:COL.green; ctx.beginPath(); ctx.arc((0.45+i*0.68)*u,y-0.25*u,u*0.2,0,7); ctx.fill(); }
+      }
+    }
     else if(g==="grejstanks"){
       /* green hills with a crater, a tank firing along a dotted arc into an explosion */
       ctx.fillStyle="#6b4424"; ctx.beginPath(); ctx.moveTo(-3.8*u,3.8*u); ctx.lineTo(-3.8*u,1.4*u);
@@ -793,8 +810,13 @@
 
   /* ---------------- GREJS TANKS (external page) ---------------- */
   G({ id:"grejstanks", name:"Grejs Tanks", tag:"arcade", href:"grejs-tanks.html", isNew:true,
-    desc:"Turbaseret tank-artilleri med ødelæggeligt terræn — 60 tanks, 40 våben, 10 verdener og 150 baner med bosser, opgraderinger og daglige udfordringer. Opens in its own page.",
+    desc:"Turbaseret tank-artilleri med ødelæggeligt terræn — 60 tanks, 81 våben, 23 verdener og 345 baner med bosser, opgraderinger og daglige udfordringer. Opens in its own page.",
     hint:"Træk for at sigte · FIRE for at skyde · A/D kør" });
+
+  /* ---------------- GREJS FARM (external page) ---------------- */
+  G({ id:"grejsfarm", name:"Grejs Farm", tag:"arcade", href:"GrejsFarm.html", isNew:true,
+    desc:"Hyggeligt gårdspil — så og høst afgrøder, pas dyrene, bag og byg i dine maskiner, og lever ordrer med lastbilen sammen med moster Grete. Opens in its own page.",
+    hint:"Klik / tap for at så, høste og bygge" });
 
   /* ---------------- 8-BALL ONLINE (external site) ---------------- */
   G({ id:"eightball", name:"8-Ball Online", tag:"classic", href:"https://ball.systematisk.dk/", isNew:true,
