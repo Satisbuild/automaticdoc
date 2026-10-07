@@ -1,0 +1,3933 @@
+<!DOCTYPE html>
+<html lang="da">
+<!--
+  GREJS FILM GUIDE – selvstændig HTML-fil (ingen eksterne CSS/JS-filer).
+  Indhold:  1) <style> design   2) <script> FILMDATA   3) <script> APP-logik
+  FILMDATA-blokken er identisk i index.html, marvel.html, transformers.html og starwars.html.
+-->
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transformers – anbefalet se-rækkefølge | Grejs Film Guide</title>
+  <meta name="description" content="Få styr på de forskellige Transformers-film og deres tidslinjer og universer.">
+  <meta name="theme-color" content="#07080d">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cdefs%3E%3ClinearGradient%20id%3D'g'%20x1%3D'0'%20y1%3D'0'%20x2%3D'1'%20y2%3D'1'%3E%3Cstop%20offset%3D'0'%20stop-color%3D'%23ff5a4e'%2F%3E%3Cstop%20offset%3D'1'%20stop-color%3D'%23ff9a3d'%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D'64'%20height%3D'64'%20rx%3D'16'%20fill%3D'url(%23g)'%2F%3E%3Cpath%20d%3D'M24%2018l24%2014-24%2014z'%20fill%3D'%23fff'%2F%3E%3C%2Fsvg%3E" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- ===================== 1) DESIGN ===================== -->
+  <style>
+/* ==========================================================================
+   GREJS FILM GUIDE – STYLESHEET
+   Mørkt, moderne tema inspireret af streamingtjenester.
+   Indhold: 1) Tokens  2) Basis  3) Navigation  4) Knapper  5) Hero/forside
+            6) Sektioner & info  7) Tidslinje  8) Filtre & søgning
+            9) Progress  10) Filmkort  11) Spoilere  12) Modal
+            13) Profil  14) Footer & toast  15) Animationer  16) Responsiv
+   ========================================================================== */
+
+/* ---------- 1) Design tokens ---------- */
+:root {
+  --bg: #07080d;
+  --bg-2: #0d0f17;
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-2: rgba(255, 255, 255, 0.07);
+  --surface-solid: #12141e;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --text: #f2f3f7;
+  --text-2: #b4b8c8;
+  --text-3: #7d8296;
+  --brand: #ff5a4e;
+  --brand-2: #ff9a3d;
+  --ok: #3ddc97;
+  --ok-bg: rgba(61, 220, 151, 0.12);
+  --warn: #ffc857;
+  --accent: var(--brand); /* overskrives pr. univers */
+  --accent-ink: #fff;     /* tekstfarve oven på accentfarven */
+  --radius-sm: 10px;
+  --radius: 18px;
+  --radius-lg: 26px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.6);
+  --nav-h: 68px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Bebas Neue", "Inter", sans-serif;
+  color-scheme: dark;
+}
+
+/* ---------- 2) Basis ---------- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 80px); }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Diskret baggrundsglød */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 500px at 10% -10%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+    radial-gradient(700px 500px at 100% 0%, rgba(90, 110, 255, 0.12), transparent 70%),
+    var(--bg);
+}
+
+body.modal-open { overflow: hidden; }
+
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; }
+h1, h2, h3, h4 { line-height: 1.15; margin: 0; letter-spacing: -0.02em; }
+p { margin: 0; }
+
+.container { width: min(1280px, 100% - 32px); margin-inline: auto; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+/* ---------- 3) Navigation ---------- */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--nav-h);
+  background: rgba(7, 8, 13, 0.72);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-bottom: 1px solid var(--border);
+}
+.nav__inner { height: 100%; display: flex; align-items: center; gap: 18px; }
+
+.nav__back {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.82rem; font-weight: 600; color: var(--text-2);
+  transition: all 0.25s var(--ease);
+  white-space: nowrap;
+}
+.nav__back:hover { color: var(--text); border-color: var(--border-strong); transform: translateX(-2px); }
+
+.nav__logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-display);
+  font-size: 1.6rem; letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.nav__logo-mark {
+  display: grid; place-items: center;
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  font-size: 1.1rem;
+  box-shadow: 0 6px 20px rgba(255, 90, 78, 0.35);
+}
+
+.nav__links { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.nav__link {
+  padding: 8px 14px; border-radius: 999px;
+  font-size: 0.92rem; font-weight: 500; color: var(--text-2);
+  transition: color 0.2s, background 0.2s;
+}
+.nav__link:hover { color: var(--text); background: var(--surface-2); }
+.nav__link.is-active { color: var(--text); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border); }
+
+/* Spoiler-kontakt */
+.spoiler-toggle {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 6px 8px 6px 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 0.82rem; font-weight: 600;
+  white-space: nowrap;
+}
+.spoiler-toggle__track {
+  position: relative; width: 40px; height: 22px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  transition: background 0.25s var(--ease);
+}
+.spoiler-toggle__track::after {
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #fff;
+  transition: transform 0.25s var(--ease);
+}
+.spoiler-toggle[aria-checked="true"] .spoiler-toggle__track { background: var(--warn); }
+.spoiler-toggle[aria-checked="true"] .spoiler-toggle__track::after { transform: translateX(18px); }
+.spoiler-toggle__state { color: var(--text-3); }
+.spoiler-toggle[aria-checked="true"] .spoiler-toggle__state { color: var(--warn); }
+
+.nav__burger {
+  display: none;
+  width: 42px; height: 42px; margin-left: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  position: relative;
+}
+.nav__burger span,
+.nav__burger span::before,
+.nav__burger span::after {
+  position: absolute; left: 50%; width: 18px; height: 2px; border-radius: 2px;
+  background: var(--text); transform: translateX(-50%);
+  transition: transform 0.3s var(--ease), opacity 0.2s;
+}
+.nav__burger span { top: 50%; margin-top: -1px; }
+.nav__burger span::before,
+.nav__burger span::after { content: ""; left: 0; transform: none; }
+.nav__burger span::before { top: -6px; }
+.nav__burger span::after { top: 6px; }
+.nav.is-open .nav__burger span { background: transparent; }
+.nav.is-open .nav__burger span::before { transform: translateY(6px) rotate(45deg); }
+.nav.is-open .nav__burger span::after { transform: translateY(-6px) rotate(-45deg); }
+
+/* ---------- 4) Knapper ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-weight: 600; font-size: 0.95rem;
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease), background 0.25s, border-color 0.25s, color 0.25s;
+  white-space: nowrap;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(0) scale(0.98); }
+.btn--primary {
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(255, 90, 78, 0.35);
+}
+.btn--primary:hover { box-shadow: 0 14px 40px rgba(255, 90, 78, 0.5); }
+.btn--accent {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.btn--ghost { background: var(--surface); border-color: var(--border); color: var(--text); }
+.btn--ghost:hover { background: var(--surface-2); border-color: var(--border-strong); }
+.btn--danger { background: #d9433a; color: #fff; }
+.btn--danger:hover { background: #e8544a; }
+.btn--sm { padding: 8px 14px; font-size: 0.85rem; }
+.btn--block { width: 100%; }
+
+/* Set / ikke set-knap */
+.watch-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  font-weight: 600; font-size: 0.88rem;
+  color: var(--text-2);
+  transition: all 0.25s var(--ease);
+}
+.watch-btn:hover { color: var(--text); border-color: var(--text-2); }
+.watch-btn__icon {
+  display: grid; place-items: center;
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid currentColor;
+  font-size: 0.7rem; line-height: 1;
+  transition: all 0.25s var(--ease);
+}
+.watch-btn.is-watched { background: var(--ok-bg); border-color: rgba(61, 220, 151, 0.5); color: var(--ok); }
+.watch-btn.is-watched .watch-btn__icon { background: var(--ok); border-color: var(--ok); color: #05150e; }
+.watch-btn.pop { animation: pop 0.4s var(--ease); }
+
+/* ---------- 5) Hero / forside ---------- */
+.hero {
+  position: relative;
+  padding: clamp(64px, 12vw, 140px) 0 clamp(48px, 8vw, 90px);
+  overflow: hidden;
+}
+.hero__glow {
+  position: absolute; inset: -20% -10% auto; height: 120%;
+  background:
+    radial-gradient(40% 50% at 25% 40%, rgba(255, 90, 78, 0.35), transparent 70%),
+    radial-gradient(35% 45% at 75% 30%, rgba(75, 143, 229, 0.32), transparent 70%),
+    radial-gradient(30% 40% at 55% 80%, rgba(162, 116, 229, 0.22), transparent 70%);
+  filter: blur(30px);
+  animation: drift 18s ease-in-out infinite alternate;
+  z-index: -1;
+}
+.hero__grid {
+  position: absolute; inset: 0; z-index: -1;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 50% 30%, #000 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 30%, transparent 75%);
+}
+.hero__eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border);
+  font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-2);
+  backdrop-filter: blur(10px);
+}
+.hero__title {
+  margin-top: 22px;
+  font-size: clamp(2.6rem, 7.5vw, 5.8rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  max-width: 14ch;
+}
+.hero__title .grad {
+  background: linear-gradient(100deg, #fff 10%, var(--brand-2) 45%, var(--brand) 70%, #b77bff 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero__sub { margin-top: 20px; max-width: 58ch; font-size: clamp(1.05rem, 2vw, 1.25rem); color: var(--text-2); }
+.hero__actions { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; }
+.hero__stats { margin-top: 44px; display: flex; flex-wrap: wrap; gap: 28px; color: var(--text-3); font-size: 0.9rem; }
+.hero__stats strong { display: block; font-family: var(--font-display); font-size: 2.2rem; color: var(--text); letter-spacing: 0.03em; line-height: 1; }
+
+/* Universkort på forsiden */
+.universe-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 24px; }
+.universe-card {
+  position: relative;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  min-height: 360px;
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: var(--shadow);
+  transition: transform 0.45s var(--ease), box-shadow 0.45s var(--ease);
+}
+.universe-card__bg { position: absolute; inset: 0; z-index: -2; transition: transform 0.8s var(--ease); }
+.universe-card::after {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(180deg, transparent 15%, rgba(5, 6, 10, 0.88) 90%);
+}
+.universe-card__icon {
+  position: absolute; right: -10px; top: -20px; z-index: -1;
+  font-size: 12rem; opacity: 0.22; filter: saturate(0.6);
+  transition: transform 0.8s var(--ease);
+}
+.universe-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+.universe-card:hover .universe-card__bg { transform: scale(1.06); }
+.universe-card:hover .universe-card__icon { transform: rotate(-8deg) scale(1.08); }
+.universe-card__kicker { font-family: var(--font-display); font-size: 1.1rem; letter-spacing: 0.25em; opacity: 0.85; }
+.universe-card__title { margin-top: 4px; font-size: clamp(1.8rem, 3.5vw, 2.5rem); font-weight: 800; }
+.universe-card__text { margin-top: 10px; color: rgba(255, 255, 255, 0.82); max-width: 42ch; }
+.universe-card__footer { margin-top: 22px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
+.universe-card__cta {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 18px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95); color: #0b0c12;
+  font-weight: 700; font-size: 0.92rem;
+  transition: transform 0.3s var(--ease);
+}
+.universe-card:hover .universe-card__cta { transform: translateX(4px); }
+.universe-card__progress { min-width: 160px; flex: 1; max-width: 240px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.8); }
+
+/* Kommer-snart-kort */
+.soon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 14px; }
+.soon-card {
+  position: relative;
+  padding: 22px 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  min-height: 130px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  transition: transform 0.3s var(--ease), border-color 0.3s;
+}
+.soon-card:hover { transform: translateY(-3px); border-color: var(--border-strong); }
+.soon-card__bg { position: absolute; inset: 0; z-index: -1; opacity: 0.55; }
+.soon-card__icon { font-size: 2rem; }
+.soon-card__name { margin-top: 8px; font-weight: 700; }
+.soon-card__tag {
+  position: absolute; top: 12px; right: 12px;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 4px 8px; border-radius: 999px; background: rgba(0, 0, 0, 0.45); color: var(--text-2);
+}
+
+/* "Fortsæt hvor du slap" */
+.continue-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 18px; }
+.continue-card {
+  display: flex; gap: 16px; align-items: center;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  transition: border-color 0.3s, transform 0.3s var(--ease);
+  text-align: left;
+  width: 100%;
+}
+.continue-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+.continue-card .poster { width: 72px; flex: none; }
+.continue-card__label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.continue-card__title { font-weight: 700; font-size: 1.05rem; margin-top: 2px; }
+.continue-card__meta { font-size: 0.85rem; color: var(--text-2); margin-top: 2px; }
+
+/* ---------- 6) Sektioner & info-bokse ---------- */
+.section { padding: clamp(40px, 7vw, 80px) 0; }
+.section--tight { padding: 28px 0; }
+.section__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+.section__kicker { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+.section__title { font-size: clamp(1.7rem, 3.8vw, 2.6rem); font-weight: 800; margin-top: 6px; }
+.section__sub { color: var(--text-2); max-width: 64ch; margin-top: 8px; }
+
+.page-hero { padding: clamp(40px, 7vw, 80px) 0 24px; position: relative; }
+.page-hero__crumbs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 0.85rem; color: var(--text-3); }
+.page-hero__crumbs a:hover { color: var(--text); }
+.page-hero__title { margin-top: 14px; font-size: clamp(2.2rem, 6vw, 4.2rem); font-weight: 800; letter-spacing: -0.035em; }
+.page-hero__title span { color: var(--accent); }
+.page-hero__intro {
+  margin-top: 18px; max-width: 70ch;
+  padding: 16px 20px;
+  border-left: 3px solid var(--accent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.glass {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+.why-box { padding: clamp(20px, 3vw, 32px); }
+.why-box__head { display: flex; align-items: center; gap: 12px; }
+.why-box__head h2 { font-size: 1.4rem; }
+.why-box__icon {
+  display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent); font-size: 1.2rem;
+}
+.why-box__grid { margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.why-option {
+  position: relative;
+  text-align: left;
+  padding: 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.3s var(--ease);
+}
+.why-option:hover { border-color: var(--border-strong); background: var(--surface-2); }
+.why-option h3 { font-size: 1.02rem; display: flex; align-items: center; gap: 8px; }
+.why-option p { margin-top: 8px; font-size: 0.9rem; color: var(--text-2); }
+.why-option.is-active {
+  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent), 0 10px 30px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+.why-option__tag {
+  position: absolute; top: -10px; right: 14px;
+  font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 999px;
+  background: var(--accent); color: var(--accent-ink);
+}
+.why-box__note { margin-top: 16px; font-size: 0.88rem; color: var(--text-3); }
+
+/* Univers-farvesystem (legende) */
+.legend { display: flex; flex-wrap: wrap; gap: 10px; }
+.legend__item {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px; border-radius: 999px;
+  font-size: 0.8rem; font-weight: 600;
+  background: var(--surface); border: 1px solid var(--border);
+}
+.dot { width: 10px; height: 10px; border-radius: 3px; background: var(--c, var(--accent)); flex: none; box-shadow: 0 0 10px var(--c, var(--accent)); }
+
+/* Univers-forklaringer (Transformers) */
+.continuity-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 14px; margin-top: 18px; }
+.continuity-card {
+  padding: 18px; border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 14%, transparent), transparent 70%);
+  border-top: 3px solid var(--c);
+}
+.continuity-card h3 { font-size: 1rem; display: flex; gap: 8px; align-items: center; }
+.continuity-card p { margin-top: 8px; font-size: 0.88rem; color: var(--text-2); }
+.continuity-card__films { margin-top: 10px; font-size: 0.8rem; color: var(--text-3); }
+
+/* ---------- 7) Tidslinje ---------- */
+.timeline {
+  display: flex; align-items: stretch; gap: 0;
+  overflow-x: auto;
+  padding: 6px 2px 14px;
+  scrollbar-width: thin;
+}
+.timeline__step { display: flex; align-items: center; flex: none; }
+.timeline__step:not(:last-child)::after {
+  content: "→";
+  padding: 0 8px;
+  color: var(--text-3);
+  font-size: 1.1rem;
+}
+.timeline__node {
+  min-width: 128px;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transition: all 0.3s var(--ease);
+}
+.timeline__node:hover { transform: translateY(-3px); border-color: var(--border-strong); }
+.timeline__node strong { display: block; font-size: 0.98rem; }
+.timeline__node small { display: block; color: var(--text-3); font-size: 0.78rem; margin-top: 2px; }
+.timeline__bar { margin-top: 10px; height: 4px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.timeline__bar span { display: block; height: 100%; background: var(--ok); border-radius: 4px; transition: width 0.6s var(--ease); }
+.timeline__node--saga {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 25%, transparent), color-mix(in srgb, var(--accent) 5%, transparent));
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.timeline__node.is-active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 10px 30px color-mix(in srgb, var(--accent) 25%, transparent); }
+
+/* ---------- 8) Filtre & søgning ---------- */
+.toolbar { display: flex; flex-direction: column; gap: 14px; }
+.toolbar__row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+
+.segmented {
+  display: inline-flex; padding: 4px; gap: 4px;
+  border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border);
+  max-width: 100%; overflow-x: auto;
+}
+.segmented button {
+  padding: 8px 16px; border-radius: 999px; border: 0; background: transparent;
+  font-size: 0.88rem; font-weight: 600; color: var(--text-2);
+  white-space: nowrap;
+  transition: all 0.25s var(--ease);
+}
+.segmented button:hover { color: var(--text); }
+.segmented button.is-active { background: var(--text); color: #0b0c12; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.85rem; font-weight: 500; color: var(--text-2);
+  transition: all 0.2s var(--ease);
+}
+.chip:hover { color: var(--text); border-color: var(--border-strong); }
+.chip.is-active { color: #fff; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 25%, transparent); }
+.chip__count { font-size: 0.72rem; opacity: 0.7; }
+
+.search { position: relative; flex: 1; min-width: 220px; max-width: 380px; }
+.search input {
+  width: 100%;
+  padding: 11px 16px 11px 42px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit; font-size: 0.92rem;
+  transition: border-color 0.2s, background 0.2s;
+}
+.search input::placeholder { color: var(--text-3); }
+.search input:focus { outline: none; border-color: var(--accent); background: var(--surface-2); }
+.search__icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 0.95rem; opacity: 0.7; pointer-events: none; }
+
+/* ---------- 9) Progress ---------- */
+.progress-bar {
+  position: sticky; top: var(--nav-h); z-index: 40;
+  background: rgba(7, 8, 13, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.progress-bar__inner { display: flex; align-items: center; gap: 18px; padding: 12px 0; }
+.progress-bar__label { font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+.progress-bar__label small { display: block; color: var(--text-3); font-weight: 500; font-size: 0.78rem; }
+.progress-bar__meter { flex: 1; }
+.progress-bar__pct { font-family: var(--font-display); font-size: 1.6rem; letter-spacing: 0.03em; min-width: 3.4ch; text-align: right; }
+
+.meter { height: 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; position: relative; }
+.meter__fill {
+  height: 100%; width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 40%, #ffd36b));
+  transition: width 0.8s var(--ease);
+  position: relative;
+}
+.meter__fill::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: shimmer 2.6s infinite;
+}
+.meter--sm { height: 6px; }
+.meter--lg { height: 14px; }
+
+/* ---------- 10) Filmkort ---------- */
+.movie-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr)); gap: 22px; }
+
+.list-divider {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 16px;
+  margin-top: 18px;
+}
+.list-divider:first-child { margin-top: 0; }
+.list-divider__label {
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+  font-weight: 800; font-size: 1.25rem;
+}
+.list-divider__line { min-width: 24px; }
+.list-divider__line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--border-strong), transparent); }
+.list-divider__desc { grid-column: 1 / -1; margin-top: -10px; color: var(--text-2); font-size: 0.92rem; max-width: 80ch; }
+.list-divider--switch .list-divider__label { color: var(--warn); }
+
+.movie-card {
+  --c: var(--accent);
+  position: relative;
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 22px;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease), border-color 0.4s, opacity 0.4s;
+  overflow: hidden;
+  isolation: isolate;
+}
+.movie-card::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: radial-gradient(500px 220px at 0% 0%, color-mix(in srgb, var(--c) 16%, transparent), transparent 70%);
+  opacity: 0.8; transition: opacity 0.4s;
+}
+.movie-card:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--c) 45%, var(--border)); box-shadow: var(--shadow-lg); }
+.movie-card:hover::before { opacity: 1; }
+
+.movie-card__num {
+  position: absolute; top: 10px; right: 18px;
+  font-family: var(--font-display);
+  font-size: 4.2rem; line-height: 1;
+  color: rgba(255, 255, 255, 0.07);
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  transition: color 0.4s;
+}
+.movie-card:hover .movie-card__num { color: color-mix(in srgb, var(--c) 35%, transparent); }
+
+.movie-card__body { min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.movie-card__top { padding-right: 70px; }
+.movie-card__order { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.movie-card__title { font-size: 1.4rem; font-weight: 800; margin-top: 3px; }
+
+.meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.meta__item {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.78rem; font-weight: 500;
+  padding: 4px 9px; border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06); color: var(--text-2);
+}
+.meta__item--universe { background: color-mix(in srgb, var(--c) 18%, transparent); color: #fff; }
+.meta__item--soon { background: rgba(255, 200, 87, 0.18); color: var(--warn); }
+
+.badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.74rem; font-weight: 600;
+  padding: 4px 9px; border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  background: rgba(0, 0, 0, 0.2);
+}
+.badge--story { border-color: rgba(255, 200, 87, 0.4); color: #ffd98a; }
+.badge--universe { border-color: rgba(255, 120, 80, 0.45); color: #ffab8a; }
+.badge--connector { border-color: rgba(120, 180, 255, 0.4); color: #a9cdff; }
+.badge--info { border-color: rgba(255, 160, 60, 0.45); color: #ffc58a; }
+.badge--long { border-color: rgba(190, 150, 255, 0.4); color: #d0b6ff; }
+
+.movie-card__desc { color: var(--text-2); font-size: 0.93rem; }
+
+.why-here {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--c) 9%, rgba(255, 255, 255, 0.03));
+  border: 1px solid color-mix(in srgb, var(--c) 22%, transparent);
+  font-size: 0.9rem;
+}
+.why-here strong { display: block; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: color-mix(in srgb, var(--c) 60%, #fff); margin-bottom: 4px; }
+
+.info-row { display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; font-size: 0.86rem; }
+.info-row dt { color: var(--text-3); font-weight: 600; white-space: nowrap; }
+.info-row dd { margin: 0; color: var(--text-2); }
+.tag-list { display: flex; flex-wrap: wrap; gap: 5px; }
+.tag { font-size: 0.78rem; padding: 2px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.06); color: var(--text-2); }
+.conn-link { color: var(--text); font-weight: 500; border-bottom: 1px dashed var(--border-strong); background: none; border-top: 0; border-left: 0; border-right: 0; padding: 0; font-size: inherit; }
+.conn-link:hover { color: var(--accent); border-color: var(--accent); }
+
+.post-credit {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 200, 87, 0.07);
+  border: 1px dashed rgba(255, 200, 87, 0.3);
+  font-size: 0.86rem;
+}
+.post-credit__icon { font-size: 1.1rem; line-height: 1.3; }
+.post-credit strong { color: var(--warn); }
+.post-credit--none { background: rgba(255, 255, 255, 0.03); border-color: var(--border); color: var(--text-3); }
+.post-credit--none strong { color: var(--text-2); }
+
+.watch-first { font-size: 0.85rem; padding: 10px 12px; border-radius: var(--radius-sm); background: rgba(255, 160, 60, 0.07); border: 1px solid rgba(255, 160, 60, 0.25); }
+.watch-first strong { color: #ffc58a; }
+.watch-first ul { margin: 4px 0 0; padding-left: 18px; color: var(--text-2); }
+
+.movie-card__actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: auto; padding-top: 4px; }
+
+/* Set-tilstand */
+.movie-card.is-watched { border-color: rgba(61, 220, 151, 0.35); }
+.movie-card.is-watched::before { background: radial-gradient(500px 220px at 0% 0%, rgba(61, 220, 151, 0.14), transparent 70%); }
+.movie-card.is-watched .poster { filter: grayscale(0.55) brightness(0.75); }
+.movie-card.is-watched .poster__seen { opacity: 1; transform: scale(1); }
+.movie-card.is-watched .movie-card__title { color: var(--text-2); }
+.movie-card.is-next { border-color: color-mix(in srgb, var(--accent) 70%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent), var(--shadow); }
+.next-flag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--accent); color: var(--accent-ink);
+  animation: pulse 2.2s infinite;
+}
+.movie-card.is-upcoming { opacity: 0.78; }
+.movie-card.flash { animation: flash 1.6s var(--ease); }
+
+/* Genereret plakat */
+.poster {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--poster-bg, linear-gradient(160deg, #333, #111));
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: filter 0.4s, transform 0.5s var(--ease);
+  container-type: inline-size;
+}
+.movie-card:hover .poster { transform: scale(1.03) rotate(-0.6deg); }
+.poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.poster__shine { position: absolute; inset: 0; background: linear-gradient(130deg, rgba(255, 255, 255, 0.18), transparent 40%); pointer-events: none; }
+.poster__icon {
+  position: absolute; top: 14%; left: 50%; transform: translateX(-50%);
+  font-size: 38cqw; line-height: 1;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5));
+}
+.poster__title {
+  position: absolute; left: 8%; right: 8%; bottom: 13%;
+  font-family: var(--font-display);
+  font-size: 13cqw; line-height: 0.95; letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+  overflow-wrap: anywhere;
+}
+.poster__year { position: absolute; left: 8%; bottom: 5%; font-size: 7cqw; font-weight: 700; opacity: 0.75; letter-spacing: 0.1em; }
+.poster__uni { position: absolute; top: 6%; left: 8%; font-size: 6cqw; font-weight: 800; letter-spacing: 0.18em; opacity: 0.8; }
+.poster__seen {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: rgba(5, 20, 14, 0.35);
+  font-size: 24cqw; color: var(--ok);
+  opacity: 0; transform: scale(0.6);
+  transition: all 0.4s var(--ease);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- 11) Spoilere ---------- */
+.spoiler {
+  position: relative;
+  display: inline;
+  padding: 1px 6px;
+  border-radius: 6px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: inherit; text-align: left;
+  color: var(--text-2);
+}
+.spoiler__text { display: none; }
+.spoiler__lock { font-weight: 600; color: var(--text-2); }
+.spoiler:hover .spoiler__lock { color: var(--text); }
+.spoiler.is-revealed,
+body.spoilers-on .spoiler { background: transparent; padding: 0; cursor: text; }
+.spoiler.is-revealed .spoiler__text,
+body.spoilers-on .spoiler .spoiler__text { display: inline; color: var(--text-2); animation: fadeIn 0.4s var(--ease); }
+.spoiler.is-revealed .spoiler__lock,
+body.spoilers-on .spoiler .spoiler__lock { display: none; }
+
+.spoiler-block { padding: 14px 16px; border-radius: var(--radius); background: rgba(255, 90, 78, 0.06); border: 1px solid rgba(255, 90, 78, 0.22); }
+.spoiler-block h4 { font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; color: #ff9b93; margin-bottom: 6px; }
+
+/* ---------- 12) Modal ---------- */
+.modal {
+  position: fixed; inset: 0; z-index: 100;
+  display: grid; place-items: center;
+  padding: 20px;
+  background: rgba(3, 4, 8, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.3s var(--ease), visibility 0.3s;
+}
+.modal.is-open { opacity: 1; visibility: visible; }
+.modal__dialog {
+  --c: var(--accent);
+  position: relative;
+  width: min(940px, 100%);
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  border-radius: var(--radius-lg);
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(24px) scale(0.97);
+  transition: transform 0.4s var(--ease);
+  scrollbar-width: thin;
+}
+.modal.is-open .modal__dialog { transform: none; }
+.modal__dialog--sm { width: min(460px, 100%); }
+.modal__close {
+  position: absolute; top: 14px; right: 14px; z-index: 5;
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  font-size: 1.1rem;
+  transition: transform 0.25s var(--ease), background 0.25s;
+}
+.modal__close:hover { transform: rotate(90deg); background: rgba(255, 255, 255, 0.12); }
+
+.detail__hero {
+  position: relative;
+  padding: 36px;
+  display: grid; grid-template-columns: 220px 1fr; gap: 30px; align-items: end;
+  background:
+    linear-gradient(180deg, transparent, var(--surface-solid) 95%),
+    var(--poster-bg);
+  overflow: hidden;
+}
+.detail__hero::before { content: ""; position: absolute; inset: 0; background: rgba(10, 11, 18, 0.55); }
+.detail__hero > * { position: relative; }
+.detail__kicker { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255, 255, 255, 0.75); }
+.detail__title { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; margin-top: 6px; text-transform: uppercase; letter-spacing: -0.01em; }
+.detail__stars { margin-top: 8px; color: var(--warn); letter-spacing: 0.1em; font-size: 1.1rem; }
+.detail__stars small { color: var(--text-3); letter-spacing: normal; font-size: 0.78rem; margin-left: 6px; }
+.detail__hero .meta, .detail__hero .badges { margin-top: 12px; }
+.detail__body { padding: 8px 36px 36px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; }
+.detail__section + .detail__section { margin-top: 22px; }
+.detail__section h3 { font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
+.detail__section p { color: var(--text-2); }
+.detail__side { display: flex; flex-direction: column; gap: 18px; }
+.detail__connections { display: flex; flex-direction: column; gap: 6px; }
+.detail__connections button {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: var(--radius-sm);
+  background: var(--surface); border: 1px solid var(--border);
+  text-align: left; font-size: 0.9rem; font-weight: 500;
+  transition: all 0.2s var(--ease);
+}
+.detail__connections button:hover { border-color: var(--accent); transform: translateX(3px); }
+.detail__connections .is-seen { color: var(--ok); margin-left: auto; font-size: 0.8rem; }
+.detail__footer {
+  position: sticky; bottom: 0;
+  display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;
+  padding: 16px 36px;
+  background: rgba(18, 20, 30, 0.92);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+}
+.detail__nav { display: flex; gap: 8px; }
+
+/* Næste-film & bekræftelse */
+.next-film { padding: 32px; text-align: center; }
+.next-film__label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+.next-film .poster { width: 150px; margin: 18px auto; }
+.next-film h2 { font-size: 1.6rem; }
+.next-film p { color: var(--text-2); margin-top: 8px; }
+.next-film__actions { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
+.confirm { padding: 30px; }
+.confirm__icon { font-size: 2.2rem; }
+.confirm h2 { font-size: 1.35rem; margin-top: 10px; }
+.confirm p { color: var(--text-2); margin-top: 8px; }
+.confirm__actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; flex-wrap: wrap; }
+
+/* ---------- 13) Profil ---------- */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 18px; }
+.stat-card { padding: 24px; position: relative; overflow: hidden; }
+.stat-card::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--g, none); opacity: 0.2; }
+.stat-card__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.stat-card__name { font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+.stat-card__pct { font-family: var(--font-display); font-size: 2.4rem; line-height: 1; letter-spacing: 0.02em; }
+.stat-card__count { margin: 14px 0 10px; color: var(--text-2); }
+.stat-card__count strong { color: var(--text); font-size: 1.3rem; }
+.stat-card__extra { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-3); }
+.stat-card--total { --g: linear-gradient(135deg, var(--brand), #6b5bff); }
+
+.ring { --p: 0; width: 120px; height: 120px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--accent) calc(var(--p) * 1%), rgba(255, 255, 255, 0.08) 0); flex: none; }
+.ring__inner { width: 96px; height: 96px; border-radius: 50%; background: var(--bg-2); display: grid; place-items: center; font-family: var(--font-display); font-size: 1.9rem; }
+
+.recent-list { display: grid; gap: 10px; }
+.recent-item {
+  display: grid; grid-template-columns: 48px 1fr auto; gap: 14px; align-items: center;
+  padding: 10px 14px 10px 10px;
+  border-radius: var(--radius);
+  background: var(--surface); border: 1px solid var(--border);
+  text-align: left; width: 100%;
+  transition: border-color 0.2s, transform 0.25s var(--ease);
+}
+.recent-item:hover { border-color: var(--border-strong); transform: translateX(3px); }
+.recent-item .poster { width: 48px; border-radius: 8px; }
+.recent-item__title { font-weight: 700; }
+.recent-item__sub { font-size: 0.82rem; color: var(--text-3); }
+.recent-item__date { font-size: 0.8rem; color: var(--text-3); text-align: right; white-space: nowrap; }
+
+.empty {
+  grid-column: 1 / -1;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-3);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+}
+.empty__icon { font-size: 2.4rem; margin-bottom: 8px; }
+
+/* ---------- 14) Footer & toast ---------- */
+.footer { margin-top: 60px; border-top: 1px solid var(--border); background: rgba(255, 255, 255, 0.015); }
+.footer__inner { padding: 32px 0; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; color: var(--text-3); font-size: 0.88rem; }
+.footer__links { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+.footer__links a:hover { color: var(--text); }
+.reset-btn {
+  background: none; border: 1px solid var(--border); border-radius: 999px;
+  padding: 7px 14px; font-size: 0.8rem; color: var(--text-3);
+  transition: all 0.2s;
+}
+.reset-btn:hover { color: #ff8a82; border-color: rgba(255, 90, 78, 0.5); }
+
+.toast-wrap { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; width: max-content; max-width: calc(100% - 32px); }
+.toast {
+  padding: 12px 18px; border-radius: 999px;
+  background: rgba(20, 22, 32, 0.95); border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow);
+  font-size: 0.9rem; font-weight: 500;
+  animation: toastIn 0.4s var(--ease);
+}
+.toast.out { animation: toastOut 0.35s var(--ease) forwards; }
+
+/* Floating "Hvad skal jeg se nu?" på mobil */
+.fab {
+  position: fixed; right: 16px; bottom: 16px; z-index: 45;
+  display: none;
+  padding: 14px 18px; border-radius: 999px; border: 0;
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #ffb347));
+  color: var(--accent-ink); font-weight: 700; font-size: 0.9rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* ---------- 15) Animationer ---------- */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+.reveal.is-visible { opacity: 1; transform: none; }
+
+@keyframes drift { from { transform: translate3d(-3%, -2%, 0) scale(1); } to { transform: translate3d(3%, 3%, 0) scale(1.08); } }
+@keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); } 50% { box-shadow: 0 0 0 8px transparent; } }
+@keyframes flash { 0%, 100% { box-shadow: var(--shadow); } 30% { box-shadow: 0 0 0 3px var(--accent), 0 0 60px color-mix(in srgb, var(--accent) 50%, transparent); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes toastIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes toastOut { to { opacity: 0; transform: translateY(14px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  .reveal { opacity: 1; transform: none; }
+}
+
+/* ---------- 16) Responsiv ---------- */
+@media (max-width: 1080px) {
+  .nav__burger { display: block; }
+  .nav__links {
+    position: fixed; top: var(--nav-h); left: 0; right: 0;
+    flex-direction: column; align-items: stretch; gap: 4px;
+    padding: 16px;
+    background: rgba(7, 8, 13, 0.97);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+    transform: translateY(-10px); opacity: 0; visibility: hidden;
+    transition: all 0.3s var(--ease);
+  }
+  .nav.is-open .nav__links { transform: none; opacity: 1; visibility: visible; }
+  .nav__link { padding: 14px 16px; border-radius: var(--radius-sm); font-size: 1rem; }
+  .nav__links .spoiler-toggle { justify-content: space-between; margin-top: 8px; padding: 12px 14px; border-radius: var(--radius-sm); }
+  .detail__body { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 820px) {
+  .why-box__grid { grid-template-columns: 1fr; }
+  .why-option__tag { top: 12px; }
+  .detail__hero { grid-template-columns: 130px 1fr; padding: 60px 20px 20px; gap: 18px; }
+  .detail__body { padding: 8px 20px 24px; }
+  .detail__footer { padding: 14px 20px; }
+  .progress-bar__label small { display: none; }
+  .fab { display: inline-flex; }
+}
+
+@media (max-width: 600px) {
+  :root { --nav-h: 60px; }
+  .nav__inner { gap: 10px; }
+  .nav__logo { font-size: 1.3rem; }
+  .nav__logo-mark { width: 32px; height: 32px; }
+  .nav__back-text { display: none; }
+  .movie-card { grid-template-columns: 1fr; padding: 16px; gap: 16px; }
+  .movie-card .poster { width: 120px; }
+  .movie-card__top { padding-right: 56px; }
+  .movie-card__num { font-size: 3.4rem; }
+  .movie-card__title { font-size: 1.25rem; }
+  .universe-card { min-height: 320px; padding: 24px; }
+  .search { max-width: none; }
+  .detail__hero { grid-template-columns: 1fr; }
+  .detail__hero .poster { width: 130px; }
+  .modal { padding: 0; align-items: end; }
+  .modal__dialog { border-radius: var(--radius-lg) var(--radius-lg) 0 0; max-height: 92vh; max-height: 92dvh; }
+  .modal__dialog--sm { border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .confirm__actions .btn { flex: 1; }
+  .recent-item { grid-template-columns: 44px 1fr; }
+  .recent-item__date { grid-column: 2; text-align: left; }
+  .progress-bar__inner { gap: 12px; }
+  .progress-bar__label { font-size: 0.78rem; }
+  .progress-bar__pct { font-size: 1.3rem; }
+  .progress-bar .btn { display: none; }
+}
+
+  </style>
+</head>
+<body data-page="universe" data-universe="transformers">
+
+  <!-- Hele siden bygges af APP-logikken ud fra data-universe -->
+  <header id="site-nav" class="nav"></header>
+  <main id="app"></main>
+  <footer id="site-footer" class="footer"></footer>
+
+  <noscript><p style="text-align:center;padding:20px">Slå JavaScript til for at bruge filmguiden.</p></noscript>
+
+  <!-- ===================== 2) FILMDATA – START ===================== -->
+  <script>
+/* ==========================================================================
+   GREJS FILM GUIDE – DATA
+   --------------------------------------------------------------------------
+   Al indhold ligger her. Siden bygges automatisk ud fra disse objekter.
+
+   VIGTIGT: Hver HTML-fil (index, marvel, transformers, starwars) indeholder
+   en IDENTISK kopi af denne datablok, så filerne kan stå helt alene.
+   Når du retter en film, så kopiér hele blokken til alle fire filer.
+
+   SÅDAN TILFØJER DU ET NYT FILMUNIVERS (f.eks. Harry Potter):
+   1. Tilføj eventuelle nye kontinuiteter i CONTINUITIES (farve + forklaring).
+   2. Tilføj et objekt i UNIVERSES (navn, tekster, visninger, filtre, tidslinje).
+   3. Tilføj filmene i MOVIES under samme nøgle (f.eks. MOVIES.harrypotter = [...]).
+   4. Kopiér marvel.html til harrypotter.html og ret data-universe="harrypotter".
+   5. Kopiér den opdaterede datablok ind i alle de andre HTML-filer.
+   Forsiden, navigationen og "Min progression" opdaterer sig selv.
+
+   FELTER PÅ EN FILM:
+   id               unik nøgle (bruges i localStorage – ændr den ikke senere)
+   title, year      titel og udgivelsesår
+   released         premieredato (ÅÅÅÅ-MM-DD) – bruges til udgivelsesrækkefølge
+   continuity       nøgle fra CONTINUITIES (styrer farve/univers-mærkat)
+   phase            fase/gruppe (bruges til filtre og overskrifter)
+   recommendedOrder placering i den anbefalede se-rækkefølge (vigtigst!)
+   chronoOrder      placering i historisk/kronologisk rækkefølge
+   setting          hvornår filmen foregår i universet
+   runtime          spilletid i minutter (null = ukendt)
+   description      kort synopsis UDEN spoilere
+   whyHere          hvorfor filmen ligger netop her i den anbefalede rækkefølge
+   characters       vigtige karakterer
+   links            hvad filmen forbinder til (personer, grupper, begreber)
+   connections      id'er på andre film den hænger tæt sammen med
+   postCredit       { count, text } – text er en spoiler. null = ingen vigtige
+   spoiler          stor afsløring – vises kun med spoilere TIL eller ved klik
+   watchFirst       (valgfri) serier/ekstra man med fordel kan se først
+   stones           (valgfri) Infinity Sten der optræder
+   badges           'story' | 'universe' | 'connector' | 'info'  (⏱ lang film sættes automatisk)
+   importance       1–5 stjerner: hvor vigtig filmen er for den store historie
+   icon             emoji til den genererede plakat
+   poster           (valgfri) sti til et rigtigt plakatbillede, f.eks. "assets/posters/iron-man.jpg"
+   upcoming         (valgfri) true = ikke udkommet endnu (tæller ikke med i progression)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Kontinuiteter / universer – farvekoder bruges overalt på siden
+   -------------------------------------------------------------------------- */
+const CONTINUITIES = {
+  mcu: {
+    label: "MCU",
+    swatch: "🟥",
+    color: "#e5534b",
+    description: "Marvel Cinematic Universe – ét sammenhængende univers, hvor alle filmene bygger videre på hinanden."
+  },
+  "tf-bay": {
+    label: "Transformers (live-action 2007–2017)",
+    swatch: "🟦",
+    color: "#4b8fe5",
+    description: "Den oprindelige live-action-kontinuitet instrueret/produceret af Michael Bay. Fem film, der hænger direkte sammen."
+  },
+  "tf-new": {
+    label: "Transformers – Bumblebee-kontinuitet",
+    swatch: "🟨",
+    color: "#e5b84b",
+    description: "Nyere kontinuitet, der starter med Bumblebee (2018) og fortsætter i Rise of the Beasts (2023). Mere jordnær og karakterdrevet."
+  },
+  "tf-one": {
+    label: "Separat univers – Transformers One",
+    swatch: "🟪",
+    color: "#a274e5",
+    description: "Animeret origin-historie fra Cybertron. Står helt for sig selv og kræver ingen andre film."
+  },
+  "tf-g1": {
+    label: "Separat univers – G1 (1986)",
+    swatch: "🟪",
+    color: "#c46fd1",
+    description: "Den klassiske animerede film fra 1986, baseret på den oprindelige tegnefilmserie (Generation 1)."
+  },
+  sw: {
+    label: "Star Wars (Skywalker-tidslinjen)",
+    swatch: "🟨",
+    color: "#e8c547",
+    description: "Alle film foregår i samme galakse og tidslinje – fra Republikkens fald til Skywalker-sagaens afslutning."
+  }
+};
+
+/* --------------------------------------------------------------------------
+   Filmuniverser – tekster, visninger, filtre og tidslinje pr. univers
+   -------------------------------------------------------------------------- */
+const UNIVERSES = {
+  marvel: {
+    id: "marvel",
+    page: "marvel.html",
+    kicker: "MARVEL",
+    name: "Marvel Cinematic Universe",
+    shortName: "Marvel",
+    icon: "🛡️",
+    gradient: "linear-gradient(135deg, #7a1420 0%, #c2272d 45%, #f0883e 100%)",
+    accent: "#e5534b",
+    cardText: "Se MCU i den rækkefølge, der giver bedst forståelse af historien.",
+    cta: "Se Marvel-rækkefølge →",
+    heading: "Marvel – anbefalet se-rækkefølge",
+    intro:
+      "Dette er ikke bare filmene sorteret efter udgivelsesdato. Rækkefølgen er lavet for at give bedst mulig forståelse af universet, karaktererne og de store historier. Den følger universets egen tidslinje – fra 2. verdenskrig og frem – og advarer dig, hvis en ekstra scene afslører noget fra en senere film.",
+    whyOrder: {
+      release: "Filmene ses i den rækkefølge, de udkom i biografen. Sådan oplevede publikum det – men historien hopper frem og tilbage i tid (fx foregår Captain America under 2. verdenskrig og Captain Marvel i 1995).",
+      recommended: "Filmene følger universets egen tidslinje, så du oplever historien i den rækkefølge, den sker: fra Captain America under 2. verdenskrig, over Avengers og Infinity Stenene, til multiverset. Hvor en ekstra scene afslører en senere film, står der en advarsel på kortet."
+    },
+    views: ["recommended", "release"],
+    groupBy: "phase",
+    /* Overskrifter i den anbefalede liste – "from" er recommendedOrder, hvor afsnittet starter */
+    eras: [
+      { from: 1, label: "⏳ Den historiske fortid", desc: "Før den moderne tid: 2. verdenskrig og 1990'erne." },
+      { from: 3, label: "🦾 Den moderne start – Avengers samles (2008–2012)", desc: "Heltene introduceres én efter én og samles i The Avengers." },
+      { from: 8, label: "🌪 Universet udvides og S.H.I.E.L.D. falder (2013–2015)", desc: "Infinity Stenene og Thanos kommer i fokus, og universet åbner sig mod rummet." },
+      { from: 15, label: "💥 Splittelse og vejen mod Thanos (2016–2018)", desc: "Avengers splittes, nye helte kommer til, og Thanos slår til." },
+      { from: 23, label: "🚪 Tidsspringet og efterspillet (2018–2023)", desc: "Fem år efter knipset – afslutningen på Infinity Saga." },
+      { from: 24, label: "🌀 Multivers-æraen (2024 og frem)", desc: "En ny tid efter Endgame: multiverset åbner sig, og vejen går mod Doomsday og Secret Wars." }
+    ],
+    groups: ["Fase 1", "Fase 2", "Fase 3", "Fase 4", "Fase 5", "Fase 6"],
+    groupInfo: {
+      "Fase 1": "Avengers bliver samlet: helte introduceres én efter én.",
+      "Fase 2": "Efter New York: Infinity Stenene og Thanos kommer i fokus.",
+      "Fase 3": "Avengers splittes, og Infinity Saga når sin store afslutning.",
+      "Fase 4": "En ny æra efter Endgame – arven, sorgen og multiverset åbner sig.",
+      "Fase 5": "Multiverset bliver farligt, og nye hold tager form.",
+      "Fase 6": "Vejen mod Avengers: Doomsday og Secret Wars."
+    },
+    timeline: [
+      { label: "Fase 1", sub: "2008–2012", filter: "Fase 1" },
+      { label: "Fase 2", sub: "2013–2015", filter: "Fase 2" },
+      { label: "Fase 3", sub: "2016–2019", filter: "Fase 3" },
+      { label: "Infinity Saga", sub: "Fase 1–3 samlet", filter: ["Fase 1", "Fase 2", "Fase 3"], saga: true },
+      { label: "Fase 4", sub: "2021–2022", filter: "Fase 4" },
+      { label: "Fase 5", sub: "2023–2025", filter: "Fase 5" },
+      { label: "Fase 6", sub: "2025–2027", filter: "Fase 6" },
+      { label: "Multiverse Saga", sub: "Fase 4–6 samlet", filter: ["Fase 4", "Fase 5", "Fase 6"], saga: true }
+    ],
+    extraNote:
+      "Tip: Marvel har også Disney+-serier. De er ikke nødvendige, men hvor en serie gør en film meget lettere at forstå, står det på filmkortet under ⚠️."
+  },
+
+  transformers: {
+    id: "transformers",
+    page: "transformers.html",
+    kicker: "TRANSFORMERS",
+    name: "Transformers",
+    shortName: "Transformers",
+    icon: "🤖",
+    gradient: "linear-gradient(135deg, #0f2a5c 0%, #2563c9 50%, #5fb4ff 100%)",
+    accent: "#4b8fe5",
+    cardText: "Få styr på de forskellige Transformers-film og deres tidslinjer.",
+    cta: "Se Transformers-rækkefølge →",
+    heading: "Transformers – anbefalet se-rækkefølge",
+    intro:
+      "Transformers er IKKE én lang, sammenhængende tidslinje. Filmene fordeler sig på flere separate universer (kontinuiteter). Rækkefølgen her tager dig igennem dem ét univers ad gangen, så du ved præcis, hvornår historien starter forfra.",
+    whyOrder: {
+      release: "Filmene i premiere-rækkefølge. Bemærk at du hopper mellem forskellige universer – især fra 2018 og frem.",
+      universes: "Filmene samlet efter univers/kontinuitet. Viser tydeligt hvilke film der hører sammen, og hvilke der står alene.",
+      recommended: "Start med den selvstændige origin-historie, derefter den nye sammenhængende kontinuitet og til sidst den klassiske Bay-saga. Bonus: 1986-klassikeren."
+    },
+    views: ["recommended", "release", "universes"],
+    groupBy: "continuity",
+    groups: ["tf-one", "tf-new", "tf-bay", "tf-g1"],
+    timeline: [
+      { label: "Transformers One", sub: "Separat univers", filter: "tf-one" },
+      { label: "Bumblebee-kontinuitet", sub: "1987–1994", filter: "tf-new" },
+      { label: "Live-action (Bay)", sub: "2007–2017", filter: "tf-bay" },
+      { label: "G1-klassikeren", sub: "1986", filter: "tf-g1" }
+    ],
+    extraNote:
+      "Vigtigt: Når der står ⚡ Nyt univers i listen, starter historien forfra. Du behøver ikke huske noget fra de forrige film."
+  },
+
+  starwars: {
+    id: "starwars",
+    page: "starwars.html",
+    kicker: "STAR WARS",
+    name: "Star Wars",
+    shortName: "Star Wars",
+    icon: "🌌",
+    gradient: "linear-gradient(135deg, #05060c 0%, #1b2140 45%, #b8962e 100%)",
+    accent: "#e8c547",
+    accentText: "#14120a", // mørk tekst på gul baggrund
+    cardText: "Episode I–IX, Rogue One og Solo – i den rækkefølge, der bevarer de store overraskelser.",
+    cta: "Se Star Wars-rækkefølge →",
+    heading: "Star Wars – anbefalet se-rækkefølge",
+    intro:
+      "Episode-numrene snyder: Episode I–III blev lavet efter IV–VI. Den anbefalede rækkefølge starter med de originale film, så filmhistoriens største overraskelse ikke bliver ødelagt – og viser derefter prequel-trilogien som et stort flashback.",
+    whyOrder: {
+      release: "Filmene i den rækkefølge, de kom i biografen: IV, V, VI, derefter I, II, III, og så de nyere film. Klassisk, men prequels kan føles som en omvej efter VI.",
+      chronological: "Episode I til IX i rækkefølge, med Solo og Rogue One på deres plads i tiden. Logisk – men afslører Darth Vaders store hemmelighed allerede i første film.",
+      recommended: "IV og V først, så prequel-trilogien (I–III) som flashback, derefter Rogue One og afslutningen på VI. Du får både overraskelsen og den fulde historie om Anakin, før han møder Luke for sidste gang."
+    },
+    views: ["recommended", "release", "chronological"],
+    groupBy: "phase",
+    groups: ["Original-trilogien", "Prequel-trilogien", "Sequel-trilogien", "Anthology & spin-offs"],
+    groupInfo: {
+      "Original-trilogien": "Luke Skywalker, Han Solo og prinsesse Leia mod Imperiet. Her begyndte det hele.",
+      "Prequel-trilogien": "Historien om Anakin Skywalker – og hvordan han blev Darth Vader.",
+      "Sequel-trilogien": "30 år efter Imperiets fald: en ny generation og en ny trussel.",
+      "Anthology & spin-offs": "Selvstændige historier fra samme galakse. Ikke nødvendige, men de udfylder hullerne."
+    },
+    timeline: [
+      { label: "Prequel-trilogien", sub: "Episode I–III", filter: "Prequel-trilogien" },
+      { label: "Original-trilogien", sub: "Episode IV–VI", filter: "Original-trilogien" },
+      { label: "Skywalker-sagaen", sub: "Episode I–IX", filter: ["Prequel-trilogien", "Original-trilogien", "Sequel-trilogien"], saga: true },
+      { label: "Sequel-trilogien", sub: "Episode VII–IX", filter: "Sequel-trilogien" },
+      { label: "Anthology & spin-offs", sub: "Rogue One, Solo m.fl.", filter: "Anthology & spin-offs" }
+    ],
+    extraNote:
+      "Tip: Animationsserien The Clone Wars og live-action-serien The Mandalorian er ikke nødvendige, men giver meget mere dybde. Hvor en serie hjælper, står det på filmkortet under ⚠️."
+  }
+};
+
+/* Universer der kan tilføjes senere – vises som "Kommer snart" på forsiden */
+const COMING_SOON = [
+  { name: "Harry Potter", icon: "⚡", gradient: "linear-gradient(135deg,#3b1d0f,#8a5a2b)" },
+  { name: "Ringenes Herre", icon: "💍", gradient: "linear-gradient(135deg,#1c2a16,#6b7f3a)" },
+  { name: "Jurassic Park / World", icon: "🦖", gradient: "linear-gradient(135deg,#0f2f22,#2f7a52)" },
+  { name: "Fast & Furious", icon: "🏎️", gradient: "linear-gradient(135deg,#2b0f0f,#a33b1f)" },
+  { name: "DC", icon: "🦇", gradient: "linear-gradient(135deg,#0b1730,#2f4f8f)" },
+  { name: "Alien", icon: "👽", gradient: "linear-gradient(135deg,#0d1a14,#36584a)" },
+  { name: "Predator", icon: "🎯", gradient: "linear-gradient(135deg,#1f1a0b,#6f6224)" },
+  { name: "Terminator", icon: "🦾", gradient: "linear-gradient(135deg,#200b0b,#7a2626)" }
+];
+
+/* --------------------------------------------------------------------------
+   FILM
+   -------------------------------------------------------------------------- */
+const MOVIES = {
+  /* ======================================================================
+     MARVEL CINEMATIC UNIVERSE
+     ====================================================================== */
+  marvel: [
+    /* ---------------- FASE 1 ---------------- */
+    {
+      id: "iron-man",
+      title: "Iron Man",
+      year: 2008, released: "2008-05-02",
+      continuity: "mcu", phase: "Fase 1",
+      recommendedOrder: 3, chronoOrder: 3,
+      setting: "2008–2010",
+      runtime: 126,
+      icon: "🦾",
+      description:
+        "Våbenproducenten Tony Stark bliver taget til fange i Afghanistan og bygger en primitiv rustning for at flygte. Hjemme igen beslutter han sig for at ændre sit liv – og sin virksomhed.",
+      whyHere:
+        "Starten på den moderne æra. Filmen introducerer Tony Stark, S.H.I.E.L.D. og idéen om et hold af helte. Efter Captain America og Captain Marvel genkender du både Nick Fury og Howard Starks arv.",
+      characters: ["Tony Stark", "Pepper Potts", "James Rhodes", "Obadiah Stane", "Agent Coulson"],
+      links: ["Tony Stark", "Avengers-initiativet", "S.H.I.E.L.D."],
+      connections: ["iron-man-2", "avengers"],
+      postCredit: { count: 1, text: "Nick Fury dukker op hos Tony og fortæller om 'Avengers-initiativet'." },
+      spoiler: "Obadiah Stane står bag angrebet i Afghanistan, og Tony afslører til sidst offentligt: 'I am Iron Man.'",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "incredible-hulk",
+      title: "The Incredible Hulk",
+      year: 2008, released: "2008-06-13",
+      continuity: "mcu", phase: "Fase 1",
+      recommendedOrder: 5, chronoOrder: 5,
+      setting: "2010–2011",
+      runtime: 112,
+      icon: "💚",
+      description:
+        "Bruce Banner er på flugt fra hæren og forsøger at finde en kur mod det gammastråle-uheld, der forvandler ham til Hulk, når han bliver vred.",
+      whyHere:
+        "Introducerer Bruce Banner og General Ross, der begge bliver vigtige langt senere (Ross vender tilbage i Civil War og i Captain America: Brave New World). Filmen er en af de mindst vigtige i fase 1, men den hører med for helheden.",
+      characters: ["Bruce Banner", "Betty Ross", "General Ross", "Emil Blonsky"],
+      links: ["Bruce Banner", "Thaddeus Ross", "Super-soldat-serummet"],
+      connections: ["avengers", "captain-america-bnw"],
+      postCredit: { count: 1, text: "Slutscene (før rulleteksterne): Tony Stark opsøger General Ross og nævner, at 'vi samler et hold'." },
+      spoiler: "Blonsky bliver forvandlet til monsteret Abomination, og Banner lærer så småt at styre forvandlingen.",
+      badges: ["connector"],
+      importance: 2
+    },
+    {
+      id: "iron-man-2",
+      title: "Iron Man 2",
+      year: 2010, released: "2010-05-07",
+      continuity: "mcu", phase: "Fase 1",
+      recommendedOrder: 4, chronoOrder: 4,
+      setting: "2010–2011",
+      runtime: 124,
+      icon: "⚙️",
+      description:
+        "Verden kender nu Tonys hemmelighed. Regeringen vil have rustningen, en rival vil kopiere den, og en hævngerrig russisk fysiker har sit eget våben klar.",
+      whyHere:
+        "S.H.I.E.L.D. træder for alvor frem, og Black Widow og War Machine bliver introduceret. Filmen bygger bro mellem Iron Man og The Avengers og viser Howard Starks rolle i universets historie.",
+      characters: ["Tony Stark", "Natasha Romanoff", "James Rhodes", "Nick Fury", "Ivan Vanko"],
+      links: ["Black Widow", "War Machine", "Howard Stark", "S.H.I.E.L.D."],
+      connections: ["iron-man", "thor", "avengers"],
+      postCredit: { count: 1, text: "Agent Coulson finder en mystisk hammer i et krater i New Mexico – oplæg til Thor." },
+      spoiler: "Tony opdager, at hans far Howard efterlod ham nøglen til et nyt grundstof, der kan redde hans liv.",
+      badges: ["connector"],
+      importance: 3
+    },
+    {
+      id: "thor",
+      title: "Thor",
+      year: 2011, released: "2011-05-06",
+      continuity: "mcu", phase: "Fase 1",
+      recommendedOrder: 6, chronoOrder: 6,
+      setting: "2011 (+ Asgard)",
+      runtime: 115,
+      icon: "⚡",
+      description:
+        "Den arrogante gud Thor bliver forvist fra Asgard til Jorden uden sine kræfter og skal lære ydmyghed – mens hans bror Loki har sine egne planer.",
+      whyHere:
+        "Åbner det kosmiske univers: de Ni Riger, Asgard og Loki, som bliver hovedskurken i The Avengers. Post-credit scenen introducerer Tesserakten – det første Infinity Sten.",
+      characters: ["Thor", "Loki", "Odin", "Jane Foster", "Erik Selvig", "Hawkeye"],
+      links: ["Asgard", "Loki", "Tesserakten", "De Ni Riger"],
+      connections: ["avengers", "thor-dark-world"],
+      stones: ["Space (Tesserakten)"],
+      postCredit: { count: 1, text: "Nick Fury viser Selvig Tesserakten – og Loki styrer i hemmelighed Selvigs tanker." },
+      spoiler: "Loki er i virkeligheden adopteret og er søn af frostkæmpen Laufey.",
+      badges: ["story", "connector"],
+      importance: 4
+    },
+    {
+      id: "captain-america-first-avenger",
+      title: "Captain America: The First Avenger",
+      year: 2011, released: "2011-07-22",
+      continuity: "mcu", phase: "Fase 1",
+      recommendedOrder: 1, chronoOrder: 1,
+      setting: "1942–1945",
+      runtime: 124,
+      icon: "🛡️",
+      description:
+        "Under 2. verdenskrig bliver den spinkle Steve Rogers forvandlet til supersoldaten Captain America og tager kampen op mod Red Skull og den hemmelige organisation HYDRA.",
+      whyHere:
+        "Her starter tidslinjen: Filmen foregår under 2. verdenskrig og er den tidligste historie i MCU. Den introducerer Tesserakten (det første Infinity Sten), HYDRA, Peggy Carter, Howard Stark og Bucky – som alle bliver vigtige langt senere.",
+      characters: ["Steve Rogers", "Peggy Carter", "Bucky Barnes", "Howard Stark", "Red Skull"],
+      links: ["HYDRA", "Bucky Barnes", "Tesserakten", "Peggy Carter"],
+      connections: ["avengers", "captain-america-winter-soldier", "captain-marvel"],
+      stones: ["Space (Tesserakten)"],
+      postCredit: { count: 1, text: "En teaser-trailer for The Avengers. (Selve filmens slutning er vigtig – se den!)" },
+      spoiler: "Steve styrter et fly ned i isen for at redde verden og vågner op næsten 70 år senere i nutidens New York.",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "avengers",
+      title: "The Avengers",
+      year: 2012, released: "2012-05-04",
+      continuity: "mcu", phase: "Fase 1",
+      recommendedOrder: 7, chronoOrder: 7,
+      setting: "2012",
+      runtime: 143,
+      icon: "🅰️",
+      description:
+        "Loki ankommer til Jorden med en hær og Tesserakten. Nick Fury samler Iron Man, Captain America, Thor, Hulk, Black Widow og Hawkeye til ét hold – hvis de altså kan holde ud at være sammen.",
+      whyHere:
+        "Kulminationen på hele fase 1. Alle trådene fra de fem forrige film samles her. Filmen introducerer også Thanos og Mind-stenen (i Lokis scepter), hvilket starter Infinity-historien.",
+      characters: ["Tony Stark", "Steve Rogers", "Thor", "Bruce Banner", "Natasha Romanoff", "Clint Barton", "Loki", "Nick Fury"],
+      links: ["Avengers", "Slaget om New York", "Thanos", "Lokis scepter"],
+      connections: ["iron-man", "thor", "captain-america-first-avenger", "iron-man-3", "avengers-age-of-ultron"],
+      stones: ["Space (Tesserakten)", "Mind (Lokis scepter)"],
+      postCredit: { count: 2, text: "1) Thanos afsløres som den, der står bag Lokis invasion. 2) Holdet spiser shawarma i tavshed." },
+      spoiler: "Agent Coulson bliver dræbt af Loki – hvilket Fury bruger til at samle holdet. Tony flyver en atombombe gennem portalen.",
+      badges: ["story", "universe", "connector"],
+      importance: 5
+    },
+
+    /* ---------------- FASE 2 ---------------- */
+    {
+      id: "iron-man-3",
+      title: "Iron Man 3",
+      year: 2013, released: "2013-05-03",
+      continuity: "mcu", phase: "Fase 2",
+      recommendedOrder: 8, chronoOrder: 8,
+      setting: "Jul 2012",
+      runtime: 130,
+      icon: "🔥",
+      description:
+        "Tony kæmper med angst efter slaget om New York og bygger rustning efter rustning. Samtidig terroriserer den mystiske Mandarin landet.",
+      whyHere:
+        "Viser konsekvenserne af The Avengers for Tony. Hans frygt for nye trusler udefra er nøglen til at forstå, hvorfor han senere skaber Ultron.",
+      characters: ["Tony Stark", "Pepper Potts", "James Rhodes", "Aldrich Killian", "Mandarin"],
+      links: ["Tonys angst", "Extremis", "Iron Patriot"],
+      connections: ["avengers", "avengers-age-of-ultron"],
+      postCredit: { count: 1, text: "Tony har fortalt hele historien til Bruce Banner – som faldt i søvn." },
+      spoiler: "'Mandarin' er en skuespiller (Trevor Slattery); den rigtige skurk er Aldrich Killian.",
+      badges: [],
+      importance: 3
+    },
+    {
+      id: "thor-dark-world",
+      title: "Thor: The Dark World",
+      year: 2013, released: "2013-11-08",
+      continuity: "mcu", phase: "Fase 2",
+      recommendedOrder: 9, chronoOrder: 9,
+      setting: "2013",
+      runtime: 112,
+      icon: "🌑",
+      description:
+        "En gammel race af mørkelfer vågner og jagter et våben kaldet Aetheren. Thor må alliere sig med sin forræderiske bror Loki.",
+      whyHere:
+        "Introducerer Reality-stenen (Aetheren) og Collector. Mid-credit scenen fører direkte videre til Guardians of the Galaxy – derfor ser vi Guardians lige efter.",
+      characters: ["Thor", "Loki", "Jane Foster", "Frigga", "Malekith"],
+      links: ["Aetheren", "The Collector", "Asgard"],
+      connections: ["thor", "guardians-of-the-galaxy", "thor-ragnarok", "avengers-endgame"],
+      stones: ["Reality (Aetheren)"],
+      postCredit: { count: 2, text: "1) Aetheren afleveres til Collector – 'én nede, fem tilbage'. 2) Thor vender tilbage til Jane." },
+      spoiler: "Frigga bliver dræbt, og Loki forfalsker sin egen død og overtager Asgards trone forklædt som Odin.",
+      badges: ["connector"],
+      importance: 3
+    },
+    {
+      id: "guardians-of-the-galaxy",
+      title: "Guardians of the Galaxy",
+      year: 2014, released: "2014-08-01",
+      continuity: "mcu", phase: "Fase 2",
+      recommendedOrder: 11, chronoOrder: 11,
+      setting: "2014",
+      runtime: 121,
+      icon: "🚀",
+      description:
+        "Eventyreren Peter Quill stjæler en mystisk kugle og ender med en bande af outsidere: Gamora, Drax, Rocket og Groot. Sammen må de redde galaksen.",
+      whyHere:
+        "Foregår i 2014, samme år som Winter Soldier. Den følger op på Collector fra Thor: The Dark World og forklarer, hvad Infinity Stenene er. Du møder Thanos' adoptivdøtre, som bliver centrale i Infinity War.",
+      characters: ["Peter Quill", "Gamora", "Drax", "Rocket", "Groot", "Nebula", "Ronan", "Yondu"],
+      links: ["Guardians", "Thanos' familie", "Infinity Stenene forklares"],
+      connections: ["thor-dark-world", "guardians-vol-2", "avengers-infinity-war"],
+      stones: ["Power (Kuglen)"],
+      postCredit: { count: 1, text: "Collector sidder i sit ødelagte museum – med Howard the Duck." },
+      spoiler: "Kuglen indeholder Power-stenen, og Peter er kun halvt menneske – hans far er noget helt særligt.",
+      badges: ["story", "info"],
+      importance: 4
+    },
+    {
+      id: "captain-america-winter-soldier",
+      title: "Captain America: The Winter Soldier",
+      year: 2014, released: "2014-04-04",
+      continuity: "mcu", phase: "Fase 2",
+      recommendedOrder: 10, chronoOrder: 10,
+      setting: "2014",
+      runtime: 136,
+      icon: "❄️",
+      description:
+        "Steve arbejder for S.H.I.E.L.D. i nutiden, men en sammensværgelse og en mystisk lejemorder kaldet Winter Soldier vender op og ned på alt.",
+      whyHere:
+        "En af de vigtigste film i hele MCU. Den ændrer S.H.I.E.L.D. for altid og fører direkte ind i Age of Ultron og Civil War. Post-credit scenen introducerer Wanda og Pietro.",
+      characters: ["Steve Rogers", "Natasha Romanoff", "Sam Wilson", "Bucky Barnes", "Nick Fury", "Alexander Pierce"],
+      links: ["HYDRA", "Winter Soldier", "Falcon", "S.H.I.E.L.D. falder"],
+      connections: ["captain-america-first-avenger", "avengers-age-of-ultron", "captain-america-civil-war"],
+      postCredit: { count: 2, text: "1) HYDRA har Lokis scepter og to 'mirakler' – tvillingerne Wanda og Pietro. 2) Bucky besøger Captain America-udstillingen." },
+      spoiler: "HYDRA har gemt sig inde i S.H.I.E.L.D. siden 2. verdenskrig, og Winter Soldier er Steves bedste ven Bucky.",
+      badges: ["story", "universe", "connector"],
+      importance: 5
+    },
+    {
+      id: "avengers-age-of-ultron",
+      title: "Avengers: Age of Ultron",
+      year: 2015, released: "2015-05-01",
+      continuity: "mcu", phase: "Fase 2",
+      recommendedOrder: 13, chronoOrder: 13,
+      setting: "2015",
+      runtime: 141,
+      icon: "🤖",
+      description:
+        "Tony og Bruce skaber en kunstig intelligens, der skal beskytte verden – men Ultron beslutter, at menneskeheden selv er problemet.",
+      whyHere:
+        "Introducerer Wanda Maximoff og Vision, og ødelæggelsen i Sokovia er den direkte årsag til konflikten i Civil War. Vi lærer også mere om Infinity Stenene.",
+      characters: ["Avengers", "Ultron", "Wanda Maximoff", "Pietro Maximoff", "Vision"],
+      links: ["Wanda", "Vision", "Sokovia", "Mind-stenen"],
+      connections: ["captain-america-winter-soldier", "captain-america-civil-war", "thor-ragnarok"],
+      stones: ["Mind (Lokis scepter)"],
+      postCredit: { count: 1, text: "Thanos tager Infinity-handsken på: 'Fine. I'll do it myself.'" },
+      spoiler: "Pietro (Quicksilver) dør, og Vision får liv takket være Mind-stenen.",
+      badges: ["story", "connector"],
+      importance: 4
+    },
+    {
+      id: "ant-man",
+      title: "Ant-Man",
+      year: 2015, released: "2015-07-17",
+      continuity: "mcu", phase: "Fase 2",
+      recommendedOrder: 14, chronoOrder: 14,
+      setting: "2015",
+      runtime: 117,
+      icon: "🐜",
+      description:
+        "Indbrudstyven Scott Lang får chancen for at gøre det rigtige, da opfinderen Hank Pym giver ham en dragt, der kan krympe ham til myrestørrelse.",
+      whyHere:
+        "En lettere film efter Ultron, men den introducerer Quantum Realm – kvanteriget – som bliver helt afgørende for tidsrejserne i Endgame.",
+      characters: ["Scott Lang", "Hank Pym", "Hope van Dyne", "Luis", "Darren Cross"],
+      links: ["Quantum Realm", "Pym-partikler", "Tidsrejser (senere)"],
+      connections: ["captain-america-civil-war", "ant-man-and-the-wasp", "avengers-endgame"],
+      postCredit: { count: 2, text: "1) Hope får sin egen Wasp-dragt. 2) Steve og Sam har fundet Bucky – et klip fra Civil War." },
+      spoiler: "Scott krymper sig ned i Quantum Realm – og slipper ud igen, hvilket ingen troede var muligt.",
+      badges: ["info"],
+      importance: 3
+    },
+
+    /* ---------------- FASE 3 ---------------- */
+    {
+      id: "captain-america-civil-war",
+      title: "Captain America: Civil War",
+      year: 2016, released: "2016-05-06",
+      continuity: "mcu", phase: "Fase 3",
+      recommendedOrder: 15, chronoOrder: 15,
+      setting: "2016",
+      runtime: 147,
+      icon: "⚔️",
+      description:
+        "Verdens regeringer vil kontrollere Avengers gennem Sokovia-aftalen. Holdet splittes i to lejre – Iron Mans og Captain Americas.",
+      whyHere:
+        "Næsten en Avengers-film. Konsekvenserne af Ultron og Winter Soldier samles, og splittelsen her definerer holdet helt frem til Endgame. Introducerer Black Panther og Spider-Man.",
+      characters: ["Steve Rogers", "Tony Stark", "Bucky Barnes", "T'Challa", "Peter Parker", "Zemo"],
+      links: ["Sokovia-aftalen", "Black Panther", "Spider-Man", "Avengers splittes"],
+      connections: ["captain-america-winter-soldier", "avengers-age-of-ultron", "black-panther", "spider-man-homecoming", "avengers-infinity-war"],
+      postCredit: { count: 2, text: "1) Bucky lægges i kryo-søvn i Wakanda. 2) Peter opdager sit nye 'Spider-signal'." },
+      spoiler: "Zemo afslører, at Bucky dræbte Tonys forældre, hvilket fører til den brutale kamp mellem Tony og Steve.",
+      badges: ["story", "universe", "connector"],
+      importance: 5
+    },
+    {
+      id: "black-panther",
+      title: "Black Panther",
+      year: 2018, released: "2018-02-16",
+      continuity: "mcu", phase: "Fase 3",
+      recommendedOrder: 17, chronoOrder: 17,
+      setting: "2016 (efter Civil War)",
+      runtime: 134,
+      icon: "🐾",
+      description:
+        "T'Challa vender hjem til det skjulte højteknologiske land Wakanda for at blive konge – men en udfordrer truer både tronen og landets fremtid.",
+      whyHere:
+        "Rykket frem fra udgivelsen: Filmen foregår kun en uge efter Civil War og fortsætter T'Challas historie direkte. Wakanda bliver slagmark i Infinity War, så det er godt at kende landet i god tid.",
+      characters: ["T'Challa", "Shuri", "Okoye", "Nakia", "Killmonger", "Ramonda"],
+      links: ["Wakanda", "Vibranium", "Shuri"],
+      connections: ["captain-america-civil-war", "avengers-infinity-war", "black-panther-wakanda-forever"],
+      postCredit: { count: 2, text: "1) T'Challa åbner Wakanda for verden i FN. 2) Bucky er vågnet i Wakanda – 'White Wolf'." },
+      spoiler: "Killmonger er T'Challas fætter og vinder i første omgang tronen.",
+      badges: ["story"],
+      importance: 4
+    },
+    {
+      id: "spider-man-homecoming",
+      title: "Spider-Man: Homecoming",
+      year: 2017, released: "2017-07-07",
+      continuity: "mcu", phase: "Fase 3",
+      recommendedOrder: 18, chronoOrder: 18,
+      setting: "2016 (efter Civil War)",
+      runtime: 133,
+      icon: "🕷️",
+      description:
+        "Efter sit eventyr med Avengers vender Peter Parker tilbage til high school – men vil bevise over for Tony Stark, at han er mere end 'den venlige Spider-Man fra kvarteret'.",
+      whyHere:
+        "Foregår lige efter Civil War og bygger Peter/Tony-forholdet op, som er hjertet i Infinity War og Endgame. Skurken Vulture er en direkte konsekvens af slaget om New York.",
+      characters: ["Peter Parker", "Tony Stark", "Happy Hogan", "Adrian Toomes", "Ned", "May Parker"],
+      links: ["Spider-Man", "Tony som mentor", "Damage Control"],
+      connections: ["captain-america-civil-war", "spider-man-far-from-home", "avengers-infinity-war"],
+      postCredit: { count: 2, text: "1) Toomes nægter at afsløre Spider-Mans identitet i fængslet. 2) Captain America holder en tale om tålmodighed." },
+      spoiler: "Vulture er far til Liz – den pige Peter skal til bal med.",
+      badges: [],
+      importance: 3
+    },
+    {
+      id: "doctor-strange",
+      title: "Doctor Strange",
+      year: 2016, released: "2016-11-04",
+      continuity: "mcu", phase: "Fase 3",
+      recommendedOrder: 19, chronoOrder: 19,
+      setting: "2016–2017",
+      runtime: 115,
+      icon: "🌀",
+      description:
+        "Den geniale men arrogante kirurg Stephen Strange mister brugen af sine hænder og søger helbredelse i Nepal – hvor han i stedet opdager magiens verden.",
+      whyHere:
+        "Introducerer magi, alternative dimensioner og Time-stenen (Agamottos øje). Mid-credit scenen fører direkte ind i Thor: Ragnarok, så filmen ligger lige før den – og Strange bliver nøgleperson i Infinity War.",
+      characters: ["Stephen Strange", "The Ancient One", "Wong", "Mordo", "Christine Palmer"],
+      links: ["Magi", "Time-stenen", "Multiverset (første spor)"],
+      connections: ["thor-ragnarok", "avengers-infinity-war", "doctor-strange-mom"],
+      stones: ["Time (Agamottos øje)"],
+      postCredit: { count: 2, text: "1) Thor og Loki besøger Strange – de leder efter Odin. 2) Mordo begynder at stjæle andre troldmænds kræfter." },
+      spoiler: "Strange besejrer Dormammu ved at fange ham i en uendelig tidsløkke.",
+      badges: ["story", "info"],
+      importance: 4
+    },
+    {
+      id: "guardians-vol-2",
+      title: "Guardians of the Galaxy Vol. 2",
+      year: 2017, released: "2017-05-05",
+      continuity: "mcu", phase: "Fase 3",
+      recommendedOrder: 12, chronoOrder: 12,
+      setting: "2014 (kort efter Vol. 1)",
+      runtime: 136,
+      icon: "📼",
+      description:
+        "Guardians er blevet berømte – og jagtet. Peter møder endelig sin far, men familiebånd er ikke altid, hvad de ser ud til.",
+      whyHere:
+        "Foregår kun få måneder efter den første Guardians, så den ses lige efter. Udbygger Gamora og Nebulas forhold til Thanos, før han for alvor træder frem.",
+      characters: ["Peter Quill", "Ego", "Gamora", "Nebula", "Yondu", "Mantis", "Rocket", "Baby Groot"],
+      links: ["Peters far", "Gamora & Nebula", "Mantis"],
+      connections: ["guardians-of-the-galaxy", "avengers-infinity-war", "guardians-vol-3"],
+      postCredit: { count: 5, text: "Fem scener! Bl.a. Ravagers samles igen, Ayesha skaber 'Adam', og teenage-Groot er sur." },
+      spoiler: "Peters far Ego er en levende planet, der vil overtage universet – og Yondu ofrer sig for Peter.",
+      badges: [],
+      importance: 3
+    },
+    {
+      id: "thor-ragnarok",
+      title: "Thor: Ragnarok",
+      year: 2017, released: "2017-11-03",
+      continuity: "mcu", phase: "Fase 3",
+      recommendedOrder: 20, chronoOrder: 20,
+      setting: "2017",
+      runtime: 130,
+      icon: "🔨",
+      description:
+        "Thor bliver fanget på den vanvittige planet Sakaar og tvunget til gladiatorkamp – mod en gammel ven. Imens truer dødsgudinden Hela Asgard.",
+      whyHere:
+        "Forklarer, hvor Thor og Hulk var under Civil War. Mid-credit scenen fører direkte ind i åbningen af Infinity War.",
+      characters: ["Thor", "Loki", "Hulk", "Valkyrie", "Hela", "Grandmaster", "Korg"],
+      links: ["Ragnarok", "Valkyrie", "Hulk på Sakaar"],
+      connections: ["doctor-strange", "thor-dark-world", "avengers-infinity-war"],
+      postCredit: { count: 2, text: "1) Et enormt rumskib dukker op foran Asgardernes skib – lige før Infinity War. 2) Grandmaster overlever." },
+      spoiler: "Hela er Thors storesøster, Thor mister et øje, og Asgard bliver ødelagt med vilje.",
+      badges: ["story", "connector"],
+      importance: 4
+    },
+    {
+      id: "avengers-infinity-war",
+      title: "Avengers: Infinity War",
+      year: 2018, released: "2018-04-27",
+      continuity: "mcu", phase: "Fase 3",
+      recommendedOrder: 22, chronoOrder: 22,
+      setting: "2018",
+      runtime: 149,
+      icon: "💎",
+      description:
+        "Thanos er endelig kommet for at samle alle seks Infinity Sten. Avengers – stadig splittet efter Civil War – og Guardians må samarbejde for at stoppe ham.",
+      whyHere:
+        "Alt i 18 film har bygget op til dette. Du skal kende Infinity Stenene, Guardians, Wakanda, Doctor Strange og splittelsen fra Civil War – og det gør du nu.",
+      characters: ["Thanos", "Tony Stark", "Steve Rogers", "Thor", "Doctor Strange", "Peter Parker", "Gamora", "Wanda", "Vision"],
+      links: ["Alle Infinity Sten", "Thanos", "Slaget om Wakanda"],
+      connections: ["avengers", "guardians-of-the-galaxy", "thor-ragnarok", "black-panther", "avengers-endgame"],
+      stones: ["Alle seks Infinity Sten"],
+      postCredit: { count: 1, text: "Nick Fury når at sende et nødsignal til en mystisk person, før han forsvinder." },
+      spoiler: "Thanos vinder. Han knipser med fingrene, og halvdelen af alt liv i universet forsvinder – inklusiv mange af heltene.",
+      badges: ["story", "universe", "connector"],
+      importance: 5
+    },
+    {
+      id: "ant-man-and-the-wasp",
+      title: "Ant-Man and the Wasp",
+      year: 2018, released: "2018-07-06",
+      continuity: "mcu", phase: "Fase 3",
+      recommendedOrder: 21, chronoOrder: 21,
+      setting: "2018 (før/under Infinity War)",
+      runtime: 118,
+      icon: "🐝",
+      description:
+        "Scott er i husarrest efter Civil War, da Hope og Hank Pym får brug for hans hjælp til at redde Janet van Dyne fra Quantum Realm.",
+      whyHere:
+        "Foregår lige før og under Infinity War. Uddyber Quantum Realm, som bliver nøglen i Endgame. ⚠️ Spoiler-advarsel: Den første ekstra scene midt i rulleteksterne afslører slutningen på Infinity War – spring den over og se den efter Infinity War.",
+      characters: ["Scott Lang", "Hope van Dyne", "Hank Pym", "Janet van Dyne", "Ghost"],
+      links: ["Quantum Realm", "Janet van Dyne", "Tidsrejser"],
+      connections: ["ant-man", "avengers-endgame", "ant-man-quantumania"],
+      postCredit: { count: 2, text: "1) Scott er i Quantum Realm, da knipset sker – og sidder fast. 2) En kæmpe myre spiller trommer." },
+      spoiler: "Hank, Janet og Hope forsvinder i knipset, så Scott er fanget i Quantum Realm.",
+      badges: ["info"],
+      importance: 3
+    },
+    {
+      id: "captain-marvel",
+      title: "Captain Marvel",
+      year: 2019, released: "2019-03-08",
+      continuity: "mcu", phase: "Fase 3",
+      recommendedOrder: 2, chronoOrder: 2,
+      setting: "1995",
+      runtime: 123,
+      icon: "⭐",
+      description:
+        "I 1995 lander Kree-krigeren Vers på Jorden uden hukommelse om sin fortid. Sammen med en ung Nick Fury opdager hun, hvem hun virkelig er.",
+      whyHere:
+        "Foregår i 1995, så den kommer som nr. 2 i tidslinjen. Du møder en ung Nick Fury og får forklaret, hvordan Avengers-idéen opstod. ⚠️ Spoiler-advarsel: Den første ekstra scene midt i rulleteksterne foregår efter Infinity War – spring den over nu og se den lige før Endgame.",
+      characters: ["Carol Danvers", "Nick Fury", "Maria Rambeau", "Talos", "Goose", "Yon-Rogg"],
+      links: ["Kree og Skrulls", "Nick Fury (ung)", "Tesserakten"],
+      connections: ["avengers-infinity-war", "avengers-endgame", "the-marvels"],
+      stones: ["Space (Tesserakten)"],
+      postCredit: { count: 2, text: "1) Carol dukker op hos de overlevende Avengers efter knipset. 2) Katten Goose gylper Tesserakten op." },
+      spoiler: "Skrulls er ikke skurkene – Kree har løjet for Carol, og Skrulls er flygtninge.",
+      badges: ["connector"],
+      importance: 3
+    },
+    {
+      id: "avengers-endgame",
+      title: "Avengers: Endgame",
+      year: 2019, released: "2019-04-26",
+      continuity: "mcu", phase: "Fase 3",
+      recommendedOrder: 23, chronoOrder: 23,
+      setting: "2018–2023",
+      runtime: 181,
+      icon: "⏳",
+      description:
+        "Efter Thanos' sejr må de resterende Avengers samle sig en sidste gang for at gøre det umulige.",
+      whyHere:
+        "Afslutningen på hele Infinity Saga (22 film). Filmen besøger tidligere films begivenheder via tidsrejser, så den giver mest mening, når du har set alt det foregående.",
+      characters: ["Tony Stark", "Steve Rogers", "Thor", "Natasha Romanoff", "Clint Barton", "Bruce Banner", "Scott Lang", "Nebula", "Thanos"],
+      links: ["Tidsrejser", "Quantum Realm", "Infinity Sagas afslutning"],
+      connections: ["avengers-infinity-war", "ant-man-and-the-wasp", "captain-marvel", "spider-man-far-from-home", "black-widow"],
+      stones: ["Alle seks Infinity Sten"],
+      postCredit: { count: 0, text: "Ingen scene – kun lyden af en hammer, der slår på metal (en hilsen til Iron Mans begyndelse)." },
+      spoiler: "Avengers rejser i tid for at hente stenene. Natasha ofrer sig på Vormir, Tony knipser og dør, og Steve bliver i fortiden hos Peggy.",
+      badges: ["story", "universe", "connector"],
+      importance: 5
+    },
+    {
+      id: "spider-man-far-from-home",
+      title: "Spider-Man: Far From Home",
+      year: 2019, released: "2019-07-02",
+      continuity: "mcu", phase: "Fase 3",
+      recommendedOrder: 24, chronoOrder: 24,
+      setting: "2024 (efter Endgame)",
+      runtime: 129,
+      icon: "🌍",
+      description:
+        "Peter vil bare på klassetur i Europa, men Nick Fury og en ny helt, Mysterio, trækker ham ind i en kamp mod elementvæsner.",
+      whyHere:
+        "Epilogen til Infinity Saga: Hvordan ser verden ud efter Endgame, og hvem tager over efter Tony? Post-credit scenerne sætter direkte No Way Home i gang.",
+      characters: ["Peter Parker", "Mysterio", "MJ", "Happy Hogan", "Nick Fury"],
+      links: ["Tonys arv", "The Blip", "Peters hemmelige identitet"],
+      connections: ["avengers-endgame", "spider-man-no-way-home"],
+      postCredit: { count: 2, text: "1) Mysterio afslører Peters identitet for hele verden. 2) 'Fury' var i virkeligheden Skrull'en Talos." },
+      spoiler: "Mysterio er en svindler, der bruger illusioner, og han afslører til sidst, at Peter Parker er Spider-Man.",
+      badges: ["connector"],
+      importance: 4
+    },
+
+    /* ---------------- FASE 4 ---------------- */
+    {
+      id: "black-widow",
+      title: "Black Widow",
+      year: 2021, released: "2021-07-09",
+      continuity: "mcu", phase: "Fase 4",
+      recommendedOrder: 16, chronoOrder: 16,
+      setting: "2016 (efter Civil War)",
+      runtime: 134,
+      icon: "🕸️",
+      description:
+        "Natasha er på flugt efter Civil War og må konfrontere sin fortid i det sovjetiske Red Room – og den 'familie', hun voksede op med.",
+      whyHere:
+        "Foregår lige efter Civil War, mens Natasha er på flugt. Introducerer Yelena, som bliver vigtig i Fase 5. ⚠️ Spoiler-advarsel: Scenen efter rulleteksterne afslører, hvad der sker i Endgame – spring den over og se den efter Endgame.",
+      characters: ["Natasha Romanoff", "Yelena Belova", "Alexei (Red Guardian)", "Melina", "Dreykov"],
+      links: ["Red Room", "Yelena Belova", "Valentina"],
+      connections: ["captain-america-civil-war", "avengers-endgame", "thunderbolts"],
+      postCredit: { count: 1, text: "Yelena besøger Natashas grav, og Valentina giver hende et nyt mål." },
+      spoiler: "Dreykov er i live, og Red Room styrer stadig hundredvis af 'enker' via tankekontrol.",
+      badges: ["info"],
+      importance: 3
+    },
+    {
+      id: "shang-chi",
+      title: "Shang-Chi and the Legend of the Ten Rings",
+      year: 2021, released: "2021-09-03",
+      continuity: "mcu", phase: "Fase 4",
+      recommendedOrder: 25, chronoOrder: 25,
+      setting: "2024",
+      runtime: 132,
+      icon: "💍",
+      description:
+        "Shang-Chi har levet et normalt liv i San Francisco, men hans far – lederen af den hemmelige organisation Ten Rings – trækker ham tilbage til den verden, han flygtede fra.",
+      whyHere:
+        "En ny helt efter Endgame. Afklarer den 'rigtige' Mandarin efter Iron Man 3, og post-credit scenen antyder, at noget større er på vej.",
+      characters: ["Shang-Chi", "Katy", "Wenwu", "Xialing", "Wong"],
+      links: ["Ten Rings", "Den ægte Mandarin", "Wong"],
+      connections: ["iron-man-3"],
+      postCredit: { count: 2, text: "1) Wong, Bruce Banner og Carol Danvers undersøger ringene – de sender et signal. 2) Xialing overtager Ten Rings." },
+      spoiler: "Wenwu vil åbne en portal for at redde sin døde kone – men stemmen er en dæmon, der vil fri.",
+      badges: [],
+      importance: 2
+    },
+    {
+      id: "eternals",
+      title: "Eternals",
+      year: 2021, released: "2021-11-05",
+      continuity: "mcu", phase: "Fase 4",
+      recommendedOrder: 26, chronoOrder: 26,
+      setting: "5000 f.Kr. – 2024",
+      runtime: 156,
+      icon: "☀️",
+      description:
+        "En gruppe udødelige væsner har i hemmelighed beskyttet Jorden i 7.000 år. Da deres gamle fjender, Deviants, vender tilbage, må de samles igen.",
+      whyHere:
+        "Udvider MCU's kosmiske skala enormt med Celestials. Den forklarer en del om universets 'skabere', men er ikke afgørende for hovedhistorien.",
+      characters: ["Sersi", "Ikaris", "Thena", "Kingo", "Ajak", "Druig"],
+      links: ["Celestials", "Universets oprindelse"],
+      connections: ["avengers-endgame"],
+      postCredit: { count: 2, text: "1) Thanos' bror Eros dukker op. 2) Dane Whitman rækker ud efter et forbandet sværd – og en stemme taler." },
+      spoiler: "Eternals' mission var aldrig at beskytte menneskene, men at sikre at en ny Celestial kunne blive 'født' i Jorden.",
+      badges: [],
+      importance: 2
+    },
+    {
+      id: "spider-man-no-way-home",
+      title: "Spider-Man: No Way Home",
+      year: 2021, released: "2021-12-17",
+      continuity: "mcu", phase: "Fase 4",
+      recommendedOrder: 27, chronoOrder: 27,
+      setting: "2024 (lige efter Far From Home)",
+      runtime: 148,
+      icon: "🕸️",
+      description:
+        "Hele verden ved, at Peter er Spider-Man. Han beder Doctor Strange om hjælp – men trylleformularen går galt og åbner for multiverset.",
+      whyHere:
+        "Fortsætter Peters historie fra Far From Home, hvor hele verden fandt ud af, hvem han er. Den første store multivers-film og afgørende for at forstå Fase 4–6.",
+      characters: ["Peter Parker", "Doctor Strange", "MJ", "Ned", "May Parker", "Green Goblin", "Doc Ock"],
+      links: ["Multiverset", "Andre Spider-Man-universer", "Doctor Strange"],
+      connections: ["spider-man-far-from-home", "doctor-strange-mom", "spider-man-brand-new-day"],
+      postCredit: { count: 2, text: "1) Eddie Brock (Venom) sendes tilbage – men efterlader noget. 2) Trailer for Multiverse of Madness." },
+      spoiler: "Tidligere Spider-Men (Tobey Maguire og Andrew Garfield) dukker op, May dør, og til sidst glemmer hele verden, hvem Peter Parker er.",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "doctor-strange-mom",
+      title: "Doctor Strange in the Multiverse of Madness",
+      year: 2022, released: "2022-05-06",
+      continuity: "mcu", phase: "Fase 4",
+      recommendedOrder: 28, chronoOrder: 28,
+      setting: "2024",
+      runtime: 126,
+      icon: "🔮",
+      description:
+        "Strange møder en ung pige, America Chavez, der kan rejse mellem universer – og hun bliver jagtet af en uhyre magtfuld fjende.",
+      whyHere:
+        "Følger op på No Way Home og viser multiversets farer. Filmen fortsætter Wandas historie direkte fra Disney+-serien WandaVision.",
+      watchFirst: ["WandaVision (Disney+) – stærkt anbefalet", "Loki sæson 1 (valgfri, om multiverset)"],
+      characters: ["Stephen Strange", "Wanda Maximoff", "America Chavez", "Wong", "Christine Palmer"],
+      links: ["Multiverset", "Scarlet Witch", "Incursions"],
+      connections: ["doctor-strange", "spider-man-no-way-home", "avengers-age-of-ultron"],
+      postCredit: { count: 2, text: "1) Clea rekrutterer Strange til at stoppe en 'incursion'. 2) En komisk scene med Pizza Poppa." },
+      spoiler: "Wanda er skurken – hun vil have sine børn tilbage fra et andet univers for enhver pris.",
+      badges: ["story", "info"],
+      importance: 4
+    },
+    {
+      id: "thor-love-and-thunder",
+      title: "Thor: Love and Thunder",
+      year: 2022, released: "2022-07-08",
+      continuity: "mcu", phase: "Fase 4",
+      recommendedOrder: 30, chronoOrder: 30,
+      setting: "2025",
+      runtime: 119,
+      icon: "🌩️",
+      description:
+        "Thor søger indre ro, men 'Gud-slagteren' Gorr er ude efter alle guder. Hjælpen kommer fra uventet kant: Jane Foster – nu med Mjølner.",
+      whyHere:
+        "Fortsætter Thors rejse efter Endgame. Ikke afgørende for den store historie, men vigtig for Thor og Jane.",
+      characters: ["Thor", "Jane Foster", "Valkyrie", "Korg", "Gorr"],
+      links: ["Mighty Thor", "Guderne", "New Asgard"],
+      connections: ["thor-ragnarok", "avengers-endgame"],
+      postCredit: { count: 2, text: "1) Zeus lever og sender sin søn Hercules efter Thor. 2) Jane ankommer til Valhalla." },
+      spoiler: "Jane er dødeligt syg, og Mjølner både giver hende kræfter og forværrer sygdommen.",
+      badges: [],
+      importance: 2
+    },
+    {
+      id: "black-panther-wakanda-forever",
+      title: "Black Panther: Wakanda Forever",
+      year: 2022, released: "2022-11-11",
+      continuity: "mcu", phase: "Fase 4",
+      recommendedOrder: 29, chronoOrder: 29,
+      setting: "2025",
+      runtime: 161,
+      icon: "🌊",
+      description:
+        "Wakanda sørger over kong T'Challa og er sårbart over for resten af verden – og for undervandsriget Talokan og dets konge Namor.",
+      whyHere:
+        "Afslutter Fase 4 og viser, hvordan Wakanda klarer sig uden T'Challa. Namor er en af de mest magtfulde nye figurer i universet.",
+      characters: ["Shuri", "Ramonda", "Okoye", "Namor", "Riri Williams", "Nakia"],
+      links: ["Wakanda", "Talokan", "Ny Black Panther"],
+      connections: ["black-panther"],
+      postCredit: { count: 1, text: "Shuri besøger Nakia i Haiti og møder en vigtig person for første gang." },
+      spoiler: "Dronning Ramonda dør, og Shuri bliver den nye Black Panther.",
+      badges: [],
+      importance: 3
+    },
+
+    /* ---------------- FASE 5 ---------------- */
+    {
+      id: "ant-man-quantumania",
+      title: "Ant-Man and the Wasp: Quantumania",
+      year: 2023, released: "2023-02-17",
+      continuity: "mcu", phase: "Fase 5",
+      recommendedOrder: 32, chronoOrder: 32,
+      setting: "2025–2026",
+      runtime: 125,
+      icon: "⚛️",
+      description:
+        "Scott, Hope, Cassie, Hank og Janet bliver suget ned i Quantum Realm, hvor de møder Kang – en mand, der har været fanget dernede i årevis.",
+      whyHere:
+        "Starter Fase 5 og introducerer Kang og hans varianter fuldt ud. Vigtig for multiverset, selvom de senere planer omkring Kang blev ændret.",
+      watchFirst: ["Loki sæson 1 (Disney+) – forklarer 'Han som bliver'"],
+      characters: ["Scott Lang", "Cassie Lang", "Hope van Dyne", "Janet van Dyne", "Kang"],
+      links: ["Kang", "Quantum Realm", "Multiverset"],
+      connections: ["ant-man-and-the-wasp", "avengers-endgame"],
+      postCredit: { count: 2, text: "1) Et råd af Kang-varianter samles. 2) Loki og Mobius ser en ny Kang i 1900-tallet." },
+      spoiler: "Kang er blevet forvist til Quantum Realm af sine egne varianter – Kang-rådet.",
+      badges: ["info"],
+      importance: 3
+    },
+    {
+      id: "guardians-vol-3",
+      title: "Guardians of the Galaxy Vol. 3",
+      year: 2023, released: "2023-05-05",
+      continuity: "mcu", phase: "Fase 5",
+      recommendedOrder: 31, chronoOrder: 31,
+      setting: "2026",
+      runtime: 150,
+      icon: "🦝",
+      description:
+        "Rocket bliver kritisk såret, og Guardians må ud på en farlig mission for at redde ham – og afsløre hans fortid hos High Evolutionary.",
+      whyHere:
+        "Den følelsesmæssige afslutning på Guardians-trilogien. Forudsætter, at du har set Guardians i Infinity War og Endgame.",
+      characters: ["Rocket", "Peter Quill", "Gamora", "Nebula", "Drax", "Mantis", "Groot", "Adam Warlock", "High Evolutionary"],
+      links: ["Rockets fortid", "Guardians' afslutning"],
+      connections: ["guardians-vol-2", "avengers-endgame"],
+      postCredit: { count: 2, text: "1) Et nyt Guardians-hold. 2) Peter er hjemme på Jorden hos sin bedstefar." },
+      spoiler: "Holdet går hver til sit, og Rocket bliver den nye leder af Guardians.",
+      badges: [],
+      importance: 3
+    },
+    {
+      id: "the-marvels",
+      title: "The Marvels",
+      year: 2023, released: "2023-11-10",
+      continuity: "mcu", phase: "Fase 5",
+      recommendedOrder: 33, chronoOrder: 33,
+      setting: "2026",
+      runtime: 105,
+      icon: "✨",
+      description:
+        "Carol Danvers, Monica Rambeau og Kamala Khan bytter plads, hver gang de bruger deres kræfter – og må lære at samarbejde mod en Kree-leder med hævn i sinde.",
+      whyHere:
+        "Fortsætter Captain Marvel og samler tråde fra flere Disney+-serier. Post-credit scenen er en af de vigtigste for multiversets fremtid.",
+      watchFirst: ["Ms. Marvel (Disney+) – introducerer Kamala", "WandaVision (Disney+) – Monica Rambeau"],
+      characters: ["Carol Danvers", "Monica Rambeau", "Kamala Khan", "Nick Fury", "Dar-Benn"],
+      links: ["Young Avengers", "Kree", "Andre universer"],
+      connections: ["captain-marvel", "avengers-doomsday"],
+      postCredit: { count: 2, text: "1) Kamala opsøger Kate Bishop for at samle et nyt hold. 2) Monica vågner i et andet univers – blandt X-Men." },
+      spoiler: "Monica bliver fanget i et parallelt univers, hvor hendes mor er en superhelt.",
+      badges: ["info"],
+      importance: 3
+    },
+    {
+      id: "captain-america-bnw",
+      title: "Captain America: Brave New World",
+      year: 2025, released: "2025-02-14",
+      continuity: "mcu", phase: "Fase 5",
+      recommendedOrder: 35, chronoOrder: 35,
+      setting: "2027",
+      runtime: 118,
+      icon: "🦅",
+      description:
+        "Sam Wilson er den nye Captain America. Da den nyvalgte præsident Thaddeus Ross bliver mål for et attentat, bliver Sam trukket ind i en international konspiration.",
+      whyHere:
+        "Fortsætter Sams historie og binder tråde helt tilbage til The Incredible Hulk og Eternals. Ses før Thunderbolts*, fordi begge film handler om den politiske situation på Jorden.",
+      watchFirst: ["The Falcon and the Winter Soldier (Disney+) – Sam bliver Captain America"],
+      characters: ["Sam Wilson", "Thaddeus Ross", "Joaquin Torres", "Isaiah Bradley", "Samuel Sterns"],
+      links: ["Ny Captain America", "Celestial Island", "Adamantium"],
+      connections: ["incredible-hulk", "eternals", "thunderbolts"],
+      postCredit: { count: 1, text: "Samuel Sterns advarer Sam om, at 'andre verdener' er på vej." },
+      spoiler: "Ross forvandles til Red Hulk midt i Washington D.C.",
+      badges: ["connector", "info"],
+      importance: 3
+    },
+    {
+      id: "thunderbolts",
+      title: "Thunderbolts*",
+      year: 2025, released: "2025-05-02",
+      continuity: "mcu", phase: "Fase 5",
+      recommendedOrder: 36, chronoOrder: 36,
+      setting: "2027",
+      runtime: 127,
+      icon: "⚡",
+      description:
+        "En gruppe udstødte antihelte – Yelena, Bucky, Red Guardian, Ghost og John Walker – bliver lokket i en fælde og må motvilligt arbejde sammen.",
+      whyHere:
+        "Samler mange tråde fra Black Widow og Disney+-serierne og etablerer et nyt hold på Jorden. Post-credit scenen peger direkte frem mod Fantastic Four og Avengers: Doomsday.",
+      watchFirst: ["Hawkeye (Disney+) – Yelena efter Black Widow", "The Falcon and the Winter Soldier – John Walker"],
+      characters: ["Yelena Belova", "Bucky Barnes", "Red Guardian", "Ghost", "John Walker", "Valentina", "Bob"],
+      links: ["Thunderbolts", "Valentina", "Nye Avengers"],
+      connections: ["black-widow", "captain-america-bnw", "fantastic-four-first-steps", "avengers-doomsday"],
+      postCredit: { count: 2, text: "1) En lille komisk scene. 2) 14 måneder senere: Holdet kaldes nu noget nyt – og et ukendt rumskib nærmer sig Jorden." },
+      spoiler: "Bob er den ekstremt magtfulde Sentry – og hans mørke side, The Void, truer hele New York.",
+      badges: ["story", "connector", "info"],
+      importance: 4
+    },
+    {
+      id: "deadpool-wolverine",
+      title: "Deadpool & Wolverine",
+      year: 2024, released: "2024-07-26",
+      continuity: "mcu", phase: "Fase 5",
+      recommendedOrder: 34, chronoOrder: 34,
+      setting: "2024 / TVA / The Void",
+      runtime: 128,
+      icon: "⚔️",
+      description:
+        "TVA – organisationen der styrer tidslinjerne – hiver Deadpool ind i MCU. For at redde sin egen verden må han finde en Wolverine, der helst ikke vil være helt.",
+      whyHere:
+        "Foregår i 2024, men handler om TVA og multiverset. Den kan nydes alene, men er sjovest med Loki-serien i baghovedet – og den peger frem mod de store multivers-film.",
+      watchFirst: ["Loki (Disney+) – forklarer TVA og The Void", "Deadpool 1 & 2 (valgfri)"],
+      characters: ["Deadpool", "Wolverine", "Cassandra Nova", "Mr. Paradox"],
+      links: ["TVA", "Multiverset", "Fox' Marvel-film"],
+      connections: ["doctor-strange-mom", "fantastic-four-first-steps"],
+      postCredit: { count: 1, text: "En overraskende (og plat) scene med en gammel kending fra Fox' Marvel-film." },
+      spoiler: "The Void er fyldt med figurer fra tidligere Fox-film – bl.a. Elektra, Blade og Gambit.",
+      badges: ["info"],
+      importance: 3
+    },
+
+    /* ---------------- FASE 6 ---------------- */
+    {
+      id: "fantastic-four-first-steps",
+      title: "The Fantastic Four: First Steps",
+      year: 2025, released: "2025-07-25",
+      continuity: "mcu", phase: "Fase 6",
+      recommendedOrder: 37, chronoOrder: 37,
+      setting: "Earth-828 (retro-futuristisk 1960'er)",
+      runtime: 115,
+      icon: "4️⃣",
+      description:
+        "I et retro-futuristisk alternativt univers skal Fantastic Four forsvare deres Jord mod den planet-slugende Galactus og hans sendebud, Silver Surfer.",
+      whyHere:
+        "Foregår i et helt andet univers (Earth-828) og kræver ingen forudgående viden – men mid-credit scenen og Thunderbolts* gør den til en vigtig brik mod Avengers: Doomsday.",
+      characters: ["Reed Richards", "Sue Storm", "Johnny Storm", "Ben Grimm", "Galactus", "Silver Surfer"],
+      links: ["Fantastic Four", "Earth-828", "Galactus"],
+      connections: ["thunderbolts", "avengers-doomsday"],
+      postCredit: { count: 2, text: "1) En uhyggelig skikkelse viser interesse for Franklin Richards. 2) En sjov 'flashback'-scene." },
+      spoiler: "Sue og Reed får sønnen Franklin, som Galactus vil have i stedet for planeten.",
+      badges: ["story", "universe"],
+      importance: 4
+    },
+    {
+      id: "spider-man-brand-new-day",
+      title: "Spider-Man: Brand New Day",
+      year: 2026, released: "2026-07-31",
+      continuity: "mcu", phase: "Fase 6",
+      recommendedOrder: 38, chronoOrder: 38,
+      setting: "Efter No Way Home",
+      runtime: null,
+      icon: "🗽",
+      description:
+        "Ingen husker længere Peter Parker. Han er helt alene som Spider-Man i New York og forsøger at finde ud af, hvem han er, når ingen ved det.",
+      whyHere:
+        "Fortsætter direkte fra slutningen af No Way Home – så genopfrisk gerne den. Ligger lige før Avengers: Doomsday og er Peters sidste soloeventyr før det store crossover.",
+      characters: ["Peter Parker"],
+      links: ["Spider-Man", "Et nyt kapitel for Peter"],
+      connections: ["spider-man-no-way-home", "avengers-doomsday"],
+      postCredit: null,
+      spoiler: "",
+      badges: ["connector"],
+      importance: 4
+    },
+    {
+      id: "avengers-doomsday",
+      title: "Avengers: Doomsday",
+      year: 2026, released: "2026-12-18",
+      continuity: "mcu", phase: "Fase 6",
+      recommendedOrder: 39, chronoOrder: 39,
+      setting: "Multiverset",
+      runtime: null,
+      icon: "🎭",
+      upcoming: true,
+      description:
+        "Den næste store Avengers-film. Helte fra flere universer må samles mod Doctor Doom.",
+      whyHere:
+        "Kulminationen på Multiverse Saga del 1. Fase 5 og 6 – især Thunderbolts*, The Fantastic Four og Deadpool & Wolverine – bygger op til den.",
+      characters: ["Doctor Doom", "Avengers", "Fantastic Four", "X-Men"],
+      links: ["Doctor Doom", "Multiverset"],
+      connections: ["thunderbolts", "fantastic-four-first-steps", "avengers-secret-wars"],
+      postCredit: null,
+      spoiler: "",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "avengers-secret-wars",
+      title: "Avengers: Secret Wars",
+      year: 2027, released: "2027-12-17",
+      continuity: "mcu", phase: "Fase 6",
+      recommendedOrder: 40, chronoOrder: 40,
+      setting: "Multiverset",
+      runtime: null,
+      icon: "🌌",
+      upcoming: true,
+      description:
+        "Afslutningen på Multiverse Saga.",
+      whyHere:
+        "Den planlagte finale på alt fra Fase 4 til 6.",
+      characters: ["Avengers"],
+      links: ["Multiverse Saga-finalen"],
+      connections: ["avengers-doomsday"],
+      postCredit: null,
+      spoiler: "",
+      badges: ["universe"],
+      importance: 5
+    }
+  ],
+
+  /* ======================================================================
+     TRANSFORMERS
+     ====================================================================== */
+  transformers: [
+    {
+      id: "transformers-one",
+      title: "Transformers One",
+      year: 2024, released: "2024-09-20",
+      continuity: "tf-one", phase: "tf-one",
+      recommendedOrder: 1, chronoOrder: 1,
+      setting: "Cybertron – længe før Jorden",
+      runtime: 104,
+      icon: "🔧",
+      description:
+        "Animeret origin-historie: To unge minearbejdere på Cybertron, Orion Pax og D-16, er bedste venner – indtil sandheden om deres verden splitter dem.",
+      whyHere:
+        "Den perfekte start: Den forklarer, hvorfor Autobots og Decepticons er fjender, og hvem Optimus Prime og Megatron er. Den hører til sit eget univers, så du skal ikke forbinde den direkte med de andre film.",
+      characters: ["Orion Pax", "D-16", "B-127", "Elita-1", "Sentinel Prime"],
+      links: ["Optimus Primes oprindelse", "Megatrons oprindelse", "Cybertron"],
+      connections: ["bumblebee"],
+      postCredit: { count: 2, text: "Der er ekstra scener under rulleteksterne – bl.a. en sjov scene med B-127." },
+      spoiler: "Orion Pax bliver til Optimus Prime, og D-16 bliver til Megatron.",
+      badges: ["story"],
+      importance: 4
+    },
+    {
+      id: "bumblebee",
+      title: "Bumblebee",
+      year: 2018, released: "2018-12-21",
+      continuity: "tf-new", phase: "tf-new",
+      recommendedOrder: 2, chronoOrder: 2,
+      setting: "1987",
+      runtime: 114,
+      icon: "🐝",
+      description:
+        "I 1987 finder teenageren Charlie en gammel gul folkevogn på en skrotplads. Den viser sig at være en flygtet Autobot – B-127.",
+      whyHere:
+        "Starten på den nyere kontinuitet. Den blev oprindeligt markedsført som en prequel til filmen fra 2007, men passer ikke helt med den (fx Cybertrons design og Bumblebees historie). Derfor ser vi den som start på sit eget univers sammen med Rise of the Beasts.",
+      characters: ["Bumblebee", "Charlie Watson", "Memo", "Agent Burns", "Shatter", "Dropkick"],
+      links: ["Bumblebee", "Sektor 7", "Krigen på Cybertron"],
+      connections: ["rise-of-the-beasts"],
+      postCredit: { count: 1, text: "En lille scene under rulleteksterne – ingen vigtig historie." },
+      spoiler: "Bumblebee mister sin stemme i kamp mod Blitzwing og må kommunikere via radioen.",
+      badges: ["story"],
+      importance: 4
+    },
+    {
+      id: "rise-of-the-beasts",
+      title: "Transformers: Rise of the Beasts",
+      year: 2023, released: "2023-06-09",
+      continuity: "tf-new", phase: "tf-new",
+      recommendedOrder: 3, chronoOrder: 3,
+      setting: "1994",
+      runtime: 127,
+      icon: "🦍",
+      description:
+        "I 1994 bliver Brooklyn-drengen Noah og museumspraktikanten Elena trukket ind i en kamp mellem Autobots, Maximals og den planetslugende Unicron.",
+      whyHere:
+        "Fortsætter Bumblebee-kontinuiteten syv år senere. Introducerer Maximals og Unicron, og slutningen åbner for et større crossover-univers.",
+      characters: ["Optimus Prime", "Noah Diaz", "Elena Wallace", "Optimus Primal", "Mirage", "Scourge"],
+      links: ["Maximals", "Unicron", "Transwarp-nøglen"],
+      connections: ["bumblebee"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne – men filmens sidste minutter er vigtige." },
+      spoiler: "Noah bliver til sidst rekrutteret af Agent Burke til G.I. Joe – et hint om et Transformers/G.I. Joe-crossover.",
+      badges: ["connector", "info"],
+      importance: 4
+    },
+    {
+      id: "transformers-2007",
+      title: "Transformers",
+      year: 2007, released: "2007-07-03",
+      continuity: "tf-bay", phase: "tf-bay",
+      recommendedOrder: 4, chronoOrder: 4,
+      setting: "2007",
+      runtime: 144,
+      icon: "🚗",
+      description:
+        "Teenageren Sam Witwicky køber sin første bil – og trækker sig selv ind i en hemmelig krig mellem Autobots og Decepticons om den mægtige AllSpark.",
+      whyHere:
+        "⚡ Nyt univers! Historien starter forfra her. Det er begyndelsen på den klassiske live-action-saga, og alle de næste fire film bygger direkte videre på den.",
+      characters: ["Sam Witwicky", "Mikaela Banes", "Optimus Prime", "Bumblebee", "Megatron", "Lennox"],
+      links: ["AllSpark", "Sektor 7", "NEST"],
+      connections: ["revenge-of-the-fallen"],
+      postCredit: { count: 1, text: "Under rulleteksterne flyver Starscream ud i rummet – han overlevede." },
+      spoiler: "Sam ødelægger AllSpark ved at presse den ind i Megatrons brystkasse.",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "revenge-of-the-fallen",
+      title: "Transformers: Revenge of the Fallen",
+      year: 2009, released: "2009-06-24",
+      continuity: "tf-bay", phase: "tf-bay",
+      recommendedOrder: 5, chronoOrder: 5,
+      setting: "2009",
+      runtime: 150,
+      icon: "🏜️",
+      description:
+        "Sam skal på college, men et lille stykke AllSpark giver ham syner af gamle symboler. Decepticons vækker deres gamle mester: The Fallen.",
+      whyHere:
+        "Direkte fortsættelse af 2007-filmen. Udvider historien om de første Transformers (The Primes) og deres fortid på Jorden.",
+      characters: ["Sam Witwicky", "Optimus Prime", "Bumblebee", "Megatron", "The Fallen", "Jetfire"],
+      links: ["The Primes", "Matrix of Leadership", "Egypten"],
+      connections: ["transformers-2007", "dark-of-the-moon"],
+      postCredit: { count: 0, text: "Ingen vigtige scener efter rulleteksterne." },
+      spoiler: "Optimus dør og bliver genoplivet af Sam med Matrix of Leadership.",
+      badges: [],
+      importance: 3
+    },
+    {
+      id: "dark-of-the-moon",
+      title: "Transformers: Dark of the Moon",
+      year: 2011, released: "2011-06-29",
+      continuity: "tf-bay", phase: "tf-bay",
+      recommendedOrder: 6, chronoOrder: 6,
+      setting: "2011 (+ 1969)",
+      runtime: 154,
+      icon: "🌕",
+      description:
+        "Månelandingen i 1969 skjulte en hemmelighed: et styrtet Autobot-skib. Nu kappes Autobots og Decepticons om teknologien om bord.",
+      whyHere:
+        "Afslutter Sam Witwicky-trilogien og den første store bue i Bay-universet. Slaget om Chicago får store konsekvenser i Age of Extinction.",
+      characters: ["Sam Witwicky", "Carly", "Optimus Prime", "Sentinel Prime", "Megatron", "Shockwave"],
+      links: ["Månelandingen", "Slaget om Chicago", "Sentinel Prime"],
+      connections: ["revenge-of-the-fallen", "age-of-extinction"],
+      postCredit: { count: 0, text: "Ingen vigtige scener efter rulleteksterne." },
+      spoiler: "Sentinel Prime – Optimus' gamle mentor – har indgået en aftale med Decepticons.",
+      badges: ["story"],
+      importance: 4
+    },
+    {
+      id: "age-of-extinction",
+      title: "Transformers: Age of Extinction",
+      year: 2014, released: "2014-06-27",
+      continuity: "tf-bay", phase: "tf-bay",
+      recommendedOrder: 7, chronoOrder: 7,
+      setting: "2014 (fem år efter Chicago)",
+      runtime: 165,
+      icon: "🦖",
+      description:
+        "Efter Chicago bliver alle Transformers jagtet af regeringen. Opfinderen Cade Yeager finder en smadret lastbil i en gammel biograf – det er Optimus Prime.",
+      whyHere:
+        "Samme univers, men nye menneskelige hovedpersoner. Du behøver ikke kende Sam, men Chicago-slaget fra Dark of the Moon forklarer, hvorfor verden har vendt sig mod Transformers.",
+      characters: ["Cade Yeager", "Tessa Yeager", "Optimus Prime", "Lockdown", "Galvatron", "Grimlock"],
+      links: ["Dinobots", "Skaberne", "KSI"],
+      connections: ["dark-of-the-moon", "the-last-knight"],
+      postCredit: { count: 0, text: "Ingen vigtige scener efter rulleteksterne." },
+      spoiler: "Galvatron er i virkeligheden Megatron, genopbygget af mennesker.",
+      badges: ["connector"],
+      importance: 3
+    },
+    {
+      id: "the-last-knight",
+      title: "Transformers: The Last Knight",
+      year: 2017, released: "2017-06-21",
+      continuity: "tf-bay", phase: "tf-bay",
+      recommendedOrder: 8, chronoOrder: 8,
+      setting: "2017 (+ kong Arthurs tid)",
+      runtime: 154,
+      icon: "🗡️",
+      description:
+        "Transformers har været på Jorden i århundreder – helt tilbage til kong Arthur. Nu kommer Cybertron selv mod Jorden.",
+      whyHere:
+        "Den sidste film i Bay-universet. Den fortsætter direkte efter Age of Extinction og lukker (delvist) historien om Optimus og Quintessa.",
+      characters: ["Cade Yeager", "Vivian Wembley", "Sir Edmund Burton", "Optimus Prime", "Quintessa", "Megatron"],
+      links: ["Kong Arthur", "Quintessa", "Cybertron vs. Jorden"],
+      connections: ["age-of-extinction"],
+      postCredit: { count: 1, text: "Mid-credit: Quintessa lever og har en ny plan for Jorden." },
+      spoiler: "Jorden er i virkeligheden Unicron, Transformers' gamle fjende.",
+      badges: [],
+      importance: 2
+    },
+    {
+      id: "transformers-the-movie-1986",
+      title: "The Transformers: The Movie",
+      year: 1986, released: "1986-08-08",
+      continuity: "tf-g1", phase: "tf-g1",
+      recommendedOrder: 9, chronoOrder: 9,
+      setting: "2005 (set fra 1986)",
+      runtime: 84,
+      icon: "📺",
+      description:
+        "Den klassiske tegnefilm: Autobots og Decepticons kæmper, mens en planet-stor trussel – Unicron – nærmer sig Cybertron.",
+      whyHere:
+        "Bonus! Separat univers baseret på den originale 80'er-tegnefilmserie. Ikke nødvendig for de andre film, men super interessant at se, hvor Unicron, Matrix of Leadership og meget mere kommer fra.",
+      characters: ["Optimus Prime", "Hot Rod", "Megatron", "Galvatron", "Unicron", "Bumblebee"],
+      links: ["G1-tegnefilmserien", "Unicron", "Matrix of Leadership"],
+      connections: ["rise-of-the-beasts", "transformers-one"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Optimus Prime dør tidligt i filmen – et chok for børn i 1986.",
+      badges: [],
+      importance: 2
+    }
+  ],
+
+  /* ======================================================================
+     STAR WARS
+     ====================================================================== */
+  starwars: [
+    {
+      id: "sw-iv-a-new-hope",
+      title: "Star Wars: Episode IV – A New Hope",
+      year: 1977, released: "1977-05-25",
+      continuity: "sw", phase: "Original-trilogien",
+      recommendedOrder: 1, chronoOrder: 6,
+      setting: "0 BBY (Year 0)",
+      runtime: 121,
+      icon: "✨",
+      description:
+        "Bondedrengen Luke Skywalker bliver trukket ind i oprørets kamp mod Imperiet, da han finder en hemmelig besked fra prinsesse Leia gemt i en lille droid.",
+      whyHere:
+        "Start her – sådan mødte hele verden Star Wars. Filmen introducerer galaksen, Kraften, Jedi-ridderne og Darth Vader uden at du behøver at vide noget på forhånd, og den holder de store hemmeligheder skjult.",
+      characters: ["Luke Skywalker", "Leia Organa", "Han Solo", "Chewbacca", "Obi-Wan Kenobi", "Darth Vader", "R2-D2", "C-3PO"],
+      links: ["Kraften", "Dødsstjernen", "Oprøret mod Imperiet"],
+      connections: ["sw-rogue-one", "sw-v-empire-strikes-back"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne – det har Star Wars-film traditionelt ikke." },
+      spoiler: "Obi-Wan bliver dræbt af Darth Vader, og Luke sprænger Dødsstjernen i luften med Kraftens hjælp.",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "sw-v-empire-strikes-back",
+      title: "Star Wars: Episode V – The Empire Strikes Back",
+      year: 1980, released: "1980-05-21",
+      continuity: "sw", phase: "Original-trilogien",
+      recommendedOrder: 2, chronoOrder: 7,
+      setting: "3 ABY",
+      runtime: 124,
+      icon: "❄️",
+      description:
+        "Imperiet slår hårdt tilbage. Mens Han og Leia flygter fra Vader, rejser Luke til sumpplaneten Dagobah for at lære Kraften hos Jedi-mesteren Yoda.",
+      whyHere:
+        "Fortsætter direkte efter IV og indeholder filmhistoriens måske største overraskelse. Den skal ses, FØR du ser prequel-trilogien – ellers er overraskelsen ødelagt.",
+      characters: ["Luke Skywalker", "Leia Organa", "Han Solo", "Yoda", "Darth Vader", "Lando Calrissian", "Boba Fett"],
+      links: ["Yoda", "Jedi-træning", "Kejseren"],
+      connections: ["sw-iv-a-new-hope", "sw-i-phantom-menace", "sw-vi-return-of-the-jedi"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Darth Vader er Lukes far: 'No, I am your father.' Han Solo bliver frosset ned i carbonit.",
+      badges: ["story", "universe", "info"],
+      importance: 5
+    },
+    {
+      id: "sw-i-phantom-menace",
+      title: "Star Wars: Episode I – The Phantom Menace",
+      year: 1999, released: "1999-05-19",
+      continuity: "sw", phase: "Prequel-trilogien",
+      recommendedOrder: 3, chronoOrder: 1,
+      setting: "32 BBY",
+      runtime: 136,
+      icon: "🏎️",
+      description:
+        "32 år før A New Hope: To Jedi-riddere opdager en ung slavedreng på ørkenplaneten Tatooine med en usædvanlig stærk forbindelse til Kraften – Anakin Skywalker.",
+      whyHere:
+        "Efter overraskelsen i Episode V er det oplagt at spole tilbage: Hvem var Anakin Skywalker, og hvordan endte han som Darth Vader? Prequel-trilogien ses her som ét stort flashback.",
+      characters: ["Anakin Skywalker", "Obi-Wan Kenobi", "Qui-Gon Jinn", "Padmé Amidala", "Senator Palpatine", "Darth Maul"],
+      links: ["Den Galaktiske Republik", "Jedi-ordenen", "Sith"],
+      connections: ["sw-v-empire-strikes-back", "sw-ii-attack-of-the-clones"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Senator Palpatine er i hemmelighed Sith-herren Darth Sidious, og Qui-Gon dræbes af Darth Maul.",
+      badges: ["story"],
+      importance: 4
+    },
+    {
+      id: "sw-ii-attack-of-the-clones",
+      title: "Star Wars: Episode II – Attack of the Clones",
+      year: 2002, released: "2002-05-16",
+      continuity: "sw", phase: "Prequel-trilogien",
+      recommendedOrder: 4, chronoOrder: 2,
+      setting: "22 BBY",
+      runtime: 142,
+      icon: "⚔️",
+      description:
+        "Ti år senere er Anakin Obi-Wans lærling. Et attentat mod Padmé fører Obi-Wan på sporet af en hemmelig klonhær – og galaksen glider mod krig.",
+      whyHere:
+        "Viser Anakins kærlighed til Padmé og hans voksende vrede – begge dele er nøglen til hans fald. Klonkrigene starter her, og klonerne bliver senere til Imperiets stormtropper.",
+      characters: ["Anakin Skywalker", "Obi-Wan Kenobi", "Padmé Amidala", "Yoda", "Count Dooku", "Jango Fett", "Palpatine"],
+      links: ["Klonkrigene", "Klonhæren", "Boba Fett (som barn)"],
+      connections: ["sw-i-phantom-menace", "sw-iii-revenge-of-the-sith"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Palpatine styrer begge sider af krigen, og Anakin og Padmé gifter sig i hemmelighed.",
+      badges: ["connector"],
+      importance: 3
+    },
+    {
+      id: "sw-iii-revenge-of-the-sith",
+      title: "Star Wars: Episode III – Revenge of the Sith",
+      year: 2005, released: "2005-05-19",
+      continuity: "sw", phase: "Prequel-trilogien",
+      recommendedOrder: 5, chronoOrder: 3,
+      setting: "19 BBY",
+      runtime: 140,
+      icon: "🔥",
+      description:
+        "Klonkrigene nærmer sig enden. Anakin plages af mareridt om Padmé, og kansler Palpatine tilbyder ham den magt, Jedi-ordenen nægter ham.",
+      whyHere:
+        "Afslutningen på Anakins historie og bindeleddet til original-trilogien. Efter denne film forstår du Darth Vader fuldt ud – og det giver Episode VI langt større følelsesmæssig tyngde.",
+      watchFirst: ["Star Wars: The Clone Wars (animationsserie) – valgfri, men giver Anakin og Obi-Wan meget mere dybde"],
+      characters: ["Anakin Skywalker", "Obi-Wan Kenobi", "Padmé Amidala", "Palpatine", "Yoda", "Mace Windu"],
+      links: ["Order 66", "Imperiets fødsel", "Darth Vader"],
+      connections: ["sw-ii-attack-of-the-clones", "sw-rogue-one", "sw-iv-a-new-hope"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne – men de sidste minutter binder direkte til Episode IV." },
+      spoiler: "Anakin bliver Darth Vader, Jedi-ordenen udslettes med Order 66, Padmé dør, og tvillingerne Luke og Leia skilles ad.",
+      badges: ["story", "universe", "connector"],
+      importance: 5
+    },
+    {
+      id: "sw-rogue-one",
+      title: "Rogue One: A Star Wars Story",
+      year: 2016, released: "2016-12-16",
+      continuity: "sw", phase: "Anthology & spin-offs",
+      recommendedOrder: 6, chronoOrder: 5,
+      setting: "0 BBY (lige før Episode IV)",
+      runtime: 133,
+      icon: "📡",
+      description:
+        "En flok oprørere må stjæle tegningerne til Imperiets nye supervåben, Dødsstjernen – en mission, der ender lige der, hvor Episode IV begynder.",
+      whyHere:
+        "Placeret efter Episode III som bro tilbage til original-trilogien: Du har lige set Imperiet blive født og ser nu, hvor råt det er blevet. Filmen forklarer også Dødsstjernens svaghed og byder på en af de bedste Darth Vader-scener nogensinde – lige inden hans sidste kapitel i VI.",
+      characters: ["Jyn Erso", "Cassian Andor", "K-2SO", "Chirrut Îmwe", "Orson Krennic", "Darth Vader"],
+      links: ["Dødsstjernens tegninger", "Oprørsalliancen", "Andor (serie)"],
+      connections: ["sw-iii-revenge-of-the-sith", "sw-iv-a-new-hope"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Hele Rogue One-holdet dør, men tegningerne når frem til prinsesse Leia – præcis hvor Episode IV starter.",
+      badges: ["connector"],
+      importance: 3
+    },
+    {
+      id: "sw-vi-return-of-the-jedi",
+      title: "Star Wars: Episode VI – Return of the Jedi",
+      year: 1983, released: "1983-05-25",
+      continuity: "sw", phase: "Original-trilogien",
+      recommendedOrder: 7, chronoOrder: 8,
+      setting: "4 ABY",
+      runtime: 131,
+      icon: "🌲",
+      description:
+        "Luke vender hjem som Jedi for at redde Han Solo og konfrontere Vader og Kejseren én sidste gang, mens oprøret satser alt på et angreb mod en ny Dødsstjerne.",
+      whyHere:
+        "Afslutningen på Skywalker-familiens første store historie. Fordi du nu kender hele Anakins fortid fra prequel-trilogien, rammer slutningen langt hårdere.",
+      characters: ["Luke Skywalker", "Leia Organa", "Han Solo", "Darth Vader", "Kejser Palpatine", "Yoda", "Ewoks"],
+      links: ["Kejseren", "Anakins forløsning", "Slaget om Endor"],
+      connections: ["sw-v-empire-strikes-back", "sw-iii-revenge-of-the-sith", "sw-vii-force-awakens"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Leia er Lukes tvillingesøster, og Vader vender sig mod Kejseren for at redde sin søn – og dør som Anakin Skywalker.",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "sw-solo",
+      title: "Solo: A Star Wars Story",
+      year: 2018, released: "2018-05-25",
+      continuity: "sw", phase: "Anthology & spin-offs",
+      recommendedOrder: 8, chronoOrder: 4,
+      setting: "Ca. 13–10 BBY",
+      runtime: 135,
+      icon: "🎲",
+      description:
+        "Den unge Han Solo møder Chewbacca, vinder Millennium Falcon fra Lando og bliver trukket ind i et farligt kup.",
+      whyHere:
+        "En lettere bonusfilm efter den store afslutning i VI. Den er ikke nødvendig for hovedhistorien, men er hyggeligst, når du allerede holder af Han, Chewie og Lando.",
+      characters: ["Han Solo", "Chewbacca", "Lando Calrissian", "Qi'ra", "Tobias Beckett"],
+      links: ["Millennium Falcon", "Kessel Run", "Underverdenen"],
+      connections: ["sw-iv-a-new-hope"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Qi'ra arbejder i virkeligheden for Darth Maul, der overlevede Episode I.",
+      badges: [],
+      importance: 2
+    },
+    {
+      id: "sw-vii-force-awakens",
+      title: "Star Wars: Episode VII – The Force Awakens",
+      year: 2015, released: "2015-12-18",
+      continuity: "sw", phase: "Sequel-trilogien",
+      recommendedOrder: 9, chronoOrder: 10,
+      setting: "34 ABY",
+      runtime: 138,
+      icon: "🗡️",
+      description:
+        "30 år efter Imperiets fald er Luke Skywalker forsvundet. Skrammelsamleren Rey og den desserterede stormtrooper Finn bliver kastet ind i kampen mod den nye Første Orden.",
+      whyHere:
+        "Starten på sequel-trilogien. Den bygger direkte videre på VI, og gamle helte vender tilbage, så du skal have original-trilogien frisk i hukommelsen.",
+      characters: ["Rey", "Finn", "Poe Dameron", "Kylo Ren", "Han Solo", "Leia Organa", "BB-8"],
+      links: ["Den Første Orden", "Modstandsbevægelsen", "Lukes forsvinden"],
+      connections: ["sw-vi-return-of-the-jedi", "sw-viii-last-jedi"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne – men slutscenen fører direkte ind i VIII." },
+      spoiler: "Kylo Ren er Han og Leias søn Ben – og han dræber sin far.",
+      badges: ["story"],
+      importance: 4
+    },
+    {
+      id: "sw-viii-last-jedi",
+      title: "Star Wars: Episode VIII – The Last Jedi",
+      year: 2017, released: "2017-12-15",
+      continuity: "sw", phase: "Sequel-trilogien",
+      recommendedOrder: 10, chronoOrder: 11,
+      setting: "34 ABY (lige efter VII)",
+      runtime: 152,
+      icon: "🏝️",
+      description:
+        "Rey har fundet Luke Skywalker og beder ham om at træne hende, mens modstandsbevægelsen jagtes gennem rummet af Den Første Orden.",
+      whyHere:
+        "Fortsætter i samme sekund, som VII slutter. Udfordrer meget af det, du tror, du ved om Jedi og Kraften.",
+      characters: ["Rey", "Luke Skywalker", "Kylo Ren", "Finn", "Poe Dameron", "Leia Organa", "Snoke"],
+      links: ["Lukes fortid", "Rey og Kylo", "Jedi-ordenens arv"],
+      connections: ["sw-vii-force-awakens", "sw-ix-rise-of-skywalker"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Kylo Ren dræber Snoke, og Luke dør efter at have projiceret sig selv tværs gennem galaksen.",
+      badges: ["story"],
+      importance: 4
+    },
+    {
+      id: "sw-ix-rise-of-skywalker",
+      title: "Star Wars: Episode IX – The Rise of Skywalker",
+      year: 2019, released: "2019-12-20",
+      continuity: "sw", phase: "Sequel-trilogien",
+      recommendedOrder: 11, chronoOrder: 12,
+      setting: "35 ABY",
+      runtime: 142,
+      icon: "☀️",
+      description:
+        "En gammel fjende er vendt tilbage. Rey, Finn og Poe må finde ham, før han samler en flåde, der kan knuse resten af galaksens frihed.",
+      whyHere:
+        "Afslutningen på hele Skywalker-sagaen fra Episode I til IX. Binder trådene fra alle tre trilogier sammen.",
+      characters: ["Rey", "Kylo Ren", "Finn", "Poe Dameron", "Leia Organa", "Kejser Palpatine", "Lando Calrissian"],
+      links: ["Skywalker-sagaens afslutning", "Palpatine", "Sith"],
+      connections: ["sw-viii-last-jedi", "sw-vi-return-of-the-jedi"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Palpatine er tilbage, og Rey er hans barnebarn. Ben Solo vender sig mod lyset og dør efter at have reddet Rey.",
+      badges: ["story", "universe", "connector"],
+      importance: 4
+    },
+    {
+      id: "sw-mandalorian-and-grogu",
+      title: "The Mandalorian & Grogu",
+      year: 2026, released: "2026-05-22",
+      continuity: "sw", phase: "Anthology & spin-offs",
+      recommendedOrder: 12, chronoOrder: 9,
+      setting: "Ca. 9 ABY (efter Episode VI)",
+      runtime: null,
+      icon: "🪖",
+      description:
+        "Lejesoldaten Din Djarin og hans lille Kraft-følsomme følgesvend Grogu tager på nyt eventyr i årene efter Imperiets fald.",
+      whyHere:
+        "Den nyeste Star Wars-film. Den foregår mellem VI og VII, men ses til sidst, fordi den bygger på Disney+-serien The Mandalorian og ikke er nødvendig for Skywalker-sagaen.",
+      watchFirst: ["The Mandalorian sæson 1–3 (Disney+) – stærkt anbefalet"],
+      characters: ["Din Djarin", "Grogu"],
+      links: ["The Mandalorian", "Den Nye Republik"],
+      connections: ["sw-vi-return-of-the-jedi"],
+      postCredit: null,
+      spoiler: "",
+      badges: ["info"],
+      importance: 2
+    }
+  ]
+};
+
+  </script>
+  <!-- ===================== FILMDATA – SLUT ===================== -->
+
+  <!-- ===================== 3) APP-LOGIK ===================== -->
+  <script>
+/* ==========================================================================
+   GREJS FILM GUIDE – APP
+   --------------------------------------------------------------------------
+   Kræver at js/movies.js er indlæst først (CONTINUITIES, UNIVERSES, MOVIES,
+   COMING_SOON).
+
+   Hver side fortæller selv, hvad den er, via <body>:
+     data-page="home"                         → forsiden (index.html)
+     data-page="universe" data-universe="x"   → et filmunivers (marvel.html …)
+     Forsiden indeholder også sektionen "Min Film-Profil" (#progression)
+
+   Indhold:
+     1) Lagring (localStorage)     6) Navigation & footer
+     2) Hjælpefunktioner           7) Forside
+     3) Filmdata-funktioner        8) Universside
+     4) HTML-byggeklodser          9) Profilside
+     5) Modal, næste film, toast  10) Globale klik & opstart
+   ========================================================================== */
+
+(function () {
+  "use strict";
+
+  /* ======================================================================
+     1) LAGRING – alt gemmes i én nøgle i localStorage
+     ====================================================================== */
+  const STORAGE_KEY = "grejsFilmGuide.v1";
+  const DEFAULT_STATE = { watched: {}, spoilers: false, prefs: {} };
+
+  const Store = {
+    state: null,
+
+    load() {
+      let saved = null;
+      try {
+        saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      } catch (e) {
+        saved = null; // privat vindue / blokeret lager → kør videre i hukommelsen
+      }
+      this.state = Object.assign({}, DEFAULT_STATE, saved || {});
+      this.state.watched = this.state.watched || {};
+      this.state.prefs = this.state.prefs || {};
+    },
+
+    save() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+      } catch (e) {
+        /* Lager utilgængeligt – siden virker stadig, men husker ikke */
+      }
+    },
+
+    key: (uKey, id) => uKey + "/" + id,
+
+    isWatched(uKey, id) {
+      return Boolean(this.state.watched[this.key(uKey, id)]);
+    },
+
+    watchedAt(uKey, id) {
+      return this.state.watched[this.key(uKey, id)] || null;
+    },
+
+    toggleWatched(uKey, id) {
+      const k = this.key(uKey, id);
+      if (this.state.watched[k]) delete this.state.watched[k];
+      else this.state.watched[k] = Date.now();
+      this.save();
+      return Boolean(this.state.watched[k]);
+    },
+
+    resetProgress() {
+      this.state.watched = {};
+      this.save();
+    },
+
+    get spoilers() {
+      return this.state.spoilers;
+    },
+    set spoilers(v) {
+      this.state.spoilers = Boolean(v);
+      this.save();
+    },
+
+    getPref(uKey, name, fallback) {
+      const p = this.state.prefs[uKey];
+      return p && p[name] !== undefined ? p[name] : fallback;
+    },
+    setPref(uKey, name, value) {
+      this.state.prefs[uKey] = Object.assign({}, this.state.prefs[uKey], { [name]: value });
+      this.save();
+    }
+  };
+
+  // Hold flere åbne faner synkroniseret
+  window.addEventListener("storage", (e) => {
+    if (e.key === STORAGE_KEY) {
+      Store.load();
+      applySpoilerState();
+      refreshPage();
+    }
+  });
+
+  /* ======================================================================
+     2) HJÆLPEFUNKTIONER
+     ====================================================================== */
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+  /** Escape tekst før den sættes ind som HTML */
+  function esc(str) {
+    return String(str == null ? "" : str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  const pad = (n) => String(n).padStart(2, "0");
+
+  function fmtRuntime(min) {
+    if (!min) return "Ukendt";
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return h ? `${h} t ${m} min` : `${m} min`;
+  }
+
+  function fmtDate(iso) {
+    const d = new Date(iso + "T12:00:00");
+    return d.toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
+  }
+
+  function fmtWatchedAt(ts) {
+    const d = new Date(ts);
+    const diff = Date.now() - ts;
+    const day = 86400000;
+    if (diff < 60000) return "Lige nu";
+    if (diff < 3600000) return `${Math.round(diff / 60000)} min siden`;
+    if (diff < day) return `${Math.round(diff / 3600000)} t siden`;
+    if (diff < 2 * day) return "I går";
+    if (diff < 7 * day) return `${Math.floor(diff / day)} dage siden`;
+    return d.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  /** Simpel hash → bruges til at give hver genereret plakat sin egen farvetone */
+  function hashHue(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+    return h % 360;
+  }
+
+  const LONG_FILM_MINUTES = 145;
+
+  /* ======================================================================
+     3) FILMDATA-FUNKTIONER
+     ====================================================================== */
+  const universeKeys = () => Object.keys(UNIVERSES).filter((k) => Array.isArray(MOVIES[k]));
+
+  const continuityOf = (m) => CONTINUITIES[m.continuity] || { label: m.continuity, color: "#888", swatch: "⬜", description: "" };
+
+  /** Film sorteret efter valgt visning */
+  function sortedMovies(uKey, view = "recommended") {
+    const list = (MOVIES[uKey] || []).slice();
+    const uni = UNIVERSES[uKey];
+    switch (view) {
+      case "release":
+        return list.sort((a, b) => a.released.localeCompare(b.released));
+      case "chronological":
+        return list.sort((a, b) => a.chronoOrder - b.chronoOrder);
+      case "universes": {
+        const order = uni.groups || [];
+        return list.sort(
+          (a, b) => order.indexOf(a.continuity) - order.indexOf(b.continuity) || a.recommendedOrder - b.recommendedOrder
+        );
+      }
+      default:
+        return list.sort((a, b) => a.recommendedOrder - b.recommendedOrder);
+    }
+  }
+
+  /** Kun udgivne film tæller med i progression */
+  const releasedMovies = (uKey) => (MOVIES[uKey] || []).filter((m) => !m.upcoming);
+
+  function progressFor(uKey, filterFn) {
+    let list = releasedMovies(uKey);
+    if (filterFn) list = list.filter(filterFn);
+    const seen = list.filter((m) => Store.isWatched(uKey, m.id)).length;
+    const total = list.length;
+    return { seen, total, pct: total ? Math.round((seen / total) * 100) : 0 };
+  }
+
+  function totalProgress() {
+    return universeKeys().reduce(
+      (acc, k) => {
+        const p = progressFor(k);
+        acc.seen += p.seen;
+        acc.total += p.total;
+        acc.pct = acc.total ? Math.round((acc.seen / acc.total) * 100) : 0;
+        return acc;
+      },
+      { seen: 0, total: 0, pct: 0 }
+    );
+  }
+
+  /** "Hvad skal jeg se nu?" – første ikke-sete film i anbefalet rækkefølge */
+  function nextMovie(uKey) {
+    return sortedMovies(uKey, "recommended").find((m) => !m.upcoming && !Store.isWatched(uKey, m.id)) || null;
+  }
+
+  function findMovie(id, preferUni) {
+    const keys = preferUni ? [preferUni, ...universeKeys().filter((k) => k !== preferUni)] : universeKeys();
+    for (const k of keys) {
+      const m = (MOVIES[k] || []).find((x) => x.id === id);
+      if (m) return { movie: m, uKey: k };
+    }
+    return null;
+  }
+
+  function groupLabel(uKey, g) {
+    const uni = UNIVERSES[uKey];
+    if (uni.groupBy === "continuity") return (CONTINUITIES[g] || {}).label || g;
+    return g;
+  }
+
+  const groupOf = (uKey, m) => (UNIVERSES[uKey].groupBy === "continuity" ? m.continuity : m.phase);
+
+  /* ======================================================================
+     4) HTML-BYGGEKLODSER
+     ====================================================================== */
+  const BADGES = {
+    story: { icon: "⭐", label: "Vigtig for historien" },
+    universe: { icon: "🔥", label: "Stor betydning for universet" },
+    connector: { icon: "🧩", label: "Forbinder flere film" },
+    info: { icon: "⚠️", label: "Indeholder vigtig information" },
+    long: { icon: "⏱", label: "Lang film" }
+  };
+
+  function badgesFor(m) {
+    const list = (m.badges || []).slice();
+    if (m.runtime && m.runtime >= LONG_FILM_MINUTES) list.push("long");
+    return list;
+  }
+
+  function badgesHTML(m) {
+    const list = badgesFor(m);
+    if (!list.length) return "";
+    return `<div class="badges">${list
+      .map((b) => BADGES[b] && `<span class="badge badge--${b}" title="${esc(BADGES[b].label)}">${BADGES[b].icon} ${esc(BADGES[b].label)}</span>`)
+      .join("")}</div>`;
+  }
+
+  /** Spoiler-tekst: skjult indtil klik, eller altid vist hvis spoilere er TIL */
+  function spoilerHTML(text, lockLabel = "🔒 Spoiler – klik for at vise") {
+    if (!text) return "";
+    return `<span class="spoiler" role="button" tabindex="0" aria-label="Vis spoiler"><span class="spoiler__lock">${esc(lockLabel)}</span><span class="spoiler__text">${esc(text)}</span></span>`;
+  }
+
+  function posterBg(m) {
+    const c = continuityOf(m).color;
+    const hue = hashHue(m.id);
+    return `linear-gradient(165deg, ${c} 0%, hsl(${hue} 45% 26%) 52%, #090a10 100%)`;
+  }
+
+  /** Plakat: bruger m.poster hvis den findes, ellers en genereret plakat */
+  function posterHTML(m, uKey) {
+    const uni = UNIVERSES[uKey];
+    const img = m.poster
+      ? `<img src="${esc(m.poster)}" alt="Plakat: ${esc(m.title)}" loading="lazy" onerror="this.remove()">`
+      : "";
+    return `<div class="poster" style="--poster-bg:${posterBg(m)}" aria-hidden="${m.poster ? "false" : "true"}">
+      <span class="poster__uni">${esc(uni ? uni.kicker : "")}</span>
+      <span class="poster__icon">${m.icon || "🎬"}</span>
+      <span class="poster__title">${esc(m.title)}</span>
+      <span class="poster__year">${m.year}</span>
+      ${img}
+      <span class="poster__shine"></span>
+      <span class="poster__seen">✓</span>
+    </div>`;
+  }
+
+  function watchBtnHTML(uKey, m, extraClass = "") {
+    if (m.upcoming) {
+      return `<span class="watch-btn" aria-disabled="true">🔜 Udkommer ${esc(fmtDate(m.released))}</span>`;
+    }
+    const w = Store.isWatched(uKey, m.id);
+    return `<button type="button" class="watch-btn ${w ? "is-watched" : ""} ${extraClass}" data-watch="${esc(m.id)}" data-uni="${uKey}" aria-pressed="${w}">
+      <span class="watch-btn__icon">${w ? "✓" : ""}</span>${w ? "Set" : "Ikke set – marker som set"}
+    </button>`;
+  }
+
+  function postCreditHTML(m) {
+    const pc = m.postCredit;
+    if (!pc) {
+      return `<div class="post-credit post-credit--none"><span class="post-credit__icon">🎬</span><div><strong>Ekstra scener:</strong> ${
+        m.upcoming ? "Info kommer, når filmen udkommer." : "Ingen info endnu – bliv siddende for en sikkerheds skyld."
+      }</div></div>`;
+    }
+    if (!pc.count) {
+      return `<div class="post-credit post-credit--none"><span class="post-credit__icon">🎬</span><div><strong>Efter rulleteksterne:</strong> ${esc(pc.text)}</div></div>`;
+    }
+    return `<div class="post-credit"><span class="post-credit__icon">🍿</span><div>
+      <strong>${pc.count > 1 ? pc.count + " post-credit scener" : "Post-credit scene"}</strong> – husk at blive til efter rulleteksterne.<br>
+      ${spoilerHTML(pc.text)}
+    </div></div>`;
+  }
+
+  function metaHTML(uKey, m, opts = {}) {
+    const uni = UNIVERSES[uKey];
+    const cont = continuityOf(m);
+    const items = [];
+    if (m.upcoming) items.push(`<span class="meta__item meta__item--soon">🔜 Kommer ${esc(fmtDate(m.released))}</span>`);
+    items.push(`<span class="meta__item">📅 ${m.year}</span>`);
+    if (uni.groupBy === "phase") items.push(`<span class="meta__item">🎞 ${esc(m.phase)}</span>`);
+    items.push(`<span class="meta__item">⏱ ${esc(fmtRuntime(m.runtime))}</span>`);
+    items.push(`<span class="meta__item" title="Hvornår filmen foregår i universet">🕰 ${esc(m.setting)}</span>`);
+    if (opts.universe !== false) {
+      items.push(`<span class="meta__item meta__item--universe">${cont.swatch} ${esc(cont.label)}</span>`);
+    }
+    return `<div class="meta">${items.join("")}</div>`;
+  }
+
+  function connectionsInline(uKey, m) {
+    const links = (m.connections || [])
+      .map((id) => findMovie(id, uKey))
+      .filter(Boolean)
+      .map((r) => `<button type="button" class="conn-link" data-open="${esc(r.movie.id)}" data-uni="${r.uKey}">${esc(r.movie.title)}</button>`);
+    return links.join(", ");
+  }
+
+  const VIEW_LABELS = {
+    recommended: { tab: "⭐ Anbefalet", order: "Anbefalet #", title: "Anbefalet rækkefølge", icon: "⭐" },
+    release: { tab: "📅 Udgivelse", order: "Udgivet som nr. ", title: "Udgivelsesrækkefølge", icon: "📅" },
+    chronological: { tab: "🕰 Kronologisk", order: "Kronologisk #", title: "Kronologisk rækkefølge", icon: "🕰" },
+    universes: { tab: "🌐 Universer", order: "Univers-visning #", title: "Universer / tidslinjer", icon: "🌐" }
+  };
+
+  /** Det store filmkort i listen */
+  function movieCardHTML(uKey, m, num, view, isNext) {
+    const w = Store.isWatched(uKey, m.id);
+    const cont = continuityOf(m);
+    const whyLabel = view === "recommended" ? "Hvorfor skal den ses her?" : "Hvorfor ligger den her i den anbefalede rækkefølge?";
+    const recNote = view !== "recommended" ? ` · Anbefalet #${m.recommendedOrder}` : "";
+
+    return `<article class="movie-card reveal ${w ? "is-watched" : ""} ${isNext ? "is-next" : ""} ${m.upcoming ? "is-upcoming" : ""}"
+        id="film-${esc(m.id)}" data-card="${esc(m.id)}" data-uni="${uKey}" style="--c:${cont.color}" tabindex="-1">
+      <span class="movie-card__num" aria-hidden="true">${pad(num)}</span>
+      ${posterHTML(m, uKey)}
+      <div class="movie-card__body">
+        <div class="movie-card__top">
+          <div class="movie-card__order">${esc(VIEW_LABELS[view].order)}${num}${recNote} ${isNext ? '<span class="next-flag">▶ Næste film</span>' : ""}</div>
+          <h3 class="movie-card__title">${esc(m.title)}</h3>
+        </div>
+        ${metaHTML(uKey, m)}
+        ${badgesHTML(m)}
+        <p class="movie-card__desc">${esc(m.description)}</p>
+        <div class="why-here"><strong>${whyLabel}</strong>${esc(m.whyHere)}</div>
+        <dl class="info-row">
+          <dt>Karakterer</dt><dd><div class="tag-list">${m.characters.map((c) => `<span class="tag">${esc(c)}</span>`).join("")}</div></dd>
+          ${m.links && m.links.length ? `<dt>Forbinder til</dt><dd>${m.links.map(esc).join(" · ")}</dd>` : ""}
+          ${m.connections && m.connections.length ? `<dt>Se også</dt><dd>${connectionsInline(uKey, m)}</dd>` : ""}
+          ${m.stones ? `<dt>💎 Infinity Sten</dt><dd>${m.stones.map(esc).join(", ")}</dd>` : ""}
+        </dl>
+        ${watchFirstHTML(m)}
+        ${postCreditHTML(m)}
+        <div class="movie-card__actions">
+          ${watchBtnHTML(uKey, m)}
+          <button type="button" class="btn btn--ghost btn--sm" data-open="${esc(m.id)}" data-uni="${uKey}">Detaljer →</button>
+        </div>
+      </div>
+    </article>`;
+  }
+
+  function watchFirstHTML(m) {
+    if (!m.watchFirst || !m.watchFirst.length) return "";
+    return `<div class="watch-first"><strong>⚠️ Bedre forståelse:</strong> se gerne først
+      <ul>${m.watchFirst.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></div>`;
+  }
+
+  function meterHTML(pct, size = "") {
+    return `<div class="meter ${size}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><div class="meter__fill" style="width:${pct}%"></div></div>`;
+  }
+
+  /* ======================================================================
+     5) MODAL, NÆSTE FILM, BEKRÆFTELSE & TOAST
+     ====================================================================== */
+  const Modal = {
+    el: null,
+    dialog: null,
+    lastFocus: null,
+    current: null, // { type:'movie', uKey, id } – bruges til at genopfriske indholdet
+
+    init() {
+      this.el = document.createElement("div");
+      this.el.className = "modal";
+      this.el.setAttribute("aria-hidden", "true");
+      this.el.innerHTML = `<div class="modal__dialog" role="dialog" aria-modal="true" aria-label="Detaljer"></div>`;
+      document.body.appendChild(this.el);
+      this.dialog = $(".modal__dialog", this.el);
+
+      // Luk ved klik udenfor vinduet
+      this.el.addEventListener("mousedown", (e) => {
+        if (e.target === this.el) this.close();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && this.isOpen()) this.close();
+        if (e.key === "Tab" && this.isOpen()) this.trapFocus(e);
+      });
+    },
+
+    isOpen() {
+      return this.el.classList.contains("is-open");
+    },
+
+    open(html, { small = false, label = "Dialog", accent = null } = {}) {
+      if (!this.isOpen()) this.lastFocus = document.activeElement;
+      const nav = $("#site-nav");
+      if (nav) nav.classList.remove("is-open"); // luk mobilmenuen bag modalen
+      this.dialog.className = "modal__dialog" + (small ? " modal__dialog--sm" : "");
+      this.dialog.setAttribute("aria-label", label);
+      this.dialog.style.setProperty("--c", accent || "var(--accent)");
+      this.dialog.innerHTML = `<button type="button" class="modal__close" data-close aria-label="Luk">✕</button>${html}`;
+      this.dialog.scrollTop = 0;
+      this.el.classList.add("is-open");
+      this.el.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+      requestAnimationFrame(() => $(".modal__close", this.dialog).focus());
+    },
+
+    close() {
+      this.el.classList.remove("is-open");
+      this.el.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+      this.current = null;
+      if (this.lastFocus && document.contains(this.lastFocus)) this.lastFocus.focus();
+    },
+
+    trapFocus(e) {
+      const f = $$('button, [href], input, [tabindex]:not([tabindex="-1"])', this.dialog).filter((x) => !x.disabled);
+      if (!f.length) return;
+      const first = f[0];
+      const last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        last.focus();
+        e.preventDefault();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        first.focus();
+        e.preventDefault();
+      }
+    }
+  };
+
+  /** Stort detaljevindue for en film */
+  function openMovie(uKey, id, { keepScroll = false } = {}) {
+    const m = (MOVIES[uKey] || []).find((x) => x.id === id);
+    if (!m) return;
+    const uni = UNIVERSES[uKey];
+    const cont = continuityOf(m);
+    const rec = sortedMovies(uKey, "recommended");
+    const idx = rec.findIndex((x) => x.id === id);
+    const prev = rec[idx - 1];
+    const next = rec[idx + 1];
+    const stars = "★".repeat(m.importance || 0) + "☆".repeat(5 - (m.importance || 0));
+    const scroll = Modal.dialog.scrollTop;
+
+    const connections = (m.connections || [])
+      .map((cid) => findMovie(cid, uKey))
+      .filter(Boolean)
+      .map(
+        (r) => `<button type="button" data-open="${esc(r.movie.id)}" data-uni="${r.uKey}">
+          → ${esc(r.movie.title)} <small style="color:var(--text-3)">(${r.movie.year})</small>
+          ${Store.isWatched(r.uKey, r.movie.id) ? '<span class="is-seen">✓ Set</span>' : ""}
+        </button>`
+      )
+      .join("");
+
+    const html = `
+      <div class="detail">
+        <header class="detail__hero" style="--poster-bg:${posterBg(m)}">
+          ${posterHTML(m, uKey)}
+          <div>
+            <div class="detail__kicker">${esc(uni.kicker)} · Anbefalet #${m.recommendedOrder} af ${rec.length}</div>
+            <h2 class="detail__title">${esc(m.title)}</h2>
+            <div class="detail__stars" title="Betydning for den samlede historie">${stars}<small>betydning for historien</small></div>
+            ${metaHTML(uKey, m)}
+            ${badgesHTML(m)}
+          </div>
+        </header>
+        <div class="detail__body">
+          <div>
+            <section class="detail__section"><h3>Om filmen</h3><p>${esc(m.description)}</p></section>
+            <section class="detail__section"><h3>Hvorfor ser jeg den nu?</h3><p>${esc(m.whyHere)}</p></section>
+            ${m.watchFirst ? `<section class="detail__section">${watchFirstHTML(m)}</section>` : ""}
+            <section class="detail__section"><h3>Post-credit scene</h3>${postCreditHTML(m)}</section>
+            ${
+              m.spoiler
+                ? `<section class="detail__section spoiler-block"><h4>Stor afsløring</h4>${spoilerHTML(m.spoiler, "🔒 Spoiler skjult – klik for at vise")}</section>`
+                : ""
+            }
+          </div>
+          <aside class="detail__side">
+            <section><div class="detail__section"><h3>Vigtige karakterer</h3><div class="tag-list">${m.characters
+              .map((c) => `<span class="tag">${esc(c)}</span>`)
+              .join("")}</div></div></section>
+            ${m.links ? `<section class="detail__section"><h3>Forbinder til</h3><p>${m.links.map(esc).join(" · ")}</p></section>` : ""}
+            ${m.stones ? `<section class="detail__section"><h3>💎 Infinity Sten</h3><p>${m.stones.map(esc).join(", ")}</p></section>` : ""}
+            <section class="detail__section"><h3>Univers</h3><p><span class="dot" style="--c:${cont.color};display:inline-block;margin-right:6px"></span>${esc(cont.label)}</p><p style="font-size:.85rem;margin-top:4px">${esc(cont.description)}</p></section>
+            ${connections ? `<section class="detail__section"><h3>Forbindelser</h3><div class="detail__connections">${connections}</div></section>` : ""}
+          </aside>
+        </div>
+        <footer class="detail__footer">
+          ${watchBtnHTML(uKey, m)}
+          <div class="detail__nav">
+            ${prev ? `<button type="button" class="btn btn--ghost btn--sm" data-open="${esc(prev.id)}" data-uni="${uKey}" title="${esc(prev.title)}">← Forrige</button>` : ""}
+            ${next ? `<button type="button" class="btn btn--ghost btn--sm" data-open="${esc(next.id)}" data-uni="${uKey}" title="${esc(next.title)}">Næste →</button>` : ""}
+          </div>
+        </footer>
+      </div>`;
+
+    Modal.open(html, { label: m.title, accent: cont.color });
+    Modal.current = { type: "movie", uKey, id };
+    if (keepScroll) Modal.dialog.scrollTop = scroll;
+  }
+
+  /** "Hvad skal jeg se nu?" – for ét univers, eller alle hvis uKey er tom */
+  function openNext(uKey) {
+    const keys = uKey ? [uKey] : universeKeys();
+    const blocks = keys.map((k) => {
+      const uni = UNIVERSES[k];
+      const m = nextMovie(k);
+      if (!m) {
+        return `<div class="next-film">
+          <div class="next-film__label">🏆 ${esc(uni.shortName)}</div>
+          <h2 style="margin-top:14px">Du har set alle film!</h2>
+          <p>Flot klaret – du har gennemført hele den anbefalede ${esc(uni.shortName)}-rækkefølge.</p>
+        </div>`;
+      }
+      const p = progressFor(k);
+      return `<div class="next-film">
+        <div class="next-film__label">🎬 Din næste film${keys.length > 1 ? " · " + esc(uni.shortName) : ""}</div>
+        ${posterHTML(m, k)}
+        <h2>${esc(m.title)}</h2>
+        <p>Dette er den næste film i din anbefalede ${esc(uni.shortName)}-rækkefølge (#${m.recommendedOrder}).</p>
+        <p style="font-size:.85rem;color:var(--text-3)">Du har set ${p.seen} af ${p.total} film.</p>
+        <div class="next-film__actions">
+          <button type="button" class="btn btn--accent" style="--accent:${uni.accent};--accent-ink:${uni.accentText || "#fff"}" data-open="${esc(m.id)}" data-uni="${k}">Se filmens detaljer →</button>
+          ${
+            document.body.dataset.universe === k
+              ? `<button type="button" class="btn btn--ghost" data-goto="${esc(m.id)}">Vis i listen</button>`
+              : `<a class="btn btn--ghost" href="${esc(uni.page)}#film-${esc(m.id)}">Gå til ${esc(uni.shortName)}-listen</a>`
+          }
+        </div>
+      </div>`;
+    });
+    Modal.open(
+      keys.length > 1 ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">${blocks.join("")}</div>` : blocks[0],
+      { small: keys.length === 1, label: "Hvad skal jeg se nu?" }
+    );
+  }
+
+  /** Nulstil progression – med bekræftelse */
+  function openResetConfirm() {
+    Modal.open(
+      `<div class="confirm">
+        <div class="confirm__icon">⚠️</div>
+        <h2>Er du sikker på, at du vil nulstille din progression?</h2>
+        <p>Alle film, du har markeret som set, bliver fjernet. Dette kan ikke fortrydes.</p>
+        <div class="confirm__actions">
+          <button type="button" class="btn btn--ghost" data-close>Annuller</button>
+          <button type="button" class="btn btn--danger" data-confirm-reset>Nulstil</button>
+        </div>
+      </div>`,
+      { small: true, label: "Nulstil progression" }
+    );
+  }
+
+  function toast(msg) {
+    let wrap = $(".toast-wrap");
+    if (!wrap) {
+      wrap = document.createElement("div");
+      wrap.className = "toast-wrap";
+      wrap.setAttribute("aria-live", "polite");
+      document.body.appendChild(wrap);
+    }
+    const t = document.createElement("div");
+    t.className = "toast";
+    t.textContent = msg;
+    wrap.appendChild(t);
+    setTimeout(() => t.classList.add("out"), 2600);
+    setTimeout(() => t.remove(), 3000);
+  }
+
+  /* ======================================================================
+     6) NAVIGATION & FOOTER (fælles for alle sider)
+     ====================================================================== */
+  function renderNav() {
+    const host = $("#site-nav");
+    if (!host) return;
+    const page = document.body.dataset.page;
+    const current = document.body.dataset.universe;
+    const uniLinks = universeKeys()
+      .map(
+        (k) =>
+          `<a class="nav__link ${current === k ? "is-active" : ""}" href="${esc(UNIVERSES[k].page)}">${esc(UNIVERSES[k].shortName)}</a>`
+      )
+      .join("");
+
+    host.className = "nav";
+    host.innerHTML = `
+      <div class="container nav__inner">
+        <a class="nav__back" href="../index.html" title="Tilbage til forsiden">← <span class="nav__back-text">Tilbage</span></a>
+        <a class="nav__logo" href="index.html" aria-label="Filmguide – forside">
+          <span class="nav__logo-mark">🎬</span> FILMGUIDE
+        </a>
+        <button type="button" class="nav__burger" aria-label="Åbn menu" aria-expanded="false" aria-controls="nav-links"><span></span></button>
+        <nav class="nav__links" id="nav-links" aria-label="Hovedmenu">
+          <a class="nav__link ${page === "home" ? "is-active" : ""}" href="index.html">Forside</a>
+          ${uniLinks}
+          <a class="nav__link" href="index.html#andre">Andre universer</a>
+          <a class="nav__link" href="index.html#progression">Min progression</a>
+          <button type="button" class="spoiler-toggle" role="switch" aria-checked="${Store.spoilers}" data-spoiler-toggle>
+            <span>Spoilere: <span class="spoiler-toggle__state">${Store.spoilers ? "TIL" : "FRA"}</span></span>
+            <span class="spoiler-toggle__track"></span>
+          </button>
+        </nav>
+      </div>`;
+
+    const burger = $(".nav__burger", host);
+    burger.addEventListener("click", () => {
+      const open = host.classList.toggle("is-open");
+      burger.setAttribute("aria-expanded", open);
+      burger.setAttribute("aria-label", open ? "Luk menu" : "Åbn menu");
+    });
+    // Luk mobilmenuen når der vælges et link
+    $$(".nav__link", host).forEach((a) =>
+      a.addEventListener("click", () => {
+        host.classList.remove("is-open");
+        burger.setAttribute("aria-expanded", "false");
+      })
+    );
+  }
+
+  function renderFooter() {
+    const host = $("#site-footer");
+    if (!host) return;
+    host.className = "footer";
+    host.innerHTML = `
+      <div class="container footer__inner">
+        <div>🎬 <strong style="color:var(--text)">Grejs Film Guide</strong> – se filmene i den rækkefølge, der giver mening.</div>
+        <div class="footer__links">
+          <a href="../index.html">← Tilbage til forsiden</a>
+          <a href="index.html#progression">Min progression</a>
+          <button type="button" class="reset-btn" data-reset>Nulstil min progression</button>
+        </div>
+      </div>`;
+  }
+
+  function applySpoilerState() {
+    document.body.classList.toggle("spoilers-on", Store.spoilers);
+    $$("[data-spoiler-toggle]").forEach((b) => {
+      b.setAttribute("aria-checked", Store.spoilers);
+      const s = $(".spoiler-toggle__state", b);
+      if (s) s.textContent = Store.spoilers ? "TIL" : "FRA";
+    });
+  }
+
+  /* ======================================================================
+     7) FORSIDE
+     ====================================================================== */
+  function renderHome() {
+    // Universkort
+    const grid = $("#universe-grid");
+    if (grid) {
+      grid.innerHTML = universeKeys()
+        .map((k) => {
+          const u = UNIVERSES[k];
+          const p = progressFor(k);
+          return `<a class="universe-card reveal" href="${esc(u.page)}">
+            <div class="universe-card__bg" style="background:${u.gradient}"></div>
+            <span class="universe-card__icon" aria-hidden="true">${u.icon}</span>
+            <div class="universe-card__kicker">${esc(u.kicker)}</div>
+            <h3 class="universe-card__title">${esc(u.name)}</h3>
+            <p class="universe-card__text">${esc(u.cardText)}</p>
+            <div class="universe-card__footer">
+              <span class="universe-card__cta">${esc(u.cta)}</span>
+              <div class="universe-card__progress">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>${p.seen} / ${p.total} set</span><span>${p.pct}%</span></div>
+                ${meterHTML(p.pct, "meter--sm")}
+              </div>
+            </div>
+          </a>`;
+        })
+        .join("");
+    }
+
+    // Fortsæt hvor du slap
+    const cont = $("#continue-grid");
+    if (cont) {
+      cont.innerHTML = universeKeys()
+        .map((k) => {
+          const u = UNIVERSES[k];
+          const m = nextMovie(k);
+          if (!m) {
+            return `<div class="continue-card"><div style="font-size:2.4rem">🏆</div><div>
+              <div class="continue-card__label">${esc(u.shortName)}</div>
+              <div class="continue-card__title">Alle film set!</div></div></div>`;
+          }
+          return `<button type="button" class="continue-card" data-open="${esc(m.id)}" data-uni="${k}">
+            ${posterHTML(m, k)}
+            <div>
+              <div class="continue-card__label">Næste i ${esc(u.shortName)} · #${m.recommendedOrder}</div>
+              <div class="continue-card__title">${esc(m.title)}</div>
+              <div class="continue-card__meta">${m.year} · ${esc(fmtRuntime(m.runtime))}</div>
+            </div>
+          </button>`;
+        })
+        .join("");
+    }
+
+    // Kommer snart
+    const soon = $("#soon-grid");
+    if (soon) {
+      soon.innerHTML = COMING_SOON.map(
+        (s) => `<div class="soon-card reveal">
+          <div class="soon-card__bg" style="background:${s.gradient}"></div>
+          <span class="soon-card__tag">Kommer snart</span>
+          <div class="soon-card__icon">${s.icon}</div>
+          <div class="soon-card__name">${esc(s.name)}</div>
+        </div>`
+      ).join("");
+    }
+
+    // Tal i hero
+    const total = totalProgress();
+    const allFilms = universeKeys().reduce((n, k) => n + MOVIES[k].length, 0);
+    const setText = (sel, v) => {
+      const el = $(sel);
+      if (el) el.textContent = v;
+    };
+    setText("#stat-universes", universeKeys().length);
+    setText("#stat-films", allFilms);
+    setText("#stat-seen", `${total.seen}/${total.total}`);
+  }
+
+  /* ======================================================================
+     8) UNIVERSSIDE (Marvel, Transformers, …)
+     ====================================================================== */
+  const View = {
+    uKey: null,
+    view: "recommended",
+    filter: { type: "all" }, // { type:'all'|'seen'|'unseen'|'group', groups:[...] }
+    query: "",
+    firstRender: true
+  };
+
+  function renderUniversePage() {
+    const uKey = document.body.dataset.universe;
+    const uni = UNIVERSES[uKey];
+    const app = $("#app");
+    if (!uni || !MOVIES[uKey]) {
+      app.innerHTML = `<div class="container section"><div class="empty"><div class="empty__icon">🤷</div>Universet "${esc(uKey)}" findes ikke i movies.js.</div></div>`;
+      return;
+    }
+    View.uKey = uKey;
+    View.view = uni.views.includes(Store.getPref(uKey, "view")) ? Store.getPref(uKey, "view") : "recommended";
+    document.documentElement.style.setProperty("--accent", uni.accent);
+    document.documentElement.style.setProperty("--accent-ink", uni.accentText || "#fff");
+    document.title = `${uni.shortName} – se-rækkefølge | Grejs Film Guide`;
+
+    const continuitiesUsed = [...new Set(MOVIES[uKey].map((m) => m.continuity))];
+
+    app.innerHTML = `
+      <div class="progress-bar" id="progress-bar"></div>
+
+      <section class="page-hero container">
+        <div class="page-hero__crumbs"><a href="../index.html">Forside</a> › <a href="index.html">Filmguide</a> › <span>${esc(uni.shortName)}</span></div>
+        <h1 class="page-hero__title">${esc(uni.heading.split("–")[0].trim())} <span>– ${esc((uni.heading.split("–")[1] || "").trim())}</span></h1>
+        <p class="page-hero__intro">${esc(uni.intro)}</p>
+        <div style="margin-top:22px;display:flex;flex-wrap:wrap;gap:12px">
+          <button type="button" class="btn btn--accent" data-next="${uKey}">🎬 Hvad skal jeg se nu?</button>
+          <a class="btn btn--ghost" href="#film-liste">Gå til listen ↓</a>
+        </div>
+      </section>
+
+      <section class="container section--tight">
+        <div class="glass why-box reveal">
+          <div class="why-box__head"><span class="why-box__icon">💡</span><h2>Hvorfor denne rækkefølge?</h2></div>
+          <div class="why-box__grid" id="why-grid"></div>
+          <p class="why-box__note">${esc(uni.extraNote || "")}</p>
+        </div>
+      </section>
+
+      ${
+        continuitiesUsed.length > 1
+          ? `<section class="container section--tight">
+              <div class="section__kicker">Univers-system</div>
+              <h2 class="section__title" style="font-size:1.6rem">Hvilke film hører sammen?</h2>
+              <p class="section__sub">Farverne viser hurtigt, hvilket univers en film hører til. Film i forskellige farver hænger <strong>ikke</strong> nødvendigvis sammen.</p>
+              <div class="continuity-grid">${uni.groups
+                .map((g) => {
+                  const c = CONTINUITIES[g];
+                  const films = MOVIES[uKey].filter((m) => m.continuity === g);
+                  return `<div class="continuity-card reveal" style="--c:${c.color}">
+                    <h3>${c.swatch} ${esc(c.label)}</h3>
+                    <p>${esc(c.description)}</p>
+                    <div class="continuity-card__films">${films.map((m) => esc(m.title) + " (" + m.year + ")").join(" · ")}</div>
+                  </div>`;
+                })
+                .join("")}</div>
+            </section>`
+          : ""
+      }
+
+      <section class="container section--tight">
+        <div class="section__kicker">${uni.groupBy === "phase" ? "Tidslinje" : "Universer"}</div>
+        <h2 class="section__title" style="font-size:1.6rem">${uni.groupBy === "phase" ? esc(uni.kicker) + "-tidslinjen" : "Vælg et univers"}</h2>
+        <p class="section__sub" style="margin-bottom:16px">Klik på et punkt for kun at se filmene derfra.</p>
+        <div class="timeline" id="timeline"></div>
+      </section>
+
+      <section class="container section--tight" id="film-liste">
+        <div class="toolbar">
+          <div class="toolbar__row">
+            <div class="segmented" id="view-tabs" role="tablist" aria-label="Rækkefølge"></div>
+            <label class="search"><span class="search__icon">🔍</span><span class="sr-only">Søg</span>
+              <input type="search" id="search" placeholder="Søg efter film eller karakter..." autocomplete="off">
+            </label>
+          </div>
+          <div class="chips" id="filter-chips" role="group" aria-label="Filtre"></div>
+        </div>
+        <div class="movie-list" id="movie-list" style="margin-top:26px"></div>
+      </section>
+
+      <button type="button" class="fab" data-next="${uKey}">🎬 Hvad nu?</button>
+    `;
+
+    $("#search").addEventListener("input", (e) => {
+      View.query = e.target.value.trim().toLowerCase();
+      renderMovieList(false);
+    });
+
+    View.firstRender = true;
+    refreshUniverse();
+    View.firstRender = false;
+
+    // Hop direkte til en film hvis URL'en har #film-xxx
+    if (location.hash.startsWith("#film-")) {
+      setTimeout(() => gotoCard(location.hash.slice(6)), 250);
+    }
+  }
+
+  /** Genopfrisk alle dynamiske dele af universsiden */
+  function refreshUniverse() {
+    renderProgressBar();
+    renderWhyGrid();
+    renderTimeline();
+    renderViewTabs();
+    renderFilterChips();
+    renderMovieList(View.firstRender);
+  }
+
+  function renderProgressBar() {
+    const uni = UNIVERSES[View.uKey];
+    const p = progressFor(View.uKey);
+    $("#progress-bar").innerHTML = `
+      <div class="container progress-bar__inner">
+        <div class="progress-bar__label">Din ${esc(uni.shortName)}-progression<small>${p.seen} / ${p.total} film set</small></div>
+        <div class="progress-bar__meter">${meterHTML(p.pct)}</div>
+        <div class="progress-bar__pct">${p.pct}%</div>
+        <button type="button" class="btn btn--accent btn--sm" data-next="${View.uKey}">Hvad skal jeg se nu?</button>
+      </div>`;
+  }
+
+  function renderWhyGrid() {
+    const uni = UNIVERSES[View.uKey];
+    // Anbefalet vises altid først
+    const order = ["recommended", ...uni.views.filter((v) => v !== "recommended")];
+    $("#why-grid").innerHTML = order
+      .map(
+        (v) => `<button type="button" class="why-option ${View.view === v ? "is-active" : ""}" data-view="${v}">
+          ${v === "recommended" ? '<span class="why-option__tag">Standard</span>' : ""}
+          <h3>${VIEW_LABELS[v].icon} ${esc(VIEW_LABELS[v].title)}</h3>
+          <p>${esc(uni.whyOrder[v] || "")}</p>
+        </button>`
+      )
+      .join("");
+  }
+
+  function renderTimeline() {
+    const uni = UNIVERSES[View.uKey];
+    $("#timeline").innerHTML = uni.timeline
+      .map((t, i) => {
+        const groups = [].concat(t.filter);
+        const p = progressFor(View.uKey, (m) => groups.includes(groupOf(View.uKey, m)));
+        const active = View.filter.type === "group" && sameGroups(View.filter.groups, groups);
+        return `<div class="timeline__step">
+          <button type="button" class="timeline__node ${t.saga ? "timeline__node--saga" : ""} ${active ? "is-active" : ""}" data-timeline="${i}">
+            <strong>${esc(t.label)}</strong><small>${esc(t.sub)} · ${p.seen}/${p.total}</small>
+            <div class="timeline__bar"><span style="width:${p.pct}%"></span></div>
+          </button>
+        </div>`;
+      })
+      .join("");
+  }
+
+  const sameGroups = (a, b) => a.length === b.length && a.every((x) => b.includes(x));
+
+  function renderViewTabs() {
+    const uni = UNIVERSES[View.uKey];
+    $("#view-tabs").innerHTML = uni.views
+      .map(
+        (v) =>
+          `<button type="button" role="tab" aria-selected="${View.view === v}" class="${View.view === v ? "is-active" : ""}" data-view="${v}">${VIEW_LABELS[v].tab}</button>`
+      )
+      .join("");
+  }
+
+  function renderFilterChips() {
+    const uKey = View.uKey;
+    const uni = UNIVERSES[uKey];
+    const all = MOVIES[uKey];
+    const seenCount = all.filter((m) => Store.isWatched(uKey, m.id)).length;
+    const released = releasedMovies(uKey).length;
+    const f = View.filter;
+
+    const chip = (key, label, count, active) =>
+      `<button type="button" class="chip ${active ? "is-active" : ""}" data-filter="${esc(key)}" aria-pressed="${active}">${label} <span class="chip__count">${count}</span></button>`;
+
+    let html = chip("all", "Alle", all.length, f.type === "all");
+    html += chip("unseen", "○ Ikke set", released - seenCount, f.type === "unseen");
+    html += chip("seen", "✓ Set", seenCount, f.type === "seen");
+    html += uni.groups
+      .map((g) => {
+        const c = uni.groupBy === "continuity" ? CONTINUITIES[g] : null;
+        const label = c ? `${c.swatch} ${esc(c.label.replace(/^Transformers – |^Separat univers – /, ""))}` : esc(g);
+        const count = all.filter((m) => groupOf(uKey, m) === g).length;
+        const active = f.type === "group" && f.groups.length === 1 && f.groups[0] === g;
+        return chip("g:" + g, label, count, active);
+      })
+      .join("");
+    $("#filter-chips").innerHTML = html;
+  }
+
+  /** Byg filmlisten ud fra visning, filter og søgning */
+  function renderMovieList(animate) {
+    const uKey = View.uKey;
+    const uni = UNIVERSES[uKey];
+    const ordered = sortedMovies(uKey, View.view);
+    const next = nextMovie(uKey);
+    const q = View.query;
+
+    const visible = ordered.filter((m) => {
+      const f = View.filter;
+      if (f.type === "seen" && !Store.isWatched(uKey, m.id)) return false;
+      if (f.type === "unseen" && (Store.isWatched(uKey, m.id) || m.upcoming)) return false;
+      if (f.type === "group" && !f.groups.includes(groupOf(uKey, m))) return false;
+      if (q) {
+        const hay = [m.title, m.year, m.phase, ...(m.characters || []), ...(m.links || [])].join(" ").toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    if (!visible.length) {
+      $("#movie-list").innerHTML = `<div class="empty"><div class="empty__icon">🔍</div>Ingen film matcher dit filter${
+        q ? ` eller din søgning "<strong>${esc(q)}</strong>"` : ""
+      }.<br><button type="button" class="btn btn--ghost btn--sm" style="margin-top:14px" data-filter="all" data-clear-search>Vis alle film</button></div>`;
+      return;
+    }
+
+    let html = "";
+    let prev = null;
+    visible.forEach((m) => {
+      html += dividerHTML(uKey, uni, m, prev);
+      const num = ordered.indexOf(m) + 1;
+      html += movieCardHTML(uKey, m, num, View.view, next && next.id === m.id);
+      prev = m;
+    });
+    $("#movie-list").innerHTML = html;
+    observeReveal(animate);
+  }
+
+  /** Overskrifter mellem grupper i listen (faser / universskift) */
+  function dividerHTML(uKey, uni, m, prev) {
+    const view = View.view;
+    const cont = continuityOf(m);
+
+    // Universvisning: gruppér efter kontinuitet
+    if (view === "universes") {
+      if (prev && prev.continuity === m.continuity) return "";
+      return `<div class="list-divider"><span class="list-divider__label"><span class="dot" style="--c:${cont.color}"></span>${esc(cont.label)}</span><span class="list-divider__line"></span></div>
+        <p class="list-divider__desc">${esc(cont.description)}</p>`;
+    }
+
+    // Tidslinje-afsnit (fx Marvel) i anbefalet visning
+    if (view === "recommended" && uni.eras) {
+      const eraOf = (x) => uni.eras.filter((e) => x.recommendedOrder >= e.from).pop();
+      const era = eraOf(m);
+      if (!era || (prev && eraOf(prev) === era)) return "";
+      return `<div class="list-divider"><span class="list-divider__label">${esc(era.label)}</span><span class="list-divider__line"></span></div>
+        ${era.desc ? `<p class="list-divider__desc">${esc(era.desc)}</p>` : ""}`;
+    }
+
+    // Faser (Marvel) i anbefalet- og udgivelsesvisning
+    if (uni.groupBy === "phase" && view !== "chronological") {
+      if (prev && prev.phase === m.phase) return "";
+      const info = (uni.groupInfo || {})[m.phase] || "";
+      return `<div class="list-divider"><span class="list-divider__label">🎞 ${esc(m.phase)}</span><span class="list-divider__line"></span></div>
+        ${info ? `<p class="list-divider__desc">${esc(info)}</p>` : ""}`;
+    }
+
+    // Kontinuitetsskift (Transformers) i anbefalet visning
+    if (uni.groupBy === "continuity" && view === "recommended") {
+      if (prev && prev.continuity === m.continuity) return "";
+      const isSwitch = Boolean(prev);
+      return `<div class="list-divider ${isSwitch ? "list-divider--switch" : ""}"><span class="list-divider__label">${
+        isSwitch ? "⚡ Nyt univers:" : "▶ Start:"
+      } <span class="dot" style="--c:${cont.color}"></span>${esc(cont.label)}</span><span class="list-divider__line"></span></div>
+        <p class="list-divider__desc">${esc(cont.description)}${isSwitch ? " Historien starter forfra her." : ""}</p>`;
+    }
+    return "";
+  }
+
+  /** Scroll til et filmkort og få det til at lyse op */
+  function gotoCard(id) {
+    let card = document.getElementById("film-" + id);
+    if (!card && View.uKey) {
+      // Filmen er skjult af et filter → nulstil filter og søgning
+      View.filter = { type: "all" };
+      View.query = "";
+      const s = $("#search");
+      if (s) s.value = "";
+      refreshUniverse();
+      card = document.getElementById("film-" + id);
+    }
+    if (!card) return;
+    card.classList.add("is-visible");
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+    card.classList.remove("flash");
+    void card.offsetWidth; // genstart animation
+    card.classList.add("flash");
+  }
+
+  /* ======================================================================
+     9) PROFILSIDE – "Min Film-Profil"
+     ====================================================================== */
+  function renderProfile() {
+    const app = $("#progression");
+    if (!app) return;
+    const total = totalProgress();
+
+    const uniCards = universeKeys()
+      .map((k) => {
+        const u = UNIVERSES[k];
+        const p = progressFor(k);
+        const next = nextMovie(k);
+        const groups = u.groups
+          .map((g) => {
+            const gp = progressFor(k, (m) => groupOf(k, m) === g);
+            if (!gp.total) return "";
+            return `<div style="display:grid;grid-template-columns:minmax(90px,auto) 1fr auto;gap:10px;align-items:center;font-size:.8rem;color:var(--text-2)">
+              <span>${esc(groupLabel(k, g).replace(/^Transformers – |^Separat univers – /, ""))}</span>${meterHTML(gp.pct, "meter--sm")}<span>${gp.seen}/${gp.total}</span></div>`;
+          })
+          .join("");
+        return `<div class="glass stat-card reveal" style="--g:${u.gradient};--accent:${u.accent}">
+          <div class="stat-card__head">
+            <div class="stat-card__name"><span style="font-size:1.6rem">${u.icon}</span>${esc(u.shortName)}</div>
+            <div class="stat-card__pct">${p.pct}%</div>
+          </div>
+          <div class="stat-card__count"><strong>${p.seen} / ${p.total}</strong> set</div>
+          ${meterHTML(p.pct, "meter--lg")}
+          <div style="display:grid;gap:8px;margin-top:18px">${groups}</div>
+          <div class="stat-card__extra">
+            <span>${next ? `Næste: <strong style="color:var(--text)">${esc(next.title)}</strong>` : "🏆 Alle film set!"}</span>
+            <a class="btn btn--ghost btn--sm" href="${esc(u.page)}">Åbn ${esc(u.shortName)} →</a>
+          </div>
+        </div>`;
+      })
+      .join("");
+
+    // Senest sete film
+    const recent = [];
+    universeKeys().forEach((k) =>
+      MOVIES[k].forEach((m) => {
+        const ts = Store.watchedAt(k, m.id);
+        if (ts) recent.push({ k, m, ts });
+      })
+    );
+    recent.sort((a, b) => b.ts - a.ts);
+
+    const recentHTML = recent.length
+      ? recent
+          .slice(0, 10)
+          .map(
+            ({ k, m, ts }) => `<button type="button" class="recent-item" data-open="${esc(m.id)}" data-uni="${k}">
+              ${posterHTML(m, k)}
+              <div><div class="recent-item__title">${esc(m.title)}</div><div class="recent-item__sub">${esc(UNIVERSES[k].shortName)} · ${m.year}</div></div>
+              <div class="recent-item__date">✓ ${esc(fmtWatchedAt(ts))}</div>
+            </button>`
+          )
+          .join("")
+      : `<div class="empty"><div class="empty__icon">🍿</div>Du har ikke markeret nogen film som set endnu.<br>
+          <a class="btn btn--primary btn--sm" style="margin-top:14px" href="#universer">Find din første film</a></div>`;
+
+    app.innerHTML = `
+      <section class="container section--tight">
+        <div class="section__kicker">Min progression</div>
+        <h2 class="section__title">Min Film-Profil</h2>
+        <p class="section__sub">Din progression gemmes automatisk i din browser – du kan lukke siden og komme tilbage senere.</p>
+      </section>
+
+      <section class="container section--tight">
+        <div class="glass stat-card stat-card--total reveal" style="display:flex;flex-wrap:wrap;gap:28px;align-items:center">
+          <div class="ring" style="--p:${total.pct}"><div class="ring__inner">${total.pct}%</div></div>
+          <div style="flex:1;min-width:220px">
+            <div class="section__kicker">Alle film</div>
+            <div class="stat-card__count" style="margin:6px 0 12px"><strong>${total.seen} / ${total.total}</strong> film set</div>
+            ${meterHTML(total.pct, "meter--lg")}
+          </div>
+          <button type="button" class="btn btn--primary" data-next="">🎬 Hvad skal jeg se nu?</button>
+        </div>
+      </section>
+
+      <section class="container section--tight">
+        <div class="stats-grid">${uniCards}</div>
+      </section>
+
+      <section class="container section">
+        <div class="section__head"><div><div class="section__kicker">Historik</div><h2 class="section__title">Senest sete film</h2></div></div>
+        <div class="recent-list">${recentHTML}</div>
+        <div style="margin-top:40px;text-align:center">
+          <button type="button" class="reset-btn" data-reset>Nulstil min progression</button>
+        </div>
+      </section>`;
+    observeReveal(true);
+  }
+
+  /* ======================================================================
+     10) GLOBALE KLIK, ANIMATIONER & OPSTART
+     ====================================================================== */
+  let revealObserver = null;
+  function observeReveal(animate) {
+    const els = $$(".reveal:not(.is-visible)");
+    if (!animate || !("IntersectionObserver" in window)) {
+      els.forEach((el) => el.classList.add("is-visible"));
+      return;
+    }
+    if (!revealObserver) {
+      revealObserver = new IntersectionObserver(
+        (entries) =>
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("is-visible");
+              revealObserver.unobserve(e.target);
+            }
+          }),
+        { rootMargin: "0px 0px -40px 0px", threshold: 0.05 }
+      );
+    }
+    els.forEach((el) => revealObserver.observe(el));
+  }
+
+  /** Opdater alt på den aktuelle side efter en ændring (set / reset) */
+  function refreshPage() {
+    const page = document.body.dataset.page;
+    if (page === "home") {
+      renderHome();
+      renderProfile();
+      observeReveal(false);
+    } else if (page === "universe" && View.uKey) {
+      refreshUniverse();
+    }
+    // Hold et åbent detaljevindue opdateret
+    if (Modal.isOpen() && Modal.current && Modal.current.type === "movie") {
+      openMovie(Modal.current.uKey, Modal.current.id, { keepScroll: true });
+    }
+  }
+
+  function handleToggleWatched(btn) {
+    const uKey = btn.dataset.uni;
+    const id = btn.dataset.watch;
+    const m = MOVIES[uKey].find((x) => x.id === id);
+    const nowWatched = Store.toggleWatched(uKey, id);
+    refreshPage();
+
+    // Lille "pop" på den nye knap
+    $$(`[data-watch="${CSS.escape(id)}"]`).forEach((b) => b.classList.add("pop"));
+
+    if (nowWatched) {
+      const n = nextMovie(uKey);
+      toast(`✓ ${m.title} er markeret som set${n ? ` · Næste: ${n.title}` : " · 🏆 Alle film set!"}`);
+    } else {
+      toast(`○ ${m.title} er markeret som ikke set`);
+    }
+  }
+
+  function revealSpoiler(el) {
+    el.classList.add("is-revealed");
+    el.removeAttribute("role");
+    el.removeAttribute("tabindex");
+  }
+
+  function bindGlobalEvents() {
+    document.addEventListener("click", (e) => {
+      const t = e.target;
+
+      // Spoiler – klik for at vise (må ikke åbne kortet)
+      const sp = t.closest(".spoiler");
+      if (sp && !sp.classList.contains("is-revealed") && !Store.spoilers) {
+        e.stopPropagation();
+        revealSpoiler(sp);
+        return;
+      }
+
+      const closeBtn = t.closest("[data-close]");
+      if (closeBtn) return Modal.close();
+
+      const watchBtn = t.closest("[data-watch]");
+      if (watchBtn) return handleToggleWatched(watchBtn);
+
+      const openBtn = t.closest("[data-open]");
+      if (openBtn) return openMovie(openBtn.dataset.uni, openBtn.dataset.open);
+
+      const nextBtn = t.closest("[data-next]");
+      if (nextBtn) return openNext(nextBtn.dataset.next || null);
+
+      const gotoBtn = t.closest("[data-goto]");
+      if (gotoBtn) {
+        Modal.close();
+        return gotoCard(gotoBtn.dataset.goto);
+      }
+
+      if (t.closest("[data-reset]")) return openResetConfirm();
+
+      if (t.closest("[data-confirm-reset]")) {
+        Store.resetProgress();
+        Modal.close();
+        refreshPage();
+        return toast("Din progression er nulstillet");
+      }
+
+      const spoilerToggle = t.closest("[data-spoiler-toggle]");
+      if (spoilerToggle) {
+        Store.spoilers = !Store.spoilers;
+        $$(".spoiler.is-revealed").forEach((s) => s.classList.remove("is-revealed"));
+        applySpoilerState();
+        return toast(Store.spoilers ? "⚠️ Spoilere er slået TIL" : "🔒 Spoilere er slået FRA");
+      }
+
+      // ----- Kun på universsider -----
+      const viewBtn = t.closest("[data-view]");
+      if (viewBtn && View.uKey) {
+        View.view = viewBtn.dataset.view;
+        Store.setPref(View.uKey, "view", View.view);
+        refreshUniverse();
+        return;
+      }
+
+      const filterBtn = t.closest("[data-filter]");
+      if (filterBtn && View.uKey) {
+        const key = filterBtn.dataset.filter;
+        if (key.startsWith("g:")) View.filter = { type: "group", groups: [key.slice(2)] };
+        else View.filter = { type: key };
+        if (filterBtn.hasAttribute("data-clear-search")) {
+          View.query = "";
+          $("#search").value = "";
+        }
+        refreshUniverse();
+        return;
+      }
+
+      const tl = t.closest("[data-timeline]");
+      if (tl && View.uKey) {
+        const item = UNIVERSES[View.uKey].timeline[Number(tl.dataset.timeline)];
+        const groups = [].concat(item.filter);
+        const isActive = View.filter.type === "group" && sameGroups(View.filter.groups, groups);
+        View.filter = isActive ? { type: "all" } : { type: "group", groups };
+        refreshUniverse();
+        $("#film-liste").scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      // Klik på selve filmkortet åbner detaljevinduet
+      const card = t.closest("[data-card]");
+      if (card && !t.closest("a, button, input")) {
+        openMovie(card.dataset.uni, card.dataset.card);
+      }
+    });
+
+    // Tastatur: Enter/mellemrum på spoilere
+    document.addEventListener("keydown", (e) => {
+      const sp = e.target.closest && e.target.closest(".spoiler[role=button]");
+      if (sp && (e.key === "Enter" || e.key === " ")) {
+        e.preventDefault();
+        revealSpoiler(sp);
+      }
+    });
+  }
+
+  function init() {
+    if (typeof MOVIES === "undefined" || typeof UNIVERSES === "undefined") {
+      console.error("movies.js er ikke indlæst før app.js");
+      return;
+    }
+    Store.load();
+    renderNav();
+    renderFooter();
+    applySpoilerState();
+    Modal.init();
+    bindGlobalEvents();
+
+    const page = document.body.dataset.page;
+    if (page === "home") {
+      renderHome();
+      renderProfile();
+    } else if (page === "universe") {
+      renderUniversePage();
+    }
+    observeReveal(true);
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+
+  </script>
+</body>
+</html>
