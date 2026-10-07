@@ -3,13 +3,13 @@
 <!--
   GREJS FILM GUIDE – selvstændig HTML-fil (ingen eksterne CSS/JS-filer).
   Indhold:  1) <style> design   2) <script> FILMDATA   3) <script> APP-logik
-  FILMDATA-blokken er identisk i index.html, marvel.html, transformers.html og starwars.html.
+  FILMDATA-blokken er identisk i index.html, marvel.html, transformers.html, starwars.html, harrypotter.html, dc.html, fastfurious.html, lotr.html og jurassic.html.
 -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Grejs Film Guide – Hvilken film skal du se først?</title>
-  <meta name="description" content="Se Marvel, Transformers, Star Wars og andre filmserier i den rigtige rækkefølge – så historien giver mening.">
+  <meta name="description" content="Se Marvel, Star Wars, Harry Potter, DC, Ringenes Herre og mange flere filmserier i den rigtige rækkefølge – så historien giver mening.">
   <meta name="theme-color" content="#07080d">
   <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cdefs%3E%3ClinearGradient%20id%3D'g'%20x1%3D'0'%20y1%3D'0'%20x2%3D'1'%20y2%3D'1'%3E%3Cstop%20offset%3D'0'%20stop-color%3D'%23ff5a4e'%2F%3E%3Cstop%20offset%3D'1'%20stop-color%3D'%23ff9a3d'%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D'64'%20height%3D'64'%20rx%3D'16'%20fill%3D'url(%23g)'%2F%3E%3Cpath%20d%3D'M24%2018l24%2014-24%2014z'%20fill%3D'%23fff'%2F%3E%3C%2Fsvg%3E" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -972,6 +972,11 @@ body.spoilers-on .spoiler .spoiler__lock { display: none; }
 
 /* ---------- 16) Responsiv ---------- */
 @media (max-width: 1080px) {
+  .detail__body { grid-template-columns: 1fr; }
+}
+
+/* Mange universer i menuen → burger-menu allerede på mellemstore skærme */
+@media (max-width: 1500px) {
   .nav__burger { display: block; }
   .nav__links {
     position: fixed; top: var(--nav-h); left: 0; right: 0;
@@ -980,13 +985,13 @@ body.spoilers-on .spoiler .spoiler__lock { display: none; }
     background: rgba(7, 8, 13, 0.97);
     backdrop-filter: blur(18px);
     border-bottom: 1px solid var(--border);
+    max-height: calc(100vh - var(--nav-h)); overflow-y: auto;
     transform: translateY(-10px); opacity: 0; visibility: hidden;
     transition: all 0.3s var(--ease);
   }
   .nav.is-open .nav__links { transform: none; opacity: 1; visibility: visible; }
   .nav__link { padding: 14px 16px; border-radius: var(--radius-sm); font-size: 1rem; }
   .nav__links .spoiler-toggle { justify-content: space-between; margin-top: 8px; padding: 12px 14px; border-radius: var(--radius-sm); }
-  .detail__body { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 820px) {
@@ -1042,13 +1047,13 @@ body.spoilers-on .spoiler .spoiler__lock { display: none; }
       <div class="container">
         <span class="hero__eyebrow">🎬 Grejs Film Guide</span>
         <h1 class="hero__title">Hvilken film skal du se <span class="grad">først?</span></h1>
-        <p class="hero__sub">Se Marvel, Transformers, Star Wars og andre filmserier i den rigtige rækkefølge – så historien giver mening.</p>
+        <p class="hero__sub">Se Marvel, Star Wars, Harry Potter, DC, Ringenes Herre og mange flere filmserier i den rigtige rækkefølge – så historien giver mening.</p>
         <div class="hero__actions">
           <button type="button" class="btn btn--primary" data-next="">🎬 Hvad skal jeg se nu?</button>
           <a class="btn btn--ghost" href="#universer">Udforsk universerne ↓</a>
         </div>
         <div class="hero__stats">
-          <div><strong id="stat-universes">3</strong>filmuniverser</div>
+          <div><strong id="stat-universes">8</strong>filmuniverser</div>
           <div><strong id="stat-films">–</strong>film i guiden</div>
           <div><strong id="stat-seen">0</strong>film du har set</div>
         </div>
@@ -1131,15 +1136,15 @@ body.spoilers-on .spoiler .spoiler__lock { display: none; }
    --------------------------------------------------------------------------
    Al indhold ligger her. Siden bygges automatisk ud fra disse objekter.
 
-   VIGTIGT: Hver HTML-fil (index, marvel, transformers, starwars) indeholder
+   VIGTIGT: Hver HTML-fil (index og alle universsider) indeholder
    en IDENTISK kopi af denne datablok, så filerne kan stå helt alene.
-   Når du retter en film, så kopiér hele blokken til alle fire filer.
+   Når du retter en film, så kopiér hele blokken til alle filerne.
 
-   SÅDAN TILFØJER DU ET NYT FILMUNIVERS (f.eks. Harry Potter):
+   SÅDAN TILFØJER DU ET NYT FILMUNIVERS (f.eks. Alien):
    1. Tilføj eventuelle nye kontinuiteter i CONTINUITIES (farve + forklaring).
    2. Tilføj et objekt i UNIVERSES (navn, tekster, visninger, filtre, tidslinje).
-   3. Tilføj filmene i MOVIES under samme nøgle (f.eks. MOVIES.harrypotter = [...]).
-   4. Kopiér marvel.html til harrypotter.html og ret data-universe="harrypotter".
+   3. Tilføj filmene i MOVIES under samme nøgle (f.eks. MOVIES.alien = [...]).
+   4. Kopiér marvel.html til alien.html og ret data-universe="alien".
    5. Kopiér den opdaterede datablok ind i alle de andre HTML-filer.
    Forsiden, navigationen og "Min progression" opdaterer sig selv.
 
@@ -1208,6 +1213,60 @@ const CONTINUITIES = {
     swatch: "🟨",
     color: "#e8c547",
     description: "Alle film foregår i samme galakse og tidslinje – fra Republikkens fald til Skywalker-sagaens afslutning."
+  },
+  hp: {
+    label: "Wizarding World",
+    swatch: "🟫",
+    color: "#d4a94a",
+    description: "Harry Potter og Fantastiske skabninger foregår i samme magiske verden. Fantastiske skabninger udspiller sig ca. 70 år før Harry kommer til Hogwarts."
+  },
+  dceu: {
+    label: "DCEU (2013–2023)",
+    swatch: "🟦",
+    color: "#4b7be5",
+    description: "DC Extended Universe – det første sammenhængende DC-filmunivers, der begynder med Man of Steel og slutter med Aquaman and the Lost Kingdom."
+  },
+  dcu: {
+    label: "DCU (2025 og frem)",
+    swatch: "🟥",
+    color: "#e5484d",
+    description: "James Gunns og Peter Safrans nye DC-univers, der starter forfra med Superman (2025). Film og serier hænger sammen."
+  },
+  "dc-nolan": {
+    label: "Separat univers – The Dark Knight-trilogien",
+    swatch: "⬛",
+    color: "#8a93a6",
+    description: "Christopher Nolans realistiske Batman-trilogi. Står helt for sig selv og kræver ingen andre film."
+  },
+  "dc-batman": {
+    label: "Separat univers – The Batman",
+    swatch: "🟥",
+    color: "#b13a3a",
+    description: "Matt Reeves' mørke detektiv-Batman med Robert Pattinson. Et selvstændigt univers uden forbindelse til DCU."
+  },
+  "dc-joker": {
+    label: "Separat univers – Joker",
+    swatch: "🟩",
+    color: "#7bc043",
+    description: "Todd Phillips' to Joker-film med Joaquin Phoenix. Et psykologisk drama, der står helt for sig selv."
+  },
+  ff: {
+    label: "Fast & Furious",
+    swatch: "🟧",
+    color: "#f07a2e",
+    description: "Én sammenhængende historie om Dom Toretto og hans 'familie' – fra gadeløb i Los Angeles til globale missioner."
+  },
+  me: {
+    label: "Midgård",
+    swatch: "🟩",
+    color: "#a8c256",
+    description: "Alle film foregår i J.R.R. Tolkiens Midgård. Hobbitten udspiller sig 60 år før Ringenes Herre."
+  },
+  jp: {
+    label: "Jurassic Park / World",
+    swatch: "🟩",
+    color: "#4cc27a",
+    description: "Én sammenhængende tidslinje – fra den første park på Isla Nublar til en verden, hvor dinosaurer lever blandt mennesker."
   }
 };
 
@@ -1337,16 +1396,197 @@ const UNIVERSES = {
     ],
     extraNote:
       "Tip: Animationsserien The Clone Wars og live-action-serien The Mandalorian er ikke nødvendige, men giver meget mere dybde. Hvor en serie hjælper, står det på filmkortet under ⚠️."
+  },
+
+  harrypotter: {
+    id: "harrypotter",
+    page: "harrypotter.html",
+    kicker: "HARRY POTTER",
+    name: "Harry Potter & Wizarding World",
+    shortName: "Harry Potter",
+    icon: "⚡",
+    gradient: "linear-gradient(135deg, #2a0f0f 0%, #6e1f1f 45%, #d4a94a 100%)",
+    accent: "#d4a94a",
+    accentText: "#1a1206", // mørk tekst på guld baggrund
+    cardText: "Alle 8 Harry Potter-film og Fantastiske skabninger – i den rækkefølge, der bevarer magien.",
+    cta: "Se Harry Potter-rækkefølge →",
+    heading: "Harry Potter – anbefalet se-rækkefølge",
+    intro:
+      "Start med de otte Harry Potter-film – historien bygger direkte videre fra film til film, så de skal ses i rækkefølge. Fantastiske skabninger foregår ca. 70 år tidligere, men ses bedst bagefter, fordi de bygger på det, du lærer om Dumbledore og Grindelwald i Harry Potter.",
+    whyOrder: {
+      release: "Filmene i den rækkefølge, de kom i biografen. Her ligger Harry Potter først (2001–2011) og Fantastiske skabninger bagefter (2016–2022) – så udgivelsesrækkefølgen er næsten den samme som den anbefalede.",
+      chronological: "Fantastiske skabninger (1926–1932) først og derefter Harry Potter (1991–1998). Spændende ved genseen, men afslører hemmeligheder om Dumbledore, som Harry Potter først fortæller sent.",
+      recommended: "Harry Potter 1–8 først, så Fantastiske skabninger 1–3. Du oplever Harrys historie, som den var tænkt, og forstår bagefter alle referencerne i prequel-filmene."
+    },
+    views: ["recommended", "release", "chronological"],
+    groupBy: "phase",
+    groups: ["De første år på Hogwarts", "Voldemort vender tilbage", "Dødsregalierne", "Fantastiske skabninger"],
+    groupInfo: {
+      "De første år på Hogwarts": "Harry opdager, at han er troldmand, og lærer Hogwarts og den magiske verden at kende.",
+      "Voldemort vender tilbage": "Historien bliver mørkere: Voldemort er tilbage, og krigen nærmer sig.",
+      "Dødsregalierne": "Den store finale i to dele – jagten på Horcruxerne og slaget om Hogwarts.",
+      "Fantastiske skabninger": "Prequel-serien med Newt Scamander, der foregår i 1920'erne og 30'erne og handler om Grindelwald."
+    },
+    timeline: [
+      { label: "År 1–3", sub: "1991–1994", filter: "De første år på Hogwarts" },
+      { label: "År 4–6", sub: "1994–1997", filter: "Voldemort vender tilbage" },
+      { label: "Dødsregalierne", sub: "1997–1998", filter: "Dødsregalierne" },
+      { label: "Harry Potter-sagaen", sub: "Alle 8 film", filter: ["De første år på Hogwarts", "Voldemort vender tilbage", "Dødsregalierne"], saga: true },
+      { label: "Fantastiske skabninger", sub: "1926–1932", filter: "Fantastiske skabninger" }
+    ],
+    extraNote:
+      "Tip: Filmene bygger på J.K. Rowlings bøger, som indeholder mange flere detaljer. HBO arbejder desuden på en ny Harry Potter-serie, der fortæller historien forfra."
+  },
+
+  dc: {
+    id: "dc",
+    page: "dc.html",
+    kicker: "DC",
+    name: "DC – Superman, Batman & co.",
+    shortName: "DC",
+    icon: "🦇",
+    gradient: "linear-gradient(135deg, #070d1f 0%, #1f3a7a 50%, #e5484d 100%)",
+    accent: "#4b7be5",
+    cardText: "Få styr på DCEU, det nye DCU og de selvstændige Batman- og Joker-film.",
+    cta: "Se DC-rækkefølge →",
+    heading: "DC – anbefalet se-rækkefølge",
+    intro:
+      "DC er IKKE ét sammenhængende univers. Filmene fordeler sig på flere separate universer: DCEU (2013–2023), det nye DCU (2025 og frem) og flere selvstændige Batman- og Joker-film. Rækkefølgen her tager dig igennem dem ét univers ad gangen. Har du kun lyst til det nye, kan du springe direkte til DCU og starte med Superman (2025).",
+    whyOrder: {
+      release: "Filmene i premiere-rækkefølge. Bemærk at du hopper mellem helt forskellige universer – fx kom The Dark Knight og Man of Steel fra hver sit univers.",
+      universes: "Filmene samlet efter univers. Viser tydeligt, hvilke film der hører sammen, og hvilke der står alene.",
+      recommended: "Først hele DCEU i historisk rækkefølge, så det nye DCU, der overtager efter The Flash. Til sidst de selvstændige universer: Nolans Dark Knight-trilogi, The Batman og Joker."
+    },
+    views: ["recommended", "release", "universes"],
+    groupBy: "continuity",
+    groups: ["dceu", "dcu", "dc-nolan", "dc-batman", "dc-joker"],
+    timeline: [
+      { label: "DCEU", sub: "2013–2023", filter: "dceu" },
+      { label: "DCU", sub: "2025 og frem", filter: "dcu" },
+      { label: "The Dark Knight", sub: "2005–2012", filter: "dc-nolan" },
+      { label: "The Batman", sub: "2022 og frem", filter: "dc-batman" },
+      { label: "Joker", sub: "2019–2024", filter: "dc-joker" }
+    ],
+    extraNote:
+      "Vigtigt: Når der står ⚡ Nyt univers i listen, starter historien forfra. DCU har også serier (Creature Commandos, Peacemaker og Lanterns) – de er ikke nødvendige, men hvor de hjælper, står det på filmkortet under ⚠️."
+  },
+
+  fastfurious: {
+    id: "fastfurious",
+    page: "fastfurious.html",
+    kicker: "FAST & FURIOUS",
+    name: "Fast & Furious",
+    shortName: "Fast & Furious",
+    icon: "🏎️",
+    gradient: "linear-gradient(135deg, #1a0a05 0%, #8a2a12 45%, #f07a2e 100%)",
+    accent: "#f07a2e",
+    cardText: "Se Dom og familien i den rigtige rækkefølge – og find ud af, hvor Tokyo Drift egentlig hører til.",
+    cta: "Se Fast & Furious-rækkefølge →",
+    heading: "Fast & Furious – anbefalet se-rækkefølge",
+    intro:
+      "Den store fælde i Fast & Furious er Tokyo Drift: Den kom som film nr. 3, men foregår efter film nr. 6. Den anbefalede rækkefølge følger historiens egen tidslinje, så Hans historie giver mening – og Hobbs & Shaw er med som valgfri spin-off.",
+    whyOrder: {
+      release: "Filmene i den rækkefølge, de kom i biografen. Tokyo Drift ligger som nr. 3, selvom den foregår senere – så en vigtig karakter dukker op igen efter at have været 'død'.",
+      recommended: "Historiens egen tidslinje: Tokyo Drift ses efter Fast & Furious 6, præcis hvor den hører til. Så hænger Hans historie og Deckard Shaws hævn perfekt sammen."
+    },
+    views: ["recommended", "release"],
+    groupBy: "phase",
+    groups: ["Begyndelsen", "Familien samles", "Shaw-æraen", "Den sidste tur"],
+    groupInfo: {
+      "Begyndelsen": "Gadeløb i Los Angeles og Miami – Brian møder Dom.",
+      "Familien samles": "Dom og Brian samler holdet til større kup. Han får sin store historie.",
+      "Shaw-æraen": "Deckard Shaw søger hævn, og familien trækkes ind i globale missioner.",
+      "Den sidste tur": "Fortiden indhenter Dom – vejen mod seriens finale."
+    },
+    timeline: [
+      { label: "Begyndelsen", sub: "2001–2003", filter: "Begyndelsen" },
+      { label: "Familien samles", sub: "Film 3–6", filter: "Familien samles" },
+      { label: "Shaw-æraen", sub: "Film 7–8 + spin-off", filter: "Shaw-æraen" },
+      { label: "Den sidste tur", sub: "2021 og frem", filter: "Den sidste tur" },
+      { label: "Hele sagaen", sub: "Alle film", filter: ["Begyndelsen", "Familien samles", "Shaw-æraen", "Den sidste tur"], saga: true }
+    ],
+    extraNote:
+      "Tip: Kortfilmen 'Los Bandoleros' (2009) viser, hvordan Dom og Letty genforenes før Fast & Furious (2009). Den er ikke nødvendig, men en sjov bonus."
+  },
+
+  lotr: {
+    id: "lotr",
+    page: "lotr.html",
+    kicker: "RINGENES HERRE",
+    name: "Ringenes Herre & Hobbitten",
+    shortName: "Ringenes Herre",
+    icon: "💍",
+    gradient: "linear-gradient(135deg, #10160b 0%, #3d5222 50%, #c9a24b 100%)",
+    accent: "#a8c256",
+    accentText: "#11160a", // mørk tekst på lys grøn baggrund
+    cardText: "Ringenes Herre, Hobbitten og de nye film fra Midgård – i den rækkefølge, der giver den bedste rejse.",
+    cta: "Se Ringenes Herre-rækkefølge →",
+    heading: "Ringenes Herre – anbefalet se-rækkefølge",
+    intro:
+      "Hobbitten foregår 60 år før Ringenes Herre, men blev lavet bagefter. Den anbefalede rækkefølge starter med Ringenes Herre-trilogien, som er hjertet i Midgård, og bruger derefter Hobbitten som et stort tilbageblik – præcis som Bilbo selv fortæller sin historie.",
+    whyOrder: {
+      release: "Filmene i den rækkefølge, de kom i biografen: Ringenes Herre (2001–2003), Hobbitten (2012–2014) og derefter de nye film. Det er også den anbefalede rækkefølge.",
+      chronological: "Midgårds egen tidslinje: The War of the Rohirrim, så Hobbitten og til sidst Ringenes Herre. Logisk – men du starter med de svageste film og mister noget af mystikken om Ringen.",
+      recommended: "Ringenes Herre først, så Hobbitten som tilbageblik. Ringenes Herre introducerer Midgård bedst og bevarer mystikken om Ringen og Gollum."
+    },
+    views: ["recommended", "release", "chronological"],
+    groupBy: "phase",
+    groups: ["Ringenes Herre-trilogien", "Hobbit-trilogien", "Nye film fra Midgård"],
+    groupInfo: {
+      "Ringenes Herre-trilogien": "Frodo skal ødelægge Den Ene Ring, før Sauron genvinder den. Hjertet i Midgård.",
+      "Hobbit-trilogien": "60 år tidligere: Bilbo tager på eventyr med 13 dværge – og finder en vis ring.",
+      "Nye film fra Midgård": "Selvstændige historier fra Midgårds historie. Ikke nødvendige, men giver mere dybde."
+    },
+    timeline: [
+      { label: "Nye film", sub: "Rohirrim & Gollum", filter: "Nye film fra Midgård" },
+      { label: "Hobbit-trilogien", sub: "Tredje Alder 2941", filter: "Hobbit-trilogien" },
+      { label: "Ringenes Herre-trilogien", sub: "Tredje Alder 3018–3019", filter: "Ringenes Herre-trilogien" },
+      { label: "Peter Jacksons Midgård", sub: "Alle 6 film", filter: ["Hobbit-trilogien", "Ringenes Herre-trilogien"], saga: true }
+    ],
+    extraNote:
+      "Tip: De udvidede udgaver (Extended Editions) af Ringenes Herre er længere, men mange fans mener, de er de bedste versioner. Serien The Rings of Power foregår tusinder af år tidligere og er ikke nødvendig."
+  },
+
+  jurassic: {
+    id: "jurassic",
+    page: "jurassic.html",
+    kicker: "JURASSIC PARK",
+    name: "Jurassic Park / World",
+    shortName: "Jurassic",
+    icon: "🦖",
+    gradient: "linear-gradient(135deg, #07150e 0%, #1f5a3a 50%, #e5b84b 100%)",
+    accent: "#4cc27a",
+    accentText: "#06140c", // mørk tekst på grøn baggrund
+    cardText: "Fra den første park på Isla Nublar til dinosaurer i hele verden – alle film i rækkefølge.",
+    cta: "Se Jurassic-rækkefølge →",
+    heading: "Jurassic Park / World – anbefalet se-rækkefølge",
+    intro:
+      "Jurassic-serien er nem: Filmene foregår i samme rækkefølge, som de udkom. Jurassic World-filmene bygger direkte på den første Jurassic Park, og i Dominion vender de originale helte tilbage – så se dem i rækkefølge for at få det fulde udbytte.",
+    whyOrder: {
+      release: "Filmene i den rækkefølge, de kom i biografen. Her er udgivelses- og historisk rækkefølge den samme.",
+      recommended: "Samme som udgivelsesrækkefølgen. Historien bevæger sig fremad i tid fra film til film, så der er ingen grund til at hoppe rundt."
+    },
+    views: ["recommended", "release"],
+    groupBy: "phase",
+    groups: ["Jurassic Park-trilogien", "Jurassic World-trilogien", "En ny æra"],
+    groupInfo: {
+      "Jurassic Park-trilogien": "Den originale park, Isla Sorna og de første møder med dinosaurerne.",
+      "Jurassic World-trilogien": "Parken er endelig åbnet – og dinosaurerne slipper ud i verden.",
+      "En ny æra": "Efter Dominion: dinosaurerne overlever kun nær ækvator, og en ny historie begynder."
+    },
+    timeline: [
+      { label: "Jurassic Park", sub: "1993–2001", filter: "Jurassic Park-trilogien" },
+      { label: "Jurassic World", sub: "2015–2022", filter: "Jurassic World-trilogien" },
+      { label: "Hele sagaen", sub: "Park + World", filter: ["Jurassic Park-trilogien", "Jurassic World-trilogien"], saga: true },
+      { label: "En ny æra", sub: "2025 og frem", filter: "En ny æra" }
+    ],
+    extraNote:
+      "Tip: Animationsserierne Camp Cretaceous og Chaos Theory (Netflix) foregår sideløbende med Jurassic World-filmene. De er ikke nødvendige, men gode for yngre fans."
   }
 };
 
 /* Universer der kan tilføjes senere – vises som "Kommer snart" på forsiden */
 const COMING_SOON = [
-  { name: "Harry Potter", icon: "⚡", gradient: "linear-gradient(135deg,#3b1d0f,#8a5a2b)" },
-  { name: "Ringenes Herre", icon: "💍", gradient: "linear-gradient(135deg,#1c2a16,#6b7f3a)" },
-  { name: "Jurassic Park / World", icon: "🦖", gradient: "linear-gradient(135deg,#0f2f22,#2f7a52)" },
-  { name: "Fast & Furious", icon: "🏎️", gradient: "linear-gradient(135deg,#2b0f0f,#a33b1f)" },
-  { name: "DC", icon: "🦇", gradient: "linear-gradient(135deg,#0b1730,#2f4f8f)" },
   { name: "Alien", icon: "👽", gradient: "linear-gradient(135deg,#0d1a14,#36584a)" },
   { name: "Predator", icon: "🎯", gradient: "linear-gradient(135deg,#1f1a0b,#6f6224)" },
   { name: "Terminator", icon: "🦾", gradient: "linear-gradient(135deg,#200b0b,#7a2626)" }
@@ -2683,6 +2923,1386 @@ const MOVIES = {
       spoiler: "",
       badges: ["info"],
       importance: 2
+    }
+  ],
+
+  /* ======================================================================
+     HARRY POTTER & WIZARDING WORLD
+     ====================================================================== */
+  harrypotter: [
+    {
+      id: "hp-1-philosophers-stone",
+      title: "Harry Potter and the Philosopher's Stone",
+      year: 2001, released: "2001-11-16",
+      continuity: "hp", phase: "De første år på Hogwarts",
+      recommendedOrder: 1, chronoOrder: 4,
+      setting: "1991–1992 (Harrys 1. år)",
+      runtime: 152,
+      icon: "🪄",
+      description:
+        "På sin 11-års fødselsdag får Harry at vide, at han er troldmand. Han begynder på Hogwarts-skolen for heksekunster og troldmandsskab, hvor han får venner for livet – og opdager sandheden om sine forældre.",
+      whyHere:
+        "Start her. Filmen introducerer hele den magiske verden, Hogwarts, Harry, Ron og Hermione og skurken Voldemort. Alt efterfølgende bygger på den.",
+      characters: ["Harry Potter", "Ron Weasley", "Hermione Granger", "Albus Dumbledore", "Severus Snape", "Rubeus Hagrid", "Professor Quirrell"],
+      links: ["Hogwarts", "Voldemort", "De Vises Sten"],
+      connections: ["hp-2-chamber-of-secrets"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Professor Quirrell bærer Voldemort i baghovedet, og Harry forhindrer ham i at få fat i De Vises Sten.",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "hp-2-chamber-of-secrets",
+      title: "Harry Potter and the Chamber of Secrets",
+      year: 2002, released: "2002-11-15",
+      continuity: "hp", phase: "De første år på Hogwarts",
+      recommendedOrder: 2, chronoOrder: 5,
+      setting: "1992–1993 (Harrys 2. år)",
+      runtime: 161,
+      icon: "🐍",
+      description:
+        "Hemmelighedernes Kammer er blevet åbnet, og elever bliver forstenet én efter én. Harry hører en mystisk stemme i væggene og må finde ud af, hvem der står bag.",
+      whyHere:
+        "Fortsætter direkte efter film 1. Introducerer Tom Riddles dagbog, som viser sig at være meget vigtigere for den store historie, end man først tror.",
+      characters: ["Harry Potter", "Ron Weasley", "Hermione Granger", "Ginny Weasley", "Dobby", "Gilderoy Lockhart", "Lucius Malfoy", "Tom Riddle"],
+      links: ["Tom Riddles dagbog", "Slytherins arving", "Dobby"],
+      connections: ["hp-1-philosophers-stone", "hp-3-prisoner-of-azkaban", "hp-6-half-blood-prince"],
+      postCredit: { count: 1, text: "En kort, sjov scene efter rulleteksterne med Gilderoy Lockhart og hans nye bog 'Who Am I?'." },
+      spoiler: "Tom Riddle er den unge Voldemort, og hans dagbog har besat Ginny. Harry ødelægger dagbogen med en basilisk-tand og befrier Dobby.",
+      badges: ["story"],
+      importance: 4
+    },
+    {
+      id: "hp-3-prisoner-of-azkaban",
+      title: "Harry Potter and the Prisoner of Azkaban",
+      year: 2004, released: "2004-06-04",
+      continuity: "hp", phase: "De første år på Hogwarts",
+      recommendedOrder: 3, chronoOrder: 6,
+      setting: "1993–1994 (Harrys 3. år)",
+      runtime: 142,
+      icon: "🦌",
+      description:
+        "Den farlige fange Sirius Black er flygtet fra troldmandsfængslet Azkaban – og han ser ud til at være på jagt efter Harry. Imens patruljerer de uhyggelige dementorer omkring Hogwarts.",
+      whyHere:
+        "Afslutter de 'lettere' første år og giver vigtige brikker om Harrys forældre og deres venner, som får stor betydning resten af serien.",
+      characters: ["Harry Potter", "Ron Weasley", "Hermione Granger", "Sirius Black", "Remus Lupin", "Peter Pettigrew", "Dementorerne"],
+      links: ["Sirius Black", "Røverne (Marauders)", "Tidsvenderen"],
+      connections: ["hp-2-chamber-of-secrets", "hp-4-goblet-of-fire"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Sirius er uskyldig og Harrys gudfar. Det var Peter Pettigrew – Rons rotte Scabbers – der forrådte Harrys forældre. Lupin er varulv.",
+      badges: ["story"],
+      importance: 4
+    },
+    {
+      id: "hp-4-goblet-of-fire",
+      title: "Harry Potter and the Goblet of Fire",
+      year: 2005, released: "2005-11-18",
+      continuity: "hp", phase: "Voldemort vender tilbage",
+      recommendedOrder: 4, chronoOrder: 7,
+      setting: "1994–1995 (Harrys 4. år)",
+      runtime: 157,
+      icon: "🔥",
+      description:
+        "Hogwarts er vært for den farlige Turnering i Magisk Trekamp. Selvom Harry er for ung, spytter Flammernes Pokal hans navn ud – og han må deltage.",
+      whyHere:
+        "Vendepunktet i serien. Her bliver historien markant mørkere, og alt efter denne film handler om krigen mod Voldemort.",
+      characters: ["Harry Potter", "Cedric Diggory", "Alastor 'Skurkeøje' Moody", "Voldemort", "Cho Chang", "Viktor Krum", "Fleur Delacour"],
+      links: ["Turneringen i Magisk Trekamp", "Dødsgardisterne", "Voldemorts tilbagekomst"],
+      connections: ["hp-3-prisoner-of-azkaban", "hp-5-order-of-the-phoenix"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Cedric Diggory bliver dræbt, og Voldemort genopstår med en ny krop. 'Moody' var i virkeligheden Barty Crouch Jr. i forklædning.",
+      badges: ["story", "connector"],
+      importance: 5
+    },
+    {
+      id: "hp-5-order-of-the-phoenix",
+      title: "Harry Potter and the Order of the Phoenix",
+      year: 2007, released: "2007-07-11",
+      continuity: "hp", phase: "Voldemort vender tilbage",
+      recommendedOrder: 5, chronoOrder: 8,
+      setting: "1995–1996 (Harrys 5. år)",
+      runtime: 138,
+      icon: "🦅",
+      description:
+        "Ministeriet for Magi nægter at tro på, at Voldemort er tilbage, og sender den strenge Dolores Umbridge til Hogwarts. Harry samler sine venner i en hemmelig gruppe for at lære at forsvare sig.",
+      whyHere:
+        "Krigen mod Voldemort bliver åben. Filmen introducerer Fønixordenen, Dumbledores Hær og en profeti om Harry, som er nøglen til resten af serien.",
+      characters: ["Harry Potter", "Dolores Umbridge", "Sirius Black", "Luna Lovegood", "Neville Longbottom", "Bellatrix Lestrange", "Voldemort"],
+      links: ["Fønixordenen", "Dumbledores Hær", "Profetien"],
+      connections: ["hp-4-goblet-of-fire", "hp-6-half-blood-prince"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Sirius Black bliver dræbt af Bellatrix i Mysteriedepartementet, og Ministeriet må endelig indrømme, at Voldemort er tilbage.",
+      badges: ["story"],
+      importance: 4
+    },
+    {
+      id: "hp-6-half-blood-prince",
+      title: "Harry Potter and the Half-Blood Prince",
+      year: 2009, released: "2009-07-15",
+      continuity: "hp", phase: "Voldemort vender tilbage",
+      recommendedOrder: 6, chronoOrder: 9,
+      setting: "1996–1997 (Harrys 6. år)",
+      runtime: 153,
+      icon: "🧪",
+      description:
+        "Dumbledore tager Harry med på rejser ind i Voldemorts fortid for at finde hans svaghed. Imens finder Harry en gammel eliksirbog, der har tilhørt den mystiske 'Halvblodsprinsen'.",
+      whyHere:
+        "Forklarer Horcruxerne – hemmeligheden bag Voldemorts udødelighed – og sætter direkte scenen for de to sidste film.",
+      characters: ["Harry Potter", "Albus Dumbledore", "Severus Snape", "Draco Malfoy", "Horace Slughorn", "Tom Riddle"],
+      links: ["Horcruxer", "Halvblodsprinsen", "Voldemorts fortid"],
+      connections: ["hp-5-order-of-the-phoenix", "hp-7-deathly-hallows-1", "hp-2-chamber-of-secrets"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Snape dræber Dumbledore, og Snape er selv Halvblodsprinsen. Medaljonen, de hentede, er en falsk Horcrux.",
+      badges: ["story", "connector"],
+      importance: 5
+    },
+    {
+      id: "hp-7-deathly-hallows-1",
+      title: "Harry Potter and the Deathly Hallows – Part 1",
+      year: 2010, released: "2010-11-19",
+      continuity: "hp", phase: "Dødsregalierne",
+      recommendedOrder: 7, chronoOrder: 10,
+      setting: "1997–1998",
+      runtime: 146,
+      icon: "🏕️",
+      description:
+        "Voldemort har overtaget Ministeriet. Harry, Ron og Hermione dropper skolen og tager på flugt for at finde og ødelægge de resterende Horcruxer – og hører om de legendariske Dødsregalier.",
+      whyHere:
+        "Første halvdel af finalen. Den slutter midt i historien, så hav del 2 klar.",
+      characters: ["Harry Potter", "Ron Weasley", "Hermione Granger", "Voldemort", "Dobby", "Bellatrix Lestrange", "Gellert Grindelwald"],
+      links: ["Dødsregalierne", "Horcruxjagten", "Grindelwald"],
+      connections: ["hp-6-half-blood-prince", "hp-8-deathly-hallows-2", "fb-1-fantastic-beasts"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Dobby dør, mens han redder dem fra Malfoy Manor, og Voldemort stjæler Dumbledores Stav fra hans grav.",
+      badges: ["story"],
+      importance: 5
+    },
+    {
+      id: "hp-8-deathly-hallows-2",
+      title: "Harry Potter and the Deathly Hallows – Part 2",
+      year: 2011, released: "2011-07-15",
+      continuity: "hp", phase: "Dødsregalierne",
+      recommendedOrder: 8, chronoOrder: 11,
+      setting: "1998 (+ epilog 19 år senere)",
+      runtime: 130,
+      icon: "⚔️",
+      description:
+        "Slaget om Hogwarts. Harry og hans venner vender tilbage til skolen for at finde den sidste Horcrux og stå ansigt til ansigt med Voldemort én gang for alle.",
+      whyHere:
+        "Den store afslutning på Harrys historie. Mange tråde fra alle syv film bliver samlet her.",
+      characters: ["Harry Potter", "Voldemort", "Severus Snape", "Neville Longbottom", "Ron Weasley", "Hermione Granger", "Minerva McGonagall"],
+      links: ["Slaget om Hogwarts", "Snapes minder", "Epilogen"],
+      connections: ["hp-7-deathly-hallows-1"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Snape var på Dumbledores side hele tiden, fordi han elskede Lily. Harry er selv en Horcrux og må lade sig dræbe – men overlever. Neville dræber Nagini, og Voldemort dør.",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "fb-1-fantastic-beasts",
+      title: "Fantastic Beasts and Where to Find Them",
+      year: 2016, released: "2016-11-18",
+      continuity: "hp", phase: "Fantastiske skabninger",
+      recommendedOrder: 9, chronoOrder: 1,
+      setting: "1926, New York",
+      runtime: 133,
+      icon: "🧳",
+      description:
+        "Magizoologen Newt Scamander ankommer til New York med en kuffert fuld af magiske væsner. Da nogle af dem slipper ud, bliver han viklet ind i noget langt farligere.",
+      whyHere:
+        "Foregår ca. 70 år før Harry Potter, men ses bedst efter, fordi den bygger på det, du allerede ved om Dumbledore og Grindelwald. Lettere og mere eventyragtig end de sidste Harry Potter-film.",
+      characters: ["Newt Scamander", "Tina Goldstein", "Jacob Kowalski", "Queenie Goldstein", "Credence Barebone", "Percival Graves"],
+      links: ["Magiske væsner", "MACUSA (det amerikanske ministerium)", "Grindelwald"],
+      connections: ["fb-2-crimes-of-grindelwald", "hp-7-deathly-hallows-1"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Percival Graves er i virkeligheden Gellert Grindelwald i forklædning, og Credence er den mørke kraft, et Obscurus.",
+      badges: ["story", "universe"],
+      importance: 3
+    },
+    {
+      id: "fb-2-crimes-of-grindelwald",
+      title: "Fantastic Beasts: The Crimes of Grindelwald",
+      year: 2018, released: "2018-11-16",
+      continuity: "hp", phase: "Fantastiske skabninger",
+      recommendedOrder: 10, chronoOrder: 2,
+      setting: "1927, London og Paris",
+      runtime: 134,
+      icon: "🗼",
+      description:
+        "Grindelwald er flygtet og samler tilhængere. En ung Albus Dumbledore sender Newt til Paris for at stoppe ham og finde Credence.",
+      whyHere:
+        "Fortsætter direkte efter film 1 og fokuserer på Dumbledore og Grindelwalds fortid. Giver mest mening, når du kender den ældre Dumbledore fra Harry Potter.",
+      characters: ["Newt Scamander", "Albus Dumbledore", "Gellert Grindelwald", "Credence", "Leta Lestrange", "Tina Goldstein", "Nagini"],
+      links: ["Dumbledore og Grindelwald", "Blodpagten", "Lestrange-familien"],
+      connections: ["fb-1-fantastic-beasts", "fb-3-secrets-of-dumbledore"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Leta Lestrange dør, og Grindelwald påstår, at Credence i virkeligheden er en Dumbledore: Aurelius Dumbledore.",
+      badges: ["story"],
+      importance: 2
+    },
+    {
+      id: "fb-3-secrets-of-dumbledore",
+      title: "Fantastic Beasts: The Secrets of Dumbledore",
+      year: 2022, released: "2022-04-15",
+      continuity: "hp", phase: "Fantastiske skabninger",
+      recommendedOrder: 11, chronoOrder: 3,
+      setting: "1932, Tyskland og Bhutan",
+      runtime: 142,
+      icon: "🦄",
+      description:
+        "Grindelwald forsøger at tage magten over troldmandsverdenen. Dumbledore kan ikke selv kæmpe mod ham og sender Newt og et lille hold på en farlig mission.",
+      whyHere:
+        "Den foreløbig sidste Fantastiske skabninger-film. Den afslutter mange tråde om Dumbledore og Credence, selvom serien aldrig fik sin planlagte afslutning.",
+      characters: ["Newt Scamander", "Albus Dumbledore", "Gellert Grindelwald", "Credence", "Aberforth Dumbledore", "Jacob Kowalski"],
+      links: ["Valget til den internationale leder", "Qilin-væsenet", "Aberforth Dumbledore"],
+      connections: ["fb-2-crimes-of-grindelwald"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Credence er søn af Aberforth Dumbledore. Blodpagten bliver brudt, og Dumbledore og Grindelwald kæmper endelig mod hinanden.",
+      badges: ["story"],
+      importance: 2
+    }
+  ],
+
+  /* ======================================================================
+     DC
+     ====================================================================== */
+  dc: [
+    {
+      id: "dc-man-of-steel",
+      title: "Man of Steel",
+      year: 2013, released: "2013-06-14",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 1, chronoOrder: 2,
+      setting: "Nutiden (2013)",
+      runtime: 143,
+      icon: "🦸",
+      description:
+        "Clark Kent er sendt til Jorden som baby fra den døende planet Krypton. Som voksen må han beslutte, om han vil vise verden, hvem han er – da general Zod kommer for at hente ham.",
+      whyHere:
+        "Starten på DCEU. Superman introduceres, og ødelæggelserne i filmens finale bliver selve grunden til konflikten i Batman v Superman.",
+      characters: ["Clark Kent / Superman", "Lois Lane", "General Zod", "Jor-El", "Jonathan Kent", "Martha Kent"],
+      links: ["Krypton", "Superman", "Kampen om Metropolis"],
+      connections: ["dc-batman-v-superman"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Superman dræber Zod for at redde en familie, og store dele af Metropolis bliver ødelagt i kampen.",
+      badges: ["story", "universe"],
+      importance: 4
+    },
+    {
+      id: "dc-batman-v-superman",
+      title: "Batman v Superman: Dawn of Justice",
+      year: 2016, released: "2016-03-25",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 2, chronoOrder: 3,
+      setting: "18 måneder efter Man of Steel",
+      runtime: 152,
+      icon: "🦇",
+      description:
+        "Bruce Wayne ser Superman som en trussel mod menneskeheden efter kampen om Metropolis. Imens trækker Lex Luthor i trådene for at sætte de to helte op mod hinanden.",
+      whyHere:
+        "Introducerer Batman og Wonder Woman og lægger grunden til Justice League. Tip: 'Ultimate Edition' er længere, men hænger bedre sammen.",
+      characters: ["Bruce Wayne / Batman", "Clark Kent / Superman", "Diana Prince / Wonder Woman", "Lex Luthor", "Lois Lane", "Alfred"],
+      links: ["Justice League", "Lex Luthor", "Doomsday"],
+      connections: ["dc-man-of-steel", "dc-wonder-woman", "dc-zack-snyders-justice-league"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Superman dør i kampen mod monsteret Doomsday. Batman og Superman bliver venner, fordi deres mødre begge hedder Martha.",
+      badges: ["story", "universe", "connector"],
+      importance: 4
+    },
+    {
+      id: "dc-suicide-squad",
+      title: "Suicide Squad",
+      year: 2016, released: "2016-08-05",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 3, chronoOrder: 4,
+      setting: "Efter Batman v Superman",
+      runtime: 123,
+      icon: "💀",
+      description:
+        "Med Superman væk samler Amanda Waller et hold af farlige superskurke – Task Force X – til selvmordsmissioner, regeringen ikke vil vedkende sig.",
+      whyHere:
+        "Foregår lige efter Batman v Superman og introducerer Harley Quinn og Amanda Waller. Ikke vigtig for den store historie, men udvider universet.",
+      characters: ["Harley Quinn", "Deadshot", "Amanda Waller", "Rick Flag", "Joker", "Enchantress", "Captain Boomerang"],
+      links: ["Task Force X", "Amanda Waller", "Harley Quinn"],
+      connections: ["dc-batman-v-superman", "dc-birds-of-prey", "dc-the-suicide-squad"],
+      postCredit: { count: 1, text: "Amanda Waller giver Bruce Wayne filer om andre metamennesker – han begynder at samle Justice League." },
+      spoiler: "Enchantress vender sig mod Waller og vil ødelægge verden, men holdet stopper hende. Harley ender i fængsel, indtil Joker bryder ind og befrier hende.",
+      badges: ["universe"],
+      importance: 2
+    },
+    {
+      id: "dc-wonder-woman",
+      title: "Wonder Woman",
+      year: 2017, released: "2017-06-02",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 4, chronoOrder: 1,
+      setting: "1918 – 1. verdenskrig (rammes ind i nutiden)",
+      runtime: 141,
+      icon: "🛡️",
+      description:
+        "Amazonen Diana vokser op på den skjulte ø Themyscira. Da piloten Steve Trevor styrter ned og fortæller om verdenskrigen, forlader hun øen for at stoppe krigsguden Ares.",
+      whyHere:
+        "Foregår under 1. verdenskrig, men starter og slutter i nutiden efter Batman v Superman – derfor ses den her som et stort tilbageblik.",
+      characters: ["Diana / Wonder Woman", "Steve Trevor", "Hippolyta", "Antiope", "General Ludendorff", "Doctor Poison"],
+      links: ["Themyscira", "Amazonerne", "Ares"],
+      connections: ["dc-batman-v-superman", "dc-wonder-woman-1984"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Den britiske politiker Sir Patrick Morgan er i virkeligheden Ares. Steve Trevor ofrer sig selv for at stoppe et fly med giftgas.",
+      badges: ["story"],
+      importance: 4
+    },
+    {
+      id: "dc-zack-snyders-justice-league",
+      title: "Zack Snyder's Justice League",
+      year: 2021, released: "2021-03-18",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 5, chronoOrder: 5,
+      setting: "Efter Batman v Superman",
+      runtime: 242,
+      icon: "🌍",
+      description:
+        "Instruktør Zack Snyders oprindelige version af Justice League. Bruce Wayne og Diana samler et hold af helte for at stoppe Steppenwolf, der jagter tre magiske Moderbokse.",
+      whyHere:
+        "Anbefales frem for biografversionen fra 2017: Den er meget længere, men giver karaktererne (især Cyborg og Flash) langt mere plads. Vælg én af de to versioner.",
+      characters: ["Batman", "Wonder Woman", "Aquaman", "The Flash", "Cyborg", "Superman", "Steppenwolf", "Darkseid"],
+      links: ["Moderboksene", "Darkseid", "Justice League"],
+      connections: ["dc-batman-v-superman", "dc-justice-league", "dc-aquaman"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne – men filmens epilog ('Knightmare') er en del af selve filmen." },
+      spoiler: "Superman bliver genoplivet med en Moderboks, og holdet besejrer Steppenwolf. I epilogen ser Batman en mørk fremtid med Joker – en historie, der aldrig blev fortsat.",
+      badges: ["story", "connector", "info"],
+      importance: 4
+    },
+    {
+      id: "dc-justice-league",
+      title: "Justice League (biografversion)",
+      year: 2017, released: "2017-11-17",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 6, chronoOrder: 6,
+      setting: "Efter Batman v Superman",
+      runtime: 120,
+      icon: "🦸‍♂️",
+      description:
+        "Biografversionen af historien, hvor Batman og Wonder Woman samler Aquaman, Flash og Cyborg for at stoppe Steppenwolf.",
+      whyHere:
+        "Alternativ til Zack Snyder's Justice League – samme historie, men kortere og med en lettere tone. Du behøver kun at se én af dem.",
+      characters: ["Batman", "Wonder Woman", "Aquaman", "The Flash", "Cyborg", "Superman", "Steppenwolf"],
+      links: ["Justice League", "Moderboksene"],
+      connections: ["dc-zack-snyders-justice-league"],
+      postCredit: { count: 2, text: "1) Superman og Flash løber om kap. 2) Lex Luthor er flygtet og vil danne sin egen liga med Deathstroke." },
+      spoiler: "Superman bliver genoplivet og hjælper holdet med at besejre Steppenwolf.",
+      badges: ["info"],
+      importance: 1
+    },
+    {
+      id: "dc-aquaman",
+      title: "Aquaman",
+      year: 2018, released: "2018-12-21",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 7, chronoOrder: 7,
+      setting: "Efter Justice League",
+      runtime: 143,
+      icon: "🔱",
+      description:
+        "Arthur Curry, halvt menneske og halvt atlantaner, må kæmpe mod sin halvbror Orm, der vil samle havets kongeriger og angribe overfladen.",
+      whyHere:
+        "Fortsætter Arthurs historie efter Justice League, men står fint alene. Et farverigt eventyr under havet.",
+      characters: ["Arthur Curry / Aquaman", "Mera", "Orm", "Atlanna", "Vulko", "Black Manta"],
+      links: ["Atlantis", "Atlans Trefork", "Black Manta"],
+      connections: ["dc-zack-snyders-justice-league", "dc-aquaman-lost-kingdom"],
+      postCredit: { count: 1, text: "Black Manta bliver reddet af videnskabsmanden Dr. Shin – han vender tilbage i efterfølgeren." },
+      spoiler: "Arthur finder kong Atlans Trefork, besejrer Orm og bliver konge af Atlantis.",
+      badges: ["story"],
+      importance: 3
+    },
+    {
+      id: "dc-shazam",
+      title: "Shazam!",
+      year: 2019, released: "2019-04-05",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 8, chronoOrder: 8,
+      setting: "Nutiden, Philadelphia",
+      runtime: 132,
+      icon: "⚡",
+      description:
+        "Den 14-årige plejedreng Billy Batson får magiske kræfter af en gammel troldmand. Når han siger 'Shazam!', bliver han til en voksen superhelt.",
+      whyHere:
+        "En sjov, selvstændig historie i DCEU. Kræver ikke, at du kan huske de andre film.",
+      characters: ["Billy Batson / Shazam", "Freddy Freeman", "Dr. Sivana", "Troldmanden Shazam", "Mary Bromfield"],
+      links: ["Klippen af Evigheden", "De syv dødssynder"],
+      connections: ["dc-shazam-fury-of-the-gods"],
+      postCredit: { count: 2, text: "1) Dr. Sivana møder den lille orm Mr. Mind, der vil samle skurke. 2) En sjov scene, hvor Billy tester, om han kan tale med fisk." },
+      spoiler: "Billys plejesøskende får også kræfter, og sammen besejrer de Sivana og dødssynderne.",
+      badges: ["story"],
+      importance: 2
+    },
+    {
+      id: "dc-birds-of-prey",
+      title: "Birds of Prey",
+      year: 2020, released: "2020-02-07",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 9, chronoOrder: 9,
+      setting: "Efter Suicide Squad, Gotham",
+      runtime: 109,
+      icon: "🔨",
+      description:
+        "Harley Quinn er gået fra Joker og har pludselig ingen beskyttelse i Gotham. Hun allierer sig med en flok kvinder for at stoppe gangsteren Black Mask.",
+      whyHere:
+        "Fortsætter Harleys historie efter Suicide Squad. Selvstændig og ikke vigtig for resten af universet.",
+      characters: ["Harley Quinn", "Huntress", "Black Canary", "Renee Montoya", "Cassandra Cain", "Black Mask"],
+      links: ["Harley Quinn", "Gotham", "Black Mask"],
+      connections: ["dc-suicide-squad", "dc-the-suicide-squad"],
+      postCredit: { count: 1, text: "Et kort lyd-gag fra Harley efter rulleteksterne – ingen historie." },
+      spoiler: "Harley og Birds of Prey besejrer Black Mask, og Harley ender med at starte sin egen forretning med Cassandra.",
+      badges: ["info"],
+      importance: 2
+    },
+    {
+      id: "dc-wonder-woman-1984",
+      title: "Wonder Woman 1984",
+      year: 2020, released: "2020-12-25",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 10, chronoOrder: 10,
+      setting: "1984",
+      runtime: 151,
+      icon: "💎",
+      description:
+        "I 1984 arbejder Diana på et museum i Washington. En mystisk sten, der kan opfylde ønsker, bringer både hendes fortid og en ny fare – Maxwell Lord og Cheetah.",
+      whyHere:
+        "Foregår 1984 og fortsætter Dianas personlige historie fra Wonder Woman. Ikke vigtig for den store DCEU-historie.",
+      characters: ["Diana / Wonder Woman", "Steve Trevor", "Maxwell Lord", "Barbara Minerva / Cheetah"],
+      links: ["Drømmestenen", "Cheetah"],
+      connections: ["dc-wonder-woman"],
+      postCredit: { count: 1, text: "En scene midt i rulleteksterne med amazonen Asteria – spillet af den klassiske Wonder Woman, Lynda Carter." },
+      spoiler: "Steve Trevor vender tilbage i en anden mands krop pga. et ønske. Diana må give afkald på ham for at få sine kræfter tilbage.",
+      badges: ["story"],
+      importance: 2
+    },
+    {
+      id: "dc-the-suicide-squad",
+      title: "The Suicide Squad",
+      year: 2021, released: "2021-08-06",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 11, chronoOrder: 11,
+      setting: "Nutiden, øen Corto Maltese",
+      runtime: 132,
+      icon: "🦈",
+      description:
+        "Amanda Waller sender et nyt hold af skurke – bl.a. Bloodsport, Peacemaker og King Shark – til øen Corto Maltese for at ødelægge et hemmeligt laboratorium.",
+      whyHere:
+        "James Gunns første DC-film. En halv reboot, der kan ses uden den første Suicide Squad – og den fører direkte videre til serien Peacemaker, som senere bliver en del af DCU.",
+      characters: ["Bloodsport", "Harley Quinn", "Peacemaker", "Ratcatcher 2", "King Shark", "Polka-Dot Man", "Amanda Waller", "Rick Flag"],
+      links: ["Task Force X", "Starro", "Peacemaker"],
+      connections: ["dc-suicide-squad", "dc-superman"],
+      postCredit: { count: 2, text: "1) Peacemaker overlevede og vågner på hospitalet – det fører til serien Peacemaker. 2) En lille sjov scene med Weasel." },
+      spoiler: "Det meste af det første hold bliver dræbt med det samme. Rick Flag bliver dræbt af Peacemaker, og holdet besejrer det kæmpe søstjerne-monster Starro.",
+      badges: ["story", "connector"],
+      importance: 3
+    },
+    {
+      id: "dc-black-adam",
+      title: "Black Adam",
+      year: 2022, released: "2022-10-21",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 12, chronoOrder: 12,
+      setting: "Nutiden, Kahndaq",
+      runtime: 125,
+      icon: "⚡",
+      description:
+        "Efter 5.000 år i fangenskab bliver antihelten Teth-Adam befriet i landet Kahndaq. Justice Society forsøger at stoppe hans brutale form for retfærdighed.",
+      whyHere:
+        "Selvstændig historie, der introducerer Justice Society. Ikke nødvendig for resten af DCEU.",
+      characters: ["Teth-Adam / Black Adam", "Hawkman", "Doctor Fate", "Atom Smasher", "Cyclone", "Amanda Waller"],
+      links: ["Justice Society", "Kahndaq"],
+      connections: ["dc-shazam"],
+      postCredit: { count: 1, text: "Superman (Henry Cavill) dukker op og advarer Black Adam – et comeback, der aldrig blev fulgt op." },
+      spoiler: "Doctor Fate ofrer sig for at redde de andre, og Black Adam bliver Kahndaqs beskytter.",
+      badges: ["info"],
+      importance: 2
+    },
+    {
+      id: "dc-shazam-fury-of-the-gods",
+      title: "Shazam! Fury of the Gods",
+      year: 2023, released: "2023-03-17",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 13, chronoOrder: 13,
+      setting: "Ca. 2 år efter Shazam!",
+      runtime: 130,
+      icon: "🐉",
+      description:
+        "Billy og hans plejesøskende må kæmpe mod Atlas' døtre – gudinder, der vil have deres stjålne magi tilbage og bringe kaos til Jorden.",
+      whyHere:
+        "Fortsætter Shazam!. Underholdende, men ikke vigtig for den store historie.",
+      characters: ["Billy Batson / Shazam", "Freddy Freeman", "Hespera", "Kalypso", "Anthea", "Wonder Woman"],
+      links: ["Atlas' døtre", "Shazam-familien"],
+      connections: ["dc-shazam"],
+      postCredit: { count: 2, text: "1) Emilia Harcourt og John Economos fra Peacemaker tilbyder Billy et job. 2) Mr. Mind og Dr. Sivana vender kort tilbage." },
+      spoiler: "Billy ofrer sig og dør, men Wonder Woman genopliver ham med Zeus' stav.",
+      badges: ["info"],
+      importance: 1
+    },
+    {
+      id: "dc-the-flash",
+      title: "The Flash",
+      year: 2023, released: "2023-06-16",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 14, chronoOrder: 14,
+      setting: "Nutiden + alternative tidslinjer",
+      runtime: 144,
+      icon: "⚡",
+      description:
+        "Barry Allen rejser tilbage i tiden for at redde sin mor – men ændrer dermed historien og havner i en verden uden superhelte, hvor general Zod er på vej.",
+      whyHere:
+        "Den reelle afslutning på DCEU. Multivers-historien 'nulstiller' universet og baner vejen for det nye DCU. Mange gæsteoptrædener fra ældre Batman-film.",
+      characters: ["Barry Allen / The Flash", "Batman (Michael Keaton)", "Supergirl (Kara Zor-El)", "General Zod", "Nora Allen"],
+      links: ["Speed Force", "Multiverset", "Flashpoint"],
+      connections: ["dc-zack-snyders-justice-league", "dc-man-of-steel", "dc-superman"],
+      postCredit: { count: 1, text: "Barry og en meget fuld Aquaman – en ren komisk scene." },
+      spoiler: "Barry kan ikke redde sin mor uden at ødelægge universet. Da han vender hjem, er Bruce Wayne pludselig spillet af George Clooney – tidslinjen er ændret.",
+      badges: ["story", "connector", "universe"],
+      importance: 3
+    },
+    {
+      id: "dc-blue-beetle",
+      title: "Blue Beetle",
+      year: 2023, released: "2023-08-18",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 15, chronoOrder: 15,
+      setting: "Nutiden, Palmera City",
+      runtime: 127,
+      icon: "🪲",
+      description:
+        "Den nyuddannede Jaime Reyes kommer i besiddelse af en fremmed skarabæ, der binder sig til ham og giver ham en kraftfuld rustning – noget firmaet Kord Industries vil have fat i.",
+      whyHere:
+        "En selvstændig origin-historie, der kom mellem DCEU og DCU. Jaime er ifølge James Gunn også en del af det nye DCU.",
+      characters: ["Jaime Reyes / Blue Beetle", "Jenny Kord", "Victoria Kord", "Reyes-familien"],
+      links: ["Skarabæen", "Kord Industries"],
+      connections: [],
+      postCredit: { count: 2, text: "1) Et hint om, at Ted Kord – den tidligere Blue Beetle – stadig lever. 2) En kort, sjov scene." },
+      spoiler: "Jaimes onkel Rudy ofrer sig i kampen, og Jaime besejrer Victoria Kords hær.",
+      badges: ["info"],
+      importance: 2
+    },
+    {
+      id: "dc-aquaman-lost-kingdom",
+      title: "Aquaman and the Lost Kingdom",
+      year: 2023, released: "2023-12-22",
+      continuity: "dceu", phase: "dceu",
+      recommendedOrder: 16, chronoOrder: 16,
+      setting: "Nogle år efter Aquaman",
+      runtime: 124,
+      icon: "🌊",
+      description:
+        "Black Manta har fundet den mørke Sorte Trefork og vil hævne sig på Aquaman. Arthur må alliere sig med sin bror Orm for at redde sin familie og verden.",
+      whyHere:
+        "Den sidste DCEU-film. Ikke vigtig for den store historie – men den lukker universet.",
+      characters: ["Arthur Curry / Aquaman", "Orm", "Black Manta", "Mera", "Atlanna"],
+      links: ["Den Sorte Trefork", "Atlantis"],
+      connections: ["dc-aquaman"],
+      postCredit: { count: 1, text: "Et kort, komisk gag med Arthur – ingen historie." },
+      spoiler: "Arthur besejrer Black Manta og afslører Atlantis' eksistens for hele verden.",
+      badges: ["info"],
+      importance: 1
+    },
+    {
+      id: "dc-superman",
+      title: "Superman",
+      year: 2025, released: "2025-07-11",
+      continuity: "dcu", phase: "dcu",
+      recommendedOrder: 17, chronoOrder: 17,
+      setting: "Nutiden – Superman har været aktiv i 3 år",
+      runtime: 129,
+      icon: "🦸",
+      description:
+        "Superman har beskyttet Metropolis i tre år. Da han griber ind i en krig mellem to lande, bliver han mål for milliardæren Lex Luthor, der vil vende verden imod ham.",
+      whyHere:
+        "Starten på det nye DCU – et helt nyt univers med en ny Superman. Du behøver ikke at have set nogen DCEU-film. Universet er allerede fyldt med helte, så filmen springer origin-historien over.",
+      watchFirst: ["Creature Commandos (Max) – valgfri animationsserie og DCU's allerførste historie"],
+      characters: ["Clark Kent / Superman", "Lois Lane", "Lex Luthor", "Krypto", "Guy Gardner / Green Lantern", "Hawkgirl", "Mr. Terrific"],
+      links: ["DCU", "Justice Gang", "LuthorCorp"],
+      connections: ["dc-supergirl", "dc-man-of-tomorrow"],
+      postCredit: { count: 2, text: "To korte, sjove scener under og efter rulleteksterne – ingen store afsløringer." },
+      spoiler: "Lex afslører, at Supermans forældres besked i virkeligheden bad ham om at herske over Jorden. Supergirl dukker op til sidst for at hente Krypto.",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "dc-supergirl",
+      title: "Supergirl",
+      year: 2026, released: "2026-06-26",
+      continuity: "dcu", phase: "dcu",
+      recommendedOrder: 18, chronoOrder: 18,
+      setting: "DCU – efter Superman",
+      runtime: null,
+      icon: "🌟",
+      description:
+        "Kara Zor-El, Supermans kusine, rejser gennem rummet sammen med en ung pige, der søger hævn. Baseret på tegneserien 'Supergirl: Woman of Tomorrow'.",
+      whyHere:
+        "Næste DCU-film efter Superman, hvor Kara blev introduceret. Udvider DCU ud i rummet.",
+      watchFirst: ["Peacemaker sæson 2 (Max) – valgfri, men en del af DCU"],
+      characters: ["Kara Zor-El / Supergirl", "Ruthye Marye Knoll", "Krypto", "Lobo", "Krem"],
+      links: ["Krypton", "Woman of Tomorrow"],
+      connections: ["dc-superman"],
+      postCredit: null,
+      spoiler: "",
+      badges: ["story"],
+      importance: 4
+    },
+    {
+      id: "dc-clayface",
+      title: "Clayface",
+      year: 2026, released: "2026-09-11",
+      continuity: "dcu", phase: "dcu",
+      recommendedOrder: 19, chronoOrder: 19,
+      setting: "DCU, Gotham",
+      runtime: null,
+      icon: "🗿",
+      description:
+        "En uhyggelig horror-historie fra Gotham om en skuespiller, hvis liv bliver ødelagt – og som forvandles til det formskiftende monster Clayface.",
+      whyHere:
+        "En selvstændig horrorfilm i DCU. Ikke nødvendig for den store historie, men viser Gothams mørke side i det nye univers.",
+      characters: ["Matt Hagen / Clayface"],
+      links: ["Gotham", "Batmans skurke"],
+      connections: ["dc-superman"],
+      postCredit: null,
+      spoiler: "",
+      badges: ["info"],
+      importance: 2
+    },
+    {
+      id: "dc-man-of-tomorrow",
+      title: "Man of Tomorrow",
+      year: 2027, released: "2027-07-09",
+      continuity: "dcu", phase: "dcu",
+      recommendedOrder: 20, chronoOrder: 20,
+      setting: "DCU – efter Superman",
+      runtime: null,
+      icon: "🤝",
+      description:
+        "Opfølgeren til Superman (2025). Superman og Lex Luthor må – modvilligt – arbejde sammen mod en større trussel.",
+      whyHere:
+        "Fortsætter direkte Supermans historie i DCU.",
+      characters: ["Clark Kent / Superman", "Lex Luthor"],
+      links: ["DCU"],
+      connections: ["dc-superman"],
+      postCredit: null,
+      spoiler: "",
+      badges: ["story"],
+      importance: 4,
+      upcoming: true
+    },
+    {
+      id: "dc-batman-begins",
+      title: "Batman Begins",
+      year: 2005, released: "2005-06-15",
+      continuity: "dc-nolan", phase: "dc-nolan",
+      recommendedOrder: 21, chronoOrder: 21,
+      setting: "Gotham",
+      runtime: 140,
+      icon: "🦇",
+      description:
+        "Efter sine forældres død rejser Bruce Wayne verden rundt for at lære at bekæmpe kriminalitet. Han vender hjem til et korrupt Gotham og bliver Batman.",
+      whyHere:
+        "Starten på Christopher Nolans selvstændige Batman-trilogi. Kræver intet kendskab til andre DC-film.",
+      characters: ["Bruce Wayne / Batman", "Alfred", "Jim Gordon", "Rachel Dawes", "Ra's al Ghul", "Scarecrow", "Lucius Fox"],
+      links: ["League of Shadows", "Batmans oprindelse"],
+      connections: ["dc-the-dark-knight"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne – men den sidste scene før rulleteksterne er vigtig." },
+      spoiler: "Henri Ducard er den rigtige Ra's al Ghul. Til sidst viser Gordon Batman et Joker-kort.",
+      badges: ["story", "universe"],
+      importance: 4
+    },
+    {
+      id: "dc-the-dark-knight",
+      title: "The Dark Knight",
+      year: 2008, released: "2008-07-18",
+      continuity: "dc-nolan", phase: "dc-nolan",
+      recommendedOrder: 22, chronoOrder: 22,
+      setting: "Gotham",
+      runtime: 152,
+      icon: "🃏",
+      description:
+        "Batman, Gordon og den nye anklager Harvey Dent har fat i Gothams mafia – indtil en kaotisk forbryder kaldet Joker sætter byen på den anden ende.",
+      whyHere:
+        "Fortsætter direkte efter Batman Begins. Anses af mange som den bedste superheltefilm nogensinde.",
+      characters: ["Batman", "Joker", "Harvey Dent / Two-Face", "Jim Gordon", "Rachel Dawes", "Alfred"],
+      links: ["Joker", "Two-Face"],
+      connections: ["dc-batman-begins", "dc-the-dark-knight-rises"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Rachel bliver dræbt, og Harvey Dent bliver til Two-Face. Batman tager skylden for Harveys forbrydelser for at bevare Gothams håb.",
+      badges: ["story"],
+      importance: 5
+    },
+    {
+      id: "dc-the-dark-knight-rises",
+      title: "The Dark Knight Rises",
+      year: 2012, released: "2012-07-20",
+      continuity: "dc-nolan", phase: "dc-nolan",
+      recommendedOrder: 23, chronoOrder: 23,
+      setting: "8 år efter The Dark Knight",
+      runtime: 164,
+      icon: "💣",
+      description:
+        "Otte år efter Harvey Dents død har Batman trukket sig tilbage. Da den brutale terrorist Bane overtager Gotham, må Bruce vende tilbage en sidste gang.",
+      whyHere:
+        "Afslutningen på Nolans trilogi. Binder tråde fra både Batman Begins og The Dark Knight sammen.",
+      characters: ["Batman", "Bane", "Selina Kyle / Catwoman", "John Blake", "Miranda Tate", "Jim Gordon", "Alfred"],
+      links: ["Bane", "League of Shadows"],
+      connections: ["dc-the-dark-knight", "dc-batman-begins"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Miranda Tate er Talia al Ghul, den egentlige hjerne bag planen. Bruce fingerer sin død og lever videre med Selina, og John Blakes rigtige navn er Robin.",
+      badges: ["story"],
+      importance: 4
+    },
+    {
+      id: "dc-the-batman",
+      title: "The Batman",
+      year: 2022, released: "2022-03-04",
+      continuity: "dc-batman", phase: "dc-batman",
+      recommendedOrder: 24, chronoOrder: 24,
+      setting: "Gotham – Batmans 2. år",
+      runtime: 176,
+      icon: "🔍",
+      description:
+        "I sit andet år som Batman jagter Bruce Wayne seriemorderen Riddler, der efterlader gåder ved sine ofre – og afslører Gothams korruption, også i Wayne-familien.",
+      whyHere:
+        "Et helt nyt, selvstændigt Batman-univers. Mere detektivhistorie end action. Kræver ingen andre film.",
+      characters: ["Bruce Wayne / Batman", "Riddler", "Selina Kyle / Catwoman", "Jim Gordon", "Penguin", "Carmine Falcone", "Alfred"],
+      links: ["Riddler", "Penguin", "Gothams korruption"],
+      connections: ["dc-the-batman-part-ii"],
+      postCredit: { count: 0, text: "Ingen rigtig scene – kun et lille Riddler-gag allerhelt til sidst." },
+      spoiler: "Riddlers sidste plan er at oversvømme Gotham. I Arkham bliver han venner med en fange, der tydeligvis er Joker.",
+      badges: ["story", "universe"],
+      importance: 4
+    },
+    {
+      id: "dc-the-batman-part-ii",
+      title: "The Batman Part II",
+      year: 2027, released: "2027-10-01",
+      continuity: "dc-batman", phase: "dc-batman",
+      recommendedOrder: 25, chronoOrder: 25,
+      setting: "Gotham – efter The Batman",
+      runtime: null,
+      icon: "🌧️",
+      description:
+        "Opfølgeren til The Batman med Robert Pattinson tilbage som Batman.",
+      whyHere:
+        "Fortsætter direkte efter The Batman (og serien The Penguin).",
+      watchFirst: ["The Penguin (Max) – serien foregår mellem de to film og anbefales"],
+      characters: ["Bruce Wayne / Batman"],
+      links: ["Gotham"],
+      connections: ["dc-the-batman"],
+      postCredit: null,
+      spoiler: "",
+      badges: ["story"],
+      importance: 4,
+      upcoming: true
+    },
+    {
+      id: "dc-joker",
+      title: "Joker",
+      year: 2019, released: "2019-10-04",
+      continuity: "dc-joker", phase: "dc-joker",
+      recommendedOrder: 26, chronoOrder: 26,
+      setting: "Gotham, start-1980'erne",
+      runtime: 122,
+      icon: "🤡",
+      description:
+        "Arthur Fleck er en ensom, psykisk syg mand, der drømmer om at blive komiker. Samfundets kulde skubber ham langsomt mod at blive Joker.",
+      whyHere:
+        "Et selvstændigt psykologisk drama – ingen superhelte og ingen forbindelse til andre DC-film.",
+      characters: ["Arthur Fleck / Joker", "Murray Franklin", "Sophie Dumond", "Thomas Wayne", "Penny Fleck"],
+      links: ["Joker", "Gotham"],
+      connections: ["dc-joker-folie-a-deux"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Arthur dræber talkshowværten Murray Franklin direkte på tv og bliver et symbol for et oprør, hvor Thomas og Martha Wayne bliver dræbt.",
+      badges: ["story"],
+      importance: 3
+    },
+    {
+      id: "dc-joker-folie-a-deux",
+      title: "Joker: Folie à Deux",
+      year: 2024, released: "2024-10-04",
+      continuity: "dc-joker", phase: "dc-joker",
+      recommendedOrder: 27, chronoOrder: 27,
+      setting: "Gotham – 2 år efter Joker",
+      runtime: 138,
+      icon: "🎭",
+      description:
+        "Arthur Fleck venter på sin retssag på Arkham, hvor han møder Lee Quinzel. Sammen dykker de ned i en delt galskab – med musical-indslag.",
+      whyHere:
+        "Fortsætter og afslutter Arthurs historie. En meget anderledes film end den første.",
+      characters: ["Arthur Fleck / Joker", "Lee Quinzel", "Harvey Dent", "Jackie Sullivan"],
+      links: ["Arkham", "Harley Quinn"],
+      connections: ["dc-joker"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Arthur opgiver Joker-identiteten i retten, Lee forlader ham, og han bliver dræbt af en medfange, der selv synes at blive den 'rigtige' Joker.",
+      badges: ["story"],
+      importance: 2
+    }
+  ],
+
+  /* ======================================================================
+     FAST & FURIOUS
+     ====================================================================== */
+  fastfurious: [
+    {
+      id: "ff-1-fast-and-the-furious",
+      title: "The Fast and the Furious",
+      year: 2001, released: "2001-06-22",
+      continuity: "ff", phase: "Begyndelsen",
+      recommendedOrder: 1, chronoOrder: 1,
+      setting: "Los Angeles",
+      runtime: 106,
+      icon: "🏁",
+      description:
+        "Politimanden Brian O'Conner går undercover i Los Angeles' illegale gadeløbsmiljø for at opklare en række lastbilkapringer – og bliver venner med den karismatiske Dominic Toretto.",
+      whyHere:
+        "Her starter det hele. Filmen introducerer Dom, Brian, Letty og Mia og selve idéen om 'familie', som hele serien bygger på.",
+      characters: ["Dominic Toretto", "Brian O'Conner", "Letty Ortiz", "Mia Toretto", "Vince", "Johnny Tran"],
+      links: ["Gadeløb", "Toretto-familien"],
+      connections: ["ff-2-2-fast-2-furious", "ff-4-fast-and-furious"],
+      postCredit: { count: 0, text: "Ingen vigtig scene efter rulleteksterne." },
+      spoiler: "Brian lader Dom slippe væk fra politiet til sidst og giver ham nøglerne til sin egen bil.",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "ff-2-2-fast-2-furious",
+      title: "2 Fast 2 Furious",
+      year: 2003, released: "2003-06-06",
+      continuity: "ff", phase: "Begyndelsen",
+      recommendedOrder: 2, chronoOrder: 2,
+      setting: "Miami",
+      runtime: 107,
+      icon: "🌴",
+      description:
+        "Brian er nu selv på flugt fra loven og bliver tvunget til at gå undercover hos narkobaronen Carter Verone i Miami – sammen med barndomsvennen Roman Pearce.",
+      whyHere:
+        "Fortsætter Brians historie og introducerer Roman og Tej, som senere bliver faste medlemmer af familien. Dom er ikke med.",
+      characters: ["Brian O'Conner", "Roman Pearce", "Tej Parker", "Monica Fuentes", "Carter Verone"],
+      links: ["Roman og Tej", "Miami"],
+      connections: ["ff-1-fast-and-the-furious", "ff-5-fast-five"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Brian og Roman stopper Verone, får deres straffeattester renset og stikker af med noget af hans penge.",
+      badges: ["story"],
+      importance: 3
+    },
+    {
+      id: "ff-4-fast-and-furious",
+      title: "Fast & Furious",
+      year: 2009, released: "2009-04-03",
+      continuity: "ff", phase: "Familien samles",
+      recommendedOrder: 3, chronoOrder: 3,
+      setting: "Los Angeles og Mexico",
+      runtime: 107,
+      icon: "🚗",
+      description:
+        "En tragedie bringer Dom tilbage til Los Angeles, hvor han og Brian – nu FBI-agent – igen ender på samme side mod narkobaronen Braga.",
+      whyHere:
+        "Film nr. 4, men den foregår FØR Tokyo Drift. Genforener Dom og Brian og sætter gang i den store historie. (Bemærk: Han er med her – det er bevidst.)",
+      characters: ["Dominic Toretto", "Brian O'Conner", "Mia Toretto", "Letty Ortiz", "Han Lue", "Gisele Yashar", "Braga"],
+      links: ["Letty", "Gisele", "Han"],
+      connections: ["ff-1-fast-and-the-furious", "ff-5-fast-five"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Letty er tilsyneladende blevet dræbt af Bragas folk. Dom bliver idømt fængsel, men Brian, Mia og holdet befrier ham fra fangetransporten.",
+      badges: ["story", "connector"],
+      importance: 4
+    },
+    {
+      id: "ff-5-fast-five",
+      title: "Fast Five",
+      year: 2011, released: "2011-04-29",
+      continuity: "ff", phase: "Familien samles",
+      recommendedOrder: 4, chronoOrder: 4,
+      setting: "Rio de Janeiro",
+      runtime: 130,
+      icon: "💰",
+      description:
+        "På flugt i Rio samler Dom og Brian et hold for ét sidste stort kup mod en korrupt forretningsmand – mens den hårdtslående agent Luke Hobbs jagter dem.",
+      whyHere:
+        "Her skifter serien fra gadeløb til store kup og action. Hobbs introduceres, og hele holdet samles for første gang.",
+      characters: ["Dominic Toretto", "Brian O'Conner", "Luke Hobbs", "Mia Toretto", "Roman Pearce", "Tej Parker", "Han Lue", "Gisele Yashar", "Hernan Reyes"],
+      links: ["Hobbs", "Kuppet i Rio", "Hernan Reyes"],
+      connections: ["ff-4-fast-and-furious", "ff-6-fast-and-furious-6", "ff-11-fast-x"],
+      postCredit: { count: 1, text: "Monica Fuentes giver Hobbs en mappe: Letty er i live." },
+      spoiler: "Holdet stjæler Reyes' kæmpe pengeskab ved at trække det gennem Rio. Mia er gravid med Brians barn.",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "ff-6-fast-and-furious-6",
+      title: "Fast & Furious 6",
+      year: 2013, released: "2013-05-24",
+      continuity: "ff", phase: "Familien samles",
+      recommendedOrder: 5, chronoOrder: 5,
+      setting: "London og Spanien",
+      runtime: 130,
+      icon: "✈️",
+      description:
+        "Hobbs beder Dom og holdet om hjælp til at stoppe lejesoldaten Owen Shaw – og lokker med en overraskelse: Letty lever og arbejder for Shaw.",
+      whyHere:
+        "Afslutter 'Han-trilogien' og fører direkte over i Tokyo Drift. Den lille scene efter rulleteksterne er vigtig.",
+      characters: ["Dominic Toretto", "Brian O'Conner", "Luke Hobbs", "Letty Ortiz", "Owen Shaw", "Riley", "Han Lue", "Gisele Yashar"],
+      links: ["Owen Shaw", "Letty vender tilbage"],
+      connections: ["ff-5-fast-five", "ff-3-tokyo-drift", "ff-7-furious-7"],
+      postCredit: { count: 1, text: "VIGTIG: Hans bilulykke i Tokyo (fra Tokyo Drift) var ikke et uheld – Owen Shaws storebror Deckard står bag." },
+      spoiler: "Letty har mistet hukommelsen, men vælger Dom. Gisele ofrer sig for at redde Han, og Owen Shaw ender i koma.",
+      badges: ["story", "connector"],
+      importance: 4
+    },
+    {
+      id: "ff-3-tokyo-drift",
+      title: "The Fast and the Furious: Tokyo Drift",
+      year: 2006, released: "2006-06-16",
+      continuity: "ff", phase: "Familien samles",
+      recommendedOrder: 6, chronoOrder: 6,
+      setting: "Tokyo – efter Fast & Furious 6",
+      runtime: 104,
+      icon: "🗾",
+      description:
+        "Den amerikanske teenager Sean Boswell sendes til Tokyo og opdager drift-racing. Han bliver taget under vingerne af den rolige Han.",
+      whyHere:
+        "Udkom som film nr. 3, men foregår efter Fast & Furious 6. Ses her, så Hans historie og scenen efter Fast & Furious 6 giver mening. Filmen har næsten ingen af de faste karakterer.",
+      characters: ["Sean Boswell", "Han Lue", "Takashi (D.K.)", "Neela", "Twinkie"],
+      links: ["Drift-racing", "Han"],
+      connections: ["ff-6-fast-and-furious-6", "ff-7-furious-7", "ff-10-f9"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Han dør i en bilulykke under en jagt. Til sidst dukker Dom op og udfordrer Sean til et løb – han kendte Han.",
+      badges: ["story", "info"],
+      importance: 3
+    },
+    {
+      id: "ff-7-furious-7",
+      title: "Furious 7",
+      year: 2015, released: "2015-04-03",
+      continuity: "ff", phase: "Shaw-æraen",
+      recommendedOrder: 7, chronoOrder: 7,
+      setting: "Los Angeles, Abu Dhabi m.fl.",
+      runtime: 137,
+      icon: "🪂",
+      description:
+        "Deckard Shaw vil hævne sin lillebror og jagter Dom og familien én efter én. Den mystiske Mr. Nobody tilbyder hjælp – hvis de redder hackeren Ramsey.",
+      whyHere:
+        "Følger direkte efter Fast & Furious 6 og Tokyo Drift. Introducerer Mr. Nobody og Ramsey og er en hyldest til Paul Walker, der døde under optagelserne.",
+      characters: ["Dominic Toretto", "Brian O'Conner", "Deckard Shaw", "Mr. Nobody", "Ramsey", "Luke Hobbs", "Letty Ortiz"],
+      links: ["Deckard Shaw", "Mr. Nobody", "Guds Øje"],
+      connections: ["ff-6-fast-and-furious-6", "ff-3-tokyo-drift", "ff-8-fate-of-the-furious"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne – filmen slutter med en rørende hyldest til Paul Walker." },
+      spoiler: "Deckard Shaw bliver fanget. Brian trækker sig tilbage for at være sammen med Mia og børnene – og Dom og Brian siger farvel.",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "ff-8-fate-of-the-furious",
+      title: "The Fate of the Furious",
+      year: 2017, released: "2017-04-14",
+      continuity: "ff", phase: "Shaw-æraen",
+      recommendedOrder: 8, chronoOrder: 8,
+      setting: "Havana, New York, Rusland",
+      runtime: 136,
+      icon: "🧊",
+      description:
+        "Den mystiske hacker Cipher tvinger Dom til at vende sig mod sin egen familie. Holdet må samarbejde med deres gamle fjende Deckard Shaw for at stoppe ham.",
+      whyHere:
+        "Fortsætter efter Furious 7 og introducerer Cipher, der bliver en vigtig skurk resten af serien.",
+      characters: ["Dominic Toretto", "Cipher", "Letty Ortiz", "Luke Hobbs", "Deckard Shaw", "Mr. Nobody", "Little Nobody"],
+      links: ["Cipher", "Dom mod familien"],
+      connections: ["ff-7-furious-7", "ff-9-hobbs-and-shaw", "ff-10-f9"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Cipher holder Doms søn (med Elena) som gidsel. Elena bliver dræbt, men barnet reddes – og Dom kalder ham Brian.",
+      badges: ["story"],
+      importance: 4
+    },
+    {
+      id: "ff-9-hobbs-and-shaw",
+      title: "Fast & Furious Presents: Hobbs & Shaw",
+      year: 2019, released: "2019-08-02",
+      continuity: "ff", phase: "Shaw-æraen",
+      recommendedOrder: 9, chronoOrder: 9,
+      setting: "London, Moskva, Samoa",
+      runtime: 137,
+      icon: "💪",
+      description:
+        "Hobbs og Shaw hader hinanden, men må samarbejde, da Shaws søster Hattie får en dødbringende virus sprøjtet ind – og den forbedrede superskurk Brixton jagter hende.",
+      whyHere:
+        "Valgfri spin-off. Foregår efter The Fate of the Furious, men har ingen betydning for hovedhistorien. Ren action-komedie.",
+      characters: ["Luke Hobbs", "Deckard Shaw", "Hattie Shaw", "Brixton", "Locke"],
+      links: ["Eteon", "Hattie Shaw", "Samoa"],
+      connections: ["ff-8-fate-of-the-furious"],
+      postCredit: { count: 3, text: "Tre korte scener under og efter rulleteksterne – mest sjove gags og et hint om en mulig fortsættelse." },
+      spoiler: "Hobbs og Shaw stopper Brixton med hjælp fra Hobbs' familie på Samoa og redder Hattie.",
+      badges: ["info"],
+      importance: 2
+    },
+    {
+      id: "ff-10-f9",
+      title: "F9: The Fast Saga",
+      year: 2021, released: "2021-06-25",
+      continuity: "ff", phase: "Den sidste tur",
+      recommendedOrder: 10, chronoOrder: 10,
+      setting: "Mellemamerika, Tokyo, Edinburgh",
+      runtime: 143,
+      icon: "🧲",
+      description:
+        "Dom lever et stille liv med Letty og lille Brian – indtil hans fortid indhenter ham: hans lillebror Jakob, en dygtig lejemorder, arbejder sammen med Cipher.",
+      whyHere:
+        "Hovedhistorien fortsætter efter The Fate of the Furious. Fortæller om Doms barndom og bringer en gammel ven tilbage.",
+      characters: ["Dominic Toretto", "Jakob Toretto", "Letty Ortiz", "Mia Toretto", "Han Lue", "Cipher", "Roman Pearce", "Tej Parker"],
+      links: ["Jakob Toretto", "Han vender tilbage", "Projekt Aries"],
+      connections: ["ff-8-fate-of-the-furious", "ff-3-tokyo-drift", "ff-11-fast-x"],
+      postCredit: { count: 1, text: "Deckard Shaw dukker op hos en meget overrasket Han." },
+      spoiler: "Han er i live – Mr. Nobody fingerede hans død. Dom og Jakob forsones.",
+      badges: ["story"],
+      importance: 4
+    },
+    {
+      id: "ff-11-fast-x",
+      title: "Fast X",
+      year: 2023, released: "2023-05-19",
+      continuity: "ff", phase: "Den sidste tur",
+      recommendedOrder: 11, chronoOrder: 11,
+      setting: "Rom, Rio, Portugal, Antarktis",
+      runtime: 141,
+      icon: "🔟",
+      description:
+        "Dante Reyes – søn af skurken fra Fast Five – har brugt 12 år på at planlægge sin hævn over Dom og hans familie.",
+      whyHere:
+        "Første del af seriens finale. Den bygger direkte på Fast Five og slutter på en stor cliffhanger.",
+      characters: ["Dominic Toretto", "Dante Reyes", "Letty Ortiz", "Little Brian", "Cipher", "Tess", "Aimes", "Gisele Yashar"],
+      links: ["Dante Reyes", "Fast Five", "Agentur"],
+      connections: ["ff-5-fast-five", "ff-10-f9"],
+      postCredit: { count: 1, text: "VIGTIG: En scene midt i rulleteksterne bringer en kendt karakter tilbage til finalen." },
+      spoiler: "Gisele er i live. Filmen slutter med, at Dom og hans søn er fanget, da Dante sprænger en dæmning.",
+      badges: ["story", "connector"],
+      importance: 4
+    }
+  ],
+
+  /* ======================================================================
+     RINGENES HERRE & HOBBITTEN
+     ====================================================================== */
+  lotr: [
+    {
+      id: "lotr-1-fellowship",
+      title: "The Lord of the Rings: The Fellowship of the Ring",
+      year: 2001, released: "2001-12-19",
+      continuity: "me", phase: "Ringenes Herre-trilogien",
+      recommendedOrder: 1, chronoOrder: 6,
+      setting: "Tredje Alder 3018 (Midgård)",
+      runtime: 178,
+      icon: "💍",
+      description:
+        "Hobbitten Frodo arver en tilsyneladende almindelig ring fra sin onkel Bilbo. Men det er Den Ene Ring, som mørkets herre Sauron søger – og den skal ødelægges i Dommedagsbjerget.",
+      whyHere:
+        "Start her. Filmen introducerer Midgård, Ringen og Ringens Broderskab bedst – og bevarer mystikken om Gollum og Ringens fortid, som Hobbitten senere fortæller.",
+      characters: ["Frodo Sækker", "Samvis Gammegod", "Gandalf", "Aragorn", "Legolas", "Gimli", "Boromir", "Saruman"],
+      links: ["Den Ene Ring", "Ringens Broderskab", "Sauron"],
+      connections: ["lotr-2-two-towers", "hobbit-1-unexpected-journey"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Gandalf falder i dybet i Moria under kampen mod Balrog'en. Boromir dør, og Broderskabet splittes.",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "lotr-2-two-towers",
+      title: "The Lord of the Rings: The Two Towers",
+      year: 2002, released: "2002-12-18",
+      continuity: "me", phase: "Ringenes Herre-trilogien",
+      recommendedOrder: 2, chronoOrder: 7,
+      setting: "Tredje Alder 3019",
+      runtime: 179,
+      icon: "🏰",
+      description:
+        "Broderskabet er splittet. Frodo og Sam fortsætter mod Mordor med den lumske Gollum som guide, mens Aragorn, Legolas og Gimli hjælper Rohan mod Sarumans hær.",
+      whyHere:
+        "Fortsætter direkte efter første film. Gollum introduceres for alvor, og slaget ved Helms Dyb er et af filmhistoriens største.",
+      characters: ["Frodo", "Sam", "Gollum", "Aragorn", "Gandalf", "Théoden", "Éowyn", "Saruman"],
+      links: ["Gollum", "Rohan", "Helms Dyb"],
+      connections: ["lotr-1-fellowship", "lotr-3-return-of-the-king", "lotr-war-of-the-rohirrim"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Gandalf vender tilbage som Gandalf den Hvide. Rohan vinder ved Helms Dyb, og Gollum planlægger at føre hobbitterne i en fælde.",
+      badges: ["story"],
+      importance: 5
+    },
+    {
+      id: "lotr-3-return-of-the-king",
+      title: "The Lord of the Rings: The Return of the King",
+      year: 2003, released: "2003-12-17",
+      continuity: "me", phase: "Ringenes Herre-trilogien",
+      recommendedOrder: 3, chronoOrder: 8,
+      setting: "Tredje Alder 3019",
+      runtime: 201,
+      icon: "👑",
+      description:
+        "Den endelige kamp om Midgård. Mens Gondor kæmper for sin overlevelse, nærmer Frodo og Sam sig Dommedagsbjerget – og Ringens magt bliver stærkere.",
+      whyHere:
+        "Afslutningen på trilogien – og vinder af 11 Oscars. Binder alle tråde sammen.",
+      characters: ["Frodo", "Sam", "Gollum", "Aragorn", "Gandalf", "Éowyn", "Faramir", "Denethor"],
+      links: ["Gondor", "Dommedagsbjerget", "Kongens tilbagekomst"],
+      connections: ["lotr-2-two-towers", "hobbit-1-unexpected-journey"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Frodo kan ikke smide Ringen, men Gollum tager den og falder i lavaen. Aragorn bliver konge, og Frodo sejler til sidst væk med elverne.",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "hobbit-1-unexpected-journey",
+      title: "The Hobbit: An Unexpected Journey",
+      year: 2012, released: "2012-12-14",
+      continuity: "me", phase: "Hobbit-trilogien",
+      recommendedOrder: 4, chronoOrder: 2,
+      setting: "Tredje Alder 2941 – 60 år før Ringenes Herre",
+      runtime: 169,
+      icon: "🧙",
+      description:
+        "Gandalf overtaler den hjemmeglade hobbit Bilbo Sækker til at tage med 13 dværge på et eventyr for at generobre deres hjem, Det Ensomme Bjerg, fra dragen Smaug.",
+      whyHere:
+        "Efter Ringenes Herre ses Hobbitten som et stort tilbageblik – rammen er netop den ældre Bilbo, der skriver sin historie ned. Du kender allerede betydningen af den ring, han finder.",
+      characters: ["Bilbo Sækker", "Gandalf", "Thorin Egeskjold", "Gollum", "Balin", "Kili", "Fili"],
+      links: ["Det Ensomme Bjerg", "Dværgene", "Gollum"],
+      connections: ["lotr-1-fellowship", "hobbit-2-desolation-of-smaug"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Bilbo finder Den Ene Ring i Gollums hule og vinder over ham i en gådeleg.",
+      badges: ["story"],
+      importance: 3
+    },
+    {
+      id: "hobbit-2-desolation-of-smaug",
+      title: "The Hobbit: The Desolation of Smaug",
+      year: 2013, released: "2013-12-13",
+      continuity: "me", phase: "Hobbit-trilogien",
+      recommendedOrder: 5, chronoOrder: 3,
+      setting: "Tredje Alder 2941",
+      runtime: 161,
+      icon: "🐉",
+      description:
+        "Bilbo og dværgene fortsætter gennem Dunkelskov, hvor de møder kæmpeedderkopper og skovelverne, mod Det Ensomme Bjerg og dragen Smaug.",
+      whyHere:
+        "Fortsætter direkte efter første Hobbit-film og slutter på en cliffhanger.",
+      characters: ["Bilbo", "Thorin", "Smaug", "Legolas", "Tauriel", "Bard", "Gandalf"],
+      links: ["Smaug", "Dunkelskov", "Nekromantikeren"],
+      connections: ["hobbit-1-unexpected-journey", "hobbit-3-battle-of-five-armies"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Gandalf opdager, at Nekromantikeren er Sauron. Smaug flyver ud for at ødelægge Søby – og filmen slutter dér.",
+      badges: ["story"],
+      importance: 3
+    },
+    {
+      id: "hobbit-3-battle-of-five-armies",
+      title: "The Hobbit: The Battle of the Five Armies",
+      year: 2014, released: "2014-12-17",
+      continuity: "me", phase: "Hobbit-trilogien",
+      recommendedOrder: 6, chronoOrder: 4,
+      setting: "Tredje Alder 2941",
+      runtime: 144,
+      icon: "⚔️",
+      description:
+        "Dragen er vågnet, og skatten i Det Ensomme Bjerg trækker dværge, elvere, mennesker og orker mod hinanden i et stort slag.",
+      whyHere:
+        "Afslutter Hobbitten og bygger bro direkte til Ringenes Herre – den slutter, hvor The Fellowship of the Ring begynder.",
+      characters: ["Bilbo", "Thorin", "Bard", "Thranduil", "Legolas", "Azog", "Gandalf", "Galadriel"],
+      links: ["De fem hæres slag", "Broen til Ringenes Herre"],
+      connections: ["hobbit-2-desolation-of-smaug", "lotr-1-fellowship"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Bard dræber Smaug. Thorin, Fili og Kili dør i slaget, og Bilbo vender hjem til Herredet med Ringen.",
+      badges: ["story", "connector"],
+      importance: 3
+    },
+    {
+      id: "lotr-war-of-the-rohirrim",
+      title: "The Lord of the Rings: The War of the Rohirrim",
+      year: 2024, released: "2024-12-13",
+      continuity: "me", phase: "Nye film fra Midgård",
+      recommendedOrder: 7, chronoOrder: 1,
+      setting: "Tredje Alder 2758 – ca. 180 år før Hobbitten",
+      runtime: 134,
+      icon: "🐎",
+      description:
+        "Animeret film om Rohans legendariske kong Helm Hammerhånd og hans datter Héra, da en hævngerrig fjende angriber kongeriget.",
+      whyHere:
+        "Valgfri bonus. Foregår længe før Hobbitten og fortæller, hvordan Helms Dyb fik sit navn – sjovest når du kender Rohan fra The Two Towers.",
+      characters: ["Héra", "Helm Hammerhånd", "Wulf", "Fréaláf"],
+      links: ["Rohan", "Helms Dyb"],
+      connections: ["lotr-2-two-towers"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Helm dør i vinterkulden under belejringen, og fæstningen bliver opkaldt efter ham: Helms Dyb.",
+      badges: ["info"],
+      importance: 2
+    },
+    {
+      id: "lotr-hunt-for-gollum",
+      title: "The Lord of the Rings: The Hunt for Gollum",
+      year: 2027, released: "2027-12-17",
+      continuity: "me", phase: "Nye film fra Midgård",
+      recommendedOrder: 8, chronoOrder: 5,
+      setting: "Mellem Hobbitten og Ringenes Herre",
+      runtime: null,
+      icon: "🔦",
+      description:
+        "Ny live-action-film instrueret af Andy Serkis om jagten på Gollum i årene før The Fellowship of the Ring.",
+      whyHere:
+        "Foregår i perioden mellem Hobbitten og Ringenes Herre. Bedst, når du kender begge trilogier.",
+      characters: ["Gollum", "Aragorn", "Gandalf"],
+      links: ["Gollum", "Jagten"],
+      connections: ["lotr-1-fellowship", "hobbit-3-battle-of-five-armies"],
+      postCredit: null,
+      spoiler: "",
+      badges: ["story"],
+      importance: 3,
+      upcoming: true
+    }
+  ],
+
+  /* ======================================================================
+     JURASSIC PARK / WORLD
+     ====================================================================== */
+  jurassic: [
+    {
+      id: "jp-1-jurassic-park",
+      title: "Jurassic Park",
+      year: 1993, released: "1993-06-11",
+      continuity: "jp", phase: "Jurassic Park-trilogien",
+      recommendedOrder: 1, chronoOrder: 1,
+      setting: "1993, Isla Nublar",
+      runtime: 127,
+      icon: "🦖",
+      description:
+        "Milliardæren John Hammond har klonet dinosaurer til en forlystelsespark på en ø. Inden åbningen inviterer han eksperter på besøg – men så svigter sikkerheden.",
+      whyHere:
+        "Her starter det hele, og alt i serien – også Jurassic World – bygger på denne film.",
+      characters: ["Alan Grant", "Ellie Sattler", "Ian Malcolm", "John Hammond", "Dennis Nedry", "Lex og Tim", "T. rex"],
+      links: ["InGen", "Isla Nublar", "Velociraptorerne"],
+      connections: ["jp-2-lost-world", "jw-1-jurassic-world"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "T. rex'en redder dem uforvarende fra raptorerne i finalen. Nedrys stjålne fosterdåse forsvinder i mudderet.",
+      badges: ["story", "universe"],
+      importance: 5
+    },
+    {
+      id: "jp-2-lost-world",
+      title: "The Lost World: Jurassic Park",
+      year: 1997, released: "1997-05-23",
+      continuity: "jp", phase: "Jurassic Park-trilogien",
+      recommendedOrder: 2, chronoOrder: 2,
+      setting: "1997, Isla Sorna (Site B)",
+      runtime: 129,
+      icon: "🦕",
+      description:
+        "Ian Malcolm sendes til en anden ø, hvor dinosaurerne har levet frit i fire år – samtidig med at et jægerhold vil fange dem og fragte dem til fastlandet.",
+      whyHere:
+        "Fortsætter efter Jurassic Park og introducerer Isla Sorna, hvor dinosaurerne blev avlet.",
+      characters: ["Ian Malcolm", "Sarah Harding", "Peter Ludlow", "Roland Tembo", "John Hammond"],
+      links: ["Isla Sorna", "InGen"],
+      connections: ["jp-1-jurassic-park", "jp-3-jurassic-park-iii"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "En T. rex bliver fragtet til San Diego og hærger byen, før den sendes tilbage til øen med sin unge.",
+      badges: ["story"],
+      importance: 3
+    },
+    {
+      id: "jp-3-jurassic-park-iii",
+      title: "Jurassic Park III",
+      year: 2001, released: "2001-07-18",
+      continuity: "jp", phase: "Jurassic Park-trilogien",
+      recommendedOrder: 3, chronoOrder: 3,
+      setting: "2001, Isla Sorna",
+      runtime: 92,
+      icon: "🦴",
+      description:
+        "Alan Grant bliver lokket med på en flyvetur over Isla Sorna. Efter et nødlandingsuheld må han overleve blandt nye og farligere dinosaurer.",
+      whyHere:
+        "Afslutter den første trilogi. Den korteste og mest rene action-film i serien.",
+      characters: ["Alan Grant", "Paul og Amanda Kirby", "Eric Kirby", "Billy Brennan", "Spinosaurus"],
+      links: ["Isla Sorna", "Spinosaurus", "Pteranodonerne"],
+      connections: ["jp-2-lost-world", "jw-1-jurassic-world"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Spinosaurus dræber en T. rex, og raptorerne viser sig at være intelligente nok til at kommunikere.",
+      badges: ["story"],
+      importance: 2
+    },
+    {
+      id: "jw-1-jurassic-world",
+      title: "Jurassic World",
+      year: 2015, released: "2015-06-12",
+      continuity: "jp", phase: "Jurassic World-trilogien",
+      recommendedOrder: 4, chronoOrder: 4,
+      setting: "2015, Isla Nublar – 22 år efter Jurassic Park",
+      runtime: 124,
+      icon: "🎢",
+      description:
+        "Hammonds drøm er gået i opfyldelse: Jurassic World er en fuldt fungerende park. For at trække flere gæster skaber forskerne en ny, genmodificeret dinosaur – Indominus rex.",
+      whyHere:
+        "Starten på den nye trilogi. Den ignorerer stort set film 2 og 3 og bygger direkte på Jurassic Park.",
+      characters: ["Owen Grady", "Claire Dearing", "Blue", "Simon Masrani", "Henry Wu", "Indominus rex"],
+      links: ["Jurassic World-parken", "Blue", "Henry Wu"],
+      connections: ["jp-1-jurassic-park", "jw-2-fallen-kingdom"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "T. rex'en og raptoren Blue kæmper sammen mod Indominus rex, som til sidst bliver taget af Mosasaurus'en.",
+      badges: ["story", "universe"],
+      importance: 4
+    },
+    {
+      id: "jw-2-fallen-kingdom",
+      title: "Jurassic World: Fallen Kingdom",
+      year: 2018, released: "2018-06-22",
+      continuity: "jp", phase: "Jurassic World-trilogien",
+      recommendedOrder: 5, chronoOrder: 5,
+      setting: "2018, Isla Nublar og Lockwood-godset",
+      runtime: 128,
+      icon: "🌋",
+      description:
+        "En vulkan truer med at udslette dinosaurerne på Isla Nublar. Owen og Claire tager med på en redningsmission – men nogen har andre planer for dyrene.",
+      whyHere:
+        "Fortsætter efter Jurassic World og ændrer seriens retning: Dinosaurerne er ikke længere kun på en ø.",
+      characters: ["Owen Grady", "Claire Dearing", "Maisie Lockwood", "Benjamin Lockwood", "Eli Mills", "Ian Malcolm", "Blue"],
+      links: ["Lockwood", "Indoraptor", "Maisie"],
+      connections: ["jw-1-jurassic-world", "jw-3-dominion"],
+      postCredit: { count: 1, text: "Pteranodoner lander på en kopi af Eiffeltårnet i Las Vegas – dinosaurerne er sluppet ud i verden." },
+      spoiler: "Maisie er en klon. Hun slipper dinosaurerne fri, så de ikke dør – og nu lever de blandt mennesker.",
+      badges: ["story", "connector"],
+      importance: 4
+    },
+    {
+      id: "jw-3-dominion",
+      title: "Jurassic World Dominion",
+      year: 2022, released: "2022-06-10",
+      continuity: "jp", phase: "Jurassic World-trilogien",
+      recommendedOrder: 6, chronoOrder: 6,
+      setting: "2022 – 4 år efter Fallen Kingdom",
+      runtime: 147,
+      icon: "🌍",
+      description:
+        "Dinosaurer lever nu over hele verden. Owen og Claire leder efter Maisie, mens Alan Grant, Ellie Sattler og Ian Malcolm opdager en farlig sammensværgelse hos firmaet Biosyn.",
+      whyHere:
+        "Afslutter Jurassic World-trilogien og samler heltene fra både Jurassic Park og Jurassic World.",
+      characters: ["Owen Grady", "Claire Dearing", "Maisie Lockwood", "Alan Grant", "Ellie Sattler", "Ian Malcolm", "Lewis Dodgson"],
+      links: ["Biosyn", "Græshoppeplagen", "De originale helte"],
+      connections: ["jw-2-fallen-kingdom", "jp-1-jurassic-park", "jw-4-rebirth"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Lewis Dodgson – manden bag Nedrys tyveri i den første film – står bag Biosyns plan. Til sidst lærer mennesker og dinosaurer at leve side om side.",
+      badges: ["story", "connector"],
+      importance: 4
+    },
+    {
+      id: "jw-4-rebirth",
+      title: "Jurassic World Rebirth",
+      year: 2025, released: "2025-07-02",
+      continuity: "jp", phase: "En ny æra",
+      recommendedOrder: 7, chronoOrder: 7,
+      setting: "5 år efter Dominion",
+      runtime: 133,
+      icon: "🧬",
+      description:
+        "Dinosaurerne kan nu kun overleve nær ækvator. Lejesoldaten Zora Bennett leder et hold til en forbudt ø for at hente DNA fra tre kæmpe dinosaurer – til en livsvigtig medicin.",
+      whyHere:
+        "Starten på en ny æra med nye karakterer. Kan ses uden de andre film, men giver mest mening, når du kender verden efter Dominion.",
+      characters: ["Zora Bennett", "Henry Loomis", "Duncan Kincaid", "Martin Krebs", "Delgado-familien"],
+      links: ["Ile Saint-Hubert", "Mutant-dinosaurer", "Hjertemedicin"],
+      connections: ["jw-3-dominion"],
+      postCredit: { count: 0, text: "Ingen scene efter rulleteksterne." },
+      spoiler: "Holdet får alle tre DNA-prøver, og Zora beslutter, at medicinen skal være gratis for alle i stedet for at gøre firmaet rigt.",
+      badges: ["story", "universe"],
+      importance: 3
     }
   ]
 };
