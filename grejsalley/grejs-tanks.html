@@ -327,6 +327,12 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
 .en .hpbar { height: 9px; } .en .hpbar b { line-height: 9px; font-size: 0.55em; }
 .hud-btns { display: flex; gap: 6px; }
 .hbtn { width: 2.6em; height: 2.6em; border-radius: 12px; background: rgba(20, 14, 40, 0.8); font-size: 1em; box-shadow: 0 3px 0 rgba(0,0,0,0.4); }
+.hbtn.hidden { display: none; }
+/* camera pan buttons (left/right screen edge) */
+.pan-btn { position: absolute; top: 42%; transform: translateY(-50%); width: 2.4em; height: 4.4em; border-radius: 14px; background: rgba(20, 14, 40, 0.55); border: 1px solid rgba(255,255,255,0.25); color: #fff; font-size: 1.3em; font-weight: 900; opacity: 0.8; transition: opacity 0.2s, background 0.2s; touch-action: none; }
+.pan-btn:hover, .pan-btn.held { opacity: 1; background: rgba(60, 40, 120, 0.8); }
+.pan-l { left: max(6px, var(--safe-l)); }
+.pan-r { right: max(6px, var(--safe-r)); }
 .hud-boss { position: absolute; top: calc(6px + 5.2em); left: 50%; transform: translateX(-50%); width: min(520px, 60%); display: none; text-align: center; }
 .hud-boss.on { display: block; }
 .hud-boss .bn { font-family: var(--font-h); color: #ffd23f; text-shadow: 0 2px 0 #000; font-size: 1.05em; }
@@ -512,11 +518,14 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
           </div>
           <div class="hud-enemies" id="hud-enemies"></div>
           <div class="hud-btns">
+            <button class="hbtn hidden" id="btn-recenter" title="Recenter camera (C)">🎯</button>
             <button class="hbtn" id="btn-zoom" title="Overview (Z)">🔍</button>
             <button class="hbtn" id="btn-pause" title="Pause (Esc)">⏸</button>
           </div>
         </div>
         <div class="hud-boss" id="hud-boss"></div>
+        <button class="pan-btn pan-l" id="btn-pan-l" title="Look left (J)" aria-label="Move camera left">◀</button>
+        <button class="pan-btn pan-r" id="btn-pan-r" title="Look right (L)" aria-label="Move camera right">▶</button>
         <div class="hud-msg" id="hud-msg"></div>
         <div class="hud-toast" id="hud-toast"></div>
         <div class="hud-bottom" id="hud-bottom">
@@ -810,6 +819,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         tankXp: {}, // tankId -> xp
         unlockedWeapons: STARTER_WEAPONS.slice(),
         weaponLevels: {}, // weaponId -> level (1..5)
+        abilityLevels: {}, // abilityId -> upgrade level (0..ABILITY_MAX), shared by all tanks with that ability
         loadout: ['heavy_shell', 'triple', null, null],
         selectedTank: 't_rookie',
         achievements: {}, // id -> {done:true, claimed:bool, t}
@@ -993,6 +1003,10 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
     },
     weaponLevel(id) {
       return this.data.weaponLevels[id] || 1;
+    },
+    abilityLevel(id) {
+      const v = this.data.abilityLevels[id];
+      return typeof v === 'number' && isFinite(v) ? v : 0;
     }
   });
 })();
@@ -2846,6 +2860,18 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
   ];
   const MAX_UPG = 10;
 
+  /* ------------------------------------------------------------
+   * Ability upgrades (per ability, shared by every tank that has it)
+   * each level: +15% ability power; Lv 3 and Lv 5: -1 turn recharge
+   * ------------------------------------------------------------ */
+  const ABILITY_MAX = 5;
+  // ability base numbers shown in the garage preview (must match Battle._selfAbility)
+  const ABILITY_PREVIEW = {
+    repair: (k) => `Repairs ${Math.round(28 * k)}% of max HP`,
+    shield: (k) => `Shield absorbs ${Math.round(30 * k)}% of max HP`,
+    nitro: (k) => `Triple fuel + repairs ${Math.round(8 * k)}% HP`
+  };
+
   const Tanks = (GT.Tanks = {
     list,
     byId,
@@ -2853,8 +2879,25 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
     ABILITIES,
     UPGRADES,
     MAX_UPG,
+    ABILITY_MAX,
     get(id) {
       return byId[id] || byId.t_rookie;
+    },
+    abilityMult(lvl) {
+      return 1 + 0.15 * lvl;
+    },
+    abilityCd(abId, lvl) {
+      const ab = ABILITIES[abId];
+      const base = ab ? ab.cd : 4;
+      return Math.max(2, base - (lvl >= 3 ? 1 : 0) - (lvl >= 5 ? 1 : 0));
+    },
+    abilityCost(lvl) {
+      return Math.round((600 * Math.pow(1.7, lvl)) / 10) * 10;
+    },
+    /** short text describing the ability's strength at multiplier k */
+    abilityPreview(abId, k) {
+      const f = ABILITY_PREVIEW[abId];
+      return f ? f(k) : `Ability power ${Math.round(k * 100)}%`;
     },
     upgradeCost(tank, key, lvl) {
       const u = UPGRADES.find((x) => x.key === key);
@@ -5503,7 +5546,8 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         usedWeapons: new Set(), usedCats: new Set(), abilityUses: 0, crates: 0,
         multiKills: 0, longShot: false, nukeKill: false, coinsFound: 0, bpFound: 0, enemiesSeen: new Set()
       };
-      this.cam = { x: 0, y: 0, scale: 1, shake: 0, overview: false, fx: 0, fy: 0 };
+      // panX/panY: manual camera offset (world units) set by the player to look around
+      this.cam = { x: 0, y: 0, scale: 1, shake: 0, overview: false, fx: 0, fy: 0, panX: 0, panY: 0, panDir: 0 };
       this.view = { x: 0, y: 0, w: 1000, h: 700 };
 
       this._createTanks();
@@ -5540,8 +5584,10 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       });
       p.maxFuel = 150 * (st.speed / 100);
       p.moveSpeed = 70 * (0.6 + (0.4 * st.speed) / 100);
-      const ab = GT.Tanks.ABILITIES[p.ability];
-      p.cd = ab ? ab.cd : 4;
+      // ability upgrades: stronger effect + faster recharge
+      const abLvl = GT.Save.abilityLevel(p.ability);
+      p.specialMult *= GT.Tanks.abilityMult(abLvl);
+      p.cd = GT.Tanks.abilityCd(p.ability, abLvl);
       p.charge = p.cd * 0.5; // half charged at start
       // weapons: primary (infinite), signature, loadout
       const S = GT.Save;
@@ -5847,6 +5893,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       if (this.ui.turn) this.ui.turn(this);
       if (t === this.player) {
         this.stats.turns++;
+        this.resetPan();
         this.state = 'aim';
         A().play('turn');
         if (dot) this.stateT = 0;
@@ -5992,6 +6039,32 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       this.cam.overview = !this.cam.overview;
     }
 
+    /* ---- manual camera pan (look around the battlefield) ---- */
+    /** hold-to-pan: dir -1 (left), 0 (stop), 1 (right) */
+    setPan(dir) {
+      this.cam.panDir = dir;
+    }
+    /** pan by a screen-pixel drag */
+    panByScreen(dx, dy) {
+      const c = this.cam;
+      c.panX -= dx / c.scale;
+      c.panY -= dy / c.scale;
+      this._clampPan();
+    }
+    resetPan() {
+      const c = this.cam;
+      c.panX = c.panY = 0;
+      c.panDir = 0;
+    }
+    isPanned() {
+      return Math.abs(this.cam.panX) > 1 || Math.abs(this.cam.panY) > 1;
+    }
+    _clampPan() {
+      const c = this.cam;
+      c.panX = U.clamp(c.panX, -this.W, this.W);
+      c.panY = U.clamp(c.panY, -this.H, this.H);
+    }
+
     /** pointer in world coords (aim drag / teleport tap) */
     pointerAim(wx, wy) {
       if (this.state === 'teleport') return;
@@ -6046,6 +6119,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       }
       this.stats.shots++;
       this.moveDir = 0;
+      this.resetPan();
       A().engine(false);
       this._fire(p, w, p.aim, p.power);
       // auto-switch to primary when ammo runs out
@@ -6091,6 +6165,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       }
       // auto
       this.moveDir = 0;
+      this.resetPan();
       this._autoAbility(p, p.ability);
       this.state = 'flight';
       this._waitResolve(() => this.endTurn());
@@ -7385,11 +7460,11 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         const e = this.nearestEnemy(t);
         if (e) {
           const vw = (this.cw || 1000) / this._baseScale();
-          if (Math.abs(e.x - t.x) < vw * 0.75) return { x: (e.x + t.x) / 2, y: Math.min(e.y, t.y) };
-          return { x: t.x + Math.sign(e.x - t.x) * vw * 0.22, y: t.y };
+          if (Math.abs(e.x - t.x) < vw * 0.75) return { x: (e.x + t.x) / 2, y: Math.min(e.y, t.y), idle: true };
+          return { x: t.x + Math.sign(e.x - t.x) * vw * 0.22, y: t.y, idle: true };
         }
       }
-      return t ? { x: t.x, y: t.y } : { x: this.W / 2, y: this.H / 2 };
+      return t ? { x: t.x, y: t.y, idle: true } : { x: this.W / 2, y: this.H / 2, idle: true };
     }
     _snapCamera() {
       this._updateCamera(1, true);
@@ -7401,6 +7476,22 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       c.scale = snap ? ts : c.scale + (ts - c.scale) * Math.min(1, dt * 5);
       const vw = cw / c.scale, vh = ch / c.scale;
       const f = this._focus();
+      // manual pan: hold-to-pan moves ~ one screen width per second
+      if (c.panDir) {
+        c.panX += c.panDir * vw * Math.min(dt, 0.1);
+        this._clampPan();
+      }
+      // the pan only applies while nothing is flying (shots/drones keep the camera)
+      if (f.idle && !c.overview && (c.panX || c.panY)) {
+        // keep the pan inside the world so panning back responds immediately
+        if (vw < this.W) c.panX = U.clamp(c.panX, vw / 2 - f.x, this.W - vw / 2 - f.x);
+        else c.panX = 0;
+        if (vh < this.H) c.panY = U.clamp(c.panY, vh * 0.52 - 700 - f.y, this.H - vh * 0.48 - f.y);
+        else c.panY = 0;
+        f.x += c.panX;
+        f.y += c.panY;
+        f.fast = true;
+      }
       let tx, ty;
       if (vw >= this.W) tx = (this.W - vw) / 2;
       else tx = U.clamp(f.x - vw / 2, 0, this.W - vw);
@@ -8413,6 +8504,9 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       const lvl = GT.Save.tankLevel(t.id);
       const nextXp = lvl >= 20 ? xp : Math.pow(lvl, 2) * 40;
       const cmp = cmpId ? GT.Tanks.stats(cmpId) : null;
+      // ability upgrade level + effective strength (tank's Special stat x ability level)
+      const abLvl = GT.Save.abilityLevel(t.ability);
+      const abK = (s.special / 100) * GT.Tanks.abilityMult(abLvl);
       const el = $('#g-detail');
       el.innerHTML = `
         <div class="g-hero"><canvas id="g-canvas" width="640" height="360"></canvas></div>
@@ -8425,13 +8519,40 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         </div>
         ${cmp ? `<p style="text-align:center;font-weight:900;color:var(--muted)">Compared with ${esc(GT.Tanks.get(cmpId).name)}</p>` : ''}
         <div class="sec"><h4>Stats</h4>${this.statBars(s, cmp)}</div>
-        <div class="sec"><h4>Special Ability</h4><div class="item" style="box-shadow:none;background:rgba(0,0,0,0.2)"><div class="ii">${ab.icon}</div><div class="ib"><b>${ab.name}</b><p>${esc(ab.desc)} Recharge: ${ab.cd} turns.</p></div></div></div>
+        <div class="sec"><h4>Special Ability</h4><div class="item" style="box-shadow:none;background:rgba(0,0,0,0.2)"><div class="ii">${ab.icon}</div><div class="ib"><b>${ab.name}${abLvl ? ` <span class="chip b">Lv ${abLvl}</span>` : ''}</b><p>${esc(ab.desc)}</p><p><b>Now:</b> ${esc(GT.Tanks.abilityPreview(t.ability, abK))} · Recharge: ${GT.Tanks.abilityCd(t.ability, abLvl)} turns</p></div></div>
+          ${owned ? `<div class="upg" id="g-abupg" style="margin-top:8px"></div>` : ''}</div>
         <div class="sec"><h4>Weapons</h4><div class="chips">${t.weapons.map((id, i) => { const w = GT.Weapons.get(id); return `<span class="chip ${i ? 'b' : 'y'}">${w.icon} ${w.name} ${i ? '(signature)' : '∞'}</span>`; }).join('')}</div></div>
         ${owned ? `<div class="sec"><h4>Upgrades</h4><div class="upg" id="g-upg"></div></div>` : ''}`;
       // hero preview animation
       this._garageTank = t;
       this._startGarageAnim();
       if (owned) {
+        // ability upgrade (shared by all tanks with this ability)
+        const abBox = $('#g-abupg');
+        const abMax = abLvl >= GT.Tanks.ABILITY_MAX;
+        const abCost = GT.Tanks.abilityCost(abLvl);
+        let next = '';
+        if (!abMax) {
+          const nk = (s.special / 100) * GT.Tanks.abilityMult(abLvl + 1);
+          const ncd = GT.Tanks.abilityCd(t.ability, abLvl + 1);
+          next = `Next: ${GT.Tanks.abilityPreview(t.ability, nk)}${ncd < GT.Tanks.abilityCd(t.ability, abLvl) ? ` · Recharge ${ncd} turns` : ''}`;
+        }
+        abBox.appendChild(U.el('div', 'un', `${ab.icon} Upgrade ability<small>${esc(abMax ? 'Fully upgraded!' : next)}<br>+15% power per level, −1 turn recharge at Lv 3 and 5. Shared by all tanks with ${esc(ab.name)}.</small>`));
+        abBox.appendChild(U.el('div', 'pips', Array.from({ length: GT.Tanks.ABILITY_MAX }, (_, i) => `<i class="${i < abLvl ? 'on' : ''}"></i>`).join('')));
+        const abBtn = U.el('button', 'btn small ' + (abMax ? 'gray' : 'yellow'), abMax ? 'MAX' : `UPGRADE · ${U.fmt(abCost)} 🪙`);
+        abBtn.disabled = abMax || abCost > d.coins;
+        abBtn.onclick = () => {
+          if (!GT.Save.spend(abCost)) return snd('error');
+          d.abilityLevels[t.ability] = abLvl + 1;
+          d.stats.upgradesBought++;
+          GT.Save.save();
+          snd('upgrade');
+          this.checkAch();
+          this.renderTopbars();
+          this.renderGarageDetail(cmpId);
+        };
+        abBox.appendChild(abBtn);
+
         const box = $('#g-upg');
         for (const up of GT.Tanks.UPGRADES) {
           const lv = u[up.key];
@@ -8873,7 +8994,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       });
       rs.appendChild(rb);
       body.appendChild(rs);
-      body.appendChild(U.el('div', 'set-row', '<div>⌨️ Controls<small>Drag on the battlefield to aim (angle + power) · ←/→ or A/D move · ↑/↓ angle · W/S power · Space fire · 1-9 / Q/E weapons · F special · Z overview · Esc pause</small></div>'));
+      body.appendChild(U.el('div', 'set-row', '<div>⌨️ Controls<small>Drag on the battlefield to aim (angle + power) · ←/→ or A/D move · ↑/↓ angle · W/S power · Space fire · 1-9 / Q/E weapons · F special · Z overview · J/L look around (or right-drag / two-finger drag) · C recenter · Esc pause</small></div>'));
     },
 
     /* ================================================================
@@ -9178,6 +9299,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         $('#power-fill').style.height = v + '%';
         $('#power-knob').style.bottom = `calc(${v}% - 3px)`;
       });
+      set('panned', b.isPanned(), (v) => $('#btn-recenter').classList.toggle('hidden', !v));
       set('fuel', Math.round((p.fuel / p.maxFuel) * 100), (v) => ($('#fuel-fill').style.height = Math.min(100, Math.max(0, v)) + '%'));
       set('php', p.hp + '|' + p.shield, () => {
         const f = Math.max(0, p.hp / p.maxHp) * 100;
@@ -9371,11 +9493,30 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         const ref = Math.min(b.cw, b.ch) * 0.42;
         b.setAim(ang, U.clamp((dist / ref) * 100, 5, 100));
       };
+      // camera pan: right/middle mouse drag, or two fingers on touch
+      const touches = new Map(); // pointerId -> last point
+      let panning = false, panLast = null;
+      const touchCenter = () => {
+        let x = 0, y = 0;
+        for (const p of touches.values()) { x += p.x; y += p.y; }
+        return { x: x / touches.size, y: y / touches.size };
+      };
+      canvas.addEventListener('contextmenu', (e) => e.preventDefault());
       canvas.addEventListener('pointerdown', (e) => {
         GT.Audio.init();
         const b = this.battle;
         if (!b || b.paused) return;
         const pt = local(e);
+        if (e.pointerType === 'touch') touches.set(e.pointerId, pt);
+        if (e.button === 1 || e.button === 2 || touches.size >= 2) {
+          // start panning (cancels any aim drag in progress)
+          e.preventDefault();
+          aiming = false;
+          panning = true;
+          panLast = touches.size >= 2 ? touchCenter() : pt;
+          try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+          return;
+        }
         if (b.state === 'teleport') {
           const w = b.screenToWorld(pt.x, pt.y);
           b.pointerTap(w.x, w.y);
@@ -9387,9 +9528,26 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         applyAim(pt);
       });
       canvas.addEventListener('pointermove', (e) => {
-        if (aiming) applyAim(local(e));
+        const pt = local(e);
+        if (touches.has(e.pointerId)) touches.set(e.pointerId, pt);
+        if (panning) {
+          const b = this.battle;
+          const cur = touches.size >= 2 ? touchCenter() : pt;
+          if (b && panLast) b.panByScreen(cur.x - panLast.x, cur.y - panLast.y);
+          panLast = cur;
+          return;
+        }
+        if (aiming) applyAim(pt);
       });
-      const stop = () => (aiming = false);
+      const stop = (e) => {
+        touches.delete(e.pointerId);
+        aiming = false;
+        if (panning) {
+          // lifting one of two fingers: keep panning with the other only if 2+ remain
+          if (touches.size >= 2) panLast = touchCenter();
+          else { panning = false; panLast = null; }
+        }
+      };
       canvas.addEventListener('pointerup', stop);
       canvas.addEventListener('pointercancel', stop);
       canvas.addEventListener('wheel', (e) => {
@@ -9420,6 +9578,28 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       };
       hold('#btn-left', -1);
       hold('#btn-right', 1);
+
+      // camera pan buttons (hold to look left/right)
+      const holdPan = (id, dir) => {
+        const el = $(id);
+        const on = (e) => {
+          e.preventDefault();
+          if (this.battle) this.battle.setPan(dir);
+          el.classList.add('held');
+        };
+        const off = () => {
+          if (this.battle && this.battle.cam.panDir === dir) this.battle.setPan(0);
+          el.classList.remove('held');
+        };
+        el.addEventListener('pointerdown', on);
+        el.addEventListener('pointerup', off);
+        el.addEventListener('pointerleave', off);
+        el.addEventListener('pointercancel', off);
+        el.addEventListener('contextmenu', (e) => e.preventDefault());
+      };
+      holdPan('#btn-pan-l', -1);
+      holdPan('#btn-pan-r', 1);
+      $('#btn-recenter').addEventListener('click', () => this.battle && this.battle.resetPan());
 
       // angle/power +/- with auto-repeat
       const elevate = (d) => {
@@ -9507,6 +9687,9 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         else if (k === ' ' || k === 'enter') { if (!e.repeat) { GT.Audio.init(); b.fire(); } }
         else if (k === 'f' || k === 'x') { if (!e.repeat) { b.useAbility(); this.updateAbilityBtn(b); this.renderWeaponBar(b); } }
         else if (k === 'z') b.toggleOverview();
+        else if (k === 'j') b.setPan(-1);
+        else if (k === 'l') b.setPan(1);
+        else if (k === 'c') b.resetPan();
         else if (k === 'escape' || k === 'p') this.pause();
         else if (k === 'q' || k === 'e') {
           const p = b.player, n = p.weapons.length;
@@ -9526,8 +9709,13 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         const b = this.battle;
         const k = e.key.toLowerCase();
         if (b && ['arrowleft', 'arrowright', 'a', 'd'].includes(k)) b.setMove(0);
+        if (b && (k === 'j' || k === 'l')) b.setPan(0);
       });
-      window.addEventListener('blur', () => this.battle && this.battle.setMove(0));
+      window.addEventListener('blur', () => {
+        if (!this.battle) return;
+        this.battle.setMove(0);
+        this.battle.setPan(0);
+      });
     },
 
     initStatic() {
