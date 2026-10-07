@@ -686,6 +686,22 @@
       ctx.fillStyle=COL.amber; ctx.fillRect(-0.95*u,-1.6*u,0.95*u,0.95*u);
       ctx.fillStyle=COL.green; ctx.beginPath(); ctx.moveTo(0,-1.6*u); ctx.lineTo(0,-2.55*u); ctx.lineTo(-0.95*u,-1.6*u); ctx.closePath(); ctx.fill();
     }
+    else if(g==="grejsman2d"){
+      /* two neon stickmen fighting: one kicking, one blocking, with an impact burst */
+      ctx.lineCap="round"; ctx.lineJoin="round"; ctx.lineWidth=s*0.035;
+      ctx.strokeStyle=COL.coral; ctx.beginPath(); ctx.arc(-2*u,-2.2*u,u*0.6,0,7); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-2*u,-1.6*u); ctx.lineTo(-2.2*u,0.4*u);
+      ctx.moveTo(-2.05*u,-1.1*u); ctx.lineTo(-1*u,-1.5*u); ctx.moveTo(-2.05*u,-1.1*u); ctx.lineTo(-3*u,-0.5*u);
+      ctx.moveTo(-2.2*u,0.4*u); ctx.lineTo(-3*u,2.4*u); ctx.moveTo(-2.2*u,0.4*u); ctx.lineTo(0.2*u,-0.3*u); ctx.stroke();
+      ctx.strokeStyle=COL.cyan; ctx.beginPath(); ctx.arc(2.2*u,-2*u,u*0.6,0,7); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(2.2*u,-1.4*u); ctx.lineTo(2.3*u,0.6*u);
+      ctx.moveTo(2.2*u,-1*u); ctx.lineTo(1.3*u,-1.2*u); ctx.lineTo(1.3*u,-2.2*u);
+      ctx.moveTo(2.2*u,-1*u); ctx.lineTo(1.5*u,-0.4*u); ctx.lineTo(1.4*u,-1.4*u);
+      ctx.moveTo(2.3*u,0.6*u); ctx.lineTo(1.6*u,2.4*u); ctx.moveTo(2.3*u,0.6*u); ctx.lineTo(3.1*u,2.4*u); ctx.stroke();
+      ctx.fillStyle=COL.amber; ctx.beginPath();
+      for(let i=0;i<10;i++){ const a=i*Math.PI/5, r=(i%2?0.35:0.8)*u; ctx.lineTo(0.75*u+Math.cos(a)*r,-0.5*u+Math.sin(a)*r); } ctx.closePath(); ctx.fill();
+      ctx.strokeStyle=COL.muted; ctx.lineWidth=s*0.015; ctx.beginPath(); ctx.moveTo(-3.8*u,2.6*u); ctx.lineTo(3.8*u,2.6*u); ctx.stroke();
+    }
     else if(g==="grejstanks"){
       /* green hills with a crater, a tank firing along a dotted arc into an explosion */
       ctx.fillStyle="#6b4424"; ctx.beginPath(); ctx.moveTo(-3.8*u,3.8*u); ctx.lineTo(-3.8*u,1.4*u);
@@ -833,6 +849,11 @@
   G({ id:"grejsfigur", name:"GrejsFigur", tag:"puzzle", href:"GrejsFigur.html", isNew:true,
     desc:"Factory-spil om geometriske figurer — byg transportbånd og maskiner, der skærer, drejer, maler og samler figurer. Missioner, upgrades og AFK-produktion. Opens in its own page.",
     hint:"Vælg maskine · klik for at bygge · træk for bånd · R roterer" });
+
+  /* ---------------- GREJSMAN 2D KOMBAT (external page) ---------------- */
+  G({ id:"grejsman2d", name:"Grejsman 2D Kombat", tag:"arcade", href:"grejsman-2d-kombat.html", isNew:true,
+    desc:"Neon stickman-fighting — 16 fightere, 11 arenaer, story, tower, træning og lokal 2-player versus med combos og supers. Opens in its own page.",
+    hint:"WASD bevæg · F angreb · G special · H heavy" });
 
   /* ---------------- GREJS FARM (external page) ---------------- */
   G({ id:"grejsfarm", name:"Grejs Farm", tag:"arcade", href:"GrejsFarm.html", isNew:true,
