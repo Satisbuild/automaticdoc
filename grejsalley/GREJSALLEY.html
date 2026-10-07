@@ -670,6 +670,22 @@
         for(let i=0;i<5;i++){ ctx.fillStyle=r===1?COL.amber:COL.green; ctx.beginPath(); ctx.arc((0.45+i*0.68)*u,y-0.25*u,u*0.2,0,7); ctx.fill(); }
       }
     }
+    else if(g==="grejsfigur"){
+      /* conveyor belt carrying shapes from a generator into a cutter machine */
+      ctx.fillStyle=COL.panel; roundRect(ctx,-3.9*u,0.4*u,7.8*u,1.4*u,u*0.3); ctx.fill();
+      ctx.strokeStyle=COL.cyan; ctx.lineWidth=s*0.02; ctx.beginPath(); ctx.moveTo(-3.9*u,0.4*u); ctx.lineTo(3.9*u,0.4*u); ctx.moveTo(-3.9*u,1.8*u); ctx.lineTo(3.9*u,1.8*u); ctx.stroke();
+      ctx.beginPath(); for(let i=0;i<5;i++){ const x=(-3.3+i*1.6)*u; ctx.moveTo(x,0.75*u); ctx.lineTo(x+0.35*u,1.1*u); ctx.lineTo(x,1.45*u); } ctx.stroke();
+      ctx.fillStyle=COL.coral; ctx.beginPath(); ctx.arc(-1.6*u,1.1*u,u*0.5,0,7); ctx.fill();
+      ctx.fillStyle=COL.amber; ctx.beginPath(); ctx.moveTo(0.6*u,0.55*u); ctx.lineTo(1.15*u,1.1*u); ctx.lineTo(0.6*u,1.65*u); ctx.lineTo(0.05*u,1.1*u); ctx.closePath(); ctx.fill();
+      ctx.fillStyle=COL.violet; ctx.fillRect(2.2*u,0.62*u,u*0.96,u*0.96);
+      /* generator hexagon above with the logo quadrants */
+      ctx.fillStyle=COL.panel; ctx.strokeStyle=COL.cyan; ctx.lineWidth=s*0.03; ctx.beginPath();
+      for(let i=0;i<6;i++){ const a=i*Math.PI/3-Math.PI/2; ctx.lineTo(Math.cos(a)*1.7*u,-1.6*u+Math.sin(a)*1.7*u); } ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle=COL.cyan; ctx.beginPath(); ctx.moveTo(0,-1.6*u); ctx.arc(0,-1.6*u,u*0.95,-Math.PI/2,0); ctx.closePath(); ctx.fill();
+      ctx.fillStyle=COL.coral; ctx.beginPath(); ctx.moveTo(0,-1.6*u); ctx.lineTo(0.95*u,-1.6*u); ctx.lineTo(0,-0.65*u); ctx.closePath(); ctx.fill();
+      ctx.fillStyle=COL.amber; ctx.fillRect(-0.95*u,-1.6*u,0.95*u,0.95*u);
+      ctx.fillStyle=COL.green; ctx.beginPath(); ctx.moveTo(0,-1.6*u); ctx.lineTo(0,-2.55*u); ctx.lineTo(-0.95*u,-1.6*u); ctx.closePath(); ctx.fill();
+    }
     else if(g==="grejstanks"){
       /* green hills with a crater, a tank firing along a dotted arc into an explosion */
       ctx.fillStyle="#6b4424"; ctx.beginPath(); ctx.moveTo(-3.8*u,3.8*u); ctx.lineTo(-3.8*u,1.4*u);
@@ -812,6 +828,11 @@
   G({ id:"grejstanks", name:"Grejs Tanks", tag:"arcade", href:"grejs-tanks.html", isNew:true,
     desc:"Turbaseret tank-artilleri med ødelæggeligt terræn — 60 tanks, 81 våben, 23 verdener og 345 baner med bosser, opgraderinger og daglige udfordringer. Opens in its own page.",
     hint:"Træk for at sigte · FIRE for at skyde · A/D kør" });
+
+  /* ---------------- GREJSFIGUR (external page) ---------------- */
+  G({ id:"grejsfigur", name:"GrejsFigur", tag:"puzzle", href:"GrejsFigur.html", isNew:true,
+    desc:"Factory-spil om geometriske figurer — byg transportbånd og maskiner, der skærer, drejer, maler og samler figurer. Missioner, upgrades og AFK-produktion. Opens in its own page.",
+    hint:"Vælg maskine · klik for at bygge · træk for bånd · R roterer" });
 
   /* ---------------- GREJS FARM (external page) ---------------- */
   G({ id:"grejsfarm", name:"Grejs Farm", tag:"arcade", href:"GrejsFarm.html", isNew:true,

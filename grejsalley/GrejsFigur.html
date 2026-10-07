@@ -1,0 +1,3845 @@
+<!DOCTYPE html>
+<html lang="da">
+<!--
+  GREJSFIGUR – et factory-/automatiseringsspil om geometriske figurer.
+  Alt (HTML, CSS og JavaScript) ligger i denne ene fil. Ingen eksterne filer, ingen backend.
+  Gemmer i localStorage. Del af Grejs Alley.
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#070a14">
+<title>GrejsFigur – Build • Automate • Optimize</title>
+<meta name="description" content="GrejsFigur – byg en automatiseret fabrik, der producerer geometriske figurer. Transportbånd, maskiner, missioner og upgrades.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070a14'/%3E%3Cpath d='M32 8 54 20v24L32 56 10 44V20z' fill='none' stroke='%2336e2ff' stroke-width='4'/%3E%3Cpath d='M32 20v12h12A12 12 0 0 0 32 20z' fill='%23ff4fd8'/%3E%3Cpath d='M32 32H20v12h12z' fill='%23ffd23f'/%3E%3C/svg%3E">
+<style>
+/* =========================================================
+   DESIGN TOKENS
+   ========================================================= */
+:root {
+  --bg: #070a14;
+  --bg2: #0c1122;
+  --panel: rgba(13, 18, 36, 0.88);
+  --panel-solid: #0f1530;
+  --panel-2: rgba(22, 30, 58, 0.9);
+  --line: rgba(120, 160, 255, 0.16);
+  --line-2: rgba(120, 160, 255, 0.3);
+  --text: #e8eeff;
+  --muted: #8d98bd;
+  --dim: #5d6789;
+  --cyan: #36e2ff;
+  --magenta: #ff4fd8;
+  --gold: #ffd23f;
+  --green: #3ddc84;
+  --red: #ff4d6d;
+  --orange: #ff9a3d;
+  --violet: #9b7bff;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  --glow-c: 0 0 18px rgba(54, 226, 255, 0.45);
+  --glow-m: 0 0 18px rgba(255, 79, 216, 0.45);
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --font: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Roboto, Arial, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --top-h: 64px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font); -webkit-font-smoothing: antialiased; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.hidden { display: none !important; }
+b, strong { font-weight: 800; }
+
+/* =========================================================
+   CANVAS
+   ========================================================= */
+#game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+#game.pan { cursor: grabbing; }
+
+/* =========================================================
+   GENERIC UI
+   ========================================================= */
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 18px; border-radius: 12px; font-weight: 800; letter-spacing: .04em; background: linear-gradient(180deg, rgba(60, 80, 140, .55), rgba(30, 40, 80, .55)); border: 1px solid var(--line-2); transition: transform .15s var(--ease), box-shadow .2s, background .2s, border-color .2s, opacity .2s; }
+.btn:hover:not(:disabled) { transform: translateY(-1px); border-color: var(--cyan); box-shadow: var(--glow-c); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.primary { background: linear-gradient(135deg, #1fb8ff, #7b5cff 55%, #ff4fd8); border-color: transparent; color: #fff; text-shadow: 0 1px 0 rgba(0,0,0,.3); }
+.btn.primary:hover:not(:disabled) { box-shadow: 0 0 26px rgba(123, 92, 255, .6); }
+.btn.gold { background: linear-gradient(135deg, #ffd23f, #ff9a3d); color: #2a1600; border-color: transparent; }
+.btn.gold:hover:not(:disabled) { box-shadow: 0 0 22px rgba(255, 210, 63, .55); }
+.btn.danger { background: linear-gradient(180deg, rgba(255, 77, 109, .35), rgba(140, 20, 50, .45)); border-color: rgba(255, 77, 109, .5); }
+.btn.danger:hover:not(:disabled) { border-color: var(--red); box-shadow: 0 0 18px rgba(255, 77, 109, .5); }
+.btn.sm { padding: 7px 12px; font-size: 12.5px; border-radius: 10px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; background: rgba(255,255,255,.06); border: 1px solid var(--line); color: var(--muted); }
+.chip.c { color: var(--cyan); border-color: rgba(54,226,255,.35); }
+.chip.g { color: var(--gold); border-color: rgba(255,210,63,.35); }
+.chip.m { color: var(--magenta); border-color: rgba(255,79,216,.35); }
+.coin { color: var(--gold); }
+kbd { font-family: var(--mono); font-size: .82em; padding: 1px 6px; border-radius: 6px; background: rgba(255,255,255,.08); border: 1px solid var(--line); color: var(--text); }
+.scroll { overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(120,160,255,.3) transparent; }
+.scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll::-webkit-scrollbar-thumb { background: rgba(120,160,255,.25); border-radius: 8px; }
+
+/* =========================================================
+   START MENU
+   ========================================================= */
+#menu { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; overflow: hidden; background: radial-gradient(1200px 700px at 50% 30%, #131a3a 0%, #070a14 65%); transition: opacity .5s var(--ease), visibility .5s; }
+#menu.out { opacity: 0; visibility: hidden; pointer-events: none; }
+#menu-bg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.menu-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px; max-width: 560px; width: 100%; }
+.logo { display: flex; align-items: center; gap: clamp(12px, 3vw, 22px); animation: logoIn 1s var(--ease) both; }
+.logo svg { width: clamp(64px, 14vw, 112px); height: auto; filter: drop-shadow(0 0 22px rgba(54,226,255,.45)); animation: spinSlow 30s linear infinite; }
+.logo h1 { font-size: clamp(40px, 10.5vw, 86px); line-height: .9; font-weight: 900; letter-spacing: .06em; background: linear-gradient(100deg, #ffffff 0%, #9fefff 30%, #36e2ff 50%, #b48cff 72%, #ff4fd8 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 4px 24px rgba(54, 226, 255, .25)); }
+.tagline { margin-top: 14px; font-size: clamp(12px, 2.6vw, 15px); font-weight: 800; letter-spacing: .5em; color: var(--muted); animation: fadeUp 1s .2s var(--ease) both; }
+.tagline i { font-style: normal; color: var(--cyan); }
+.menu-btns { margin-top: 36px; display: grid; gap: 12px; width: min(340px, 100%); animation: fadeUp 1s .35s var(--ease) both; }
+.menu-btns .btn { padding: 15px 20px; font-size: 15px; letter-spacing: .12em; }
+.menu-btns .btn.primary { font-size: 17px; padding: 18px 20px; }
+.menu-save { margin-top: 18px; font-size: 13px; color: var(--muted); min-height: 1.2em; animation: fadeUp 1s .5s var(--ease) both; }
+.menu-foot { margin-top: 24px; display: flex; gap: 16px; align-items: center; font-size: 13px; color: var(--dim); animation: fadeUp 1s .6s var(--ease) both; }
+.menu-foot a { color: var(--muted); text-decoration: none; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.03); transition: border-color .2s, color .2s; }
+.menu-foot a:hover { color: var(--cyan); border-color: var(--cyan); }
+@keyframes logoIn { from { opacity: 0; transform: translateY(-20px) scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes spinSlow { to { transform: rotate(360deg); } }
+
+/* =========================================================
+   HUD – TOPBAR
+   ========================================================= */
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+#hud > * { pointer-events: auto; }
+#topbar { position: absolute; top: 10px; left: calc(10px + var(--safe-l)); right: calc(10px + var(--safe-r)); height: var(--top-h); display: flex; align-items: center; gap: 10px; padding: 8px 10px; }
+.tb-brand { display: flex; align-items: center; gap: 9px; padding: 0 8px 0 4px; font-weight: 900; letter-spacing: .14em; font-size: 15px; }
+.tb-brand svg { width: 34px; height: 34px; filter: drop-shadow(0 0 8px rgba(54,226,255,.5)); }
+.tb-brand span { background: linear-gradient(100deg, #fff, #36e2ff 60%, #ff4fd8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tb-sep { width: 1px; align-self: stretch; background: var(--line); margin: 4px 2px; }
+.tb-level { display: flex; flex-direction: column; gap: 5px; min-width: 150px; }
+.tb-level .lvl { display: flex; align-items: baseline; gap: 8px; font-size: 11px; font-weight: 900; letter-spacing: .16em; color: var(--muted); }
+.tb-level .lvl b { font-size: 19px; color: var(--text); letter-spacing: .02em; }
+.tb-level .lvl em { font-style: normal; margin-left: auto; color: var(--violet); font-size: 10.5px; }
+.xpbar { height: 7px; border-radius: 99px; background: rgba(255,255,255,.07); overflow: hidden; }
+.xpbar i { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, #7b5cff, #ff4fd8); box-shadow: 0 0 12px rgba(255,79,216,.6); transition: width .5s var(--ease); }
+.tb-coins { display: flex; flex-direction: column; align-items: flex-start; padding: 0 10px; min-width: 120px; }
+.tb-coins .c { display: flex; align-items: center; gap: 7px; font-size: 20px; font-weight: 900; color: var(--gold); text-shadow: 0 0 14px rgba(255,210,63,.35); }
+.tb-coins .c .gc { width: 20px; height: 20px; }
+.tb-coins small { font-size: 11px; font-weight: 800; color: var(--green); letter-spacing: .04em; }
+.tb-mission { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border-radius: 12px; background: linear-gradient(90deg, rgba(54,226,255,.10), rgba(255,79,216,.06)); border: 1px solid rgba(54,226,255,.22); text-align: left; transition: border-color .2s, box-shadow .2s; max-width: 460px; }
+.tb-mission:hover { border-color: var(--cyan); box-shadow: var(--glow-c); }
+.tb-mission canvas { width: 44px; height: 44px; flex: none; border-radius: 10px; background: rgba(0,0,0,.35); }
+.tb-mission .mi { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.tb-mission small { font-size: 10px; font-weight: 900; letter-spacing: .16em; color: var(--cyan); }
+.tb-mission .mt { font-size: 13.5px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mbar { height: 6px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; }
+.mbar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--cyan), var(--green)); box-shadow: 0 0 10px rgba(54,226,255,.6); transition: width .3s; }
+.tb-mission .mc { font-size: 11px; font-weight: 800; color: var(--muted); font-family: var(--mono); }
+.tb-btns { display: flex; gap: 6px; margin-left: auto; }
+.ibtn { position: relative; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 19px; background: rgba(255,255,255,.04); border: 1px solid var(--line); transition: border-color .2s, background .2s, transform .15s, box-shadow .2s; }
+.ibtn:hover { border-color: var(--cyan); background: rgba(54,226,255,.08); box-shadow: var(--glow-c); }
+.ibtn:active { transform: scale(.95); }
+.ibtn.on { border-color: var(--cyan); background: rgba(54,226,255,.16); box-shadow: var(--glow-c); }
+.ibtn .dot { position: absolute; top: 6px; right: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--magenta); box-shadow: 0 0 8px var(--magenta); }
+
+/* =========================================================
+   HUD – BUILD MENU (left)
+   ========================================================= */
+#buildbar { position: absolute; left: calc(10px + var(--safe-l)); top: calc(var(--top-h) + 22px); bottom: 74px; width: 206px; display: flex; flex-direction: column; padding: 10px; }
+.bb-title { display: flex; align-items: center; justify-content: space-between; padding: 4px 6px 10px; font-size: 11px; font-weight: 900; letter-spacing: .22em; color: var(--muted); }
+#build-list { display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; }
+.bitem { position: relative; display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 6px; border-radius: 12px; border: 1px solid transparent; text-align: left; transition: background .15s, border-color .15s, transform .15s; }
+.bitem:hover:not(.locked) { background: rgba(255,255,255,.05); border-color: var(--line); transform: translateX(2px); }
+.bitem.sel { background: linear-gradient(90deg, rgba(54,226,255,.18), rgba(54,226,255,.04)); border-color: rgba(54,226,255,.55); box-shadow: inset 3px 0 0 var(--cyan); }
+.bitem canvas { width: 36px; height: 36px; flex: none; }
+.bitem .bn { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.bitem .bn b { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bitem .bn small { font-size: 11px; color: var(--gold); font-weight: 800; }
+.bitem .key { font-family: var(--mono); font-size: 10.5px; color: var(--dim); border: 1px solid var(--line); border-radius: 6px; padding: 0 5px; }
+.bitem.locked { opacity: .38; cursor: default; }
+.bitem.locked .bn small { color: var(--muted); }
+.bitem.new::after { content: "NY"; position: absolute; top: 4px; right: 6px; font-size: 9px; font-weight: 900; letter-spacing: .1em; color: #fff; background: var(--magenta); padding: 1px 6px; border-radius: 99px; box-shadow: 0 0 10px var(--magenta); }
+
+/* =========================================================
+   HUD – TOOLBAR (bottom)
+   ========================================================= */
+#toolbar { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(12px + var(--safe-b)); display: flex; align-items: center; gap: 6px; padding: 7px; }
+#toolbar .ibtn { width: 46px; height: 46px; font-size: 18px; }
+#toolbar .tsep { width: 1px; height: 30px; background: var(--line); margin: 0 3px; }
+#toolbar .rot-ind { font-size: 11px; font-weight: 900; color: var(--muted); width: 34px; text-align: center; font-family: var(--mono); }
+#hint { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(76px + var(--safe-b)); padding: 7px 14px; font-size: 12.5px; color: var(--muted); border-radius: 999px; background: rgba(7,10,20,.72); border: 1px solid var(--line); white-space: nowrap; pointer-events: none; transition: opacity .3s; }
+#hint b { color: var(--text); }
+
+/* =========================================================
+   HUD – INFO PANEL (right)
+   ========================================================= */
+#infopanel { position: absolute; right: calc(10px + var(--safe-r)); top: calc(var(--top-h) + 22px); width: 280px; max-height: calc(100% - var(--top-h) - 110px); padding: 14px; display: flex; flex-direction: column; gap: 12px; animation: slideIn .3s var(--ease); }
+@keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+.ip-head { display: flex; align-items: center; gap: 12px; }
+.ip-head canvas { width: 52px; height: 52px; flex: none; border-radius: 12px; background: rgba(0,0,0,.3); }
+.ip-head h3 { font-size: 17px; letter-spacing: .1em; }
+.ip-head small { font-size: 11.5px; color: var(--muted); font-weight: 700; }
+.ip-head .x { margin-left: auto; width: 32px; height: 32px; border-radius: 10px; font-size: 16px; color: var(--muted); border: 1px solid var(--line); }
+.ip-head .x:hover { color: var(--text); border-color: var(--cyan); }
+.ip-status { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 900; letter-spacing: .14em; background: rgba(255,255,255,.04); border: 1px solid var(--line); }
+.ip-status i { width: 10px; height: 10px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor; }
+.st-working { color: var(--green); } .st-waiting { color: var(--gold); } .st-noinput { color: var(--red); } .st-off { color: #6b7391; } .st-idle { color: var(--cyan); }
+.ip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ip-grid div { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.035); border: 1px solid var(--line); }
+.ip-grid small { display: block; font-size: 10px; font-weight: 900; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; }
+.ip-grid b { font-size: 15px; font-family: var(--mono); }
+.ip-desc { font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.ip-sec h4 { font-size: 10.5px; font-weight: 900; letter-spacing: .18em; color: var(--muted); margin-bottom: 7px; }
+.opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.opt { display: grid; place-items: center; min-width: 40px; height: 40px; padding: 0 8px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.04); font-size: 12px; font-weight: 800; transition: border-color .15s, background .15s, transform .15s; }
+.opt canvas { width: 30px; height: 30px; }
+.opt:hover { border-color: var(--line-2); transform: translateY(-1px); }
+.opt.sel { border-color: var(--cyan); background: rgba(54,226,255,.15); box-shadow: var(--glow-c); }
+.opt.sw { width: 34px; min-width: 34px; height: 34px; border-radius: 50%; padding: 0; }
+.opt.sw.sel { box-shadow: 0 0 0 2px #fff inset, var(--glow-c); }
+.ip-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ip-actions .wide { grid-column: 1 / -1; }
+.ip-held { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.ip-held canvas { width: 34px; height: 34px; border-radius: 8px; background: rgba(0,0,0,.3); }
+
+/* =========================================================
+   TUTORIAL / TOASTS
+   ========================================================= */
+#tutorial { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(126px + var(--safe-b)); width: min(440px, calc(100% - 24px)); padding: 16px 18px; border-color: rgba(54,226,255,.35); box-shadow: var(--shadow), 0 0 30px rgba(54,226,255,.15); animation: fadeUp .4s var(--ease); }
+#tutorial h4 { font-size: 11px; letter-spacing: .2em; color: var(--cyan); margin-bottom: 6px; }
+#tutorial h3 { font-size: 17px; margin-bottom: 6px; }
+#tutorial p { font-size: 13.5px; line-height: 1.5; color: var(--muted); }
+#tutorial p b { color: var(--text); }
+#tutorial .steps { display: flex; gap: 5px; margin-top: 12px; }
+#tutorial .steps i { flex: 1; height: 4px; border-radius: 99px; background: rgba(255,255,255,.1); }
+#tutorial .steps i.on { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+#tutorial .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+#toasts { position: absolute; top: calc(var(--top-h) + 22px); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; z-index: 30; }
+.toast { display: flex; align-items: center; gap: 12px; padding: 10px 16px 10px 12px; min-width: 240px; max-width: min(420px, 92vw); border-radius: 14px; background: rgba(13, 18, 36, .95); border: 1px solid var(--line-2); box-shadow: var(--shadow); animation: toastIn .4s var(--ease), toastOut .4s var(--ease) forwards; animation-delay: 0s, var(--life, 3.2s); }
+.toast .ti { font-size: 24px; width: 34px; text-align: center; }
+.toast b { display: block; font-size: 13.5px; }
+.toast small { font-size: 12px; color: var(--muted); }
+.toast.gold { border-color: rgba(255,210,63,.5); box-shadow: var(--shadow), 0 0 22px rgba(255,210,63,.2); }
+.toast.cyan { border-color: rgba(54,226,255,.5); }
+.toast.bad { border-color: rgba(255,77,109,.55); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(-12px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes toastOut { to { opacity: 0; transform: translateY(-8px); } }
+
+/* =========================================================
+   MODALS
+   ========================================================= */
+#modal-back { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; background: rgba(3, 5, 12, .6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: fade .25s; }
+@keyframes fade { from { opacity: 0; } }
+#modal { width: min(720px, 100%); max-height: min(86vh, 860px); display: flex; flex-direction: column; overflow: hidden; animation: pop .35s var(--ease); }
+#modal.wide { width: min(940px, 100%); }
+#modal.narrow { width: min(460px, 100%); }
+@keyframes pop { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+.m-head { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--line); }
+.m-head h2 { font-size: 16px; letter-spacing: .18em; }
+.m-head .x { margin-left: auto; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); color: var(--muted); font-size: 18px; }
+.m-head .x:hover { color: var(--text); border-color: var(--cyan); }
+.m-body { padding: 18px; overflow-y: auto; }
+.m-body p { color: var(--muted); line-height: 1.55; font-size: 14px; }
+.m-foot { display: flex; gap: 10px; justify-content: flex-end; padding: 14px 18px; border-top: 1px solid var(--line); }
+.m-sec { margin-top: 18px; }
+.m-sec:first-child { margin-top: 0; }
+.m-sec > h3 { font-size: 11px; font-weight: 900; letter-spacing: .2em; color: var(--muted); margin-bottom: 10px; }
+
+/* upgrades */
+.upg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.upg { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 14px; background: linear-gradient(160deg, rgba(54,226,255,.07), rgba(255,255,255,.02)); border: 1px solid var(--line); }
+.upg .uh { display: flex; align-items: center; gap: 10px; }
+.upg .ui { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; background: rgba(54,226,255,.12); border: 1px solid rgba(54,226,255,.3); }
+.upg h4 { font-size: 14px; }
+.upg p { font-size: 12.5px; color: var(--muted); }
+.pips { display: flex; gap: 5px; }
+.pips i { flex: 1; height: 8px; border-radius: 99px; background: rgba(255,255,255,.08); }
+.pips i.on { background: linear-gradient(90deg, var(--cyan), var(--violet)); box-shadow: 0 0 8px rgba(54,226,255,.5); }
+.upg .uv { font-size: 12px; font-weight: 800; color: var(--cyan); font-family: var(--mono); }
+
+/* achievements */
+.ach-sum { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.ach-sum .mbar { flex: 1; height: 9px; }
+.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.ach { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 14px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
+.ach .ai { width: 44px; height: 44px; flex: none; display: grid; place-items: center; font-size: 22px; border-radius: 12px; background: rgba(255,255,255,.05); filter: grayscale(1) opacity(.45); }
+.ach.done { border-color: rgba(255,210,63,.4); background: linear-gradient(160deg, rgba(255,210,63,.09), rgba(255,255,255,.02)); }
+.ach.done .ai { filter: none; background: rgba(255,210,63,.15); box-shadow: 0 0 14px rgba(255,210,63,.25); }
+.ach b { font-size: 12.5px; letter-spacing: .06em; }
+.ach p { font-size: 12px !important; line-height: 1.35 !important; }
+.ach small { font-size: 11px; color: var(--gold); font-weight: 800; }
+
+/* missions */
+.mission-card { display: flex; gap: 16px; align-items: center; padding: 16px; border-radius: 16px; background: linear-gradient(135deg, rgba(54,226,255,.1), rgba(255,79,216,.07)); border: 1px solid rgba(54,226,255,.3); }
+.mission-card canvas { width: 96px; height: 96px; flex: none; border-radius: 14px; background: rgba(0,0,0,.35); }
+.mission-card .mb { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.mission-card h3 { font-size: 18px; }
+.mission-card .mbar { height: 9px; }
+.mission-card .rw { display: flex; flex-wrap: wrap; gap: 6px; }
+.orders { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.order { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 14px; background: rgba(255,255,255,.035); border: 1px solid var(--line); }
+.order .oh { display: flex; gap: 10px; align-items: center; }
+.order canvas { width: 54px; height: 54px; border-radius: 10px; background: rgba(0,0,0,.3); }
+.order b { font-size: 13px; }
+.order .row { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.recipe { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+/* stats */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.stat { padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,.035); border: 1px solid var(--line); }
+.stat small { display: block; font-size: 10px; font-weight: 900; letter-spacing: .16em; color: var(--muted); text-transform: uppercase; }
+.stat b { display: block; margin-top: 4px; font-size: 20px; font-family: var(--mono); }
+.stat .sb { margin-top: 8px; height: 5px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; }
+.stat .sb i { display: block; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--green)); }
+.spark { width: 100%; height: 90px; display: block; border-radius: 12px; background: rgba(0,0,0,.25); border: 1px solid var(--line); }
+.bn-list { display: flex; flex-direction: column; gap: 6px; }
+.bn-row { display: flex; align-items: center; gap: 10px; font-size: 13px; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.03); }
+.bn-row i { width: 10px; height: 10px; border-radius: 50%; flex: none; box-shadow: 0 0 8px currentColor; background: currentColor; }
+.bn-row span { margin-left: auto; font-family: var(--mono); font-weight: 800; }
+.top-figs { display: flex; flex-wrap: wrap; gap: 8px; }
+.top-figs div { display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid var(--line); font-size: 12px; font-family: var(--mono); }
+.top-figs canvas { width: 32px; height: 32px; }
+
+/* settings */
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.set-row:last-child { border-bottom: 0; }
+.set-row div b { display: block; font-size: 14px; }
+.set-row div small { color: var(--muted); font-size: 12px; }
+.toggle { position: relative; width: 52px; height: 30px; border-radius: 99px; background: rgba(255,255,255,.12); transition: background .2s; flex: none; }
+.toggle::after { content: ""; position: absolute; top: 4px; left: 4px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: transform .25s var(--ease); }
+.toggle.on { background: linear-gradient(90deg, var(--cyan), var(--violet)); box-shadow: var(--glow-c); }
+.toggle.on::after { transform: translateX(22px); }
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.help-list { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; font-size: 13px; color: var(--muted); align-items: center; }
+
+/* level complete */
+.lc { text-align: center; padding: 8px 4px; }
+.lc .burst { font-size: 13px; letter-spacing: .4em; font-weight: 900; color: var(--cyan); }
+.lc h2 { margin-top: 8px; font-size: clamp(28px, 6vw, 44px); letter-spacing: .06em; background: linear-gradient(100deg, #fff, var(--gold) 50%, var(--orange)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lc .rewards { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.lc .rewards .chip { font-size: 14px; padding: 7px 14px; }
+.unlock-list { display: grid; gap: 10px; margin-top: 18px; text-align: left; }
+.unl { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 14px; background: linear-gradient(135deg, rgba(255,79,216,.12), rgba(54,226,255,.06)); border: 1px solid rgba(255,79,216,.35); }
+.unl canvas { width: 52px; height: 52px; flex: none; }
+.unl b { font-size: 14px; }
+.unl p { font-size: 12.5px !important; }
+.offline-big { font-size: 34px; font-weight: 900; color: var(--gold); text-shadow: 0 0 20px rgba(255,210,63,.4); }
+.offline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+
+/* selection / paste bar */
+#selbar { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(80px + var(--safe-b)); display: flex; align-items: center; gap: 8px; padding: 8px 10px; }
+#selbar span { font-size: 12.5px; color: var(--muted); padding: 0 6px; }
+
+/* confetti overlay */
+#fx { position: fixed; inset: 0; pointer-events: none; z-index: 70; }
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width: 1100px) {
+  .tb-brand span { display: none; }
+  .tb-coins { min-width: 96px; }
+  #infopanel { width: 260px; }
+}
+@media (max-width: 820px), (max-height: 520px) and (max-width: 1000px) {
+  :root { --top-h: 56px; }
+  #topbar { top: 6px; left: calc(6px + var(--safe-l)); right: calc(6px + var(--safe-r)); gap: 6px; padding: 6px; flex-wrap: nowrap; }
+  .tb-brand, .tb-sep { display: none; }
+  .tb-level { min-width: 74px; }
+  .tb-level .lvl em { display: none; }
+  .tb-level .lvl b { font-size: 16px; }
+  .tb-coins { min-width: 0; padding: 0 4px; }
+  .tb-coins .c { font-size: 15px; }
+  .tb-coins small { display: none; }
+  .tb-mission { padding: 4px 8px 4px 4px; gap: 7px; }
+  .tb-mission canvas { width: 36px; height: 36px; }
+  .tb-mission small { display: none; }
+  .tb-mission .mt { font-size: 12px; }
+  .tb-btns .ibtn:not(#btn-menu) { display: none; }
+  .ibtn { width: 40px; height: 40px; }
+  /* build menu becomes a bottom bar */
+  #buildbar { top: auto; left: 0; right: 0; bottom: 0; width: auto; height: calc(74px + var(--safe-b)); padding: 6px 6px calc(6px + var(--safe-b)); border-radius: 18px 18px 0 0; flex-direction: row; }
+  .bb-title { display: none; }
+  #build-list { flex-direction: row; overflow-x: auto; overflow-y: hidden; gap: 4px; }
+  .bitem { flex-direction: column; gap: 2px; min-width: 64px; padding: 5px 4px; justify-content: center; text-align: center; }
+  .bitem:hover:not(.locked) { transform: none; }
+  .bitem.sel { box-shadow: inset 0 -3px 0 var(--cyan); }
+  .bitem canvas { width: 30px; height: 30px; }
+  .bitem .bn b { font-size: 10.5px; max-width: 62px; }
+  .bitem .bn small { font-size: 10px; }
+  .bitem .key { display: none; }
+  #toolbar { left: auto; right: calc(8px + var(--safe-r)); transform: none; bottom: calc(84px + var(--safe-b)); flex-direction: column; padding: 6px; gap: 5px; }
+  #toolbar .tsep { width: 30px; height: 1px; margin: 2px 0; }
+  #toolbar .ibtn { width: 44px; height: 44px; }
+  #toolbar .desk { display: none; }
+  #hint { display: none; }
+  #toolbar { z-index: 1; }
+  #tutorial { z-index: 2; }
+  #infopanel { z-index: 3; top: auto; right: 0; left: 0; bottom: calc(74px + var(--safe-b)); width: auto; max-height: 52vh; border-radius: 18px 18px 0 0; padding: 12px 14px; }
+  #infopanel .ip-desc { display: none; }
+  #tutorial { bottom: calc(86px + var(--safe-b)); width: calc(100% - 76px); left: 8px; transform: none; padding: 12px 14px; }
+  #tutorial h3 { font-size: 15px; }
+  #tutorial p { font-size: 12.5px; }
+  #selbar { bottom: calc(86px + var(--safe-b)); left: 8px; transform: none; flex-wrap: wrap; max-width: calc(100% - 76px); }
+  #toasts { top: calc(var(--top-h) + 14px); }
+  .m-body { padding: 14px; }
+  .menu-btns { margin-top: 26px; }
+}
+@media (max-width: 420px) {
+  .tagline { letter-spacing: .22em; }
+  .tb-level { min-width: 60px; }
+  .tb-mission .mc { display: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="game" aria-label="GrejsFigur fabrik"></canvas>
+
+<!-- ===================== HUD ===================== -->
+<div id="hud" class="hidden">
+  <header id="topbar" class="panel">
+    <div class="tb-brand"><svg viewBox="0 0 64 64" data-logo></svg><span>GREJSFIGUR</span></div>
+    <div class="tb-sep"></div>
+    <div class="tb-level">
+      <div class="lvl">LEVEL <b id="tb-level">1</b><em id="tb-rank">RANG 1</em></div>
+      <div class="xpbar" title="XP"><i id="tb-xp"></i></div>
+    </div>
+    <div class="tb-coins" title="GrejsCoins">
+      <div class="c"><svg class="gc" viewBox="0 0 24 24" data-coin></svg><span id="tb-coins">0</span></div>
+      <small id="tb-income">+0 / min</small>
+    </div>
+    <button class="tb-mission" id="tb-mission" title="Mission">
+      <canvas id="mission-icon" width="88" height="88"></canvas>
+      <div class="mi">
+        <small id="mission-label">MISSION · LEVEL 1</small>
+        <div class="mt" id="mission-title">–</div>
+        <div class="mbar"><i id="mission-bar"></i></div>
+      </div>
+      <div class="mc" id="mission-count">0/0</div>
+    </button>
+    <div class="tb-btns">
+      <button class="ibtn" id="btn-orders" title="Missioner & ordrer">📋<span class="dot hidden" id="orders-dot"></span></button>
+      <button class="ibtn" id="btn-stats" title="Fabriksstatistik">📊</button>
+      <button class="ibtn" id="btn-upgrades" title="Opgraderinger">⬆️</button>
+      <button class="ibtn" id="btn-ach" title="Achievements">🏆</button>
+      <button class="ibtn" id="btn-menu" title="Menu">☰</button>
+    </div>
+  </header>
+
+  <aside id="buildbar" class="panel">
+    <div class="bb-title"><span>BYG</span><span>Tast</span></div>
+    <div id="build-list" class="scroll"></div>
+  </aside>
+
+  <aside id="infopanel" class="panel scroll hidden"></aside>
+
+  <div id="toolbar" class="panel">
+    <button class="ibtn" id="tool-rotate" title="Rotér (R)">↻</button>
+    <span class="rot-ind desk" id="rot-ind">▲</span>
+    <div class="tsep"></div>
+    <button class="ibtn" id="tool-select" title="Markér område (E)">⬚</button>
+    <button class="ibtn" id="tool-delete" title="Slet (X) – eller højreklik">🗑</button>
+    <button class="ibtn desk" id="tool-pipette" title="Kopiér maskine under musen (Q)">💧</button>
+    <div class="tsep"></div>
+    <button class="ibtn" id="tool-undo" title="Fortryd (Ctrl+Z)">↶</button>
+    <button class="ibtn" id="tool-redo" title="Gentag (Ctrl+Y)">↷</button>
+    <div class="tsep desk"></div>
+    <button class="ibtn desk" id="tool-center" title="Centrér kamera (Home)">⌖</button>
+    <button class="ibtn" id="tool-cancel" title="Annullér (Esc / højreklik)">✕</button>
+  </div>
+  <div id="hint"></div>
+  <div id="selbar" class="panel hidden"></div>
+  <div id="tutorial" class="panel hidden"></div>
+  <div id="toasts"></div>
+</div>
+
+<!-- ===================== START MENU ===================== -->
+<div id="menu">
+  <canvas id="menu-bg"></canvas>
+  <div class="menu-inner">
+    <div class="logo"><svg viewBox="0 0 64 64" data-logo></svg><h1>GREJSFIGUR</h1></div>
+    <div class="tagline">BUILD <i>•</i> AUTOMATE <i>•</i> OPTIMIZE</div>
+    <div class="menu-btns">
+      <button class="btn primary" id="m-continue">▶ FORTSÆT</button>
+      <button class="btn" id="m-new">✦ START NYT SPIL</button>
+      <button class="btn" id="m-upgrades">⬆ OPGRADERINGER</button>
+      <button class="btn" id="m-ach">🏆 ACHIEVEMENTS</button>
+      <button class="btn" id="m-settings">⚙ INDSTILLINGER</button>
+    </div>
+    <div class="menu-save" id="m-save"></div>
+    <div class="menu-foot"><a href="GREJSALLEY.html">← Grejs Alley</a><span>v1.0</span></div>
+  </div>
+</div>
+
+<!-- ===================== MODAL ===================== -->
+<div id="modal-back" class="hidden">
+  <div id="modal" class="panel">
+    <div class="m-head"><h2 id="modal-title"></h2><button class="x" id="modal-x" aria-label="Luk">✕</button></div>
+    <div class="m-body scroll" id="modal-body"></div>
+    <div class="m-foot hidden" id="modal-foot"></div>
+  </div>
+</div>
+
+<canvas id="fx"></canvas>
+
+
+<script>
+'use strict';
+/* =====================================================================
+   GREJSFIGUR
+   Sektioner:  UTIL · SHAPES · MACHINES · FACTORY · PROGRESSION (missions,
+   upgrades, achievements) · SAVE SYSTEM · AUDIO · CAMERA · RENDERING ·
+   INPUT · UI · GAME
+   ===================================================================== */
+
+// =========================
+// UTIL
+// =========================
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+const lerp = (a, b, t) => a + (b - a) * t;
+const DX = [0, 1, 0, -1];
+const DY = [-1, 0, 1, 0];
+const opp = (d) => (d + 2) & 3;
+const DIR_ARROW = ['▲', '▶', '▼', '◀'];
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const now = () => performance.now() / 1000;
+
+/** Danish number formatting: 12.450 · 1,25 mio. */
+function fmt(n) {
+  n = Math.floor(n || 0);
+  const a = Math.abs(n);
+  if (a >= 1e12) return (n / 1e12).toFixed(2).replace('.', ',') + ' bio.';
+  if (a >= 1e9) return (n / 1e9).toFixed(2).replace('.', ',') + ' mia.';
+  if (a >= 1e6) return (n / 1e6).toFixed(2).replace('.', ',') + ' mio.';
+  return n.toLocaleString('da-DK');
+}
+function fmtDec(n, d = 1) {
+  return (Math.round(n * 10 ** d) / 10 ** d).toLocaleString('da-DK', { maximumFractionDigits: d });
+}
+function fmtDuration(sec) {
+  sec = Math.floor(sec);
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  if (h) return `${h} t ${m} min`;
+  if (m) return `${m} min ${s ? s + ' sek' : ''}`.trim();
+  return `${s} sek`;
+}
+function fmtClock(t) {
+  const d = new Date(t);
+  return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+}
+/** small deterministic RNG (mulberry32) */
+function makeRng(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const pick = (rng, arr) => arr[Math.floor(rng() * arr.length)];
+
+// =========================
+// SHAPES
+// =========================
+/*
+  En figur ("Shape") består af 1–3 lag. Hvert lag har 4 kvadranter i
+  rækkefølgen: 0 = øverst-højre, 1 = nederst-højre, 2 = nederst-venstre,
+  3 = øverst-venstre. En del skrives som to tegn: form + farve, fx "Cr"
+  (rød cirkel). Tom kvadrant = "--". Lag adskilles med ":".
+  Eksempel:  "CrCr----:SbSbSbSb"  = højre halvdel rød cirkel, med en blå
+  firkant ovenpå.
+  Nye former tilføjes ved at lave en ny post i SHAPE_TYPES med en path().
+*/
+const SHAPE_TYPES = {
+  C: {
+    name: 'Cirkel', plural: 'cirkler', bonus: 0,
+    path(ctx, R) { ctx.moveTo(0, 0); ctx.arc(0, 0, R, -Math.PI / 2, 0); ctx.closePath(); }
+  },
+  S: {
+    name: 'Firkant', plural: 'firkanter', bonus: 0,
+    path(ctx, R) { const a = R * 0.86; ctx.moveTo(0, 0); ctx.lineTo(0, -a); ctx.lineTo(a, -a); ctx.lineTo(a, 0); ctx.closePath(); }
+  },
+  T: {
+    name: 'Trekant', plural: 'trekanter', bonus: 0.1,
+    path(ctx, R) { const a = R * 0.94; ctx.moveTo(0, 0); ctx.lineTo(0, -a); ctx.lineTo(a, -a * 0.12); ctx.closePath(); }
+  },
+  D: {
+    name: 'Diamant', plural: 'diamanter', bonus: 0.2,
+    path(ctx, R) { ctx.moveTo(0, 0); ctx.lineTo(0, -R); ctx.lineTo(R * 0.72, -R * 0.28); ctx.lineTo(R * 0.72, 0); ctx.closePath(); }
+  },
+  H: {
+    name: 'Hexagon', plural: 'hexagoner', bonus: 0.3,
+    path(ctx, R) { ctx.moveTo(0, 0); ctx.lineTo(0, -R * 0.9); ctx.lineTo(R * 0.52, -R * 0.9); ctx.lineTo(R * 0.98, -R * 0.12); ctx.lineTo(R * 0.98, 0); ctx.closePath(); }
+  }
+};
+const SHAPE_ORDER = ['C', 'S', 'T', 'D', 'H'];
+const COLORS = {
+  u: { name: 'Grå', adj: 'Grå', hex: '#a3acc4' },
+  r: { name: 'Rød', adj: 'Rød', hex: '#ff4d6d' },
+  g: { name: 'Grøn', adj: 'Grøn', hex: '#3ddc84' },
+  b: { name: 'Blå', adj: 'Blå', hex: '#3d8bff' },
+  y: { name: 'Gul', adj: 'Gul', hex: '#ffd23f' },
+  p: { name: 'Lilla', adj: 'Lilla', hex: '#b26bff' },
+  c: { name: 'Cyan', adj: 'Cyan', hex: '#2ee6e6' },
+  w: { name: 'Hvid', adj: 'Hvid', hex: '#f4f6ff' }
+};
+const COLOR_ORDER = ['r', 'g', 'b', 'y', 'p', 'c', 'w'];
+const MAX_LAYERS = 3;
+const SHAPE_CACHE = new Map();
+
+class Shape {
+  constructor(key) {
+    this.key = key;
+    this.layers = key.split(':').map((l) => [0, 1, 2, 3].map((i) => {
+      const p = l.substr(i * 2, 2);
+      return p === '--' ? null : p;
+    }));
+    this._value = null;
+  }
+  /** interned figure (same key → same object) */
+  static get(key) {
+    let s = SHAPE_CACHE.get(key);
+    if (!s) {
+      s = new Shape(key);
+      SHAPE_CACHE.set(key, s);
+    }
+    return s;
+  }
+  static fromLayers(layers) {
+    const ls = layers.filter((l) => l.some(Boolean));
+    if (!ls.length) return null;
+    return Shape.get(ls.map((l) => l.map((p) => p || '--').join('')).join(':'));
+  }
+  static full(shape, color = 'u') {
+    const p = shape + color;
+    return Shape.get(p + p + p + p);
+  }
+  static valid(key) {
+    return /^((?:[CSTDH][urgbypcw]|--){4})(:(?:[CSTDH][urgbypcw]|--){4}){0,2}$/.test(key);
+  }
+  map(fn) { return Shape.fromLayers(this.layers.map((l) => l.map((p) => (p ? fn(p) : null)))); }
+  /** 90° med uret (eller mod uret) */
+  rotate(ccw) {
+    return Shape.fromLayers(this.layers.map((l) => (ccw ? [l[1], l[2], l[3], l[0]] : [l[3], l[0], l[1], l[2]])));
+  }
+  /** [venstre halvdel, højre halvdel] */
+  cut() {
+    return [
+      Shape.fromLayers(this.layers.map((l) => [null, null, l[2], l[3]])),
+      Shape.fromLayers(this.layers.map((l) => [l[0], l[1], null, null]))
+    ];
+  }
+  paint(c) { return this.map((p) => p[0] + c); }
+  morph(s) { return this.map((p) => s + p[1]); }
+  mirror() { return Shape.fromLayers(this.layers.map((l) => [l[3], l[2], l[1], l[0]])); }
+  /** kombinér: passer delene sammen (1 lag hver, ingen overlap) smeltes de, ellers lægges top ovenpå */
+  merge(top) {
+    if (this.layers.length === 1 && top.layers.length === 1) {
+      const a = this.layers[0], b = top.layers[0];
+      if (a.every((p, i) => !(p && b[i]))) return Shape.fromLayers([a.map((p, i) => p || b[i])]);
+    }
+    return Shape.fromLayers(this.layers.concat(top.layers).slice(0, MAX_LAYERS));
+  }
+  /** [figur uden øverste lag, øverste lag] */
+  unstack() {
+    if (this.layers.length < 2) return [this, null];
+    return [Shape.fromLayers(this.layers.slice(0, -1)), Shape.fromLayers([this.layers[this.layers.length - 1]])];
+  }
+  get parts() { return this.layers.reduce((n, l) => n + l.filter(Boolean).length, 0); }
+  /** værdi i GrejsCoins (før upgrades) */
+  get value() {
+    if (this._value !== null) return this._value;
+    let v = 0;
+    for (const l of this.layers) for (const p of l) if (p) v += 0.25 + (p[1] !== 'u' ? 0.25 : 0) + SHAPE_TYPES[p[0]].bonus;
+    const lm = [1, 1.7, 2.6][this.layers.length - 1];
+    this._value = Math.max(1, Math.round(v * lm * 10) / 10);
+    return this._value;
+  }
+  allMatch(fn) { return this.layers.every((l) => l.every((p) => !p || fn(p))); }
+  hasColor() { return this.layers.some((l) => l.some((p) => p && p[1] !== 'u')); }
+  colorSet() { const s = new Set(); for (const l of this.layers) for (const p of l) if (p && p[1] !== 'u') s.add(p[1]); return s; }
+  hasShape(t) { return this.layers.some((l) => l.some((p) => p && p[0] === t)); }
+  /** dansk beskrivelse, fx "Rød cirkel" eller "Blå firkant (højre halvdel)" */
+  describe() {
+    if (this.layers.length > 1) return `${this.layers.length}-lags figur`;
+    const l = this.layers[0];
+    const ps = l.filter(Boolean);
+    const occ = l.map(Boolean).join('');
+    const half = { 'truetruefalsefalse': 'højre halvdel', 'falsefalsetruetrue': 'venstre halvdel', 'truefalsefalsetrue': 'øverste halvdel', 'falsetruetruefalse': 'nederste halvdel' }[occ];
+    const same = ps.every((p) => p === ps[0]);
+    if (same) {
+      const st = SHAPE_TYPES[ps[0][0]], c = COLORS[ps[0][1]];
+      const base = (c.adj + ' ' + st.name.toLowerCase());
+      if (ps.length === 4) return base;
+      if (half) return `${base} (${half})`;
+      return `${base}stykke`;
+    }
+    const sameShape = ps.every((p) => p[0] === ps[0][0]);
+    if (sameShape && ps.length === 4) return 'Tofarvet ' + SHAPE_TYPES[ps[0][0]].name.toLowerCase();
+    return 'Sammensat figur';
+  }
+}
+
+/* ---- figur-tegning (cachet til offscreen canvas pr. nøgle & størrelse) ---- */
+const FIG_SPRITES = new Map();
+function drawShapeRaw(ctx, shape, cx, cy, R, glow) {
+  const n = shape.layers.length;
+  for (let li = 0; li < n; li++) {
+    const layer = shape.layers[li];
+    const r = R * (1 - li * 0.25);
+    for (let q = 0; q < 4; q++) {
+      const p = layer[q];
+      if (!p) continue;
+      const col = COLORS[p[1]].hex;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate((q * Math.PI) / 2);
+      ctx.beginPath();
+      SHAPE_TYPES[p[0]].path(ctx, r);
+      const g = ctx.createLinearGradient(0, -r, r, 0);
+      g.addColorStop(0, shade(col, 0.28));
+      g.addColorStop(1, shade(col, -0.18));
+      ctx.fillStyle = g;
+      if (glow) { ctx.shadowColor = col; ctx.shadowBlur = R * 0.35; }
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = Math.max(1, R * 0.075);
+      ctx.strokeStyle = 'rgba(6,9,20,0.9)';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+}
+function figureSprite(shape, px) {
+  const k = shape.key + '|' + px;
+  let c = FIG_SPRITES.get(k);
+  if (c) return c;
+  if (FIG_SPRITES.size > 1500) FIG_SPRITES.clear();
+  c = document.createElement('canvas');
+  c.width = c.height = px;
+  const ctx = c.getContext('2d');
+  drawShapeRaw(ctx, shape, px / 2, px / 2, px * 0.4, true);
+  FIG_SPRITES.set(k, c);
+  return c;
+}
+/** tegn figur centreret i (x,y) med diameter size (skærm-px) */
+function drawShape(ctx, shape, x, y, size) {
+  const px = size <= 22 ? 32 : size <= 46 ? 64 : size <= 96 ? 128 : 256;
+  ctx.drawImage(figureSprite(shape, px), x - size / 2, y - size / 2, size, size);
+}
+/** tegn figur i et lille DOM-canvas (ikoner i UI) */
+function paintShapeCanvas(cv, shape) {
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  if (shape) drawShapeRaw(ctx, shape, cv.width / 2, cv.height / 2, cv.width * 0.38, true);
+}
+/** lysere (+) / mørkere (−) hex-farve */
+const SHADE_CACHE = new Map();
+function shade(hex, amt) {
+  const k = hex + amt;
+  if (SHADE_CACHE.has(k)) return SHADE_CACHE.get(k);
+  const n = parseInt(hex.slice(1), 16);
+  let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  if (amt > 0) { r += (255 - r) * amt; g += (255 - g) * amt; b += (255 - b) * amt; }
+  else { r *= 1 + amt; g *= 1 + amt; b *= 1 + amt; }
+  const out = `rgb(${r | 0},${g | 0},${b | 0})`;
+  SHADE_CACHE.set(k, out);
+  return out;
+}
+
+// =========================
+// MACHINES
+// =========================
+/*
+  Retninger: 0 = op, 1 = højre, 2 = ned, 3 = venstre.
+  En bygnings rotation r = den retning dens "front" (hovedoutput) peger.
+  Sider er relative: front, back, left, right.
+*/
+const MACHINES = {
+  conveyor: {
+    name: 'Transportbånd', short: 'Bånd', cost: 1, color: '#36e2ff',
+    desc: 'Flytter figurer. Træk for at bygge lange bånd – hjørner laves automatisk. Tager imod figurer bagfra og fra siderne, så bånd kan flettes sammen.'
+  },
+  generator: {
+    name: 'Generator', short: 'Generator', cost: 25, color: '#3ddc84', outputs: ['front'], duration: 1, cfg: { shape: 'C' },
+    desc: 'Producerer grundformer. Vælg hvilken form i infopanelet.'
+  },
+  output: {
+    name: 'Levering', short: 'Levering', cost: 15, color: '#ffd23f',
+    desc: 'Modtager figurer fra alle sider og sælger dem for GrejsCoins. Leverede figurer tæller med i missioner og ordrer.'
+  },
+  trash: {
+    name: 'Destruktor', short: 'Destruktor', cost: 5, color: '#ff4d6d',
+    desc: 'Destruerer alle figurer, den modtager. Brug den til restprodukter, du ikke skal bruge.'
+  },
+  splitter: {
+    name: 'Splitter', short: 'Splitter', cost: 10, color: '#7aa2ff', inputs: ['back'], outputs: ['front', 'left', 'right'], duration: 0.12,
+    desc: 'Fordeler figurer skiftevis fremad, til venstre og til højre – kun til de udgange der er forbundet og ledige.'
+  },
+  crossing: {
+    name: 'Krydsning', short: 'Kryds', cost: 12, color: '#9aa8d6',
+    desc: 'Lader to transportlinjer krydse hinanden. Figurer kører lige igennem, både vandret og lodret.'
+  },
+  cutter: {
+    name: 'Cutter', short: 'Cutter', cost: 40, color: '#ff9a3d', inputs: ['back'], outputs: ['front', 'right'], duration: 1,
+    desc: 'Skærer en figur over på midten (lodret). Venstre halvdel kommer ud foran, højre halvdel kommer ud til højre.'
+  },
+  merger: {
+    name: 'Merger', short: 'Merger', cost: 50, color: '#ff4fd8', inputs: ['back', 'left'], outputs: ['front'], duration: 1.2,
+    desc: 'Kombinerer to figurer. Bunden kommer bagfra, toppen fra venstre side. Passer delene sammen, smeltes de til ét lag – ellers lægges toppen ovenpå som et nyt lag (maks 3 lag).'
+  },
+  painter: {
+    name: 'Painter', short: 'Painter', cost: 45, color: '#b26bff', inputs: ['back'], outputs: ['front'], duration: 0.9, cfg: { color: 'r' },
+    desc: 'Farvelægger hele figuren i den valgte farve.'
+  },
+  sorter: {
+    name: 'Sorter', short: 'Sorter', cost: 35, color: '#2ee6e6', inputs: ['back'], outputs: ['front', 'right'], duration: 0.15, cfg: { mode: 'shape', v: 'C' },
+    desc: 'Sender figurer, der matcher filteret, lige ud. Alt andet sendes til højre. Filtrér på form eller farve.'
+  },
+  rotator: {
+    name: 'Rotator', short: 'Rotator', cost: 30, color: '#3ddc84', inputs: ['back'], outputs: ['front'], duration: 0.6, cfg: { ccw: false },
+    desc: 'Drejer figuren 90° med eller mod uret.'
+  },
+  storage: {
+    name: 'Storage', short: 'Lager', cost: 60, color: '#ffd23f', inputs: ['back'], outputs: ['front'], duration: 0.08,
+    desc: 'Opbevarer figurer og sender dem videre, når der er plads. Godt som buffer mellem maskiner.'
+  },
+  mirror: {
+    name: 'Spejl', short: 'Spejl', cost: 40, color: '#7af0c8', inputs: ['back'], outputs: ['front'], duration: 0.7,
+    desc: 'Spejlvender figuren vandret – venstre og højre side bytter plads.'
+  },
+  unstacker: {
+    name: 'Lagdeler', short: 'Lagdeler', cost: 80, color: '#ff7ab6', inputs: ['back'], outputs: ['front', 'right'], duration: 1.1,
+    desc: 'Tager det øverste lag af en figur. Resten kommer ud foran, det øverste lag kommer ud til højre.'
+  },
+  morpher: {
+    name: 'Morpher', short: 'Morpher', cost: 120, color: '#9b7bff', inputs: ['back'], outputs: ['front'], duration: 2, cfg: { shape: 'H' },
+    desc: 'Avanceret processor: forvandler alle dele af figuren til den valgte form – farverne bevares. Eneste måde at lave hexagoner på.'
+  }
+};
+const BUILD_ORDER = ['conveyor', 'generator', 'output', 'trash', 'splitter', 'crossing', 'cutter', 'merger', 'painter', 'sorter', 'rotator', 'storage', 'mirror', 'unstacker', 'morpher'];
+const MAX_MACHINE_LVL = 3;
+const SPACING = 0.5; // min afstand mellem figurer på et bånd (i felter)
+
+class Building {
+  constructor(factory, type, x, y, r, cfg) {
+    this.f = factory;
+    this.type = type;
+    this.def = MACHINES[type];
+    this.x = x;
+    this.y = y;
+    this.r = r || 0;
+    this.cfg = Object.assign({}, this.def.cfg || {}, cfg || {});
+    this.lvl = 1;
+    this.inv = this.def.cost; // samlet investeret (refunderes ved fjernelse)
+    this.off = false;
+    this.status = 'idle';
+    this.util = 0;
+    this.anim = 0;
+  }
+  serialize() {
+    const o = { t: this.type, x: this.x, y: this.y, r: this.r };
+    if (this.def.cfg) o.c = this.cfg;
+    if (this.lvl > 1) o.l = this.lvl;
+    if (this.off) o.o = 1;
+    if (this.inv !== this.def.cost) o.i = this.inv;
+    return o;
+  }
+  /** verdensretning for en relativ side */
+  dirOf(side) {
+    return side === 'front' ? this.r : side === 'back' ? opp(this.r) : side === 'left' ? (this.r + 3) & 3 : side === 'right' ? (this.r + 1) & 3 : -1;
+  }
+  /** relativ side for en verdensretning */
+  sideOf(dir) {
+    return ['front', 'right', 'back', 'left'][(dir - this.r + 4) & 3];
+  }
+  neighbor(dir) { return this.f.get(this.x + DX[dir], this.y + DY[dir]); }
+  /** send figur ud i retning dir – true hvis modtageren tog den */
+  push(shape, dir) {
+    const n = this.neighbor(dir);
+    return n ? n.accept(shape, opp(dir)) : false;
+  }
+  /** kan bygningen sende noget ud i verdensretning dir? (bruges til at tegne båndkurver) */
+  outputsTo(dir) {
+    const outs = this.def.outputs;
+    return !!outs && outs.some((s) => this.dirOf(s) === dir);
+  }
+  accept() { return false; }
+  update() {}
+  speedMult() { return (1 + 0.5 * (this.lvl - 1)) * this.f.game.upg.machineMult(); }
+  get statusLabel() { return STATUS_LABEL[this.status] || 'KLAR'; }
+  heldShapes() { return []; }
+}
+const STATUS_LABEL = { working: 'ARBEJDER', waiting: 'VENTER – OUTPUT BLOKERET', noinput: 'MANGLER INPUT', off: 'SLUKKET', idle: 'KLAR' };
+
+/* ---------- Transportbånd ---------- */
+class Conveyor extends Building {
+  constructor(...a) {
+    super(...a);
+    this.items = []; // [{s: Shape, p: 0..1, from: dir}] sorteret med laveste p først
+    this.vis = -1; // indgangsside til tegning (-1 = lige)
+    this.moving = false;
+  }
+  accept(shape, fromDir) {
+    if (this.off) return false;
+    if (fromDir === this.r) return false; // kan ikke komme ind fra fronten
+    const it = this.items;
+    if (it.length && it[0].p < SPACING) return false;
+    if (it.length >= 3) return false;
+    it.unshift({ s: shape, p: 0, from: fromDir });
+    return true;
+  }
+  outputsTo(dir) { return dir === this.r; }
+  update(dt, speed) {
+    const it = this.items;
+    this.moving = false;
+    if (!it.length) { this.status = 'idle'; return; }
+    if (this.off) { this.status = 'off'; return; }
+    const sp = speed * dt;
+    for (let i = it.length - 1; i >= 0; i--) {
+      const item = it[i];
+      const limit = i === it.length - 1 ? 1 : it[i + 1].p - SPACING;
+      const np = Math.min(item.p + sp, limit);
+      if (np > item.p) { item.p = np; this.moving = true; }
+      if (i === it.length - 1 && item.p >= 1) {
+        if (this.push(item.s, this.r)) { it.pop(); this.moving = true; }
+        else item.p = 1;
+      }
+    }
+    this.status = this.moving ? 'working' : 'waiting';
+  }
+  heldShapes() { return this.items.map((i) => i.s); }
+}
+
+/* ---------- Generisk maskine med input-/output-buffere ---------- */
+class Machine extends Building {
+  constructor(...a) {
+    super(...a);
+    const d = this.def;
+    this.inBuf = (d.inputs || []).map(() => null);
+    this.outBuf = (d.outputs || []).map(() => null);
+    this.job = null; // resultater der er ved at blive lavet
+    this.timer = 0;
+    this.jobDur = 1;
+  }
+  accept(shape, fromDir) {
+    if (this.off) return false;
+    const idx = (this.def.inputs || []).indexOf(this.sideOf(fromDir));
+    if (idx < 0 || this.inBuf[idx]) return false;
+    this.inBuf[idx] = shape;
+    return true;
+  }
+  duration() { return this.def.duration / this.speedMult(); }
+  ready() { return this.inBuf.every(Boolean); }
+  /** returnerer array med et resultat pr. output (null = intet) */
+  process() { return [this.inBuf[0]]; }
+  flush() {
+    let pending = false;
+    for (let k = 0; k < this.outBuf.length; k++) {
+      const s = this.outBuf[k];
+      if (!s) continue;
+      if (this.push(s, this.dirOf(this.def.outputs[k]))) this.outBuf[k] = null;
+      else pending = true;
+    }
+    return pending;
+  }
+  update(dt) {
+    if (this.off) { this.status = 'off'; this.util += (0 - this.util) * Math.min(1, dt * 0.4); return; }
+    this.flush();
+    if (this.job) {
+      if (this.timer > 0) this.timer -= dt;
+      if (this.timer <= 0) {
+        const res = this.job;
+        if (res.every((s, k) => !s || !this.outBuf[k])) {
+          res.forEach((s, k) => { if (s) this.outBuf[k] = s; });
+          this.job = null;
+          this.onDone(res);
+          this.flush();
+        }
+      }
+    }
+    if (!this.job && this.ready() && this.outBuf.every((s) => !s)) {
+      this.job = this.process();
+      this.inBuf.fill(null);
+      this.jobDur = this.duration();
+      this.timer = this.jobDur;
+    }
+    if (this.job) this.status = this.timer > 0 ? 'working' : 'waiting';
+    else this.status = this.outBuf.some(Boolean) ? 'waiting' : 'noinput';
+    this.util += ((this.status === 'working' ? 1 : 0) - this.util) * Math.min(1, dt * 0.4);
+    if (this.status === 'working') this.anim += dt * this.speedMult();
+  }
+  onDone() {}
+  get progress() { return this.job ? clamp(1 - this.timer / this.jobDur, 0, 1) : 0; }
+  heldShapes() { return [...this.inBuf, ...(this.job || []), ...this.outBuf].filter(Boolean); }
+}
+
+class Generator extends Machine {
+  ready() { return true; }
+  duration() { return this.def.duration / (this.speedMult() * this.f.game.upg.genMult()); }
+  speedMult() { return 1 + 0.5 * (this.lvl - 1); }
+  process() { return [Shape.full(this.cfg.shape || 'C')]; }
+  onDone() { this.f.game.stats.generated++; this.f.game.rate.gen++; }
+}
+class Cutter extends Machine {
+  process() { return this.inBuf[0].cut(); }
+}
+class Rotator extends Machine {
+  process() { return [this.inBuf[0].rotate(this.cfg.ccw)]; }
+}
+class Painter extends Machine {
+  process() { return [this.inBuf[0].paint(this.cfg.color || 'r')]; }
+}
+class Mirror extends Machine {
+  process() { return [this.inBuf[0].mirror()]; }
+}
+class Morpher extends Machine {
+  process() { return [this.inBuf[0].morph(this.cfg.shape || 'H')]; }
+}
+class Unstacker extends Machine {
+  process() { return this.inBuf[0].unstack(); }
+}
+class Merger extends Machine {
+  process() { return [this.inBuf[0].merge(this.inBuf[1])]; }
+}
+class Sorter extends Machine {
+  matches(s) {
+    const c = this.cfg;
+    return c.mode === 'color' ? s.allMatch((p) => p[1] === c.v) : s.allMatch((p) => p[0] === c.v);
+  }
+  process() {
+    const s = this.inBuf[0];
+    return this.matches(s) ? [s, null] : [null, s];
+  }
+}
+class Splitter extends Machine {
+  constructor(...a) { super(...a); this.rr = 0; }
+  process() { return [this.inBuf[0], null, null]; }
+  /** én figur – prøv udgangene på skift (round-robin) */
+  flush() {
+    const s = this.outBuf[0];
+    if (!s) return false;
+    const outs = this.def.outputs;
+    for (let k = 0; k < 3; k++) {
+      const i = (this.rr + k) % 3;
+      if (this.push(s, this.dirOf(outs[i]))) {
+        this.outBuf[0] = null;
+        this.rr = (i + 1) % 3;
+        return false;
+      }
+    }
+    return true;
+  }
+}
+class Storage extends Machine {
+  constructor(...a) { super(...a); this.store = []; }
+  capacity() { return this.f.game.upg.storageCap() * (1 + (this.lvl - 1)); }
+  update(dt) {
+    if (this.off) { this.status = 'off'; return; }
+    if (this.inBuf[0] && this.store.length < this.capacity()) { this.store.push(this.inBuf[0]); this.inBuf[0] = null; }
+    if (!this.outBuf[0] && this.store.length) this.outBuf[0] = this.store.shift();
+    const pending = this.flush();
+    this.status = pending ? 'waiting' : this.store.length || this.outBuf[0] ? 'working' : 'noinput';
+    this.util += ((this.store.length / this.capacity()) - this.util) * Math.min(1, dt);
+  }
+  heldShapes() { return this.store.slice(0, 6); }
+}
+/* Krydsning: to uafhængige baner (vandret + lodret), figurer fortsætter lige ud */
+class Crossing extends Building {
+  constructor(...a) { super(...a); this.slots = [null, null]; this.dirs = [0, 0]; }
+  accept(shape, fromDir) {
+    if (this.off) return false;
+    const axis = fromDir & 1; // 0 = lodret, 1 = vandret
+    if (this.slots[axis]) return false;
+    this.slots[axis] = shape;
+    this.dirs[axis] = opp(fromDir);
+    return true;
+  }
+  outputsTo() { return true; }
+  update() {
+    let any = false, blocked = false;
+    for (let a = 0; a < 2; a++) {
+      if (!this.slots[a]) continue;
+      any = true;
+      if (this.push(this.slots[a], this.dirs[a])) this.slots[a] = null;
+      else blocked = true;
+    }
+    this.status = this.off ? 'off' : blocked ? 'waiting' : any ? 'working' : 'idle';
+  }
+  heldShapes() { return this.slots.filter(Boolean); }
+}
+/* Levering: sælger figurer */
+class Output extends Building {
+  constructor(...a) { super(...a); this.flash = 0; this.pop = 0; this.popCoins = 0; this.last = null; }
+  accept(shape) {
+    if (this.off) return false;
+    this.f.game.deliver(shape, this);
+    this.flash = 1;
+    this.last = shape;
+    return true;
+  }
+  update(dt) {
+    this.flash = Math.max(0, this.flash - dt * 2);
+    this.status = this.off ? 'off' : this.flash > 0 ? 'working' : 'idle';
+    this.pop -= dt;
+    if (this.pop <= 0 && this.popCoins > 0) {
+      this.f.game.renderer.popup(this.x, this.y, '+' + fmt(this.popCoins), '#ffd23f');
+      this.popCoins = 0;
+      this.pop = 0.9;
+    }
+  }
+}
+class Trash extends Building {
+  constructor(...a) { super(...a); this.flash = 0; }
+  accept() {
+    if (this.off) return false;
+    this.flash = 1;
+    this.f.game.stats.trashed++;
+    return true;
+  }
+  update(dt) {
+    this.flash = Math.max(0, this.flash - dt * 2.5);
+    this.status = this.off ? 'off' : this.flash > 0 ? 'working' : 'idle';
+  }
+}
+const MACHINE_CLASS = {
+  conveyor: Conveyor, generator: Generator, output: Output, trash: Trash, splitter: Splitter, crossing: Crossing,
+  cutter: Cutter, merger: Merger, painter: Painter, sorter: Sorter, rotator: Rotator, storage: Storage,
+  mirror: Mirror, unstacker: Unstacker, morpher: Morpher
+};
+
+// =========================
+// FACTORY
+// =========================
+const WORLD = 200; // byggepladsen går fra -WORLD til +WORLD i begge retninger
+class Factory {
+  constructor(game) {
+    this.game = game;
+    this.map = new Map();
+    this.belts = [];
+    this.machines = [];
+    this.dirty = true;
+  }
+  static key(x, y) { return (x + 512) * 1024 + (y + 512); }
+  get(x, y) { return this.map.get(Factory.key(x, y)); }
+  inBounds(x, y) { return x >= -WORLD && x <= WORLD && y >= -WORLD && y <= WORLD; }
+  get count() { return this.map.size; }
+  clear() {
+    this.map.clear();
+    this.belts = [];
+    this.machines = [];
+    this.dirty = true;
+  }
+  /** opret bygning fra gemte data (uden at trække coins) */
+  create(data) {
+    const C = MACHINE_CLASS[data.t];
+    if (!C || !this.inBounds(data.x, data.y)) return null;
+    const b = new C(this, data.t, data.x, data.y, data.r || 0, data.c);
+    if (data.l) b.lvl = clamp(data.l | 0, 1, MAX_MACHINE_LVL);
+    if (data.o) b.off = true;
+    if (typeof data.i === 'number') b.inv = data.i;
+    this.add(b);
+    return b;
+  }
+  add(b) {
+    const k = Factory.key(b.x, b.y);
+    const old = this.map.get(k);
+    if (old) this.remove(old.x, old.y);
+    this.map.set(k, b);
+    (b instanceof Conveyor ? this.belts : this.machines).push(b);
+    this.markDirty(b.x, b.y);
+  }
+  remove(x, y) {
+    const k = Factory.key(x, y);
+    const b = this.map.get(k);
+    if (!b) return null;
+    this.map.delete(k);
+    const arr = b instanceof Conveyor ? this.belts : this.machines;
+    const i = arr.indexOf(b);
+    if (i >= 0) arr.splice(i, 1);
+    this.markDirty(x, y);
+    return b;
+  }
+  markDirty() { this.dirty = true; }
+  /** beregn båndkurver: hvilken side bliver båndet fodret fra? */
+  refreshVis() {
+    if (!this.dirty) return;
+    this.dirty = false;
+    for (const b of this.belts) {
+      const back = opp(b.r);
+      const feeds = (d) => {
+        const n = b.neighbor(d);
+        return n && n.outputsTo(opp(d)) && !(n instanceof Crossing);
+      };
+      const nb = b.neighbor(back);
+      if (nb && feeds(back)) { b.vis = -1; continue; }
+      const l = (b.r + 3) & 3, r = (b.r + 1) & 3;
+      const fl = feeds(l), fr = feeds(r);
+      b.vis = fl && !fr ? l : fr && !fl ? r : -1;
+    }
+  }
+  update(dt) {
+    const speed = this.game.upg.beltSpeed();
+    const ms = this.machines;
+    for (let i = 0; i < ms.length; i++) ms[i].update(dt);
+    const bs = this.belts;
+    for (let i = 0; i < bs.length; i++) bs[i].update(dt, speed);
+  }
+  serialize() {
+    const out = [];
+    for (const b of this.map.values()) {
+      const o = b.serialize();
+      if (b instanceof Conveyor && b.items.length) o.it = b.items.map((i) => [i.s.key, Math.round(i.p * 100) / 100, i.from]);
+      out.push(o);
+    }
+    return out;
+  }
+  load(list) {
+    this.clear();
+    for (const d of list || []) {
+      const b = this.create(d);
+      if (b instanceof Conveyor && Array.isArray(d.it)) {
+        for (const [k, p, from] of d.it) if (Shape.valid(k)) b.items.push({ s: Shape.get(k), p: clamp(+p || 0, 0, 1), from: from | 0 });
+        b.items.sort((a, c) => a.p - c.p);
+      }
+    }
+  }
+}
+</script>
+
+<script>
+'use strict';
+// =========================
+// MISSIONS (levels + ordrer)
+// =========================
+const START_UNLOCKS = ['conveyor', 'generator', 'output', 'shape:C', 'shape:S'];
+/* Håndlavede levels. "unlock" gives når levelet er fuldført (dvs. bruges i næste level). */
+const LEVELS = [
+  { goal: 'CuCuCuCu', n: 20, unlock: ['trash', 'shape:T'], coins: 150,
+    tip: 'Byg en Generator, før et transportbånd hen til en Levering, og lever 20 grå cirkler.' },
+  { goal: 'TuTuTuTu', n: 40, unlock: ['splitter', 'crossing'], coins: 250,
+    tip: 'Vælg Trekant i generatorens infopanel (klik på generatoren).' },
+  { goal: 'SuSuSuSu', n: 100, unlock: ['cutter'], coins: 400,
+    tip: 'Byg flere generatorer – eller brug en Splitter til at fordele til flere leveringer.' },
+  { goal: '----CuCu', n: 80, unlock: ['merger'], coins: 500,
+    tip: 'Cutteren deler figuren. Venstre halvdel kommer ud foran. Send højre halvdel til en Destruktor.' },
+  { goal: 'SuSuCuCu', n: 100, unlock: ['painter', 'color:r', 'color:g', 'color:b'], coins: 700,
+    tip: 'Mergeren kombinerer: bunden bagfra, toppen fra venstre. Højre halvdel firkant + venstre halvdel cirkel.' },
+  { goal: 'CrCrCrCr', n: 120, unlock: ['sorter'], coins: 900,
+    tip: 'Send cirkler gennem en Painter indstillet til rød.' },
+  { goal: 'SgSgCrCr', n: 150, unlock: ['rotator'], coins: 1200,
+    tip: 'Mal halvdelene hver for sig, og kombinér dem bagefter i en Merger.' },
+  { goal: 'Cb----Cb', n: 150, unlock: ['storage', 'shape:D', 'color:y', 'color:p'], coins: 1500,
+    tip: 'Skær en cirkel, drej venstre halvdel 90° med uret, så den bliver til øverste halvdel – og mal den blå.' },
+  { goal: 'DyDyDpDp', n: 200, unlock: ['mirror'], coins: 2000,
+    tip: 'Diamanter er nu låst op i generatoren. To halvdele i hver sin farve.' },
+  { goal: 'SrSrSrSr:CyCyCyCy', n: 150, unlock: ['unstacker'], coins: 2600,
+    tip: 'Når to hele figurer kombineres, lægges toppen ovenpå som et nyt lag.' },
+  { goal: 'TpTp----:SbSbSbSb', n: 200, unlock: ['morpher', 'shape:H', 'color:c', 'color:w'], coins: 3200,
+    tip: 'Bunden er en halv lilla trekant, toppen en hel blå firkant.' },
+  { goal: 'HcHcHcHc:DwDw----', n: 250, unlock: [], coins: 4000,
+    tip: 'Hexagoner laves med Morpheren. Byg dem ud fra en hvilken som helst form.' }
+];
+const ORDERS_FROM_LEVEL = 3;
+
+/** procedurelt level efter de håndlavede (uendelig progression) */
+function generatedLevel(n, unlocked) {
+  const rng = makeRng(n * 7919 + 13);
+  const shapes = SHAPE_ORDER.filter((s) => unlocked.has('shape:' + s));
+  const colors = COLOR_ORDER.filter((c) => unlocked.has('color:' + c));
+  const pc = () => (rng() < 0.85 ? pick(rng, colors) : 'u');
+  const maxL = n < 16 ? 2 : 3;
+  const nl = 1 + Math.floor(rng() * maxL);
+  const layer = (full) => {
+    const halves = rng() < 0.5 ? [[0, 1], [2, 3]] : [[0, 3], [1, 2]];
+    const l = [null, null, null, null];
+    const uniform = rng() < 0.35;
+    const s0 = pick(rng, shapes), c0 = pc();
+    halves.forEach((h, hi) => {
+      if (!full && hi === 1 && rng() < 0.5) return;
+      const s = uniform ? s0 : pick(rng, shapes), c = uniform ? c0 : pc();
+      for (const q of h) l[q] = s + c;
+    });
+    return l;
+  };
+  const layers = [layer(true)];
+  for (let i = 1; i < nl; i++) layers.push(layer(false));
+  const goal = Shape.fromLayers(layers);
+  const amount = Math.min(20000, Math.round((260 * Math.pow(1.12, n - 12)) / 10) * 10);
+  return { goal: goal.key, n: amount, unlock: [], coins: Math.round((amount * goal.value * 3) / 10) * 10, tip: 'Brug alt, hvad du har lært. Del opgaven op i halvdele og lag.' };
+}
+
+/** tilfældig ordre-figur ud fra hvad der er låst op */
+function randomOrderShape(game) {
+  const u = game.unlocked;
+  const shapes = SHAPE_ORDER.filter((s) => u.has('shape:' + s));
+  const colors = ['u'].concat(COLOR_ORDER.filter((c) => u.has('color:' + c)));
+  const canPaint = u.has('painter');
+  const canHalf = u.has('cutter') && u.has('merger');
+  const c = () => (canPaint ? colors[1 + Math.floor(Math.random() * (colors.length - 1))] || 'u' : 'u');
+  const s = () => shapes[Math.floor(Math.random() * shapes.length)];
+  if (!canHalf || Math.random() < 0.35) return Shape.full(s(), c());
+  const a = s() + c(), b = s() + c();
+  if (Math.random() < 0.5) return Shape.get(a + a + b + b);
+  return Shape.get(a + b + b + a);
+}
+
+class MissionSystem {
+  constructor(game) { this.g = game; }
+  get st() { return this.g.state; }
+  levelDef(n = this.st.level) {
+    if (n <= LEVELS.length) return LEVELS[n - 1];
+    return generatedLevel(n, this.g.unlocked);
+  }
+  get goal() { return Shape.get(this.levelDef().goal); }
+  get required() { return this.levelDef().n; }
+  get progress() { return this.st.progress; }
+  /** kaldes for hver leveret figur */
+  onDeliver(shape, count = 1) {
+    const st = this.st;
+    let changed = false;
+    if (!st.levelDone && shape.key === this.levelDef().goal) {
+      st.progress = Math.min(this.required, st.progress + count);
+      changed = true;
+      if (st.progress >= this.required) {
+        st.levelDone = true;
+        setTimeout(() => this.g.completeLevel(), 250);
+      }
+    }
+    for (const o of st.orders) {
+      if (o.done || o.key !== shape.key) continue;
+      o.got = Math.min(o.n, o.got + count);
+      changed = true;
+      if (o.got >= o.n) {
+        o.done = true;
+        this.g.completeOrder(o);
+      }
+    }
+    return changed;
+  }
+  /** fyld ordre-slots op */
+  refillOrders() {
+    const st = this.st;
+    if (st.level < ORDERS_FROM_LEVEL) { st.orders = []; return; }
+    st.orders = st.orders.filter((o) => !o.done);
+    while (st.orders.length < 3) st.orders.push(this.newOrder());
+  }
+  newOrder() {
+    let s, tries = 0;
+    do { s = randomOrderShape(this.g); tries++; } while (tries < 20 && this.st.orders.some((o) => o.key === s.key));
+    const lv = this.st.level;
+    const n = Math.round((25 + lv * 9 + Math.random() * (20 + lv * 6)) / 5) * 5;
+    return { key: s.key, n, got: 0, coins: Math.round(n * s.value * 2.5 + 40 + lv * 10), xp: Math.round(n * s.value * 0.6 + 10), done: false };
+  }
+  rerollOrder(i) {
+    this.st.orders[i] = this.newOrder();
+  }
+}
+
+// =========================
+// UPGRADES
+// =========================
+const MAX_UPG_LVL = 5;
+const UPGRADE_DEFS = [
+  { id: 'belt', name: 'Båndhastighed', icon: '➜', base: 150, desc: 'Transportbånd kører 25% hurtigere pr. level.', val: (l) => `${fmtDec(2 * (1 + 0.25 * (l - 1)), 2)} felter/s` },
+  { id: 'machine', name: 'Maskinhastighed', icon: '⚙️', base: 250, desc: 'Alle forarbejdende maskiner arbejder 25% hurtigere pr. level.', val: (l) => `×${fmtDec(1 + 0.25 * (l - 1), 2)} hastighed` },
+  { id: 'storage', name: 'Lagerkapacitet', icon: '📦', base: 120, desc: 'Storage kan rumme dobbelt så mange figurer pr. level.', val: (l) => `${50 * 2 ** (l - 1)} figurer pr. lager` },
+  { id: 'efficiency', name: 'Produktionseffektivitet', icon: '⚡', base: 200, desc: 'Generatorer producerer 25% hurtigere pr. level.', val: (l) => `${fmtDec(1 + 0.25 * (l - 1), 2)} figurer/s pr. generator` },
+  { id: 'output', name: 'Output-værdi', icon: '💰', base: 300, desc: 'Leverede figurer giver 20% flere GrejsCoins pr. level.', val: (l) => `×${fmtDec(1 + 0.2 * (l - 1), 2)} indtjening` }
+];
+class UpgradeSystem {
+  constructor(game) { this.g = game; }
+  lvl(id) { return this.g.state.upg[id] || 1; }
+  beltSpeed() { return 2 * (1 + 0.25 * (this.lvl('belt') - 1)); }
+  machineMult() { return 1 + 0.25 * (this.lvl('machine') - 1); }
+  genMult() { return 1 + 0.25 * (this.lvl('efficiency') - 1); }
+  storageCap() { return 50 * 2 ** (this.lvl('storage') - 1); }
+  outputMult() { return 1 + 0.2 * (this.lvl('output') - 1); }
+  cost(id) {
+    const d = UPGRADE_DEFS.find((u) => u.id === id);
+    return Math.round((d.base * 4 ** (this.lvl(id) - 1)) / 10) * 10;
+  }
+  isMax(id) { return this.lvl(id) >= MAX_UPG_LVL; }
+  buy(id) {
+    if (this.isMax(id)) return false;
+    const c = this.cost(id);
+    if (!this.g.spend(c)) return false;
+    this.g.state.upg[id] = this.lvl(id) + 1;
+    this.g.stats.upgradesBought++;
+    return true;
+  }
+}
+
+// =========================
+// ACHIEVEMENTS & MILESTONES
+// =========================
+const ACHIEVEMENTS = [
+  { id: 'first_build', icon: '🔧', name: 'FØRSTE MASKINE', desc: 'Byg din første maskine.', test: (g) => g.stats.built >= 1, coins: 20, xp: 10 },
+  { id: 'first_factory', icon: '🏭', name: 'FIRST FACTORY', desc: 'Lever din første figur.', test: (g) => g.stats.delivered >= 1, coins: 50, xp: 20 },
+  { id: 'mass_100', icon: '📦', name: 'SMÅ SERIER', desc: 'Producer 100 figurer.', test: (g) => g.stats.delivered >= 100, coins: 100, xp: 30 },
+  { id: 'mass_1k', icon: '🏗️', name: 'MASS PRODUCTION', desc: 'Producer 1.000 figurer.', test: (g) => g.stats.delivered >= 1000, coins: 300, xp: 80 },
+  { id: 'mass_10k', icon: '🚀', name: 'STORDRIFT', desc: 'Producer 10.000 figurer.', test: (g) => g.stats.delivered >= 1e4, coins: 1500, xp: 250 },
+  { id: 'mass_100k', icon: '🌋', name: 'MEGA FACTORY', desc: 'Producer 100.000 figurer.', test: (g) => g.stats.delivered >= 1e5, coins: 8000, xp: 800 },
+  { id: 'mass_1m', icon: '🌌', name: 'GIGA FACTORY', desc: 'Producer 1.000.000 figurer.', test: (g) => g.stats.delivered >= 1e6, coins: 50000, xp: 3000 },
+  { id: 'shapes_10', icon: '🔷', name: 'SHAPE MASTER', desc: 'Lever 10 forskellige figurer.', test: (g) => Object.keys(g.stats.keys).length >= 10, coins: 400, xp: 100 },
+  { id: 'shapes_30', icon: '💠', name: 'FIGURSAMLER', desc: 'Lever 30 forskellige figurer.', test: (g) => Object.keys(g.stats.keys).length >= 30, coins: 2000, xp: 300 },
+  { id: 'belts_100', icon: '➰', name: 'BÅNDMESTER', desc: 'Byg 100 transportbånd.', test: (g) => g.stats.beltsBuilt >= 100, coins: 200, xp: 50 },
+  { id: 'belts_1k', icon: '🛤️', name: 'MOTORVEJ', desc: 'Byg 1.000 transportbånd.', test: (g) => g.stats.beltsBuilt >= 1000, coins: 2000, xp: 300 },
+  { id: 'machines_50', icon: '⚙️', name: 'MASKINPARK', desc: 'Hav 50 maskiner i fabrikken på én gang.', test: (g) => g.factory.machines.length >= 50, coins: 800, xp: 150 },
+  { id: 'machines_200', icon: '🏙️', name: 'INDUSTRIBY', desc: 'Hav 200 maskiner i fabrikken på én gang.', test: (g) => g.factory.machines.length >= 200, coins: 5000, xp: 600 },
+  { id: 'painted', icon: '🎨', name: 'FARVELADE', desc: 'Lever en farvet figur.', test: (g) => g.stats.painted >= 1, coins: 100, xp: 30 },
+  { id: 'rainbow', icon: '🌈', name: 'REGNBUE', desc: 'Lever figurer i alle 7 farver.', test: (g) => g.stats.colors.length >= 7, coins: 3000, xp: 400 },
+  { id: 'layer2', icon: '🥞', name: 'LAG PÅ LAG', desc: 'Lever en figur med 2 lag.', test: (g) => g.stats.maxLayers >= 2, coins: 400, xp: 80 },
+  { id: 'layer3', icon: '🎂', name: 'TREDOBBELT', desc: 'Lever en figur med 3 lag.', test: (g) => g.stats.maxLayers >= 3, coins: 1500, xp: 250 },
+  { id: 'hexagon', icon: '⬡', name: 'HEXAGON-ÆRAEN', desc: 'Lever en figur med hexagoner.', test: (g) => g.stats.hex >= 1, coins: 1000, xp: 150 },
+  { id: 'level5', icon: '⭐', name: 'LEVEL 5', desc: 'Nå level 5.', test: (g) => g.state.level >= 5, coins: 300, xp: 0 },
+  { id: 'level10', icon: '🌟', name: 'LEVEL 10', desc: 'Nå level 10.', test: (g) => g.state.level >= 10, coins: 1500, xp: 0 },
+  { id: 'level20', icon: '💫', name: 'LEVEL 20', desc: 'Nå level 20.', test: (g) => g.state.level >= 20, coins: 6000, xp: 0 },
+  { id: 'level30', icon: '👑', name: 'LEVEL 30', desc: 'Nå level 30.', test: (g) => g.state.level >= 30, coins: 20000, xp: 0 },
+  { id: 'rich', icon: '💰', name: 'SPAREGRIS', desc: 'Hav 10.000 GrejsCoins på én gang.', test: (g) => g.state.coins >= 1e4, coins: 0, xp: 100 },
+  { id: 'millionaire', icon: '💎', name: 'MILLIONÆR', desc: 'Tjen 1.000.000 GrejsCoins i alt.', test: (g) => g.stats.coinsEarned >= 1e6, coins: 0, xp: 1000 },
+  { id: 'upgrade', icon: '⬆️', name: 'OPGRADERET', desc: 'Køb din første opgradering.', test: (g) => g.stats.upgradesBought >= 1, coins: 100, xp: 30 },
+  { id: 'maxed', icon: '🔝', name: 'MAKSIMAL', desc: 'Maksimér én opgradering.', test: (g) => UPGRADE_DEFS.some((u) => g.upg.isMax(u.id)), coins: 2000, xp: 300 },
+  { id: 'mk3', icon: '🛠️', name: 'MK III', desc: 'Opgradér en maskine til Mk III.', test: (g) => g.stats.mk3 >= 1, coins: 500, xp: 80 },
+  { id: 'orders10', icon: '📋', name: 'ORDREKONGE', desc: 'Fuldfør 10 ordrer.', test: (g) => g.stats.ordersDone >= 10, coins: 1500, xp: 250 },
+  { id: 'orders50', icon: '🧾', name: 'LEVERANDØR', desc: 'Fuldfør 50 ordrer.', test: (g) => g.stats.ordersDone >= 50, coins: 8000, xp: 800 },
+  { id: 'automation', icon: '🤖', name: 'AUTOMATION', desc: 'Lever 100 figurer, mens du ikke rører noget i 5 minutter.', test: (g) => g.stats.automation >= 1, coins: 1000, xp: 200 },
+  { id: 'afk', icon: '😴', name: 'HVILEPAUSE', desc: 'Kom tilbage og hent din AFK-indtjening.', test: (g) => g.stats.afk >= 1, coins: 200, xp: 50 },
+  { id: 'speed', icon: '⚡', name: 'LYNHURTIG', desc: 'Lever 60 figurer på ét minut.', test: (g) => g.stats.bestMinute >= 60, coins: 600, xp: 120 },
+  { id: 'speed2', icon: '🌪️', name: 'FLOW STATE', desc: 'Lever 600 figurer på ét minut.', test: (g) => g.stats.bestMinute >= 600, coins: 5000, xp: 600 },
+  { id: 'undo', icon: '↶', name: 'FORTRYDELSE', desc: 'Brug fortryd (Ctrl+Z).', test: (g) => g.stats.undoUsed >= 1, coins: 20, xp: 5 },
+  { id: 'copy', icon: '📐', name: 'BLUEPRINT', desc: 'Kopiér og indsæt en del af din fabrik.', test: (g) => g.stats.pasted >= 1, coins: 150, xp: 40 }
+];
+const MILESTONES = [
+  { n: 100, coins: 100, xp: 25 },
+  { n: 1000, coins: 500, xp: 100 },
+  { n: 10000, coins: 3000, xp: 400 },
+  { n: 100000, coins: 20000, xp: 1500 },
+  { n: 1000000, coins: 150000, xp: 6000 },
+  { n: 10000000, coins: 1000000, xp: 25000 }
+];
+const xpForRank = (r) => Math.round(80 * Math.pow(1.45, r - 1));
+
+// =========================
+// SAVE SYSTEM
+// =========================
+const SAVE_KEY = 'grejsfigur_save_v1';
+const SAVE_VERSION = 1;
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } }
+
+function defaultStats() {
+  return {
+    delivered: 0, generated: 0, trashed: 0, built: 0, beltsBuilt: 0, removed: 0, coinsEarned: 0,
+    painted: 0, maxLayers: 0, hex: 0, ordersDone: 0, upgradesBought: 0, undoUsed: 0, pasted: 0, mk3: 0,
+    automation: 0, afk: 0, bestMinute: 0, playTime: 0, keys: {}, colors: []
+  };
+}
+function defaultState() {
+  return {
+    v: SAVE_VERSION, created: Date.now(), t: Date.now(),
+    coins: 300, xp: 0, rank: 1, level: 1, progress: 0, levelDone: false,
+    orders: [], unlocked: START_UNLOCKS.slice(), seenNew: [],
+    upg: {}, ach: {}, ms: {}, tut: 0,
+    settings: { sound: true, grid: true, fx: true, hints: true },
+    cam: { x: 0, y: 0, z: 1 },
+    rates: { coins: 0, shapes: 0, keys: {} },
+    lastCfg: {},
+    buildings: []
+  };
+}
+
+class SaveSystem {
+  constructor(game) { this.g = game; }
+  exists() { return !!lsGet(SAVE_KEY); }
+  peek() {
+    try { return JSON.parse(lsGet(SAVE_KEY)); } catch (e) { return null; }
+  }
+  serialize() {
+    const g = this.g;
+    const st = g.state;
+    st.t = Date.now();
+    st.cam = { x: Math.round(g.camera.x), y: Math.round(g.camera.y), z: Math.round(g.camera.z * 100) / 100 };
+    st.stats = g.stats;
+    st.unlocked = Array.from(g.unlocked);
+    st.buildings = g.factory.serialize();
+    return JSON.stringify(st);
+  }
+  save() {
+    return lsSet(SAVE_KEY, this.serialize());
+  }
+  /** indlæs gemt tilstand (eller ny) – kaldes ved opstart */
+  load() {
+    const raw = this.peek();
+    return this.normalize(raw);
+  }
+  normalize(raw) {
+    const d = defaultState();
+    if (!raw || typeof raw !== 'object') return { state: d, stats: defaultStats(), fresh: true };
+    for (const k in d) {
+      if (!(k in raw)) continue;
+      const dv = d[k], sv = raw[k];
+      if (Array.isArray(dv)) { if (Array.isArray(sv)) d[k] = sv; }
+      else if (dv && typeof dv === 'object') { if (sv && typeof sv === 'object' && !Array.isArray(sv)) d[k] = Object.assign(dv, sv); }
+      else if (typeof dv === typeof sv && !(typeof sv === 'number' && !isFinite(sv))) d[k] = sv;
+    }
+    const stats = Object.assign(defaultStats(), raw.stats && typeof raw.stats === 'object' ? raw.stats : {});
+    if (!stats.keys || typeof stats.keys !== 'object') stats.keys = {};
+    if (!Array.isArray(stats.colors)) stats.colors = [];
+    d.level = Math.max(1, d.level | 0);
+    d.orders = d.orders.filter((o) => o && Shape.valid(o.key));
+    for (const s of START_UNLOCKS) if (!d.unlocked.includes(s)) d.unlocked.push(s);
+    return { state: d, stats, fresh: false };
+  }
+  reset() { lsDel(SAVE_KEY); }
+  exportText() { return this.serialize(); }
+  importText(text) {
+    const raw = JSON.parse(text);
+    if (!raw || typeof raw !== 'object' || !Array.isArray(raw.buildings)) throw new Error('Ugyldig gemt fil');
+    lsSet(SAVE_KEY, JSON.stringify(raw));
+  }
+}
+
+// =========================
+// AUDIO (Web Audio – ingen lydfiler)
+// =========================
+class AudioFX {
+  constructor(game) { this.g = game; this.ctx = null; this.last = {}; }
+  init() {
+    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try {
+      this.ctx = new AC();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = 0.5;
+      this.master.connect(this.ctx.destination);
+    } catch (e) { this.ctx = null; }
+  }
+  tone(freq, dur, type = 'sine', vol = 0.2, delay = 0, slide = 0) {
+    const c = this.ctx;
+    const t = c.currentTime + delay;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq * slide), t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(this.master);
+    o.start(t);
+    o.stop(t + dur + 0.05);
+  }
+  play(name) {
+    if (!this.g.state.settings.sound) return;
+    this.init();
+    if (!this.ctx) return;
+    const tn = this.ctx.currentTime;
+    const gap = { deliver: 0.09, build: 0.04, coin: 0.12 }[name] || 0.02;
+    if (this.last[name] && tn - this.last[name] < gap) return;
+    this.last[name] = tn;
+    switch (name) {
+      case 'click': this.tone(720, 0.05, 'square', 0.05); break;
+      case 'select': this.tone(520, 0.06, 'triangle', 0.12); this.tone(780, 0.06, 'triangle', 0.08, 0.04); break;
+      case 'build': this.tone(380, 0.09, 'triangle', 0.16, 0, 2); break;
+      case 'remove': this.tone(520, 0.12, 'triangle', 0.14, 0, 0.4); break;
+      case 'rotate': this.tone(900, 0.04, 'sine', 0.08); break;
+      case 'deliver': this.tone(1320 + Math.random() * 200, 0.05, 'sine', 0.035); break;
+      case 'coin': this.tone(1500, 0.06, 'square', 0.04); this.tone(2000, 0.08, 'square', 0.035, 0.05); break;
+      case 'error': this.tone(170, 0.16, 'sawtooth', 0.08, 0, 0.7); break;
+      case 'upgrade': [523, 659, 784].forEach((f, i) => this.tone(f, 0.14, 'triangle', 0.16, i * 0.07)); break;
+      case 'mission': [659, 784, 988, 1319].forEach((f, i) => this.tone(f, 0.18, 'triangle', 0.15, i * 0.08)); break;
+      case 'levelup':
+        [523, 659, 784, 1046].forEach((f, i) => this.tone(f, 0.22, 'triangle', 0.17, i * 0.1));
+        [1046, 1318, 1568].forEach((f) => this.tone(f, 0.6, 'sine', 0.07, 0.45));
+        break;
+      case 'ach': [880, 1175, 1568].forEach((f, i) => this.tone(f, 0.16, 'sine', 0.13, i * 0.06)); break;
+      case 'machine': this.tone(220, 0.05, 'square', 0.025); break;
+    }
+  }
+}
+</script>
+
+<script>
+'use strict';
+// =========================
+// CAMERA
+// =========================
+const TILE = 48; // verdens-pixels pr. felt (ved zoom 1)
+class Camera {
+  constructor() { this.x = 0; this.y = 0; this.z = 1; this.w = 800; this.h = 600; }
+  get s() { return TILE * this.z; }
+  /** verden (px) → skærm */
+  sx(wx) { return (wx - this.x) * this.z + this.w / 2; }
+  sy(wy) { return (wy - this.y) * this.z + this.h / 2; }
+  /** skærm → verden (px) */
+  wx(sx) { return (sx - this.w / 2) / this.z + this.x; }
+  wy(sy) { return (sy - this.h / 2) / this.z + this.y; }
+  tileAt(sx, sy) { return { x: Math.floor(this.wx(sx) / TILE), y: Math.floor(this.wy(sy) / TILE) }; }
+  zoomAt(f, sx, sy) {
+    const bx = this.wx(sx), by = this.wy(sy);
+    this.z = clamp(this.z * f, 0.22, 3);
+    this.x += bx - this.wx(sx);
+    this.y += by - this.wy(sy);
+    this.clampPos();
+  }
+  pan(dx, dy) { this.x -= dx / this.z; this.y -= dy / this.z; this.clampPos(); }
+  clampPos() {
+    const lim = (WORLD + 4) * TILE;
+    this.x = clamp(this.x, -lim, lim);
+    this.y = clamp(this.y, -lim, lim);
+  }
+}
+
+// =========================
+// RENDERING
+// =========================
+const STATUS_COL = { working: '#3ddc84', waiting: '#ffd23f', noinput: '#ff4d6d', off: '#596180', idle: '#36e2ff' };
+
+/** punkt + vinkel langs et bånd. e = indgangsside (retning), r = udgang, p = 0..1 */
+function beltPos(cx, cy, s, e, r, p, out) {
+  if (e === opp(r) || e === r || e < 0) {
+    const ex = cx - DX[r] * s / 2, ey = cy - DY[r] * s / 2;
+    out.x = ex + DX[r] * s * p;
+    out.y = ey + DY[r] * s * p;
+    out.a = Math.atan2(DY[r], DX[r]);
+    return out;
+  }
+  const kx = cx + (DX[e] + DX[r]) * s / 2, ky = cy + (DY[e] + DY[r]) * s / 2;
+  const a0 = Math.atan2(DY[e] * s / 2 - (DY[e] + DY[r]) * s / 2, DX[e] * s / 2 - (DX[e] + DX[r]) * s / 2);
+  const a1 = Math.atan2(DY[r] * s / 2 - (DY[e] + DY[r]) * s / 2, DX[r] * s / 2 - (DX[e] + DX[r]) * s / 2);
+  let d = a1 - a0;
+  while (d > Math.PI) d -= Math.PI * 2;
+  while (d < -Math.PI) d += Math.PI * 2;
+  const a = a0 + d * p;
+  out.x = kx + Math.cos(a) * s / 2;
+  out.y = ky + Math.sin(a) * s / 2;
+  out.a = a + (d > 0 ? Math.PI / 2 : -Math.PI / 2);
+  return out;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+/* ---------- transportbånd ---------- */
+const _bp = { x: 0, y: 0, a: 0 };
+function drawBeltBase(ctx, b, sx, sy, s, t, speed, detail) {
+  const cx = sx + s / 2, cy = sy + s / 2, r = b.r;
+  const e = b.vis < 0 ? opp(r) : b.vis;
+  const tw = s * 0.66;
+  ctx.fillStyle = '#0e1730';
+  ctx.strokeStyle = b.off ? 'rgba(120,130,160,.35)' : 'rgba(54,226,255,.42)';
+  ctx.lineWidth = Math.max(1, s * 0.035);
+  if (e === opp(r)) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(r * Math.PI / 2);
+    ctx.fillRect(-tw / 2, -s / 2, tw, s);
+    ctx.beginPath();
+    ctx.moveTo(-tw / 2, -s / 2); ctx.lineTo(-tw / 2, s / 2);
+    ctx.moveTo(tw / 2, -s / 2); ctx.lineTo(tw / 2, s / 2);
+    ctx.stroke();
+    ctx.restore();
+  } else {
+    const kx = cx + (DX[e] + DX[r]) * s / 2, ky = cy + (DY[e] + DY[r]) * s / 2;
+    beltPos(cx, cy, s, e, r, 0, _bp);
+    const a0 = Math.atan2(_bp.y - ky, _bp.x - kx);
+    beltPos(cx, cy, s, e, r, 1, _bp);
+    const a1 = Math.atan2(_bp.y - ky, _bp.x - kx);
+    let d = a1 - a0;
+    while (d > Math.PI) d -= Math.PI * 2;
+    while (d < -Math.PI) d += Math.PI * 2;
+    const ccw = d < 0;
+    const R = s / 2;
+    ctx.beginPath();
+    ctx.arc(kx, ky, R + tw / 2, a0, a1, ccw);
+    ctx.arc(kx, ky, Math.max(0.1, R - tw / 2), a1, a0, !ccw);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(kx, ky, R + tw / 2, a0, a1, ccw);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(kx, ky, Math.max(0.1, R - tw / 2), a0, a1, ccw);
+    ctx.stroke();
+  }
+  if (!detail) return;
+  // chevrons der bevæger sig
+  const off = b.off ? 0 : (t * speed) % 0.5;
+  ctx.strokeStyle = b.off ? 'rgba(120,130,160,.4)' : b.moving || !b.items.length ? 'rgba(54,226,255,.7)' : 'rgba(255,210,63,.75)';
+  ctx.lineWidth = Math.max(1, s * 0.05);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  const cw = s * 0.12;
+  for (let k = 0; k < 2; k++) {
+    const p = off + k * 0.5;
+    beltPos(cx, cy, s, e, r, p, _bp);
+    const ca = Math.cos(_bp.a), sa = Math.sin(_bp.a);
+    // chevron: spids i bevægelsesretningen
+    ctx.moveTo(_bp.x - ca * cw - sa * cw, _bp.y - sa * cw + ca * cw);
+    ctx.lineTo(_bp.x, _bp.y);
+    ctx.lineTo(_bp.x - ca * cw + sa * cw, _bp.y - sa * cw - ca * cw);
+  }
+  ctx.stroke();
+  ctx.lineCap = 'butt';
+}
+function drawBeltItems(ctx, b, sx, sy, s, lod) {
+  const cx = sx + s / 2, cy = sy + s / 2;
+  const size = s * 0.44;
+  for (const it of b.items) {
+    beltPos(cx, cy, s, it.from, b.r, it.p, _bp);
+    if (lod) {
+      ctx.fillStyle = COLORS[(it.s.layers[0].find(Boolean) || 'Cu')[1]].hex;
+      ctx.fillRect(_bp.x - size / 3, _bp.y - size / 3, size / 1.5, size / 1.5);
+    } else drawShape(ctx, it.s, _bp.x, _bp.y, size);
+  }
+}
+
+/* ---------- maskiner ---------- */
+function drawPorts(ctx, b, x, y, s) {
+  const d = b.def;
+  const cx = x + s / 2, cy = y + s / 2;
+  if (d.inputs) {
+    ctx.fillStyle = 'rgba(54,226,255,.85)';
+    for (const side of d.inputs) {
+      const dir = b.dirOf(side);
+      const px = cx + DX[dir] * s * 0.43, py = cy + DY[dir] * s * 0.43;
+      const w = DX[dir] ? s * 0.06 : s * 0.3, h = DX[dir] ? s * 0.3 : s * 0.06;
+      ctx.fillRect(px - w / 2, py - h / 2, w, h);
+    }
+  }
+  if (d.outputs) {
+    ctx.fillStyle = d.color;
+    for (const side of d.outputs) {
+      const dir = b.dirOf(side);
+      const px = cx + DX[dir] * s * 0.4, py = cy + DY[dir] * s * 0.4;
+      const a = s * 0.12;
+      ctx.beginPath();
+      ctx.moveTo(px + DX[dir] * a, py + DY[dir] * a);
+      ctx.lineTo(px - DY[dir] * a - DX[dir] * a * 0.2, py + DX[dir] * a - DY[dir] * a * 0.2);
+      ctx.lineTo(px + DY[dir] * a - DX[dir] * a * 0.2, py - DX[dir] * a - DY[dir] * a * 0.2);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+}
+
+/** ikon for en maskinetype, centreret, størrelse k */
+function drawIcon(ctx, type, cx, cy, k, b, t) {
+  const d = MACHINES[type];
+  const col = d.color;
+  const r = b ? b.r : 0;
+  const lw = Math.max(1.2, k * 0.08);
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.lineWidth = lw;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = col;
+  ctx.fillStyle = col;
+  const working = b && b.status === 'working';
+  const spin = b ? b.anim : 0;
+  switch (type) {
+    case 'conveyor': {
+      ctx.rotate(r * Math.PI / 2);
+      ctx.beginPath();
+      for (let i = 0; i < 2; i++) {
+        const y = k * 0.25 - i * k * 0.4;
+        ctx.moveTo(-k * 0.3, y + k * 0.18); ctx.lineTo(0, y - k * 0.1); ctx.lineTo(k * 0.3, y + k * 0.18);
+      }
+      ctx.stroke();
+      break;
+    }
+    case 'generator': {
+      ctx.save();
+      ctx.rotate(spin * 1.2);
+      ctx.beginPath();
+      const n = 8;
+      for (let i = 0; i < n * 2; i++) {
+        const a = (i / (n * 2)) * Math.PI * 2;
+        const rr = i % 2 ? k * 0.4 : k * 0.48;
+        ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+      drawShape(ctx, Shape.full((b && b.cfg.shape) || 'C'), 0, 0, k * 0.5);
+      break;
+    }
+    case 'output': {
+      const fl = b ? b.flash : 0;
+      for (let i = 0; i < 3; i++) {
+        ctx.globalAlpha = 0.35 + 0.22 * i + fl * 0.2;
+        ctx.beginPath();
+        ctx.arc(0, 0, k * (0.48 - i * 0.14) + fl * k * 0.04, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, k * 0.08 + fl * k * 0.06, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+    case 'trash': {
+      const fl = b ? b.flash : 0;
+      ctx.beginPath();
+      ctx.arc(0, 0, k * 0.4, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.rotate(fl * 0.8);
+      ctx.beginPath();
+      ctx.moveTo(-k * 0.18, -k * 0.18); ctx.lineTo(k * 0.18, k * 0.18);
+      ctx.moveTo(k * 0.18, -k * 0.18); ctx.lineTo(-k * 0.18, k * 0.18);
+      ctx.stroke();
+      break;
+    }
+    case 'splitter': {
+      ctx.rotate(r * Math.PI / 2);
+      ctx.beginPath();
+      ctx.moveTo(0, k * 0.4); ctx.lineTo(0, -k * 0.05);
+      ctx.moveTo(0, -k * 0.05); ctx.lineTo(0, -k * 0.42);
+      ctx.moveTo(0, -k * 0.05); ctx.lineTo(-k * 0.42, -k * 0.05);
+      ctx.moveTo(0, -k * 0.05); ctx.lineTo(k * 0.42, -k * 0.05);
+      ctx.stroke();
+      arrowHead(ctx, 0, -k * 0.45, 0, k * 0.13);
+      arrowHead(ctx, -k * 0.45, -k * 0.05, 3, k * 0.13);
+      arrowHead(ctx, k * 0.45, -k * 0.05, 1, k * 0.13);
+      break;
+    }
+    case 'crossing': {
+      ctx.beginPath();
+      ctx.moveTo(-k * 0.42, 0); ctx.lineTo(k * 0.42, 0);
+      ctx.moveTo(0, -k * 0.42); ctx.lineTo(0, k * 0.42);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, k * 0.14, 0, Math.PI * 2);
+      ctx.fillStyle = '#0b1024';
+      ctx.fill();
+      ctx.stroke();
+      break;
+    }
+    case 'cutter': {
+      ctx.beginPath();
+      ctx.arc(0, 0, k * 0.36, 0, Math.PI * 2);
+      ctx.globalAlpha = 0.5;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      // klingen er altid lodret i verden (figuren deles i venstre/højre)
+      const g = working ? 0.6 + 0.4 * Math.sin(spin * 12) : 0.7;
+      ctx.strokeStyle = '#fff';
+      ctx.globalAlpha = g;
+      ctx.beginPath();
+      ctx.moveTo(0, -k * 0.5); ctx.lineTo(0, k * 0.5);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      break;
+    }
+    case 'merger': {
+      ctx.rotate(r * Math.PI / 2);
+      ctx.beginPath();
+      ctx.moveTo(0, k * 0.44); ctx.lineTo(0, -k * 0.3);
+      ctx.moveTo(-k * 0.44, 0); ctx.quadraticCurveTo(0, 0, 0, -k * 0.3);
+      ctx.stroke();
+      arrowHead(ctx, 0, -k * 0.44, 0, k * 0.15);
+      ctx.beginPath();
+      ctx.arc(0, -k * 0.05, k * 0.09, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+    case 'painter': {
+      const c = COLORS[(b && b.cfg.color) || 'r'].hex;
+      ctx.fillStyle = c;
+      ctx.strokeStyle = shade(c, 0.3);
+      ctx.beginPath();
+      ctx.moveTo(0, -k * 0.46);
+      ctx.bezierCurveTo(k * 0.12, -k * 0.26, k * 0.34, -k * 0.06, k * 0.34, k * 0.14);
+      ctx.arc(0, k * 0.14, k * 0.34, 0, Math.PI);
+      ctx.bezierCurveTo(-k * 0.34, -k * 0.06, -k * 0.12, -k * 0.26, 0, -k * 0.46);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,.55)';
+      ctx.beginPath();
+      ctx.arc(-k * 0.12, k * 0.12, k * 0.07, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+    case 'sorter': {
+      ctx.rotate(r * Math.PI / 2);
+      ctx.beginPath();
+      ctx.moveTo(-k * 0.4, k * 0.4); ctx.lineTo(k * 0.4, k * 0.4); ctx.lineTo(k * 0.1, 0); ctx.lineTo(k * 0.1, -k * 0.4);
+      ctx.lineTo(-k * 0.1, -k * 0.4); ctx.lineTo(-k * 0.1, 0); ctx.closePath();
+      ctx.stroke();
+      ctx.rotate(-r * Math.PI / 2);
+      if (b) {
+        if (b.cfg.mode === 'color') {
+          ctx.fillStyle = COLORS[b.cfg.v] ? COLORS[b.cfg.v].hex : '#fff';
+          ctx.beginPath(); ctx.arc(0, k * 0.08, k * 0.16, 0, Math.PI * 2); ctx.fill();
+        } else drawShape(ctx, Shape.full(b.cfg.v || 'C', 'w'), 0, k * 0.08, k * 0.42);
+      }
+      break;
+    }
+    case 'rotator': {
+      if (b && b.cfg.ccw) ctx.scale(-1, 1);
+      ctx.rotate(spin * 2.5);
+      ctx.beginPath();
+      ctx.arc(0, 0, k * 0.34, -Math.PI / 2 + 0.5, Math.PI * 1.5 - 0.3);
+      ctx.stroke();
+      const a = Math.PI * 1.5 - 0.3;
+      arrowHead(ctx, Math.cos(a) * k * 0.34, Math.sin(a) * k * 0.34, 0, k * 0.17, a + Math.PI / 2);
+      break;
+    }
+    case 'storage': {
+      roundRect(ctx, -k * 0.4, -k * 0.36, k * 0.8, k * 0.72, k * 0.08);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-k * 0.4, -k * 0.12); ctx.lineTo(k * 0.4, -k * 0.12);
+      ctx.stroke();
+      if (b) {
+        const f = Math.min(1, b.store.length / b.capacity());
+        ctx.globalAlpha = 0.65;
+        ctx.fillRect(-k * 0.32, k * 0.28 - k * 0.36 * f, k * 0.64, k * 0.36 * f);
+        ctx.globalAlpha = 1;
+      }
+      break;
+    }
+    case 'mirror': {
+      ctx.setLineDash([k * 0.08, k * 0.07]);
+      ctx.beginPath(); ctx.moveTo(0, -k * 0.46); ctx.lineTo(0, k * 0.46); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(-k * 0.08, -k * 0.3); ctx.lineTo(-k * 0.42, k * 0.3); ctx.lineTo(-k * 0.08, k * 0.3); ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(k * 0.08, -k * 0.3); ctx.lineTo(k * 0.42, k * 0.3); ctx.lineTo(k * 0.08, k * 0.3); ctx.closePath();
+      ctx.stroke();
+      break;
+    }
+    case 'unstacker': {
+      ctx.rotate(r * Math.PI / 2);
+      const lift = working ? Math.sin(spin * 6) * k * 0.05 : 0;
+      roundRect(ctx, -k * 0.36, k * 0.16, k * 0.72, k * 0.18, k * 0.05); ctx.stroke();
+      roundRect(ctx, -k * 0.28, -k * 0.08, k * 0.56, k * 0.16, k * 0.05); ctx.stroke();
+      roundRect(ctx, -k * 0.12 + k * 0.14, -k * 0.36 - lift, k * 0.4, k * 0.14, k * 0.05); ctx.fill();
+      break;
+    }
+    case 'morpher': {
+      ctx.save();
+      ctx.rotate(spin * 0.8);
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2;
+        ctx.lineTo(Math.cos(a) * k * 0.46, Math.sin(a) * k * 0.46);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+      drawShape(ctx, Shape.full((b && b.cfg.shape) || 'H', 'p'), 0, 0, k * 0.46);
+      break;
+    }
+  }
+  ctx.restore();
+}
+/** pilespids i (x,y); dir 0..3 eller eksplicit vinkel */
+function arrowHead(ctx, x, y, dir, a, ang) {
+  const angle = ang !== undefined ? ang : [-Math.PI / 2, 0, Math.PI / 2, Math.PI][dir];
+  ctx.beginPath();
+  ctx.moveTo(x + Math.cos(angle) * a, y + Math.sin(angle) * a);
+  ctx.lineTo(x + Math.cos(angle + 2.4) * a, y + Math.sin(angle + 2.4) * a);
+  ctx.lineTo(x + Math.cos(angle - 2.4) * a, y + Math.sin(angle - 2.4) * a);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawMachine(ctx, b, x, y, s, t, detail) {
+  const d = b.def;
+  const pad = s * 0.07;
+  const st = b.status;
+  // bund
+  const g = ctx.createLinearGradient(x, y, x, y + s);
+  g.addColorStop(0, '#1a2448');
+  g.addColorStop(1, '#0b1024');
+  ctx.fillStyle = g;
+  roundRect(ctx, x + pad, y + pad, s - pad * 2, s - pad * 2, s * 0.16);
+  ctx.fill();
+  ctx.lineWidth = Math.max(1, s * 0.035);
+  ctx.strokeStyle = st === 'working' ? d.color : shade(d.color, -0.45);
+  ctx.stroke();
+  if (!detail) {
+    ctx.fillStyle = d.color;
+    ctx.globalAlpha = 0.7;
+    ctx.fillRect(x + s * 0.32, y + s * 0.32, s * 0.36, s * 0.36);
+    ctx.globalAlpha = 1;
+    return;
+  }
+  if (st === 'working') {
+    ctx.fillStyle = d.color;
+    ctx.globalAlpha = 0.08;
+    roundRect(ctx, x + pad, y + pad, s - pad * 2, s - pad * 2, s * 0.16);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  drawPorts(ctx, b, x, y, s);
+  const cx = x + s / 2, cy = y + s / 2;
+  drawIcon(ctx, b.type, cx, cy, s * 0.56, b, t);
+  // fremdrift-ring
+  if (b.job && b.progress > 0 && b.type !== 'splitter' && b.type !== 'storage') {
+    ctx.strokeStyle = d.color;
+    ctx.lineWidth = Math.max(1.5, s * 0.045);
+    ctx.beginPath();
+    ctx.arc(cx, cy, s * 0.36, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * b.progress);
+    ctx.stroke();
+    // resultatet "dukker op" på vej mod udgangen
+    if (s >= 30 && b.type !== 'generator') {
+      const res = b.job.find(Boolean);
+      if (res) {
+        const dir = b.r;
+        ctx.globalAlpha = 0.35 + 0.65 * b.progress;
+        drawShape(ctx, res, cx + DX[dir] * s * 0.22 * b.progress, cy + DY[dir] * s * 0.22 * b.progress, s * 0.3);
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
+  // statuslys
+  const lx = x + s - pad * 2.6, ly = y + pad * 2.6, lr = Math.max(1.6, s * 0.05);
+  const sc = STATUS_COL[st] || STATUS_COL.idle;
+  ctx.fillStyle = sc;
+  ctx.globalAlpha = 0.25 + (st === 'working' ? 0.15 * Math.sin(t * 6) + 0.15 : 0);
+  ctx.beginPath(); ctx.arc(lx, ly, lr * 2.2, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.beginPath(); ctx.arc(lx, ly, lr, 0, Math.PI * 2); ctx.fill();
+  // Mk-niveau
+  if (b.lvl > 1) {
+    ctx.fillStyle = '#ffd23f';
+    for (let i = 0; i < b.lvl - 1; i++) {
+      ctx.beginPath();
+      ctx.arc(x + pad * 2.6 + i * s * 0.1, y + s - pad * 2.6, Math.max(1.4, s * 0.035), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  if (b.off) {
+    ctx.fillStyle = 'rgba(5,7,15,.55)';
+    roundRect(ctx, x + pad, y + pad, s - pad * 2, s - pad * 2, s * 0.16);
+    ctx.fill();
+    ctx.strokeStyle = '#8d98bd';
+    ctx.lineWidth = Math.max(1.2, s * 0.05);
+    ctx.beginPath();
+    ctx.arc(cx, cy, s * 0.16, -Math.PI / 2 + 0.6, -Math.PI / 2 - 0.6 + Math.PI * 2);
+    ctx.moveTo(cx, cy - s * 0.22); ctx.lineTo(cx, cy - s * 0.06);
+    ctx.stroke();
+  }
+}
+
+/** lille forhåndsvisning af en maskine i et DOM-canvas */
+function paintMachineCanvas(cv, type, cfg) {
+  const ctx = cv.getContext('2d');
+  const s = cv.width;
+  ctx.clearRect(0, 0, s, s);
+  const fake = { type, def: MACHINES[type], r: 0, cfg: Object.assign({}, MACHINES[type].cfg || {}, cfg || {}), status: 'idle', lvl: 1, anim: 0, flash: 0, items: [], vis: -1, moving: true, store: [], capacity: () => 1, job: null, progress: 0, dirOf: Building.prototype.dirOf };
+  if (type === 'conveyor') drawBeltBase(ctx, fake, 0, 0, s, 0, 0, true);
+  else drawMachine(ctx, fake, 0, 0, s, 0, true);
+}
+
+class Renderer {
+  constructor(game, canvas) {
+    this.g = game;
+    this.cv = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.dpr = 1;
+    this.popups = [];
+    this.sparks = [];
+  }
+  resize() {
+    const w = window.innerWidth, h = window.innerHeight;
+    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.cv.width = Math.round(w * this.dpr);
+    this.cv.height = Math.round(h * this.dpr);
+    this.g.camera.w = w;
+    this.g.camera.h = h;
+    this.bgGrad = null;
+  }
+  popup(tx, ty, text, color) {
+    if (!this.g.state.settings.fx || this.popups.length > 60) return;
+    this.popups.push({ x: (tx + 0.5) * TILE, y: ty * TILE + TILE * 0.2, text, color, t: 0 });
+  }
+  spark(tx, ty, color, n = 8) {
+    if (!this.g.state.settings.fx || this.sparks.length > 400) return;
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, v = 30 + Math.random() * 90;
+      this.sparks.push({ x: (tx + 0.5) * TILE, y: (ty + 0.5) * TILE, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, life: 0.4 + Math.random() * 0.4, color });
+    }
+  }
+  render(dt, t) {
+    const g = this.g, ctx = this.ctx, cam = g.camera, f = g.factory;
+    const W = cam.w, H = cam.h, s = cam.s;
+    ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    // baggrund
+    if (!this.bgGrad) {
+      this.bgGrad = ctx.createRadialGradient(W / 2, H * 0.4, 0, W / 2, H / 2, Math.max(W, H) * 0.8);
+      this.bgGrad.addColorStop(0, '#0d1430');
+      this.bgGrad.addColorStop(1, '#05070f');
+    }
+    ctx.fillStyle = this.bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    const x0 = Math.floor(cam.wx(0) / TILE) - 1, y0 = Math.floor(cam.wy(0) / TILE) - 1;
+    const x1 = Math.ceil(cam.wx(W) / TILE) + 1, y1 = Math.ceil(cam.wy(H) / TILE) + 1;
+    const gx0 = Math.max(x0, -WORLD), gx1 = Math.min(x1, WORLD + 1), gy0 = Math.max(y0, -WORLD), gy1 = Math.min(y1, WORLD + 1);
+
+    // byggeplads + grid
+    const bx = cam.sx(-WORLD * TILE), by = cam.sy(-WORLD * TILE), bw = (WORLD * 2 + 1) * s;
+    ctx.fillStyle = 'rgba(16,24,52,0.55)';
+    ctx.fillRect(bx, by, bw, bw);
+    if (g.state.settings.grid && s >= 10) {
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = s >= 20 ? 'rgba(120,160,255,0.07)' : 'rgba(120,160,255,0.045)';
+      ctx.beginPath();
+      for (let x = gx0; x <= gx1; x++) {
+        if (x % 8 === 0) continue;
+        const px = Math.round(cam.sx(x * TILE)) + 0.5;
+        ctx.moveTo(px, cam.sy(gy0 * TILE)); ctx.lineTo(px, cam.sy(gy1 * TILE));
+      }
+      for (let y = gy0; y <= gy1; y++) {
+        if (y % 8 === 0) continue;
+        const py = Math.round(cam.sy(y * TILE)) + 0.5;
+        ctx.moveTo(cam.sx(gx0 * TILE), py); ctx.lineTo(cam.sx(gx1 * TILE), py);
+      }
+      ctx.stroke();
+    }
+    // chunk-linjer hver 8. felt
+    ctx.strokeStyle = 'rgba(54,226,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = Math.ceil(gx0 / 8) * 8; x <= gx1; x += 8) {
+      const px = Math.round(cam.sx(x * TILE)) + 0.5;
+      ctx.moveTo(px, cam.sy(gy0 * TILE)); ctx.lineTo(px, cam.sy(gy1 * TILE));
+    }
+    for (let y = Math.ceil(gy0 / 8) * 8; y <= gy1; y += 8) {
+      const py = Math.round(cam.sy(y * TILE)) + 0.5;
+      ctx.moveTo(cam.sx(gx0 * TILE), py); ctx.lineTo(cam.sx(gx1 * TILE), py);
+    }
+    ctx.stroke();
+    // kant på byggepladsen
+    ctx.strokeStyle = 'rgba(255,79,216,0.35)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bx, by, bw, bw);
+    // midtpunkt
+    const ox = cam.sx(0), oy = cam.sy(0);
+    ctx.strokeStyle = 'rgba(54,226,255,0.22)';
+    ctx.beginPath();
+    ctx.arc(ox, oy, s * 0.18, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // synlige bygninger
+    f.refreshVis();
+    const vis = [];
+    const area = (x1 - x0) * (y1 - y0);
+    if (area < f.count) {
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const b = f.get(x, y); if (b) vis.push(b); }
+    } else {
+      for (const b of f.map.values()) if (b.x >= x0 && b.x <= x1 && b.y >= y0 && b.y <= y1) vis.push(b);
+    }
+    const detail = s >= 18;
+    const speed = g.upg.beltSpeed();
+    // 1) bånd
+    for (const b of vis) if (b.type === 'conveyor') drawBeltBase(ctx, b, cam.sx(b.x * TILE), cam.sy(b.y * TILE), s, t, speed, detail);
+    // 2) figurer på bånd
+    for (const b of vis) if (b.type === 'conveyor' && b.items.length) drawBeltItems(ctx, b, cam.sx(b.x * TILE), cam.sy(b.y * TILE), s, s < 14);
+    // 3) maskiner
+    for (const b of vis) if (b.type !== 'conveyor') drawMachine(ctx, b, cam.sx(b.x * TILE), cam.sy(b.y * TILE), s, t, detail);
+    // 4) figurer i krydsninger
+    for (const b of vis) if (b.type === 'crossing' && detail) for (const sh of b.slots) if (sh) drawShape(ctx, sh, cam.sx((b.x + 0.5) * TILE), cam.sy((b.y + 0.5) * TILE), s * 0.38);
+
+    // valgt bygning
+    const sel = g.ui.selected;
+    if (sel && f.get(sel.x, sel.y) === sel) {
+      const px = cam.sx(sel.x * TILE), py = cam.sy(sel.y * TILE);
+      ctx.strokeStyle = '#36e2ff';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 5]);
+      ctx.lineDashOffset = -t * 20;
+      roundRect(ctx, px + 1, py + 1, s - 2, s - 2, s * 0.18);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    g.input.drawOverlay(ctx, t);
+
+    // partikler
+    for (let i = this.sparks.length - 1; i >= 0; i--) {
+      const p = this.sparks[i];
+      p.t += dt;
+      if (p.t >= p.life) { this.sparks.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      p.vx *= 0.92; p.vy *= 0.92;
+      ctx.globalAlpha = 1 - p.t / p.life;
+      ctx.fillStyle = p.color;
+      const sz = Math.max(1.5, s * 0.06);
+      ctx.fillRect(cam.sx(p.x) - sz / 2, cam.sy(p.y) - sz / 2, sz, sz);
+    }
+    ctx.globalAlpha = 1;
+    // popup-tekster
+    ctx.textAlign = 'center';
+    ctx.font = `800 ${Math.round(clamp(s * 0.3, 11, 18))}px "Segoe UI", system-ui, sans-serif`;
+    for (let i = this.popups.length - 1; i >= 0; i--) {
+      const p = this.popups[i];
+      p.t += dt;
+      if (p.t > 1.2) { this.popups.splice(i, 1); continue; }
+      ctx.globalAlpha = p.t < 0.9 ? 1 : 1 - (p.t - 0.9) / 0.3;
+      const px = cam.sx(p.x), py = cam.sy(p.y) - p.t * 30;
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(5,7,15,.85)';
+      ctx.strokeText(p.text, px, py);
+      ctx.fillStyle = p.color;
+      ctx.fillText(p.text, px, py);
+    }
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'start';
+  }
+}
+</script>
+
+<script>
+'use strict';
+// =========================
+// HISTORY (undo / redo)
+// =========================
+const invOf = (d) => (d ? (typeof d.i === 'number' ? d.i : MACHINES[d.t].cost) : 0);
+class History {
+  constructor(game) { this.g = game; this.undoStack = []; this.redoStack = []; this.cur = null; }
+  clear() { this.undoStack = []; this.redoStack = []; this.cur = null; }
+  begin() { if (!this.cur) this.cur = []; }
+  /** sæt et felt (data eller null) og husk ændringen */
+  set(x, y, data) {
+    const old = this.g.factory.get(x, y);
+    const before = old ? old.serialize() : null;
+    if (!this.g.setTile(x, y, data)) return false;
+    const own = !this.cur;
+    if (own) this.begin();
+    this.cur.push({ x, y, b: before, a: data ? Object.assign({ x, y }, data) : null });
+    if (own) this.commit();
+    return true;
+  }
+  commit() {
+    if (this.cur && this.cur.length) {
+      this.undoStack.push(this.cur);
+      if (this.undoStack.length > 200) this.undoStack.shift();
+      this.redoStack = [];
+    }
+    this.cur = null;
+  }
+  apply(op, reverse) {
+    const list = reverse ? op.slice().reverse() : op;
+    const need = list.reduce((n, ch) => n + invOf(reverse ? ch.b : ch.a) - invOf(reverse ? ch.a : ch.b), 0);
+    if (need > this.g.state.coins) {
+      this.g.ui.toast('💰', 'Ikke nok GrejsCoins', `Kræver ${fmt(need)}`, 'bad');
+      this.g.audio.play('error');
+      return false;
+    }
+    for (const ch of list) this.g.setTile(ch.x, ch.y, reverse ? ch.b : ch.a);
+    return true;
+  }
+  undo() {
+    this.commit();
+    const op = this.undoStack.pop();
+    if (!op) return;
+    if (!this.apply(op, true)) { this.undoStack.push(op); return; }
+    this.redoStack.push(op);
+    this.g.stats.undoUsed++;
+    this.g.audio.play('remove');
+  }
+  redo() {
+    const op = this.redoStack.pop();
+    if (!op) return;
+    if (!this.apply(op, false)) { this.redoStack.push(op); return; }
+    this.undoStack.push(op);
+    this.g.audio.play('build');
+  }
+}
+
+// =========================
+// INPUT
+// =========================
+class Input {
+  constructor(game) {
+    this.g = game;
+    this.tool = null; // null | maskintype | 'delete' | 'select' | 'paste'
+    this.rot = 1;
+    this.hover = null;
+    this.pointers = new Map();
+    this.mode = null;
+    this.keys = {};
+    this.sel = null; // {x0,y0,x1,y1}
+    this.clip = null; // [{dx,dy,t,r,c}]
+    this.pasteRot = 0;
+    this.touchMode = false;
+    this.lastErr = 0;
+    this.bind();
+  }
+  local(e) { return { x: e.clientX, y: e.clientY }; }
+  bind() {
+    const cv = this.g.renderer.cv;
+    cv.addEventListener('contextmenu', (e) => e.preventDefault());
+    cv.addEventListener('pointerdown', (e) => this.down(e));
+    cv.addEventListener('pointermove', (e) => this.move(e));
+    cv.addEventListener('pointerup', (e) => this.up(e));
+    cv.addEventListener('pointercancel', (e) => this.up(e, true));
+    cv.addEventListener('pointerleave', () => { if (!this.pointers.size) this.hover = null; });
+    cv.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      this.g.camera.zoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX, e.clientY);
+    }, { passive: false });
+    window.addEventListener('keydown', (e) => this.keydown(e));
+    window.addEventListener('keyup', (e) => { this.keys[e.key.toLowerCase()] = false; });
+    window.addEventListener('blur', () => { this.keys = {}; });
+  }
+  interact() { this.g.lastInteract = now(); this.g.delSinceInteract = 0; }
+
+  /* ---------- værktøjer ---------- */
+  setTool(t) {
+    if (t && MACHINES[t] && !this.g.unlocked.has(t)) return;
+    this.tool = t === this.tool && t !== 'paste' ? null : t;
+    if (this.tool !== 'select') this.sel = null;
+    if (this.tool && MACHINES[this.tool]) {
+      const i = this.g.state.seenNew.indexOf(this.tool);
+      if (i >= 0) this.g.state.seenNew.splice(i, 1);
+      this.g.ui.select(null);
+    }
+    this.g.audio.play('click');
+    this.g.ui.refreshTools();
+  }
+  rotate(ccw) {
+    const d = ccw ? 3 : 1;
+    if (this.tool === 'paste') this.pasteRot = (this.pasteRot + d) & 3;
+    else if (!this.tool && this.g.ui.selected) {
+      const b = this.g.ui.selected;
+      const data = b.serialize();
+      data.r = (b.r + d) & 3;
+      this.g.history.set(b.x, b.y, data);
+    } else this.rot = (this.rot + d) & 3;
+    this.g.audio.play('rotate');
+    this.g.ui.refreshTools();
+  }
+  pipette() {
+    const h = this.hover;
+    const b = h && this.g.factory.get(h.x, h.y);
+    if (!b) return;
+    if (b.def.cfg) this.g.state.lastCfg[b.type] = Object.assign({}, b.cfg);
+    this.tool = null;
+    this.setTool(b.type);
+    this.rot = b.r;
+    this.g.ui.refreshTools();
+  }
+  cfgFor(type) {
+    const c = this.g.state.lastCfg[type];
+    return c ? Object.assign({}, c) : MACHINES[type].cfg ? Object.assign({}, MACHINES[type].cfg) : undefined;
+  }
+  error(title, sub) {
+    const t = now();
+    this.g.audio.play('error');
+    if (t - this.lastErr < 1.2) return;
+    this.lastErr = t;
+    this.g.ui.toast('⚠️', title, sub || '', 'bad', 2);
+  }
+  /** er (x,y) en gyldig placering for type? */
+  check(type, x, y) {
+    const f = this.g.factory;
+    if (!f.inBounds(x, y)) return 'Uden for byggepladsen';
+    const b = f.get(x, y);
+    if (b && b.type !== type) return 'Feltet er optaget';
+    if (!b && this.g.state.coins < MACHINES[type].cost) return 'Ikke nok GrejsCoins';
+    return null;
+  }
+  place(x, y) {
+    const type = this.tool;
+    const err = this.check(type, x, y);
+    if (err) return this.error(err, err === 'Ikke nok GrejsCoins' ? `${MACHINES[type].name} koster ${MACHINES[type].cost}` : '');
+    const existed = !!this.g.factory.get(x, y);
+    this.g.history.set(x, y, { t: type, r: this.rot, c: this.cfgFor(type) });
+    if (!existed) this.g.onBuilt(type, x, y);
+    this.g.audio.play(existed ? 'rotate' : 'build');
+  }
+  placeBelt(x, y, dir) {
+    const f = this.g.factory;
+    const b = f.get(x, y);
+    if (b) {
+      if (b.type === 'conveyor' && b.r !== dir) {
+        const d = b.serialize();
+        d.r = dir;
+        this.g.history.set(x, y, d);
+      }
+      return;
+    }
+    const err = this.check('conveyor', x, y);
+    if (err) return this.error(err);
+    this.g.history.set(x, y, { t: 'conveyor', r: dir });
+    this.g.onBuilt('conveyor', x, y);
+    this.g.audio.play('build');
+  }
+  beltStep(tile) {
+    if (!this.beltLast) {
+      this.placeBelt(tile.x, tile.y, this.rot);
+      this.beltLast = { x: tile.x, y: tile.y };
+      return;
+    }
+    let guard = 0;
+    while ((this.beltLast.x !== tile.x || this.beltLast.y !== tile.y) && guard++ < 400) {
+      const l = this.beltLast;
+      let dir;
+      if (l.x !== tile.x) dir = tile.x > l.x ? 1 : 3;
+      else dir = tile.y > l.y ? 2 : 0;
+      const prev = this.g.factory.get(l.x, l.y);
+      if (prev && prev.type === 'conveyor' && prev.r !== dir) {
+        const d = prev.serialize();
+        d.r = dir;
+        this.g.history.set(l.x, l.y, d);
+      }
+      const nx = l.x + DX[dir], ny = l.y + DY[dir];
+      this.placeBelt(nx, ny, dir);
+      this.rot = dir;
+      this.beltLast = { x: nx, y: ny };
+    }
+    this.g.ui.refreshTools();
+  }
+  eraseAt(x, y) {
+    const b = this.g.factory.get(x, y);
+    if (!b) return;
+    this.g.history.set(x, y, null);
+    this.g.stats.removed++;
+    this.g.audio.play('remove');
+    this.g.renderer.spark(x, y, '#ff4d6d', 6);
+    if (this.g.ui.selected === b) this.g.ui.select(null);
+  }
+
+  /* ---------- markering / kopiér / indsæt ---------- */
+  selBuildings() {
+    const s = this.sel;
+    if (!s) return [];
+    const x0 = Math.min(s.x0, s.x1), x1 = Math.max(s.x0, s.x1), y0 = Math.min(s.y0, s.y1), y1 = Math.max(s.y0, s.y1);
+    const out = [];
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const b = this.g.factory.get(x, y); if (b) out.push(b); }
+    return out;
+  }
+  copySel(cut) {
+    const bs = this.selBuildings();
+    if (!bs.length) return;
+    const mx = Math.min(...bs.map((b) => b.x)), my = Math.min(...bs.map((b) => b.y));
+    this.clip = bs.map((b) => ({ dx: b.x - mx, dy: b.y - my, t: b.type, r: b.r, c: b.def.cfg ? Object.assign({}, b.cfg) : undefined }));
+    if (cut) this.deleteSel();
+    this.sel = null;
+    this.pasteRot = 0;
+    this.tool = null;
+    this.setTool('paste');
+    this.g.ui.toast('📐', cut ? 'Klippet ud' : 'Kopieret', `${bs.length} bygninger – klik for at indsætte, R roterer`, 'cyan', 2.6);
+  }
+  deleteSel() {
+    const bs = this.selBuildings();
+    if (!bs.length) return;
+    this.g.history.begin();
+    for (const b of bs) this.g.history.set(b.x, b.y, null);
+    this.g.history.commit();
+    this.g.ui.select(null);
+    this.sel = null;
+    this.g.audio.play('remove');
+    this.g.ui.refreshTools();
+  }
+  clipPlaced(tx, ty) {
+    const k = this.pasteRot;
+    return (this.clip || []).map((c) => {
+      let dx = c.dx, dy = c.dy;
+      for (let i = 0; i < k; i++) { const t = dx; dx = -dy; dy = t; }
+      return { x: tx + dx, y: ty + dy, t: c.t, r: (c.r + k) & 3, c: c.c };
+    });
+  }
+  pasteAt(tx, ty) {
+    const items = this.clipPlaced(tx, ty).filter((c) => this.g.unlocked.has(c.t) && this.g.factory.inBounds(c.x, c.y) && !this.g.factory.get(c.x, c.y));
+    if (!items.length) return this.error('Intet at indsætte her', 'Felterne er optaget');
+    const cost = items.reduce((n, c) => n + MACHINES[c.t].cost, 0);
+    if (cost > this.g.state.coins) return this.error('Ikke nok GrejsCoins', `Kræver ${fmt(cost)}`);
+    this.g.history.begin();
+    for (const c of items) { this.g.history.set(c.x, c.y, { t: c.t, r: c.r, c: c.c }); this.g.onBuilt(c.t, c.x, c.y, true); }
+    this.g.history.commit();
+    this.g.stats.pasted++;
+    this.g.audio.play('build');
+  }
+
+  /* ---------- pointer ---------- */
+  down(e) {
+    this.g.audio.init();
+    this.interact();
+    this.touchMode = e.pointerType === 'touch';
+    try { this.g.renderer.cv.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    const p = this.local(e);
+    this.pointers.set(e.pointerId, p);
+    if (this.pointers.size === 2) {
+      // pinch-zoom / to-finger pan
+      this.finishDrag();
+      const [a, b] = Array.from(this.pointers.values());
+      this.mode = 'pinch';
+      this.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
+      return;
+    }
+    if (this.pointers.size > 2) return;
+    const tile = this.g.camera.tileAt(p.x, p.y);
+    this.hover = tile;
+    this.downPos = p;
+    this.last = p;
+    if (e.button === 1) { this.mode = 'pan'; return; }
+    if (e.button === 2) {
+      if (this.tool && this.tool !== 'delete') { this.setTool(null); this.mode = null; return; }
+      this.mode = 'erase';
+      this.g.history.begin();
+      this.eraseAt(tile.x, tile.y);
+      return;
+    }
+    const t = this.tool;
+    if (t === 'conveyor') {
+      this.mode = 'belt';
+      this.beltLast = null;
+      this.g.history.begin();
+      this.beltStep(tile);
+    } else if (t === 'delete') {
+      this.mode = 'erase';
+      this.g.history.begin();
+      this.eraseAt(tile.x, tile.y);
+    } else if (t === 'select') {
+      this.mode = 'select';
+      this.sel = { x0: tile.x, y0: tile.y, x1: tile.x, y1: tile.y };
+    } else this.mode = 'tap';
+  }
+  move(e) {
+    const p = this.local(e);
+    if (this.pointers.has(e.pointerId)) this.pointers.set(e.pointerId, p);
+    if (this.mode === 'pinch' && this.pointers.size >= 2) {
+      const [a, b] = Array.from(this.pointers.values());
+      const d = Math.hypot(a.x - b.x, a.y - b.y), cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+      const cam = this.g.camera;
+      cam.pan(cx - this.pinch.cx, cy - this.pinch.cy);
+      if (this.pinch.d > 10) cam.zoomAt(d / this.pinch.d, cx, cy);
+      this.pinch = { d, cx, cy };
+      return;
+    }
+    const tile = this.g.camera.tileAt(p.x, p.y);
+    if (!this.touchMode || this.pointers.size) this.hover = tile;
+    if (!this.pointers.size) return;
+    if (this.mode === 'tap' && Math.hypot(p.x - this.downPos.x, p.y - this.downPos.y) > 8) this.mode = 'pan';
+    if (this.mode === 'pan') {
+      this.g.camera.pan(p.x - this.last.x, p.y - this.last.y);
+      this.g.renderer.cv.classList.add('pan');
+    } else if (this.mode === 'belt') this.beltStep(tile);
+    else if (this.mode === 'erase') this.eraseAt(tile.x, tile.y);
+    else if (this.mode === 'select' && this.sel) { this.sel.x1 = tile.x; this.sel.y1 = tile.y; }
+    this.last = p;
+  }
+  finishDrag() {
+    if (this.mode === 'belt' || this.mode === 'erase') this.g.history.commit();
+    this.beltLast = null;
+  }
+  up(e, cancel) {
+    this.pointers.delete(e.pointerId);
+    this.g.renderer.cv.classList.remove('pan');
+    if (this.mode === 'pinch') {
+      if (!this.pointers.size) this.mode = null;
+      return;
+    }
+    if (this.mode === 'tap' && !cancel) {
+      const h = this.g.camera.tileAt(this.downPos.x, this.downPos.y);
+      const t = this.tool;
+      if (t === 'paste') this.pasteAt(h.x, h.y);
+      else if (t && MACHINES[t]) this.place(h.x, h.y);
+      else if (!t) {
+        const b = this.g.factory.get(h.x, h.y);
+        this.g.ui.select(b && b !== this.g.ui.selected ? b : null);
+        if (b) this.g.audio.play('select');
+      }
+    }
+    if (this.mode === 'select') {
+      if (!this.selBuildings().length) this.sel = null;
+      this.g.ui.refreshTools();
+    }
+    this.finishDrag();
+    this.mode = null;
+    if (this.touchMode) this.hover = null;
+  }
+
+  /* ---------- tastatur ---------- */
+  keydown(e) {
+    const g = this.g;
+    if (!g.started) return;
+    const k = e.key.toLowerCase();
+    if (g.ui.modalOpen) {
+      if (k === 'escape') g.ui.closeModal();
+      return;
+    }
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    this.interact();
+    const ctrl = e.ctrlKey || e.metaKey;
+    if (ctrl) {
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); g.history.undo(); }
+      else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); g.history.redo(); }
+      else if (k === 'c') { e.preventDefault(); this.copySel(false); }
+      else if (k === 'x') { e.preventDefault(); this.copySel(true); }
+      else if (k === 'v') { e.preventDefault(); if (this.clip) { this.tool = null; this.setTool('paste'); } }
+      else if (k === 's') { e.preventDefault(); g.saveNow(true); }
+      return;
+    }
+    if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
+    this.keys[k] = true;
+    if (k === 'r') this.rotate(e.shiftKey);
+    else if (k === 'q') this.pipette();
+    else if (k === 'e') this.setTool('select');
+    else if (k === 'x' || k === 'delete' || k === 'backspace') {
+      if (this.sel) this.deleteSel();
+      else if (g.ui.selected && k !== 'x') { const b = g.ui.selected; this.eraseAt(b.x, b.y); }
+      else this.setTool('delete');
+    } else if (k === 'escape') {
+      if (this.tool) this.setTool(null);
+      else if (this.sel) { this.sel = null; g.ui.refreshTools(); }
+      else if (g.ui.selected) g.ui.select(null);
+      else g.ui.openMenuModal();
+    } else if (k === 'home') this.g.centerCamera();
+    else if (/^[0-9]$/.test(k)) {
+      const list = BUILD_ORDER.filter((t) => g.unlocked.has(t));
+      const i = k === '0' ? 9 : +k - 1;
+      if (list[i]) this.setTool(list[i]);
+    }
+  }
+  update(dt) {
+    const k = this.keys;
+    let vx = 0, vy = 0;
+    if (k.w || k.arrowup) vy -= 1;
+    if (k.s || k.arrowdown) vy += 1;
+    if (k.a || k.arrowleft) vx -= 1;
+    if (k.d || k.arrowright) vx += 1;
+    if (vx || vy) {
+      const sp = 760 * dt * (k.shift ? 2 : 1);
+      this.g.camera.pan(-vx * sp, -vy * sp);
+      this.interact();
+    }
+  }
+
+  /* ---------- overlay (ghost, markering) ---------- */
+  ghost(type, r, cfg) {
+    const def = MACHINES[type];
+    return { type, def, r, cfg: Object.assign({}, def.cfg || {}, cfg || {}), status: 'idle', lvl: 1, anim: 0, flash: 0, items: [], vis: -1, moving: true, store: [], capacity: () => 1, job: null, progress: 0, dirOf: Building.prototype.dirOf };
+  }
+  drawGhost(ctx, type, r, cfg, x, y, ok, t) {
+    const cam = this.g.camera, s = cam.s;
+    const px = cam.sx(x * TILE), py = cam.sy(y * TILE);
+    ctx.globalAlpha = 0.62;
+    const gb = this.ghost(type, r, cfg);
+    if (type === 'conveyor') drawBeltBase(ctx, gb, px, py, s, t, 2, true);
+    else drawMachine(ctx, gb, px, py, s, t, s >= 18);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = ok ? 'rgba(61,220,132,.18)' : 'rgba(255,77,109,.28)';
+    ctx.strokeStyle = ok ? 'rgba(61,220,132,.9)' : 'rgba(255,77,109,.95)';
+    ctx.lineWidth = 2;
+    roundRect(ctx, px + 1, py + 1, s - 2, s - 2, s * 0.16);
+    ctx.fill();
+    ctx.stroke();
+  }
+  drawOverlay(ctx, t) {
+    const g = this.g, cam = g.camera, s = cam.s, h = this.hover;
+    const tool = this.tool;
+    if (h && tool && MACHINES[tool] && this.mode !== 'pan') {
+      const ok = !this.check(tool, h.x, h.y);
+      const cfg = this.cfgFor(tool);
+      this.drawGhost(ctx, tool, this.rot, cfg, h.x, h.y, ok, t);
+      // pris
+      if (s >= 24) {
+        ctx.font = '800 12px "Segoe UI", system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = ok ? '#ffd23f' : '#ff4d6d';
+        ctx.fillText(`${MACHINES[tool].cost} ◉`, cam.sx((h.x + 0.5) * TILE), cam.sy(h.y * TILE) - 6);
+        ctx.textAlign = 'start';
+      }
+    } else if (h && tool === 'delete') {
+      const b = g.factory.get(h.x, h.y);
+      ctx.fillStyle = b ? 'rgba(255,77,109,.3)' : 'rgba(255,77,109,.1)';
+      ctx.strokeStyle = 'rgba(255,77,109,.9)';
+      ctx.lineWidth = 2;
+      roundRect(ctx, cam.sx(h.x * TILE) + 1, cam.sy(h.y * TILE) + 1, s - 2, s - 2, s * 0.16);
+      ctx.fill();
+      ctx.stroke();
+    } else if (h && tool === 'paste' && this.clip) {
+      for (const c of this.clipPlaced(h.x, h.y)) {
+        const ok = g.factory.inBounds(c.x, c.y) && !g.factory.get(c.x, c.y);
+        this.drawGhost(ctx, c.t, c.r, c.c, c.x, c.y, ok, t);
+      }
+    } else if (h && !tool && !this.touchMode && this.mode !== 'pan') {
+      ctx.strokeStyle = 'rgba(255,255,255,.18)';
+      ctx.lineWidth = 1.5;
+      roundRect(ctx, cam.sx(h.x * TILE) + 1, cam.sy(h.y * TILE) + 1, s - 2, s - 2, s * 0.16);
+      ctx.stroke();
+    }
+    if (this.sel) {
+      const sl = this.sel;
+      const x0 = Math.min(sl.x0, sl.x1), x1 = Math.max(sl.x0, sl.x1) + 1, y0 = Math.min(sl.y0, sl.y1), y1 = Math.max(sl.y0, sl.y1) + 1;
+      const px = cam.sx(x0 * TILE), py = cam.sy(y0 * TILE);
+      ctx.fillStyle = 'rgba(54,226,255,.08)';
+      ctx.fillRect(px, py, (x1 - x0) * s, (y1 - y0) * s);
+      ctx.strokeStyle = '#36e2ff';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 6]);
+      ctx.lineDashOffset = -t * 24;
+      ctx.strokeRect(px, py, (x1 - x0) * s, (y1 - y0) * s);
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(54,226,255,.18)';
+      for (const b of this.selBuildings()) ctx.fillRect(cam.sx(b.x * TILE) + 2, cam.sy(b.y * TILE) + 2, s - 4, s - 4);
+    }
+  }
+}
+</script>
+
+<script>
+'use strict';
+// =========================
+// UI
+// =========================
+const LOGO_SVG = `<defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#36e2ff"/><stop offset="1" stop-color="#ff4fd8"/></linearGradient></defs>
+<path d="M32 4 56.2 18v28L32 60 7.8 46V18z" fill="rgba(13,18,36,.9)" stroke="url(#lg1)" stroke-width="3.2" stroke-linejoin="round"/>
+<path d="M32 15v17h17A17 17 0 0 0 32 15z" fill="#36e2ff"/>
+<path d="M32 32h17L32 49z" fill="#ff4fd8"/>
+<path d="M32 49V32H15z" fill="#ffd23f"/>
+<path d="M15 32h17V15H15z" fill="#3ddc84" transform="rotate(0)"/>
+<path d="M32 15v34M15 32h34" stroke="#070a14" stroke-width="2.2"/>`;
+const COIN_SVG = `<circle cx="12" cy="12" r="10" fill="#ffd23f"/><circle cx="12" cy="12" r="7.2" fill="none" stroke="#b8860b" stroke-width="1.6"/><path d="M12 6.8 16.5 12 12 17.2 7.5 12z" fill="#b8860b"/>`;
+
+/** level hvor en ting låses op (1 = fra start) */
+function unlockLevelOf(id) {
+  if (START_UNLOCKS.includes(id)) return 1;
+  const i = LEVELS.findIndex((l) => l.unlock.includes(id));
+  return i < 0 ? 99 : i + 2;
+}
+function unlockLabel(id) {
+  if (id.startsWith('shape:')) return { icon: 'shape', name: 'Ny form: ' + SHAPE_TYPES[id.slice(6)].name, desc: 'Kan nu vælges i Generatoren.' };
+  if (id.startsWith('color:')) return { icon: 'color', name: 'Ny farve: ' + COLORS[id.slice(6)].name, desc: 'Kan nu bruges i Painteren og Sorteren.' };
+  return { icon: 'machine', name: MACHINES[id].name, desc: MACHINES[id].desc };
+}
+
+class UI {
+  constructor(game) {
+    this.g = game;
+    this.selected = null;
+    this.modalOpen = false;
+    this.t = 0;
+    this.tutT = 0;
+    $$('[data-logo]').forEach((s) => (s.innerHTML = LOGO_SVG));
+    $$('[data-coin]').forEach((s) => (s.innerHTML = COIN_SVG));
+    this.bind();
+  }
+  bind() {
+    const g = this.g;
+    const on = (id, fn) => $(id).addEventListener('click', (e) => { g.audio.init(); fn(e); });
+    on('#btn-orders', () => this.openMissions());
+    on('#tb-mission', () => this.openMissions());
+    on('#btn-stats', () => this.openStats());
+    on('#btn-upgrades', () => this.openUpgrades());
+    on('#btn-ach', () => this.openAchievements());
+    on('#btn-menu', () => this.openMenuModal());
+    on('#tool-rotate', () => g.input.rotate(false));
+    on('#tool-select', () => g.input.setTool('select'));
+    on('#tool-delete', () => g.input.setTool('delete'));
+    on('#tool-pipette', () => g.ui.toast('💧', 'Pipette', 'Hold musen over en maskine og tryk Q', 'cyan', 2));
+    on('#tool-undo', () => g.history.undo());
+    on('#tool-redo', () => g.history.redo());
+    on('#tool-center', () => g.centerCamera());
+    on('#tool-cancel', () => {
+      const i = g.input;
+      if (i.tool) i.setTool(null);
+      else if (i.sel) { i.sel = null; this.refreshTools(); }
+      else this.select(null);
+    });
+    on('#modal-x', () => this.closeModal());
+    $('#modal-back').addEventListener('pointerdown', (e) => { if (e.target.id === 'modal-back' && !this.modalLocked) this.closeModal(); });
+    // menu
+    on('#m-continue', () => g.enterGame());
+    on('#m-new', () => this.confirm('Start nyt spil?', 'Din nuværende fabrik, dine coins og din progression bliver slettet. Det kan ikke fortrydes.', 'Start forfra', () => g.newGame(), true));
+    on('#m-upgrades', () => this.openUpgrades());
+    on('#m-ach', () => this.openAchievements());
+    on('#m-settings', () => this.openSettings());
+  }
+
+  /* ---------- toasts ---------- */
+  toast(icon, title, sub, cls = '', life = 3.2) {
+    const el = document.createElement('div');
+    el.className = 'toast ' + cls;
+    el.style.setProperty('--life', life + 's');
+    el.innerHTML = `<div class="ti">${icon}</div><div><b>${esc(title)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</div>`;
+    const box = $('#toasts');
+    box.appendChild(el);
+    while (box.children.length > 4) box.firstChild.remove();
+    setTimeout(() => el.remove(), (life + 0.5) * 1000);
+  }
+
+  /* ---------- byggemenu ---------- */
+  buildList() {
+    const g = this.g;
+    const list = $('#build-list');
+    list.innerHTML = '';
+    let key = 0;
+    for (const type of BUILD_ORDER) {
+      const d = MACHINES[type];
+      const unlocked = g.unlocked.has(type);
+      const btn = document.createElement('button');
+      btn.className = 'bitem' + (unlocked ? '' : ' locked') + (g.state.seenNew.includes(type) ? ' new' : '');
+      btn.dataset.type = type;
+      const k = unlocked && key < 10 ? (key + 1) % 10 : null;
+      if (unlocked) key++;
+      btn.innerHTML = `<canvas width="72" height="72"></canvas><div class="bn"><b>${esc(d.short)}</b><small>${unlocked ? '◉ ' + d.cost : '🔒 Level ' + unlockLevelOf(type)}</small></div>${k !== null ? `<span class="key">${k}</span>` : ''}`;
+      btn.title = unlocked ? `${d.name} – ${d.desc}` : `${d.name} låses op i level ${unlockLevelOf(type)}`;
+      if (unlocked) btn.addEventListener('click', () => { g.audio.init(); g.input.setTool(type); });
+      list.appendChild(btn);
+      paintMachineCanvas(btn.querySelector('canvas'), type, g.input.cfgFor(type));
+    }
+    this.refreshTools();
+  }
+  refreshTools() {
+    const i = this.g.input;
+    $$('.bitem').forEach((b) => {
+      b.classList.toggle('sel', b.dataset.type === i.tool);
+      if (b.dataset.type === i.tool) b.classList.remove('new');
+    });
+    $('#tool-select').classList.toggle('on', i.tool === 'select');
+    $('#tool-delete').classList.toggle('on', i.tool === 'delete');
+    $('#rot-ind').textContent = DIR_ARROW[i.tool === 'paste' ? i.pasteRot : i.rot];
+    $('#tool-undo').disabled = false;
+    // hint
+    const t = i.tool;
+    let h;
+    if (!t) h = 'Klik på en maskine for info · <b>Træk</b> for at flytte kameraet · <b>1–0</b> vælg maskine';
+    else if (t === 'conveyor') h = '<b>Træk</b> for at bygge bånd · <b>R</b> rotér · højreklik annullerer';
+    else if (t === 'delete') h = '<b>Klik/træk</b> for at slette · <b>Esc</b> stop';
+    else if (t === 'select') h = '<b>Træk</b> for at markere · <b>Ctrl+C</b> kopiér · <b>Ctrl+X</b> flyt · <b>Delete</b> slet';
+    else if (t === 'paste') h = '<b>Klik</b> for at indsætte · <b>R</b> rotér · <b>Esc</b> annullér';
+    else h = `<b>Klik</b> for at placere ${esc(MACHINES[t].name)} (◉ ${MACHINES[t].cost}) · <b>R</b> rotér ${DIR_ARROW[i.rot]} · <b>Q</b> kopiér maskine`;
+    $('#hint').innerHTML = h;
+    $('#hint').classList.toggle('hidden', !this.g.state.settings.hints);
+    // markerings-/indsæt-bar
+    const bar = $('#selbar');
+    if (t === 'paste' && i.clip) {
+      const cost = i.clip.reduce((n, c) => n + MACHINES[c.t].cost, 0);
+      bar.innerHTML = `<span>Indsætter ${i.clip.length} bygninger · ◉ ${fmt(cost)}</span><button class="btn sm" data-a="rot">↻ Rotér</button><button class="btn sm" data-a="x">✕</button>`;
+      bar.classList.remove('hidden');
+    } else if (i.sel && i.mode !== 'select' && i.selBuildings().length) {
+      bar.innerHTML = `<span>${i.selBuildings().length} markeret</span><button class="btn sm" data-a="copy">📋 Kopiér</button><button class="btn sm" data-a="cut">✂ Flyt</button><button class="btn sm danger" data-a="del">🗑 Slet</button><button class="btn sm" data-a="x">✕</button>`;
+      bar.classList.remove('hidden');
+    } else bar.classList.add('hidden');
+    bar.querySelectorAll('[data-a]').forEach((b) => b.addEventListener('click', () => {
+      const a = b.dataset.a;
+      if (a === 'rot') i.rotate(false);
+      else if (a === 'copy') i.copySel(false);
+      else if (a === 'cut') i.copySel(true);
+      else if (a === 'del') i.deleteSel();
+      else { i.sel = null; if (i.tool === 'paste' || i.tool === 'select') i.setTool(null); }
+      this.refreshTools();
+    }));
+  }
+
+  /* ---------- topbar ---------- */
+  refreshTop() {
+    const g = this.g, st = g.state;
+    $('#tb-level').textContent = st.level;
+    $('#tb-rank').textContent = 'RANG ' + st.rank;
+    $('#tb-xp').style.width = Math.min(100, (st.xp / xpForRank(st.rank)) * 100) + '%';
+    $('#tb-coins').textContent = fmt(st.coins);
+    $('#tb-income').textContent = '+' + fmt(g.incomePerMin()) + ' / min';
+    const m = g.missions;
+    const goal = m.goal;
+    if (this._goalKey !== goal.key) {
+      this._goalKey = goal.key;
+      paintShapeCanvas($('#mission-icon'), goal);
+    }
+    $('#mission-label').textContent = 'MISSION · LEVEL ' + st.level;
+    $('#mission-title').textContent = `Lever: ${goal.describe()}`;
+    $('#mission-bar').style.width = (st.progress / m.required) * 100 + '%';
+    $('#mission-count').textContent = `${fmt(st.progress)}/${fmt(m.required)}`;
+    $('#orders-dot').classList.toggle('hidden', !st.orders.some((o) => !o.done && o.got === 0) || st.level < ORDERS_FROM_LEVEL);
+  }
+
+  /* ---------- infopanel ---------- */
+  select(b) {
+    this.selected = b || null;
+    const p = $('#infopanel');
+    if (!b) { p.classList.add('hidden'); p.innerHTML = ''; return; }
+    p.classList.remove('hidden');
+    this.renderInfo();
+  }
+  speedText(b) {
+    const g = this.g;
+    if (b.type === 'conveyor') return fmtDec(g.upg.beltSpeed() * 2, 1) + '/s';
+    if (b.type === 'output' || b.type === 'trash' || b.type === 'crossing') return '∞';
+    if (b.type === 'storage') return fmtDec(1 / b.duration(), 1) + '/s';
+    return fmtDec(1 / b.duration(), 2) + '/s';
+  }
+  renderInfo() {
+    const b = this.selected, g = this.g;
+    if (!b) return;
+    const d = b.def;
+    const p = $('#infopanel');
+    const inN = b.type === 'conveyor' ? '3 sider' : d.inputs ? d.inputs.length : b.type === 'output' || b.type === 'trash' ? 'Alle' : b.type === 'crossing' ? '4' : 0;
+    const outN = b.type === 'conveyor' ? 1 : d.outputs ? d.outputs.length : b.type === 'crossing' ? '4' : 0;
+    const machine = b.type !== 'conveyor';
+    const canUp = machine && b.lvl < MAX_MACHINE_LVL && !['output', 'trash', 'crossing'].includes(b.type);
+    const upCost = this.mkCost(b);
+    let cfg = '';
+    const sh = (list, key, cur) => `<div class="opts">${list.map((s) => `<button class="opt ${cur === s ? 'sel' : ''}" data-cfg="${key}" data-v="${s}" title="${SHAPE_TYPES[s].name}"><canvas width="60" height="60" data-shape="${s}"></canvas></button>`).join('')}</div>`;
+    const cl = (list, key, cur) => `<div class="opts">${list.map((c) => `<button class="opt sw ${cur === c ? 'sel' : ''}" data-cfg="${key}" data-v="${c}" title="${COLORS[c].name}" style="background:${COLORS[c].hex}"></button>`).join('')}</div>`;
+    const shapes = SHAPE_ORDER.filter((s) => g.unlocked.has('shape:' + s));
+    const colors = COLOR_ORDER.filter((c) => g.unlocked.has('color:' + c));
+    if (b.type === 'generator') cfg = `<div class="ip-sec"><h4>FORM</h4>${sh(shapes, 'shape', b.cfg.shape)}</div>`;
+    if (b.type === 'morpher') cfg = `<div class="ip-sec"><h4>FORVANDL TIL</h4>${sh(SHAPE_ORDER.filter((s) => g.unlocked.has('shape:' + s) || s === 'H'), 'shape', b.cfg.shape)}</div>`;
+    if (b.type === 'painter') cfg = `<div class="ip-sec"><h4>FARVE</h4>${cl(colors, 'color', b.cfg.color)}</div>`;
+    if (b.type === 'rotator') cfg = `<div class="ip-sec"><h4>RETNING</h4><div class="opts"><button class="opt ${!b.cfg.ccw ? 'sel' : ''}" data-cfg="ccw" data-v="0">↻ Med uret</button><button class="opt ${b.cfg.ccw ? 'sel' : ''}" data-cfg="ccw" data-v="1">↺ Mod uret</button></div></div>`;
+    if (b.type === 'sorter') {
+      cfg = `<div class="ip-sec"><h4>FILTER</h4><div class="opts" style="margin-bottom:8px"><button class="opt ${b.cfg.mode !== 'color' ? 'sel' : ''}" data-cfg="mode" data-v="shape">Form</button><button class="opt ${b.cfg.mode === 'color' ? 'sel' : ''}" data-cfg="mode" data-v="color" ${colors.length ? '' : 'disabled'}>Farve</button></div>
+        ${b.cfg.mode === 'color' ? cl(['u'].concat(colors), 'v', b.cfg.v) : sh(shapes, 'v', b.cfg.v)}<p class="ip-desc" style="margin-top:6px">Match → lige ud · resten → til højre</p></div>`;
+    }
+    p.innerHTML = `
+      <div class="ip-head"><canvas width="104" height="104" id="ip-icon"></canvas><div><h3>${esc(d.name.toUpperCase())}</h3><small>${machine ? 'Mk ' + ['I', 'II', 'III'][b.lvl - 1] + ' · ' : ''}felt ${b.x}, ${b.y}</small></div><button class="x" data-a="close">✕</button></div>
+      <div class="ip-status" id="ip-st"></div>
+      <div class="ip-grid">
+        <div><small>Hastighed</small><b id="ip-speed">${this.speedText(b)}</b></div>
+        <div><small>Effektivitet</small><b id="ip-eff">–</b></div>
+        <div><small>Input</small><b>${inN}</b></div>
+        <div><small>Output</small><b>${outN}</b></div>
+        ${b.type === 'storage' ? '<div style="grid-column:1/-1"><small>Lager</small><b id="ip-store">–</b></div>' : ''}
+      </div>
+      <div class="ip-held" id="ip-held"></div>
+      <p class="ip-desc">${esc(d.desc)}</p>
+      ${cfg}
+      <div class="ip-actions">
+        ${canUp ? `<button class="btn gold sm wide" data-a="up" ${g.state.coins < upCost ? 'disabled' : ''}>⬆ OPGRADÉR TIL MK ${['II', 'III'][b.lvl - 1]} · ◉ ${fmt(upCost)}</button>` : machine && b.lvl >= MAX_MACHINE_LVL ? '<button class="btn sm wide" disabled>✔ MAKS NIVEAU</button>' : ''}
+        <button class="btn sm" data-a="rot">↻ ROTÉR</button>
+        <button class="btn sm" data-a="off">${b.off ? '⏻ TÆND' : '⏻ SLUK'}</button>
+        <button class="btn sm danger wide" data-a="del">🗑 FJERN (+◉ ${fmt(b.inv)})</button>
+      </div>`;
+    paintMachineCanvas($('#ip-icon'), b.type, b.cfg);
+    p.querySelectorAll('canvas[data-shape]').forEach((c) => paintShapeCanvas(c, Shape.full(c.dataset.shape, 'w')));
+    p.querySelectorAll('[data-cfg]').forEach((el) => el.addEventListener('click', () => {
+      const k = el.dataset.cfg;
+      let v = el.dataset.v;
+      if (k === 'ccw') v = v === '1';
+      b.cfg[k] = v;
+      if (k === 'mode') b.cfg.v = v === 'color' ? (colors[0] || 'u') : 'C';
+      g.state.lastCfg[b.type] = Object.assign({}, b.cfg);
+      g.audio.play('click');
+      this.renderInfo();
+      this.buildList();
+    }));
+    p.querySelectorAll('[data-a]').forEach((el) => el.addEventListener('click', () => {
+      const a = el.dataset.a;
+      if (a === 'close') this.select(null);
+      else if (a === 'rot') g.input.rotate(false);
+      else if (a === 'del') g.input.eraseAt(b.x, b.y);
+      else if (a === 'off') {
+        const dd = b.serialize();
+        if (b.off) delete dd.o; else dd.o = 1;
+        g.history.set(b.x, b.y, dd);
+        g.audio.play('click');
+      } else if (a === 'up') {
+        const dd = b.serialize();
+        dd.l = b.lvl + 1;
+        dd.i = b.inv + upCost;
+        if (g.history.set(b.x, b.y, dd)) {
+          g.audio.play('upgrade');
+          g.renderer.spark(b.x, b.y, '#ffd23f', 14);
+          if (b.lvl >= 3) g.stats.mk3++;
+        } else g.input.error('Ikke nok GrejsCoins');
+      }
+      if (this.selected) this.renderInfo();
+    }));
+    this.updateInfo();
+  }
+  mkCost(b) { return Math.max(30, Math.round(b.def.cost * 3 * b.lvl)); }
+  updateInfo() {
+    const b = this.selected;
+    if (!b) return;
+    const st = $('#ip-st');
+    if (!st) return;
+    st.className = 'ip-status st-' + b.status;
+    st.innerHTML = `<i></i>${esc(b.statusLabel)}`;
+    $('#ip-eff').textContent = b.type === 'conveyor' ? Math.round((b.items.length / 2) * 100) + '%' : Math.round(b.util * 100) + '%';
+    if (b.type === 'storage') $('#ip-store').textContent = `${b.store.length} / ${b.capacity()}`;
+    const held = b.heldShapes().slice(0, 6);
+    const key = held.map((s) => s.key).join(',');
+    const box = $('#ip-held');
+    if (box.dataset.k !== key) {
+      box.dataset.k = key;
+      box.innerHTML = held.length ? '<span>Indhold:</span>' + held.map(() => '<canvas width="64" height="64"></canvas>').join('') : '';
+      box.querySelectorAll('canvas').forEach((c, i) => paintShapeCanvas(c, held[i]));
+    }
+  }
+
+  /* ---------- modal ---------- */
+  modal(title, body, opts = {}) {
+    $('#modal-title').textContent = title;
+    const m = $('#modal');
+    m.className = 'panel ' + (opts.size || '');
+    const b = $('#modal-body');
+    b.innerHTML = '';
+    if (typeof body === 'string') b.innerHTML = body; else b.appendChild(body);
+    const foot = $('#modal-foot');
+    foot.innerHTML = '';
+    foot.classList.toggle('hidden', !opts.buttons);
+    for (const bt of opts.buttons || []) {
+      const el = document.createElement('button');
+      el.className = 'btn ' + (bt.cls || '');
+      el.textContent = bt.label;
+      el.addEventListener('click', () => { this.g.audio.play('click'); if (bt.fn() !== false) this.closeModal(); });
+      foot.appendChild(el);
+    }
+    this.modalLocked = !!opts.locked;
+    $('#modal-x').classList.toggle('hidden', !!opts.locked);
+    $('#modal-back').classList.remove('hidden');
+    this.modalOpen = true;
+    this.onClose = opts.onClose || null;
+    b.scrollTop = 0;
+    return b;
+  }
+  closeModal() {
+    $('#modal-back').classList.add('hidden');
+    this.modalOpen = false;
+    clearInterval(this._modalTimer);
+    const f = this.onClose;
+    this.onClose = null;
+    if (f) f();
+  }
+  confirm(title, text, ok, fn, danger) {
+    this.modal(title, `<p>${text}</p>`, { size: 'narrow', buttons: [{ label: 'Annullér', fn: () => {} }, { label: ok, cls: danger ? 'danger' : 'primary', fn }] });
+  }
+
+  openMissions() {
+    const g = this.g, st = g.state, m = g.missions;
+    const def = m.levelDef();
+    const goal = m.goal;
+    const next = st.level <= LEVELS.length ? def.unlock.map(unlockLabel) : [];
+    const html = `
+      <div class="m-sec"><h3>AKTUEL MISSION · LEVEL ${st.level}</h3>
+        <div class="mission-card"><canvas width="192" height="192" id="mm-goal"></canvas><div class="mb">
+          <h3>${esc(goal.describe())}</h3>
+          <div class="mbar"><i style="width:${(st.progress / m.required) * 100}%"></i></div>
+          <div class="recipe"><b style="color:var(--text)">${fmt(st.progress)} / ${fmt(m.required)}</b> leveret · værdi ◉ ${fmtDec(goal.value * g.upg.outputMult() * 1.5, 1)} pr. stk. (mission-bonus ×1,5)</div>
+          <div class="rw"><span class="chip g">◉ ${fmt(def.coins)}</span><span class="chip m">+${fmt(Math.round(def.coins * 0.3))} XP</span>${next.map((u) => `<span class="chip c">🔓 ${esc(u.name)}</span>`).join('')}</div>
+          <div class="recipe">💡 ${esc(def.tip)}</div>
+        </div></div></div>
+      <div class="m-sec"><h3>ORDRER</h3>${st.level < ORDERS_FROM_LEVEL ? '<p>Ordrer låses op i level ' + ORDERS_FROM_LEVEL + '. De giver ekstra GrejsCoins for bestemte figurer.</p>' : '<div class="orders" id="mm-orders"></div>'}</div>
+      <div class="m-sec"><h3>MILESTONES</h3><div class="bn-list">${MILESTONES.map((ms) => `<div class="bn-row" style="color:${st.ms[ms.n] ? 'var(--gold)' : 'var(--dim)'}"><i></i><b style="color:var(--text)">${fmt(ms.n)} figurer produceret</b><span>${st.ms[ms.n] ? '✔' : fmt(Math.min(g.stats.delivered, ms.n)) + ' / ' + fmt(ms.n)} · ◉ ${fmt(ms.coins)}</span></div>`).join('')}</div></div>`;
+    const body = this.modal('MISSIONER', html, { size: 'wide' });
+    paintShapeCanvas($('#mm-goal', body), goal);
+    const box = $('#mm-orders', body);
+    if (box) {
+      st.orders.forEach((o, i) => {
+        const s = Shape.get(o.key);
+        const el = document.createElement('div');
+        el.className = 'order';
+        el.innerHTML = `<div class="oh"><canvas width="108" height="108"></canvas><div><b>${esc(s.describe())}</b><div class="recipe">${o.done ? '✔ Fuldført' : `${fmt(o.got)} / ${fmt(o.n)}`}</div></div></div>
+          <div class="mbar"><i style="width:${(o.got / o.n) * 100}%"></i></div>
+          <div class="row"><span class="chip g">◉ ${fmt(o.coins)}</span><button class="btn sm" ${o.done ? 'disabled' : ''} title="Byt ordren ud">↻ Ny (◉ 25)</button></div>`;
+        paintShapeCanvas(el.querySelector('canvas'), s);
+        el.querySelector('button').addEventListener('click', () => {
+          if (!g.spend(25)) return g.input.error('Ikke nok GrejsCoins');
+          m.rerollOrder(i);
+          this.openMissions();
+        });
+        box.appendChild(el);
+      });
+    }
+  }
+
+  openUpgrades() {
+    const g = this.g;
+    const render = () => {
+      const body = this.modal('OPGRADERINGER', `<p style="margin-bottom:14px">Brug dine GrejsCoins på permanente forbedringer af hele fabrikken. Du har <b class="coin">◉ ${fmt(g.state.coins)}</b>.</p><div class="upg-grid" id="upg"></div>
+        <p style="margin-top:14px;font-size:12.5px">Tip: Enkelte maskiner kan også opgraderes til Mk II og Mk III – klik på maskinen i fabrikken.</p>`, { size: 'wide' });
+      const box = $('#upg', body);
+      for (const u of UPGRADE_DEFS) {
+        const l = g.upg.lvl(u.id), max = g.upg.isMax(u.id), cost = g.upg.cost(u.id);
+        const el = document.createElement('div');
+        el.className = 'upg';
+        el.innerHTML = `<div class="uh"><div class="ui">${u.icon}</div><div><h4>${esc(u.name)}</h4><small class="chip c">Level ${l} / ${MAX_UPG_LVL}</small></div></div>
+          <p>${esc(u.desc)}</p>
+          <div class="pips">${Array.from({ length: MAX_UPG_LVL }, (_, i) => `<i class="${i < l ? 'on' : ''}"></i>`).join('')}</div>
+          <div class="uv">Nu: ${u.val(l)}${max ? '' : `<br>Næste: ${u.val(l + 1)}`}</div>
+          <button class="btn ${max ? '' : 'gold'}" ${max || g.state.coins < cost ? 'disabled' : ''}>${max ? '✔ MAKS' : `OPGRADÉR · ◉ ${fmt(cost)}`}</button>`;
+        el.querySelector('button').addEventListener('click', () => {
+          if (g.upg.buy(u.id)) {
+            g.audio.play('upgrade');
+            this.toast(u.icon, u.name + ' opgraderet', 'Level ' + g.upg.lvl(u.id), 'gold', 2);
+            g.checkAchievements();
+            render();
+          } else g.input.error('Ikke nok GrejsCoins');
+        });
+        box.appendChild(el);
+      }
+    };
+    render();
+  }
+
+  openAchievements() {
+    const g = this.g;
+    const done = ACHIEVEMENTS.filter((a) => g.state.ach[a.id]).length;
+    const html = `<div class="ach-sum"><b>${done} / ${ACHIEVEMENTS.length}</b><div class="mbar"><i style="width:${(done / ACHIEVEMENTS.length) * 100}%"></i></div></div>
+      <div class="ach-grid">${ACHIEVEMENTS.map((a) => `<div class="ach ${g.state.ach[a.id] ? 'done' : ''}"><div class="ai">${a.icon}</div><div><b>${esc(a.name)}</b><p>${esc(a.desc)}</p><small>${a.coins ? '◉ ' + fmt(a.coins) : ''}${a.coins && a.xp ? ' · ' : ''}${a.xp ? '+' + fmt(a.xp) + ' XP' : ''}</small></div></div>`).join('')}</div>`;
+    this.modal('ACHIEVEMENTS', html, { size: 'wide' });
+  }
+
+  openStats() {
+    const g = this.g;
+    const render = () => {
+      const s = g.factorySummary();
+      const html = `<div class="stat-grid">
+          <div class="stat"><small>Produktion</small><b>${fmt(s.perMin)} / min</b></div>
+          <div class="stat"><small>Figurer genereret</small><b>${fmtDec(s.genPerSec, 1)} / sek</b></div>
+          <div class="stat"><small>Indtjening</small><b class="coin">+${fmt(s.income)} / min</b></div>
+          <div class="stat"><small>Maskinudnyttelse</small><b>${s.machineUtil}%</b><div class="sb"><i style="width:${s.machineUtil}%"></i></div></div>
+          <div class="stat"><small>Båndudnyttelse</small><b>${s.beltUtil}%</b><div class="sb"><i style="width:${s.beltUtil}%"></i></div></div>
+          <div class="stat"><small>Maskiner / bånd</small><b>${fmt(g.factory.machines.length)} / ${fmt(g.factory.belts.length)}</b></div>
+          <div class="stat"><small>Leveret i alt</small><b>${fmt(g.stats.delivered)}</b></div>
+          <div class="stat"><small>Tjent i alt</small><b class="coin">${fmt(g.stats.coinsEarned)}</b></div>
+          <div class="stat"><small>Spilletid</small><b>${fmtDuration(g.stats.playTime)}</b></div>
+        </div>
+        <div class="m-sec"><h3>LEVERINGER PR. SEKUND (SIDSTE 2 MIN)</h3><canvas class="spark" id="st-spark" width="1200" height="180"></canvas></div>
+        <div class="m-sec"><h3>FLASKEHALSE</h3><div class="bn-list">
+          <div class="bn-row" style="color:var(--green)"><i></i>Arbejder<span>${s.st.working}</span></div>
+          <div class="bn-row" style="color:var(--gold)"><i></i>Venter – output blokeret<span>${s.st.waiting}</span></div>
+          <div class="bn-row" style="color:var(--red)"><i></i>Mangler input<span>${s.st.noinput}</span></div>
+          <div class="bn-row" style="color:#6b7391"><i></i>Slukket<span>${s.st.off}</span></div>
+          <div class="bn-row" style="color:var(--gold)"><i></i>Blokerede bånd<span>${s.beltsBlocked}</span></div>
+        </div><p style="margin-top:10px;font-size:13px">${esc(s.advice)}</p></div>
+        <div class="m-sec"><h3>MEST LEVEREDE FIGURER</h3><div class="top-figs" id="st-top"></div></div>`;
+      const body = this.modal('FABRIKSSTATISTIK', html, { size: 'wide' });
+      const top = $('#st-top', body);
+      const keys = Object.entries(g.stats.keys).sort((a, b) => b[1] - a[1]).slice(0, 8);
+      if (!keys.length) top.innerHTML = '<p>Ingen leveringer endnu.</p>';
+      for (const [k, n] of keys) {
+        const el = document.createElement('div');
+        el.innerHTML = `<canvas width="64" height="64"></canvas>${fmt(n)}`;
+        el.title = Shape.get(k).describe();
+        paintShapeCanvas(el.querySelector('canvas'), Shape.get(k));
+        top.appendChild(el);
+      }
+      this.drawSpark($('#st-spark', body), g.series.del);
+    };
+    render();
+    clearInterval(this._modalTimer);
+    this._modalTimer = setInterval(() => { if (this.modalOpen && $('#st-spark')) { const y = $('#modal-body').scrollTop; render(); $('#modal-body').scrollTop = y; } }, 2000);
+  }
+  drawSpark(cv, data) {
+    const ctx = cv.getContext('2d');
+    const W = cv.width, H = cv.height;
+    ctx.clearRect(0, 0, W, H);
+    const n = 120;
+    const arr = data.slice(-n);
+    const max = Math.max(1, ...arr);
+    ctx.strokeStyle = 'rgba(120,160,255,.12)';
+    ctx.lineWidth = 1;
+    for (let i = 1; i < 4; i++) { ctx.beginPath(); ctx.moveTo(0, (H / 4) * i); ctx.lineTo(W, (H / 4) * i); ctx.stroke(); }
+    if (!arr.length) return;
+    const step = W / (n - 1);
+    const off = n - arr.length;
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, 'rgba(54,226,255,.45)');
+    grad.addColorStop(1, 'rgba(54,226,255,0)');
+    ctx.beginPath();
+    ctx.moveTo(off * step, H);
+    arr.forEach((v, i) => ctx.lineTo((off + i) * step, H - (v / max) * (H - 16) - 4));
+    ctx.lineTo(W, H);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.beginPath();
+    arr.forEach((v, i) => ctx.lineTo((off + i) * step, H - (v / max) * (H - 16) - 4));
+    ctx.strokeStyle = '#36e2ff';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = '#8d98bd';
+    ctx.font = '700 22px "Segoe UI", sans-serif';
+    ctx.fillText('maks ' + max + '/s', 12, 28);
+  }
+
+  settingsHTML() {
+    const s = this.g.state.settings;
+    const row = (k, title, sub) => `<div class="set-row"><div><b>${title}</b><small>${sub}</small></div><button class="toggle ${s[k] ? 'on' : ''}" data-set="${k}" aria-label="${title}"></button></div>`;
+    return row('sound', '🔊 Lyd', 'Lydeffekter ved bygning, levering og level up') + row('grid', '▦ Grid', 'Vis gitterlinjer på byggepladsen') + row('fx', '✨ Effekter', 'Partikler og flydende coin-tal') + row('hints', '💡 Tips', 'Vis hjælpetekst nederst på skærmen');
+  }
+  bindSettings(body) {
+    body.querySelectorAll('[data-set]').forEach((el) => el.addEventListener('click', () => {
+      const k = el.dataset.set;
+      this.g.state.settings[k] = !this.g.state.settings[k];
+      el.classList.toggle('on', this.g.state.settings[k]);
+      this.g.audio.play('click');
+      this.refreshTools();
+      this.g.saveNow();
+    }));
+  }
+  openSettings() {
+    const body = this.modal('INDSTILLINGER', `<div class="m-sec">${this.settingsHTML()}</div>${this.saveSectionHTML()}`, { size: 'narrow' });
+    this.bindSettings(body);
+    this.bindSaveSection(body);
+  }
+  saveSectionHTML() {
+    return `<div class="m-sec"><h3>GEMT SPIL</h3><p style="font-size:13px;margin-bottom:10px">Spillet gemmer automatisk i din browser. Du kan også tage en sikkerhedskopi med som fil.</p>
+      <div class="btn-row"><button class="btn sm" data-s="save">💾 GEM</button><button class="btn sm" data-s="load">📂 INDLÆS</button><button class="btn sm" data-s="export">⬇ EKSPORTÉR</button><button class="btn sm" data-s="import">⬆ IMPORTÉR</button><button class="btn sm danger" data-s="reset">⚠ NULSTIL</button></div>
+      <input type="file" accept=".json,application/json" class="hidden" data-file></div>`;
+  }
+  bindSaveSection(body) {
+    const g = this.g;
+    const file = body.querySelector('[data-file]');
+    body.querySelectorAll('[data-s]').forEach((el) => el.addEventListener('click', () => {
+      const a = el.dataset.s;
+      if (a === 'save') { g.saveNow(true); }
+      else if (a === 'load') this.confirm('Indlæs gemt spil?', 'Fabrikken genindlæses fra sidste gemte version. Ændringer siden sidste gem går tabt.', 'Indlæs', () => g.reloadFromSave());
+      else if (a === 'export') {
+        g.saveNow();
+        const blob = new Blob([g.saver.exportText()], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `grejsfigur-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        this.toast('⬇', 'Gemt fil eksporteret', link.download, 'cyan');
+      } else if (a === 'import') file.click();
+      else if (a === 'reset') this.confirm('Nulstil ALT?', 'Hele din fabrik, alle coins, levels, upgrades og achievements slettes permanent. Er du helt sikker?', 'Ja, slet alt', () => {
+        setTimeout(() => this.confirm('Sidste chance', 'Det kan IKKE fortrydes.', 'Nulstil', () => g.newGame(), true), 50);
+      }, true);
+    }));
+    file.addEventListener('change', () => {
+      const f = file.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = () => {
+        try {
+          g.saver.importText(String(r.result));
+          g.reloadFromSave();
+          this.toast('⬆', 'Gemt spil importeret', '', 'cyan');
+        } catch (e) { this.toast('⚠️', 'Kunne ikke importere', e.message, 'bad'); }
+      };
+      r.readAsText(f);
+    });
+  }
+  openMenuModal() {
+    const g = this.g;
+    const html = `<div class="btn-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn" data-m="missions">📋 Missioner</button><button class="btn" data-m="stats">📊 Statistik</button>
+        <button class="btn" data-m="upg">⬆️ Opgraderinger</button><button class="btn" data-m="ach">🏆 Achievements</button>
+        <button class="btn" data-m="help">❓ Hjælp & kontroller</button><button class="btn" data-m="main">🏠 Hovedmenu</button>
+      </div>
+      <div class="m-sec" style="margin-top:18px"><h3>INDSTILLINGER</h3>${this.settingsHTML()}</div>
+      ${this.saveSectionHTML()}
+      <div class="m-sec"><a class="btn sm" href="GREJSALLEY.html" style="text-decoration:none">← Tilbage til Grejs Alley</a></div>`;
+    const body = this.modal('MENU', html, { size: 'narrow' });
+    this.bindSettings(body);
+    this.bindSaveSection(body);
+    body.querySelectorAll('[data-m]').forEach((el) => el.addEventListener('click', () => {
+      const a = el.dataset.m;
+      if (a === 'missions') this.openMissions();
+      else if (a === 'stats') this.openStats();
+      else if (a === 'upg') this.openUpgrades();
+      else if (a === 'ach') this.openAchievements();
+      else if (a === 'help') this.openHelp();
+      else if (a === 'main') { this.closeModal(); g.toMenu(); }
+    }));
+  }
+  openHelp() {
+    this.modal('HJÆLP & KONTROLLER', `
+      <div class="m-sec"><h3>PC</h3><div class="help-list">
+        <kbd>WASD / pile</kbd><span>Flyt kameraet (Shift = hurtigere)</span>
+        <kbd>Mushjul</kbd><span>Zoom</span>
+        <kbd>Venstreklik</kbd><span>Vælg / placér. Træk for at bygge bånd eller flytte kameraet</span>
+        <kbd>Højreklik</kbd><span>Annullér værktøj · højreklik/træk uden værktøj sletter</span>
+        <kbd>Midterklik</kbd><span>Træk for at panorere</span>
+        <kbd>1 – 0</kbd><span>Vælg maskine</span>
+        <kbd>R</kbd><span>Rotér (Shift+R mod uret)</span>
+        <kbd>Q</kbd><span>Kopiér maskinen under musen (type, retning og indstilling)</span>
+        <kbd>E</kbd><span>Markér område – derefter Ctrl+C / Ctrl+X / Delete</span>
+        <kbd>Ctrl+V</kbd><span>Indsæt kopieret område</span>
+        <kbd>X</kbd><span>Sletteværktøj</span>
+        <kbd>Ctrl+Z / Ctrl+Y</kbd><span>Fortryd / gentag</span>
+        <kbd>Ctrl+S</kbd><span>Gem</span>
+        <kbd>Home</kbd><span>Centrér kameraet</span>
+        <kbd>Esc</kbd><span>Annullér / menu</span>
+      </div></div>
+      <div class="m-sec"><h3>MOBIL & TABLET</h3><div class="help-list">
+        <kbd>Tryk</kbd><span>Vælg maskine i bunden og tryk på kortet for at placere</span>
+        <kbd>Træk</kbd><span>Flyt kameraet – eller byg bånd, når Transportbånd er valgt</span>
+        <kbd>To fingre</kbd><span>Knib for at zoome, træk for at flytte</span>
+        <kbd>Knapper</kbd><span>Rotér, markér, slet, fortryd og annullér i højre side</span>
+      </div></div>
+      <div class="m-sec"><h3>SÅDAN VIRKER FIGURER</h3><p>En figur har 4 kvarte dele og op til 3 lag. Cutteren deler den i venstre og højre halvdel, Rotatoren drejer den 90°, Painteren farver den og Mergeren sætter to figurer sammen – passer halvdelene sammen bliver de til ét lag, ellers lægges toppen ovenpå som et nyt lag. Pilen på en maskine viser, hvor figurerne kommer ud, og de blå streger viser indgangene.</p></div>
+      <div class="m-sec"><h3>STATUSLYS</h3><div class="bn-list">
+        <div class="bn-row" style="color:var(--green)"><i></i>Arbejder</div>
+        <div class="bn-row" style="color:var(--gold)"><i></i>Venter – output er blokeret</div>
+        <div class="bn-row" style="color:var(--red)"><i></i>Mangler input</div>
+        <div class="bn-row" style="color:#6b7391"><i></i>Slukket</div>
+      </div></div>`, { size: 'narrow' });
+  }
+
+  showLevelComplete(lvl, def, unlocks) {
+    const g = this.g;
+    const next = g.missions.goal;
+    const html = `<div class="lc"><div class="burst">MISSION FULDFØRT</div><h2>LEVEL ${lvl} KLARET!</h2>
+      <div class="rewards"><span class="chip g">◉ +${fmt(def.coins)}</span><span class="chip m">+${fmt(Math.round(def.coins * 0.3))} XP</span></div>
+      ${unlocks.length ? `<div class="unlock-list">${unlocks.map((u, i) => `<div class="unl"><canvas width="104" height="104" data-u="${i}"></canvas><div><b>🔓 ${esc(u.label.name)}</b><p>${esc(u.label.desc)}</p></div></div>`).join('')}</div>` : ''}
+      <div class="m-sec" style="text-align:left"><h3>NÆSTE MISSION · LEVEL ${g.state.level}</h3><div class="mission-card"><canvas width="160" height="160" id="lc-next"></canvas><div class="mb"><h3>${esc(next.describe())}</h3><div class="recipe">Lever ${fmt(g.missions.required)} stk.</div><div class="recipe">💡 ${esc(g.missions.levelDef().tip)}</div></div></div></div></div>`;
+    const body = this.modal('LEVEL UP', html, { size: 'narrow', buttons: [{ label: 'Videre →', cls: 'primary', fn: () => {} }] });
+    unlocks.forEach((u, i) => {
+      const cv = body.querySelector(`[data-u="${i}"]`);
+      if (u.id.startsWith('shape:')) paintShapeCanvas(cv, Shape.full(u.id.slice(6), 'w'));
+      else if (u.id.startsWith('color:')) paintShapeCanvas(cv, Shape.full('C', u.id.slice(6)));
+      else paintMachineCanvas(cv, u.id);
+    });
+    paintShapeCanvas($('#lc-next', body), next);
+    this.confetti();
+  }
+  showOffline(info) {
+    const html = `<div class="lc"><div class="burst">VELKOMMEN TILBAGE</div><h2 style="font-size:28px">Din fabrik har arbejdet</h2>
+      <div class="offline-grid">
+        <div class="stat"><small>Sidst spillet</small><b>${fmtClock(info.from)}</b></div>
+        <div class="stat"><small>Du kom tilbage</small><b>${fmtClock(info.to)}</b></div>
+        <div class="stat"><small>Fabrikken kørte i</small><b>${fmtDuration(info.sec)}</b></div>
+        <div class="stat"><small>Produceret</small><b>${fmt(info.shapes)} figurer</b></div>
+      </div>
+      <p style="margin-top:16px">Indtjening</p><div class="offline-big">+${fmt(info.coins)} ◉</div>
+      ${info.capped ? '<p style="font-size:12px;margin-top:6px">AFK-produktion tæller højst 8 timer.</p>' : ''}</div>`;
+    this.modal('AFK-PRODUKTION', html, { size: 'narrow', buttons: [{ label: 'Hent indtjening', cls: 'gold', fn: () => { this.g.audio.play('coin'); } }] });
+  }
+
+  /* ---------- tutorial ---------- */
+  tutorialSteps() {
+    const g = this.g;
+    const cnt = (t) => (t === 'conveyor' ? g.factory.belts.length : g.factory.machines.filter((b) => b.type === t).length);
+    return [
+      { title: 'VELKOMMEN TIL GREJSFIGUR', text: 'Du skal bygge din første <b>automatiserede fabrik</b>, der producerer geometriske figurer. Følg trinene – det tager kun et minut.', btn: 'Kom i gang', check: () => cnt('generator') >= 1 },
+      { title: '1. Placér en Generator', text: 'Vælg <b>Generator</b> i byggemenuen (tast <kbd>2</kbd>) og klik på kortet. Tryk <kbd>R</kbd> for at dreje den – den farvede pil viser, hvor figurerne kommer ud.', check: () => cnt('generator') >= 1 },
+      { title: '2. Byg et transportbånd', text: 'Vælg <b>Transportbånd</b> (tast <kbd>1</kbd>) og <b>træk</b> fra generatorens udgang. Båndet følger musen og laver selv hjørner.', check: () => cnt('conveyor') >= 3 },
+      { title: '3. Placér en Levering', text: 'Vælg <b>Levering</b> (tast <kbd>3</kbd>) og sæt den for enden af båndet. Den tager imod figurer fra alle sider.', check: () => cnt('output') >= 1 },
+      { title: '4. Producer din første figur', text: 'Når en figur når leveringen, bliver den solgt for <b>GrejsCoins</b>. Klik på en maskine for at se dens status.', check: () => g.stats.delivered >= 1 },
+      { title: '5. Fuldfør Level 1', text: 'Lever <b>20 grå cirkler</b>. Din mission står øverst. Flere generatorer = hurtigere!', check: () => g.state.level >= 2 },
+      { title: 'Godt gået! 🎉', text: 'Nu kører det. Smarte tricks: <kbd>Q</kbd> kopierer en maskine, <kbd>E</kbd> markerer et område (<kbd>Ctrl+C</kbd>/<kbd>Ctrl+V</kbd>), højreklik sletter, <kbd>Ctrl+Z</kbd> fortryder. Hjulet zoomer og <kbd>WASD</kbd> flytter kameraet.', btn: 'Forstået' }
+    ];
+  }
+  renderTutorial() {
+    const g = this.g;
+    const steps = this.tutorialSteps();
+    const i = g.state.tut;
+    const box = $('#tutorial');
+    if (i >= steps.length) { box.classList.add('hidden'); return; }
+    const s = steps[i];
+    box.classList.remove('hidden');
+    box.innerHTML = `<h4>TUTORIAL · ${i + 1}/${steps.length}</h4><h3>${s.title}</h3><p>${s.text}</p>
+      <div class="steps">${steps.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>
+      <div class="row">${s.btn ? `<button class="btn sm primary" data-t="next">${s.btn}</button>` : ''}<button class="btn sm" data-t="skip">Spring over</button></div>`;
+    box.querySelectorAll('[data-t]').forEach((el) => el.addEventListener('click', () => {
+      g.state.tut = el.dataset.t === 'skip' ? steps.length : i + 1;
+      g.audio.play('click');
+      this.renderTutorial();
+    }));
+  }
+  checkTutorial() {
+    const steps = this.tutorialSteps();
+    const i = this.g.state.tut;
+    if (i >= steps.length) return;
+    const s = steps[i];
+    if (s.check && s.check()) {
+      this.g.state.tut++;
+      this.g.audio.play('select');
+      this.renderTutorial();
+    }
+  }
+
+  /* ---------- per-frame ---------- */
+  frame(dt) {
+    this.t += dt;
+    if (this.t >= 0.25) {
+      this.t = 0;
+      this.refreshTop();
+      if (this.selected && this.g.factory.get(this.selected.x, this.selected.y) !== this.selected) this.select(null);
+      this.updateInfo();
+    }
+    this.tutT += dt;
+    if (this.tutT > 0.5) { this.tutT = 0; this.checkTutorial(); }
+  }
+
+  /* ---------- konfetti ---------- */
+  confetti() {
+    if (!this.g.state.settings.fx) return;
+    const cv = $('#fx');
+    const ctx = cv.getContext('2d');
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = innerWidth * dpr;
+    cv.height = innerHeight * dpr;
+    const cols = ['#36e2ff', '#ff4fd8', '#ffd23f', '#3ddc84', '#b26bff', '#ff4d6d'];
+    const ps = Array.from({ length: 160 }, () => ({
+      x: innerWidth / 2 + (Math.random() - 0.5) * 120, y: innerHeight * 0.42,
+      vx: (Math.random() - 0.5) * 900, vy: -300 - Math.random() * 700, r: Math.random() * 6, vr: (Math.random() - 0.5) * 12,
+      s: 5 + Math.random() * 7, c: cols[(Math.random() * cols.length) | 0], k: (Math.random() * 3) | 0
+    }));
+    let last = performance.now(), life = 0;
+    const step = (ts) => {
+      const dt = Math.min(0.05, (ts - last) / 1000);
+      last = ts;
+      life += dt;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      for (const p of ps) {
+        p.vy += 900 * dt; p.vx *= 0.99;
+        p.x += p.vx * dt; p.y += p.vy * dt; p.r += p.vr * dt;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.r);
+        ctx.globalAlpha = Math.max(0, 1 - life / 3);
+        ctx.fillStyle = p.c;
+        if (p.k === 0) ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+        else if (p.k === 1) { ctx.beginPath(); ctx.arc(0, 0, p.s / 2.4, 0, Math.PI * 2); ctx.fill(); }
+        else { ctx.beginPath(); ctx.moveTo(0, -p.s / 2); ctx.lineTo(p.s / 2, p.s / 2); ctx.lineTo(-p.s / 2, p.s / 2); ctx.fill(); }
+        ctx.restore();
+      }
+      if (life < 3) requestAnimationFrame(step);
+      else ctx.clearRect(0, 0, innerWidth, innerHeight);
+    };
+    requestAnimationFrame(step);
+  }
+
+  /* ---------- startmenu ---------- */
+  showMenu() {
+    const g = this.g;
+    $('#menu').classList.remove('out');
+    $('#hud').classList.add('hidden');
+    const has = g.hasSave;
+    $('#m-continue').textContent = has ? '▶ FORTSÆT' : '▶ START SPIL';
+    $('#m-new').classList.toggle('hidden', !has);
+    $('#m-save').innerHTML = has ? `Level ${g.state.level} · ◉ ${fmt(g.state.coins)} · ${fmt(g.factory.count)} bygninger · gemt kl. ${fmtClock(g.state.t)}` : 'Byg • automatisér • optimér – din første fabrik venter.';
+    this.menuBg();
+  }
+  hideMenu() {
+    $('#menu').classList.add('out');
+    $('#hud').classList.remove('hidden');
+    cancelAnimationFrame(this._menuRaf);
+  }
+  menuBg() {
+    const cv = $('#menu-bg');
+    const ctx = cv.getContext('2d');
+    const keys = ['CrCrCrCr', 'SbSbSbSb', 'TyTyTyTy', 'DgDgDgDg', 'HpHpHpHp', 'CcCcSpSp', 'SrSr----', 'DwDwDwDw:CbCbCbCb', 'HyHyHyHy', 'TrTrCgCg', 'CpCp----:SySySySy', 'Hc----Hc'];
+    const items = Array.from({ length: 34 }, (_, i) => ({
+      s: Shape.get(keys[i % keys.length]), x: Math.random(), y: Math.random(), z: 0.3 + Math.random() * 0.9,
+      r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4, vy: 0.008 + Math.random() * 0.02
+    }));
+    let last = performance.now();
+    const step = (ts) => {
+      const dt = Math.min(0.05, (ts - last) / 1000);
+      last = ts;
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const W = innerWidth, H = innerHeight;
+      if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      // perspektiv-grid
+      ctx.strokeStyle = 'rgba(54,226,255,.07)';
+      ctx.lineWidth = 1;
+      const off = (ts / 40) % 60;
+      ctx.beginPath();
+      for (let y = H * 0.62 + off * 0.5; y < H; y += 30 + (y - H * 0.6) * 0.25) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+      for (let i = -12; i <= 12; i++) { ctx.moveTo(W / 2 + i * 30, H * 0.6); ctx.lineTo(W / 2 + i * 220, H); }
+      ctx.stroke();
+      for (const it of items) {
+        it.y -= it.vy * dt * it.z;
+        it.r += it.vr * dt;
+        if (it.y < -0.1) { it.y = 1.1; it.x = Math.random(); }
+        const size = 26 + it.z * 46;
+        ctx.save();
+        ctx.globalAlpha = 0.18 + it.z * 0.35;
+        ctx.translate(it.x * W, it.y * H);
+        ctx.rotate(it.r);
+        drawShape(ctx, it.s, 0, 0, size);
+        ctx.restore();
+      }
+      this._menuRaf = requestAnimationFrame(step);
+    };
+    cancelAnimationFrame(this._menuRaf);
+    this._menuRaf = requestAnimationFrame(step);
+  }
+}
+
+// =========================
+// GAME
+// =========================
+const STEP = 1 / 30;
+const OFFLINE_CAP = 8 * 3600;
+class Game {
+  constructor() {
+    this.camera = new Camera();
+    this.factory = new Factory(this);
+    this.upg = new UpgradeSystem(this);
+    this.missions = new MissionSystem(this);
+    this.saver = new SaveSystem(this);
+    this.audio = new AudioFX(this);
+    this.history = new History(this);
+    this.renderer = new Renderer(this, $('#game'));
+    this.applyLoaded(this.saver.load());
+    this.input = new Input(this);
+    this.ui = new UI(this);
+    this.started = false;
+    this.acc = 0;
+    this.secT = 0;
+    this.saveT = 0;
+    this.lastT = performance.now() / 1000;
+    this.coinFrac = 0;
+    window.addEventListener('resize', () => this.renderer.resize());
+    this.renderer.resize();
+    document.addEventListener('visibilitychange', () => this.onVisibility());
+    window.addEventListener('pagehide', () => this.saveNow());
+    window.addEventListener('beforeunload', () => this.saveNow());
+    this.ui.showMenu();
+    requestAnimationFrame((t) => this.loop(t));
+  }
+  applyLoaded({ state, stats, fresh }) {
+    this.state = state;
+    this.stats = stats;
+    this.hasSave = !fresh;
+    this.unlocked = new Set(state.unlocked);
+    this.factory.load(state.buildings);
+    this.state.buildings = [];
+    this.camera.x = state.cam.x || 0;
+    this.camera.y = state.cam.y || 0;
+    this.camera.z = clamp(state.cam.z || 1, 0.22, 3);
+    this.history.clear();
+    this.rate = { gen: 0, del: 0, coins: 0 };
+    this.series = { del: [], coins: [], gen: [] };
+    this.window = { t: 0, coins: 0, shapes: 0, keys: {} };
+    this.sessionT = 0;
+    this.lastInteract = now();
+    this.delSinceInteract = 0;
+    this.missions.refillOrders();
+  }
+
+  /* ---------- flow ---------- */
+  enterGame() {
+    this.audio.init();
+    this.ui.hideMenu();
+    this.ui.buildList();
+    this.ui.refreshTop();
+    this.ui.renderTutorial();
+    this.renderer.resize();
+    const wasStarted = this.hasSave;
+    this.started = true;
+    this.hasSave = true;
+    if (wasStarted) this.applyOffline(this.state.t);
+    this.state.t = Date.now();
+    this.saveNow();
+  }
+  toMenu() {
+    this.saveNow();
+    this.started = false;
+    this.ui.select(null);
+    this.ui.showMenu();
+  }
+  newGame() {
+    this.saver.reset();
+    this.applyLoaded({ state: defaultState(), stats: defaultStats(), fresh: true });
+    this.ui.select(null);
+    this.input.tool = null;
+    this.input.sel = null;
+    this.input.clip = null;
+    this.ui._goalKey = null;
+    this.ui.closeModal();
+    this.enterGame();
+  }
+  reloadFromSave() {
+    this.applyLoaded(this.saver.load());
+    this.ui.select(null);
+    this.ui._goalKey = null;
+    this.ui.buildList();
+    this.ui.refreshTop();
+    this.ui.renderTutorial();
+    this.toast('📂', 'Spil indlæst', `Level ${this.state.level}`);
+  }
+  toast(...a) { this.ui.toast(...a); }
+  saveNow(show) {
+    if (!this.started && !this.hasSave) return;
+    const ok = this.saver.save();
+    if (show) this.toast(ok ? '💾' : '⚠️', ok ? 'Spillet er gemt' : 'Kunne ikke gemme', ok ? fmtClock(Date.now()) : 'Browseren tillader ikke lokal lagring', ok ? 'cyan' : 'bad', 2);
+  }
+  centerCamera() {
+    const bs = Array.from(this.factory.map.values());
+    if (!bs.length) { this.camera.x = 0; this.camera.y = 0; return; }
+    this.camera.x = (bs.reduce((n, b) => n + b.x, 0) / bs.length + 0.5) * TILE;
+    this.camera.y = (bs.reduce((n, b) => n + b.y, 0) / bs.length + 0.5) * TILE;
+  }
+
+  /* ---------- økonomi ---------- */
+  spend(c) {
+    if (this.state.coins < c) return false;
+    this.state.coins -= c;
+    return true;
+  }
+  addCoins(c) {
+    this.state.coins += c;
+    this.stats.coinsEarned += c;
+  }
+  addXp(n) {
+    const st = this.state;
+    st.xp += n;
+    while (st.xp >= xpForRank(st.rank)) {
+      st.xp -= xpForRank(st.rank);
+      st.rank++;
+      const bonus = 40 * st.rank;
+      this.addCoins(bonus);
+      this.toast('🎖️', `Rang ${st.rank}!`, `Bonus ◉ ${fmt(bonus)}`, 'gold');
+      this.audio.play('ach');
+    }
+  }
+  /** sæt et felt til data (eller tom) og håndtér coins – bruges af History */
+  setTile(x, y, data) {
+    const f = this.factory;
+    const old = f.get(x, y);
+    const diff = invOf(data) - (old ? old.inv : 0);
+    if (diff > 0 && this.state.coins < diff) return false;
+    if (data && !this.unlocked.has(data.t)) return false;
+    this.state.coins -= diff;
+    if (old && data && old.type === data.t) {
+      // samme type: opdatér på stedet (bevar figurer på båndet)
+      old.r = data.r || 0;
+      old.cfg = Object.assign({}, old.def.cfg || {}, data.c || {});
+      old.lvl = data.l || 1;
+      old.off = !!data.o;
+      old.inv = invOf(data);
+      f.markDirty();
+      return true;
+    }
+    if (old) f.remove(x, y);
+    if (data) f.create(Object.assign({}, data, { x, y }));
+    return true;
+  }
+  onBuilt(type, x, y, quiet) {
+    this.stats.built++;
+    if (type === 'conveyor') this.stats.beltsBuilt++;
+    if (!quiet && type !== 'conveyor') this.renderer.spark(x, y, MACHINES[type].color, 10);
+    this.checkAchievements();
+  }
+  deliver(shape, out) {
+    const isGoal = !this.state.levelDone && shape.key === this.missions.levelDef().goal;
+    const coins = shape.value * this.upg.outputMult() * (isGoal ? 1.5 : 1);
+    this.addCoins(coins);
+    out.popCoins += coins;
+    const s = this.stats;
+    s.delivered++;
+    if (s.keys[shape.key] !== undefined || Object.keys(s.keys).length < 400) s.keys[shape.key] = (s.keys[shape.key] || 0) + 1;
+    if (shape.hasColor()) {
+      s.painted++;
+      for (const c of shape.colorSet()) if (!s.colors.includes(c)) s.colors.push(c);
+    }
+    if (shape.layers.length > s.maxLayers) s.maxLayers = shape.layers.length;
+    if (shape.hasShape('H')) s.hex++;
+    this.rate.del++;
+    this.rate.coins += coins;
+    const w = this.window;
+    w.coins += coins;
+    w.shapes++;
+    w.keys[shape.key] = (w.keys[shape.key] || 0) + 1;
+    this.delSinceInteract++;
+    this.addXp(shape.value * 0.5);
+    this.missions.onDeliver(shape);
+    this.audio.play('deliver');
+    if (Math.random() < 0.25) this.renderer.spark(out.x, out.y, '#ffd23f', 3);
+    this.checkMilestones();
+  }
+  completeLevel() {
+    const st = this.state;
+    if (!st.levelDone) return;
+    const lvl = st.level;
+    const def = this.missions.levelDef(lvl);
+    this.addCoins(def.coins);
+    this.addXp(Math.round(def.coins * 0.3));
+    const unlocks = [];
+    for (const id of def.unlock) {
+      if (this.unlocked.has(id)) continue;
+      this.unlocked.add(id);
+      unlocks.push({ id, label: unlockLabel(id) });
+      if (MACHINES[id]) st.seenNew.push(id);
+    }
+    st.level++;
+    st.progress = 0;
+    st.levelDone = false;
+    this.missions.refillOrders();
+    this.ui.buildList();
+    this.ui._goalKey = null;
+    this.ui.refreshTop();
+    this.audio.play('levelup');
+    this.ui.showLevelComplete(lvl, def, unlocks);
+    this.checkAchievements();
+    this.saveNow();
+  }
+  completeOrder(o) {
+    this.addCoins(o.coins);
+    this.addXp(o.xp);
+    this.stats.ordersDone++;
+    this.audio.play('mission');
+    this.toast('📋', 'Ordre leveret!', `${Shape.get(o.key).describe()} · ◉ +${fmt(o.coins)}`, 'gold');
+    setTimeout(() => { this.missions.refillOrders(); }, 1500);
+  }
+  checkMilestones() {
+    const st = this.state;
+    for (const m of MILESTONES) {
+      if (st.ms[m.n] || this.stats.delivered < m.n) continue;
+      st.ms[m.n] = 1;
+      this.addCoins(m.coins);
+      this.addXp(m.xp);
+      this.audio.play('mission');
+      this.toast('🏁', `MILESTONE: ${fmt(m.n)} figurer`, `◉ +${fmt(m.coins)} · +${fmt(m.xp)} XP`, 'gold', 4);
+    }
+  }
+  checkAchievements() {
+    const st = this.state;
+    for (const a of ACHIEVEMENTS) {
+      if (st.ach[a.id]) continue;
+      let ok = false;
+      try { ok = a.test(this); } catch (e) { ok = false; }
+      if (!ok) continue;
+      st.ach[a.id] = Date.now();
+      if (a.coins) this.addCoins(a.coins);
+      if (a.xp) this.addXp(a.xp);
+      this.audio.play('ach');
+      this.toast(a.icon, 'ACHIEVEMENT: ' + a.name, a.desc + (a.coins ? ` · ◉ +${fmt(a.coins)}` : ''), 'gold', 4);
+    }
+  }
+
+  /* ---------- statistik ---------- */
+  incomePerMin() { return this.series.coins.slice(-60).reduce((a, b) => a + b, 0); }
+  factorySummary() {
+    const f = this.factory;
+    const st = { working: 0, waiting: 0, noinput: 0, off: 0 };
+    let util = 0, n = 0;
+    for (const b of f.machines) {
+      if (b.type === 'output' || b.type === 'trash' || b.type === 'crossing') continue;
+      st[b.status] = (st[b.status] || 0) + 1;
+      util += b.util;
+      n++;
+    }
+    let used = 0, blocked = 0;
+    for (const b of f.belts) { if (b.items.length) used++; if (b.items.length && !b.moving) blocked++; }
+    const perMin = this.series.del.slice(-60).reduce((a, b) => a + b, 0);
+    const gl = this.series.gen.slice(-10);
+    const genPerSec = gl.length ? gl.reduce((a, b) => a + b, 0) / gl.length : 0;
+    let advice = 'Alt kører fint. Byg videre og udvid produktionen!';
+    if (!n) advice = 'Byg en generator, nogle transportbånd og en levering for at komme i gang.';
+    else if (st.waiting > n * 0.3) advice = `${st.waiting} maskiner venter, fordi deres output er blokeret. Byg flere leveringer, del strømmen med splittere eller opgradér båndhastigheden.`;
+    else if (st.noinput > n * 0.4) advice = `${st.noinput} maskiner mangler input. Byg flere generatorer eller opgradér produktionseffektiviteten.`;
+    else if (blocked > f.belts.length * 0.3) advice = 'Mange bånd står stille. Find maskinen for enden af køen – den er din flaskehals.';
+    return {
+      perMin, genPerSec, income: this.incomePerMin(), st,
+      machineUtil: n ? Math.round((util / n) * 100) : 0,
+      beltUtil: f.belts.length ? Math.round((used / f.belts.length) * 100) : 0,
+      beltsBlocked: blocked, advice
+    };
+  }
+  onSecond() {
+    const s = this.series;
+    s.del.push(this.rate.del);
+    s.coins.push(this.rate.coins);
+    s.gen.push(this.rate.gen);
+    for (const k in s) if (s[k].length > 120) s[k].shift();
+    this.rate = { gen: 0, del: 0, coins: 0 };
+    this.stats.playTime++;
+    this.sessionT++;
+    const minute = s.del.slice(-60).reduce((a, b) => a + b, 0);
+    if (minute > this.stats.bestMinute) this.stats.bestMinute = minute;
+    // automation: 5 min uden interaktion og 100 leveringer
+    if (!this.stats.automation && now() - this.lastInteract >= 300 && this.delSinceInteract >= 100) this.stats.automation = 1;
+    // AFK-rater (målt over 60 sek.)
+    const w = this.window;
+    w.t++;
+    if (w.t >= 60) {
+      const r = this.state.rates;
+      r.coins = w.coins / w.t;
+      r.shapes = w.shapes / w.t;
+      r.keys = {};
+      for (const k in w.keys) r.keys[k] = w.keys[k] / w.t;
+      this.window = { t: 0, coins: 0, shapes: 0, keys: {} };
+    }
+    if (this.sessionT % 2 === 0) this.checkAchievements();
+    this.saveT++;
+    if (this.saveT >= 20) { this.saveT = 0; this.saveNow(); }
+  }
+  /** AFK-produktion beregnet ud fra målte rater */
+  applyOffline(fromT) {
+    const to = Date.now();
+    const raw = (to - fromT) / 1000;
+    const r = this.state.rates;
+    if (raw < 60 || !(r.coins > 0)) return;
+    const sec = Math.min(raw, OFFLINE_CAP);
+    const shapes = Math.floor(r.shapes * sec);
+    const coins = Math.floor(r.coins * sec);
+    if (shapes <= 0 && coins <= 0) return;
+    this.addCoins(coins);
+    this.stats.delivered += shapes;
+    this.addXp(coins * 0.3);
+    for (const k in r.keys) {
+      if (!Shape.valid(k)) continue;
+      const n = Math.floor(r.keys[k] * sec);
+      if (n > 0) this.missions.onDeliver(Shape.get(k), n);
+    }
+    this.stats.afk++;
+    this.checkMilestones();
+    this.checkAchievements();
+    this.ui.showOffline({ from: fromT, to, sec, shapes, coins, capped: raw > OFFLINE_CAP });
+  }
+  onVisibility() {
+    if (!this.started) return;
+    if (document.hidden) {
+      this.saveNow();
+      this.hiddenAt = Date.now();
+    } else if (this.hiddenAt) {
+      const from = this.hiddenAt;
+      this.hiddenAt = 0;
+      this.applyOffline(from);
+      this.lastT = performance.now() / 1000;
+    }
+  }
+
+  /* ---------- loop ---------- */
+  loop(ts) {
+    const t = ts / 1000;
+    const dt = Math.min(0.1, t - this.lastT);
+    this.lastT = t;
+    if (this.started) {
+      this.acc += dt;
+      let n = 0;
+      while (this.acc >= STEP && n < 6) { this.factory.update(STEP); this.acc -= STEP; n++; }
+      if (n >= 6) this.acc = 0;
+      this.secT += dt;
+      while (this.secT >= 1) { this.secT -= 1; this.onSecond(); }
+      this.input.update(dt);
+      this.renderer.render(dt, t);
+      this.ui.frame(dt);
+    }
+    requestAnimationFrame((tt) => this.loop(tt));
+  }
+}
+
+// =========================
+// BOOT
+// =========================
+window.addEventListener('DOMContentLoaded', () => {
+  window.GF = new Game();
+});
+</script>
+</body>
+</html>
