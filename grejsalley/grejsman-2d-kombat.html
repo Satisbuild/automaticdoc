@@ -166,6 +166,23 @@ a.btn{text-decoration:none;color:inherit}
 .vsline{display:flex;align-items:center;gap:14px;font-family:var(--head);font-size:clamp(18px,2.4vw,30px);letter-spacing:.08em}
 .vsline .p1n{color:var(--red);text-shadow:0 0 12px var(--red)}.vsline .p2n{color:var(--cyan);text-shadow:0 0 12px var(--cyan)}
 .vsline .vs{font-size:.8em;color:var(--gold)}
+/* calm, simple look for the character select screen */
+body:not(.in-game) #scr-select{background:#0c0a14!important}
+#scr-select .shead h2{transform:none;text-shadow:none;font-size:clamp(24px,2.6vw,34px);letter-spacing:.12em}
+#scr-select .ccard{background:#16131f;border:2px solid #26222f;border-radius:10px}
+#scr-select .ccard .nm{background:none;padding:6px;font-size:14px;color:#e8e4f0}
+#scr-select .ccard .bar2{display:none}
+#scr-select .ccard:hover{transform:none;border-color:#4a4458}
+#scr-select .ccard.sel1{border-color:var(--red);box-shadow:none;transform:none}
+#scr-select .ccard.sel2{border-color:var(--cyan);box-shadow:none}
+#scr-select .ccard.sel1.sel2{box-shadow:none;border-color:#fff}
+#scr-select .ccard.locked{filter:none;opacity:.45}
+#scr-select .ccard .lock{background:none;font-size:22px}
+#scr-select .ccard .lock small{display:none}
+#scr-select .cinfo{background:#14111c;border-color:#26222f}
+#scr-select .cinfo .pv{background:#1b1826}
+#scr-select .cname{transform:none;font-size:clamp(26px,2.6vw,36px)}
+#scr-select .vsline .p1n,#scr-select .vsline .p2n{text-shadow:none}
 
 /* ---------- ARENA SELECT ---------- */
 .agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
@@ -395,9 +412,9 @@ body.overlay-screen #trainPanel,#pause:not(.hidden) ~ #trainPanel{display:none}
       <div class="panel"><h4>QUICK CONTROLS</h4>
         <div style="font-size:12px;line-height:2;color:var(--dim)">
           <span class="kbd">W</span><span class="kbd">A</span><span class="kbd">S</span><span class="kbd">D</span> move · jump · block<br>
-          <span class="kbd">F</span> attack &nbsp;<span class="kbd">G</span> special &nbsp;<span class="kbd">H</span> heavy<br>
-          <span class="kbd">S</span>+<span class="kbd">F</span> uppercut &nbsp;<span class="kbd">S</span>+<span class="kbd">G</span> SUPER<br>
-          <span class="kbd">G</span><span class="kbd">G</span> breaker (when hit) · <span class="kbd">ESC</span> pause
+          <span class="kbd">F</span> attack &nbsp;<span class="kbd">0</span> special &nbsp;<span class="kbd">H</span> heavy<br>
+          <span class="kbd">S</span>+<span class="kbd">F</span> uppercut &nbsp;<span class="kbd">S</span>+<span class="kbd">0</span> SUPER<br>
+          <span class="kbd">0</span><span class="kbd">0</span> breaker (when hit) · <span class="kbd">ESC</span> pause
         </div>
       </div>
     </aside>
@@ -594,7 +611,7 @@ class Hitbox {
 
 /* ===================== SAVE MANAGER ===================== */
 const DEFAULT_KEYS = {
-  p1: { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', attack: 'KeyF', special: 'KeyG', heavy: 'KeyH' },
+  p1: { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', attack: 'KeyF', special: 'Digit0', heavy: 'KeyH' },
   p2: { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', attack: 'Numpad1', special: 'Numpad2', heavy: 'Numpad3' }
 };
 const RANKS = ['ROOKIE', 'STREET BRAWLER', 'FIGHTER', 'VETERAN', 'ELITE', 'CHAMPION', 'MASTER', 'LEGEND', 'GRANDMASTER', 'GREJSMAN'];
@@ -620,7 +637,9 @@ class SaveManager {
     try {
       const raw = localStorage.getItem(this.key);
       if (!raw) return this.defaults();
-      return deepMerge(this.defaults(), JSON.parse(raw));
+      const d = deepMerge(this.defaults(), JSON.parse(raw));
+      if (!d.keysV2) { d.keysV2 = true; if (d.controls.p1.special === 'KeyG') d.controls.p1.special = 'Digit0'; } // special moved from G to 0
+      return d;
     } catch (e) { return this.defaults(); }
   }
   save() { try { localStorage.setItem(this.key, JSON.stringify(this.data)); } catch (e) { /* storage full or blocked */ } }
@@ -831,7 +850,7 @@ class InputManager {
     window.addEventListener('blur', () => { this.held.clear(); this.touchHeld = {}; });
   }
   refreshGameKeys() {
-    this.gameKeys = new Set(['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab']);
+    this.gameKeys = new Set(['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Numpad0']);
     const b = SAVE.data.controls; for (const p of ['p1', 'p2']) for (const a of ACTIONS) this.gameKeys.add(b[p][a]);
   }
   onDown(e) {
@@ -849,6 +868,7 @@ class InputManager {
       let h = this.held.has(b[a]), p = this.latched.has(b[a]);
       if (useAlt) for (const c of P1_ALT[a]) { if (this.held.has(c)) h = true; if (this.latched.has(c)) p = true; }
       if (slot === 'p1') { if (this.touchHeld[a]) h = true; if (this.touchLatched[a]) p = true; }
+      if (slot === 'p1' && a === 'special' && b.special === 'Digit0') { if (this.held.has('Numpad0')) h = true; if (this.latched.has('Numpad0')) p = true; } // numpad 0 works too
       held[a] = h; pressed[a] = p;
     }
     return { held, pressed };
@@ -1470,8 +1490,8 @@ const MODIFIERS = {
 /* Character move list helper for UI */
 function moveList(c) {
   return [
-    [c.sp1.name, 'G'], [c.sp2.name, '← + G'], ['SUPER: ' + c.sup.name, '↓ + G (full)'],
-    ['HEAVY ' + c.heavy.toUpperCase(), 'H'], ['UPPERCUT', '↓ + F'], ['COMBO', 'F F F → H'], ['AERIAL', 'AIR + F'], ['BREAKER', 'G G (in combo)']
+    [c.sp1.name, '0'], [c.sp2.name, '← + 0'], ['SUPER: ' + c.sup.name, '↓ + 0 (full)'],
+    ['HEAVY ' + c.heavy.toUpperCase(), 'H'], ['UPPERCUT', '↓ + F'], ['COMBO', 'F F F → H'], ['AERIAL', 'AIR + F'], ['BREAKER', '0 0 (in combo)']
   ];
 }
 </script>
@@ -3511,10 +3531,9 @@ const UI = {
       const card = el('div', 'ccard'); card.tabIndex = 0; card.dataset.id = c.id;
       const cv = document.createElement('canvas'); cv.width = 150; cv.height = 200;
       const x = cv.getContext('2d'); const L = lookFor(c, SAVE.equipped(c.id));
-      const bg = x.createLinearGradient(0, 0, 0, 200); bg.addColorStop(0, rgba(L.glow, 0.35)); bg.addColorStop(1, 'rgba(0,0,0,.6)'); x.fillStyle = bg; x.fillRect(0, 0, 150, 200);
-      x.fillStyle = rgba(L.glow, 0.25); x.font = '120px Impact'; x.textAlign = 'center'; x.fillText(c.name[0], 75, 130);
       const locked = !SAVE.isUnlocked(c.id);
-      drawFigure(x, L, P({ aF1: 1.1, aF2: 2.6 }), { x: 72, y: 186, dir: 1, scale: 1.05 * (0.8 + c.scale * 0.2) / c.scale * c.scale, t: 0, glow: true, silhouette: locked ? '#05030a' : null });
+      drawFigure(x, L, P({ aF1: 1.1, aF2: 2.6 }), { x: 72, y: 158, dir: 1, scale: 0.88 * (0.8 + c.scale * 0.2) / c.scale * c.scale, t: 0, silhouette: locked ? '#3a3546' : null });
+      if (locked) card.title = c.unlock.text + (c.unlock.cost ? ` / ${fmt(c.unlock.cost)} coins` : '');
       card.appendChild(cv);
       card.appendChild(el('div', 'bar2', '')).style.background = L.glow;
       card.appendChild(el('div', 'nm', locked ? '???' : c.name));
@@ -3960,7 +3979,7 @@ const UI = {
         card('COUNTER STANCE', 'JONES COUNTER', 'Hit Jones during his counter stance and he punishes you hard. Projectiles go straight through it.'),
         card('PROJECTILES', 'CLASH', 'Projectiles cancel each other out. Jump, block or back-dash through them.'),
         card('MODIFIERS', 'LOW GRAVITY · CHAOS …', 'Random Fight and Versus can add modifiers: low gravity, double stamina, super damage, fast fight, no block — or CHAOS that changes every 20 seconds.'),
-        card('2 PLAYER DEFAULTS', `P1: ${K('KeyW')}${K('KeyA')}${K('KeyS')}${K('KeyD')} ${K('KeyF')}${K('KeyG')}${K('KeyH')}`, `P2: ${keyName(SAVE.data.controls.p2.up)} ${keyName(SAVE.data.controls.p2.left)} ${keyName(SAVE.data.controls.p2.down)} ${keyName(SAVE.data.controls.p2.right)} + ${keyName(SAVE.data.controls.p2.attack)} / ${keyName(SAVE.data.controls.p2.special)} / ${keyName(SAVE.data.controls.p2.heavy)}. Rebind everything in Settings → Key Bindings.`)
+        card('2 PLAYER DEFAULTS', `P1: ${K('KeyW')}${K('KeyA')}${K('KeyS')}${K('KeyD')} ${K('KeyF')}${K('Digit0')}${K('KeyH')}`, `P2: ${keyName(SAVE.data.controls.p2.up)} ${keyName(SAVE.data.controls.p2.left)} ${keyName(SAVE.data.controls.p2.down)} ${keyName(SAVE.data.controls.p2.right)} + ${keyName(SAVE.data.controls.p2.attack)} / ${keyName(SAVE.data.controls.p2.special)} / ${keyName(SAVE.data.controls.p2.heavy)}. Rebind everything in Settings → Key Bindings.`)
       ],
       modes: [
         card('STORY', '1 PLAYER', 'Fight through 7 random challengers and the final boss. Clear it for a big coin bonus and an unlock.'),
