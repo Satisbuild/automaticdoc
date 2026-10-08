@@ -945,12 +945,77 @@ const ATK_POSES = {
   splash: { wind: P({ aF1: 2.8, aF2: 3.0, aB1: 2.7, aB2: 3.0, lF1: 0.9, lF2: 0.1 }), hit: P({ lean: 1.2, aF1: 2.0, aF2: 2.1, aB1: 1.9, aB2: 2.0, lF1: -0.3, lF2: -0.6, lB1: -0.6, lB2: -0.9 }) }
 };
 
-/* Draw a limb as a stroked 3-point line */
+/* Light comes from the front-top in figure-local space (x = facing direction) */
+const LIGHT_X = 0.5, LIGHT_Y = -0.86;
+/* unit normal of segment a→b that faces the light */
+function litNormal(a, b) {
+  const dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy) || 1;
+  let nx = -dy / l, ny = dx / l;
+  if (nx * LIGHT_X + ny * LIGHT_Y < 0) { nx = -nx; ny = -ny; }
+  return { x: nx, y: ny };
+}
+function seg(ctx, a, b, ox, oy) { ctx.moveTo(a.x + ox, a.y + oy); ctx.lineTo(b.x + ox, b.y + oy); }
+
+/* Draw a limb as two tapered, shaded segments (upper thicker than lower) */
 function strokeLimb(ctx, pts, color, w, outline) {
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y); ctx.lineTo(pts[1].x, pts[1].y); ctx.lineTo(pts[2].x, pts[2].y);
-  if (outline) { ctx.strokeStyle = outline; ctx.lineWidth = w + 3.5; ctx.stroke(); }
-  ctx.strokeStyle = color; ctx.lineWidth = w; ctx.stroke();
+  const w1 = w * 1.22, w2 = w * 0.96;
+  if (outline) {
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = w1 + 3.5; ctx.beginPath(); seg(ctx, pts[0], pts[1], 0, 0); ctx.stroke();
+    ctx.lineWidth = w2 + 3.5; ctx.beginPath(); seg(ctx, pts[1], pts[2], 0, 0); ctx.stroke();
+  }
+  ctx.strokeStyle = color;
+  ctx.lineWidth = w1; ctx.beginPath(); seg(ctx, pts[0], pts[1], 0, 0); ctx.stroke();
+  ctx.lineWidth = w2; ctx.beginPath(); seg(ctx, pts[1], pts[2], 0, 0); ctx.stroke();
+  if (!outline) return; // silhouettes stay flat
+  // shading: core shadow on the far side, specular streak on the lit side
+  const sb = ctx.shadowBlur; ctx.shadowBlur = 0;
+  const dark = shade(color, -0.35), lite = shade(color, 0.45);
+  for (let i = 0; i < 2; i++) {
+    const a = pts[i], b = pts[i + 1], ww = i ? w2 : w1, n = litNormal(a, b);
+    ctx.globalAlpha *= 0.45;
+    ctx.strokeStyle = dark; ctx.lineWidth = ww * 0.34; ctx.beginPath(); seg(ctx, a, b, -n.x * ww * 0.3, -n.y * ww * 0.3); ctx.stroke();
+    ctx.globalAlpha /= 0.45; ctx.globalAlpha *= 0.5;
+    ctx.strokeStyle = lite; ctx.lineWidth = ww * 0.18; ctx.beginPath(); seg(ctx, a, b, n.x * ww * 0.22, n.y * ww * 0.22); ctx.stroke();
+    ctx.globalAlpha /= 0.5;
+  }
+  ctx.shadowBlur = sb;
+}
+
+/* Shaped torso: hips → narrow waist → broad chest, gradient-lit with a neon rim */
+function drawTorso(ctx, J, L, C, tw, outline, s) {
+  const hx = J.hip.x, hy = J.hip.y, nx0 = J.neck.x, ny0 = J.neck.y;
+  const len = Math.hypot(nx0 - hx, ny0 - hy) || 1, ux = (nx0 - hx) / len, uy = (ny0 - hy) / len;
+  const px = -uy, py = ux; // perpendicular
+  const P = (k, w) => ({ x: hx + ux * len * k + px * w, y: hy + uy * len * k + py * w });
+  const prof = [[-0.06, 0.6], [0.12, 0.66], [0.4, 0.54], [0.72, 0.84], [0.92, 0.8], [1.08, 0.42]];
+  const left = prof.map(([k, w]) => P(k, w * tw)), right = prof.map(([k, w]) => P(k, -w * tw));
+  ctx.beginPath(); ctx.moveTo(left[0].x, left[0].y);
+  for (let i = 1; i < left.length; i++) { const a = left[i - 1], b = left[i]; ctx.quadraticCurveTo(a.x, a.y, (a.x + b.x) / 2, (a.y + b.y) / 2); }
+  const top = P(1.14, 0); ctx.quadraticCurveTo(left[5].x, left[5].y, top.x, top.y); ctx.quadraticCurveTo(right[5].x, right[5].y, (right[5].x + right[4].x) / 2, (right[5].y + right[4].y) / 2);
+  for (let i = right.length - 1; i > 0; i--) { const a = right[i], b = right[i - 1]; ctx.quadraticCurveTo(a.x, a.y, (a.x + b.x) / 2, (a.y + b.y) / 2); }
+  ctx.quadraticCurveTo(right[0].x, right[0].y, P(-0.1, 0).x, P(-0.1, 0).y); ctx.closePath();
+  if (outline) { ctx.strokeStyle = outline; ctx.lineWidth = 4; ctx.stroke(); }
+  const base = C(L.body);
+  if (!outline) { ctx.fillStyle = base; ctx.fill(); return; }
+  // lit side is whichever perpendicular faces the light
+  const lit = px * LIGHT_X + py * LIGHT_Y > 0 ? 1 : -1, mid = P(0.6, 0);
+  const g = ctx.createLinearGradient(mid.x + px * tw * 0.7 * lit, mid.y + py * tw * 0.7 * lit, mid.x - px * tw * 0.7 * lit, mid.y - py * tw * 0.7 * lit);
+  g.addColorStop(0, shade(base, 0.32)); g.addColorStop(0.35, base); g.addColorStop(1, shade(base, -0.45));
+  ctx.fillStyle = g; ctx.fill();
+  // chest plane highlight + ab shadow
+  const sb = ctx.shadowBlur; ctx.shadowBlur = 0;
+  ctx.save(); ctx.clip();
+  const ch = P(0.72, tw * 0.22 * lit);
+  const rg = ctx.createRadialGradient(ch.x, ch.y, 0, ch.x, ch.y, tw * 0.9); rg.addColorStop(0, 'rgba(255,255,255,.28)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = rg; ctx.fillRect(ch.x - tw, ch.y - tw, tw * 2, tw * 2);
+  const w0 = P(0.36, 0);
+  ctx.strokeStyle = 'rgba(0,0,0,.22)'; ctx.lineWidth = 2 * s; ctx.beginPath(); ctx.moveTo(w0.x + px * tw * 0.42, w0.y + py * tw * 0.42); ctx.quadraticCurveTo(P(0.3, 0).x, P(0.3, 0).y, w0.x - px * tw * 0.42, w0.y - py * tw * 0.42); ctx.stroke();
+  // rim light on the shadow side
+  ctx.strokeStyle = rgba(L.glow, 0.75); ctx.lineWidth = 2.2 * s; ctx.beginPath();
+  const rim = (lit > 0 ? right : left); ctx.moveTo(rim[1].x, rim[1].y); for (let i = 2; i < 5; i++) ctx.lineTo(rim[i].x, rim[i].y); ctx.stroke();
+  ctx.restore(); ctx.shadowBlur = sb;
 }
 
 function figureJoints(p, s) {
@@ -979,7 +1044,7 @@ function drawFigure(ctx, L, p, o) {
   ctx.translate(o.x, o.y); ctx.scale(dir, 1);
   if (p.rot) { ctx.translate(J.hip.x, J.hip.y); ctx.rotate(p.rot); ctx.translate(-J.hip.x, -J.hip.y); }
   if (o.alpha != null) ctx.globalAlpha *= o.alpha;
-  if (o.glow && !sil) { ctx.shadowColor = L.glow; ctx.shadowBlur = L.neon ? 18 : 11; }
+  if (o.glow && !sil) { ctx.shadowColor = L.glow; ctx.shadowBlur = L.neon ? 12 : 6; }
   const ex = L.extras || {};
   const wave = Math.sin(t * 0.25);
 
@@ -1005,7 +1070,7 @@ function drawFigure(ctx, L, p, o) {
   /* --- back limbs (darker) --- */
   const backC = C(shade(L.limb, -0.38));
   strokeLimb(ctx, J.lB, backC, lw, outline);
-  drawShoe(ctx, J.lB, C(shade(L.shoe || L.accent, -0.35)), s);
+  drawShoe(ctx, J.lB, C(shade(L.shoe || L.accent, -0.35)), s, outline);
   strokeLimb(ctx, J.aB, backC, lw * 0.9, outline);
   drawHand(ctx, J.aB[2], C(ex.gloves ? shade(L.accent, -0.3) : shade(L.limb, -0.38)), lw, outline);
   if (L.weapon === 'bat') drawWeapon(ctx, J.aB, L, C, s, outline);
@@ -1013,9 +1078,7 @@ function drawFigure(ctx, L, p, o) {
   /* --- torso --- */
   const tw = (L.torsoW || 15) * s;
   ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(J.hip.x, J.hip.y); ctx.lineTo(J.neck.x, J.neck.y);
-  if (outline) { ctx.strokeStyle = outline; ctx.lineWidth = tw + 4; ctx.stroke(); }
-  ctx.strokeStyle = C(L.body); ctx.lineWidth = tw; ctx.stroke();
+  drawTorso(ctx, J, L, C, tw, outline, s);
   if (ex.belly) { ctx.fillStyle = C(shade(L.body, 0.12)); ctx.beginPath(); const mx = lerp(J.hip.x, J.neck.x, 0.4), my = lerp(J.hip.y, J.neck.y, 0.4); ctx.ellipse(mx + 7 * s, my, 11 * s, 13 * s, p.lean, 0, TAU_); ctx.fill(); }
   if (!sil) { // jacket stripe + belt
     ctx.strokeStyle = C(L.accent); ctx.lineWidth = 2.5 * s;
@@ -1026,7 +1089,7 @@ function drawFigure(ctx, L, p, o) {
 
   /* --- front leg --- */
   strokeLimb(ctx, J.lF, C(L.limb), lw, outline);
-  drawShoe(ctx, J.lF, C(L.shoe || L.accent), s);
+  drawShoe(ctx, J.lF, C(L.shoe || L.accent), s, outline);
 
   /* --- head --- */
   drawHead(ctx, L, J.head.x, J.head.y, J.hr, J.ha, C, outline, t, sil);
@@ -1040,14 +1103,26 @@ function drawFigure(ctx, L, p, o) {
 }
 const TAU_ = Math.PI * 2;
 function drawHand(ctx, pt, color, lw, outline) {
-  ctx.beginPath(); ctx.arc(pt.x, pt.y, lw * 0.78, 0, TAU_);
+  const r = lw * 0.82;
+  ctx.beginPath(); ctx.arc(pt.x, pt.y, r, 0, TAU_);
   if (outline) { ctx.strokeStyle = outline; ctx.lineWidth = 2.5; ctx.stroke(); }
-  ctx.fillStyle = color; ctx.fill();
+  if (!outline) { ctx.fillStyle = color; ctx.fill(); return; }
+  const g = ctx.createRadialGradient(pt.x + r * 0.3, pt.y - r * 0.4, r * 0.1, pt.x, pt.y, r);
+  g.addColorStop(0, shade(color, 0.5)); g.addColorStop(0.5, color); g.addColorStop(1, shade(color, -0.4));
+  ctx.fillStyle = g; ctx.fill();
 }
-function drawShoe(ctx, leg, color, s) {
+function drawShoe(ctx, leg, color, s, outline) {
   const a = leg[1], b = leg[2]; const ang = Math.atan2(b.y - a.y, b.x - a.x) - Math.PI / 2;
   ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(ang);
-  ctx.fillStyle = color; ctx.beginPath(); ctx.ellipse(4 * s, 1 * s, 8 * s, 4.2 * s, 0, 0, TAU_); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-4 * s, 3.5 * s); ctx.lineTo(-4 * s, -2 * s); ctx.quadraticCurveTo(-3 * s, -5 * s, 3 * s, -4.5 * s);
+  ctx.quadraticCurveTo(12 * s, -3 * s, 13 * s, 1.5 * s); ctx.lineTo(13 * s, 3.5 * s); ctx.closePath();
+  if (outline) { ctx.strokeStyle = outline; ctx.lineWidth = 2.5; ctx.stroke(); }
+  ctx.fillStyle = color; ctx.fill();
+  if (outline) {
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillRect(-4 * s, 2 * s, 17 * s, 1.8 * s); // sole
+    ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.beginPath(); ctx.ellipse(4 * s, -2.6 * s, 4.5 * s, 1.2 * s, 0.1, 0, TAU_); ctx.fill();
+  }
   ctx.restore();
 }
 function drawWeapon(ctx, arm, L, C, s, outline) {
@@ -1106,6 +1181,15 @@ function drawHead(ctx, L, x, y, r, ang, C, outline, t, sil) {
   else ctx.arc(0, 0, r, 0, TAU_);
   if (outline) { ctx.strokeStyle = outline; ctx.lineWidth = 3.5; ctx.stroke(); }
   ctx.fillStyle = C(L.head); ctx.fill();
+  if (!sil) { // spherical shading + neon rim on the back of the head
+    const sb = ctx.shadowBlur; ctx.shadowBlur = 0;
+    ctx.save(); ctx.clip();
+    const g = ctx.createRadialGradient(r * 0.35, -r * 0.45, r * 0.05, r * 0.1, -r * 0.1, r * 1.45);
+    g.addColorStop(0, 'rgba(255,255,255,.42)'); g.addColorStop(0.35, 'rgba(255,255,255,0)'); g.addColorStop(0.75, 'rgba(0,0,0,.08)'); g.addColorStop(1, 'rgba(0,0,0,.45)');
+    ctx.fillStyle = g; ctx.fillRect(-r * 2, -r * 2, r * 4, r * 4);
+    ctx.strokeStyle = rgba(L.glow, 0.8); ctx.lineWidth = r * 0.16; ctx.beginPath(); ctx.arc(-r * 0.12, r * 0.02, r * 0.98, 1.9, 3.9); ctx.stroke();
+    ctx.restore(); ctx.shadowBlur = sb;
+  }
   if (sh === 'dino' && !sil) { // snout + teeth
     ctx.fillStyle = C(L.head); ctx.beginPath(); ctx.ellipse(r * 1.05, r * 0.35, r * 0.6, r * 0.42, 0, 0, TAU_); ctx.fill();
     ctx.fillStyle = C('#fff'); for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(r * (0.7 + i * 0.3), r * 0.55); ctx.lineTo(r * (0.82 + i * 0.3), r * 0.85); ctx.lineTo(r * (0.94 + i * 0.3), r * 0.55); ctx.fill(); }
@@ -1547,13 +1631,32 @@ class Arena {
     this.def = def; this.flash = 0; this.bolt = null; this.weatherP = [];
     this.layers = [];
     const r = mulberry32(hashStr(def.id));
-    const mk = (factor, fn) => {
+    // haze: distant layers are blurred slightly and tinted toward the arena light (aerial perspective)
+    const mk = (factor, fn, blur, haze) => {
       const w = Math.ceil(W + (WORLD_W - W) * factor) + 4;
-      const c = document.createElement('canvas'); c.width = w; c.height = H;
+      let c = document.createElement('canvas'); c.width = w; c.height = H;
       const x = c.getContext('2d'); if (fn) fn(x, w, H, r);
+      if (haze) {
+        x.globalCompositeOperation = 'source-atop';
+        const g = x.createLinearGradient(0, 0, 0, GROUND); g.addColorStop(0, rgba(def.light, haze * 0.25)); g.addColorStop(1, rgba(def.light, haze));
+        x.fillStyle = g; x.fillRect(0, 0, w, H);
+        x.fillStyle = `rgba(4,2,12,${haze * 1.4})`; x.fillRect(0, 0, w, H);
+        x.globalCompositeOperation = 'source-over';
+      }
+      if (blur) { const b = document.createElement('canvas'); b.width = w; b.height = H; const bx = b.getContext('2d'); bx.filter = `blur(${blur}px)`; bx.drawImage(c, 0, 0); c = b; }
       return { c, factor };
     };
-    this.layers.push(mk(0.06, def.sky), mk(0.22, def.far), mk(0.5, def.mid), mk(0.8, def.near));
+    this.layers.push(mk(0.06, def.sky), mk(0.22, def.far, 1.6, 0.22), mk(0.5, def.mid, 0.6, 0.1), mk(0.8, def.near));
+    // bloom strength: full in dark/neon arenas, faint in bright daylight ones so the sky doesn't blow out
+    const sc = document.createElement('canvas'); sc.width = 16; sc.height = 9; const sx = sc.getContext('2d');
+    sx.drawImage(this.layers[0].c, 0, 0, 16, 9); const px = sx.getImageData(0, 0, 16, 9).data; let lum = 0;
+    for (let i = 0; i < px.length; i += 4) lum += (px[i] * 0.3 + px[i + 1] * 0.59 + px[i + 2] * 0.11) / 255;
+    this.bloom = clamp(1.4 - (lum / 144) * 1.6, 0.25, 1);
+    // ground fog glow, baked once
+    this.fog = document.createElement('canvas'); this.fog.width = 4; this.fog.height = 260;
+    const fx = this.fog.getContext('2d'), fg = fx.createLinearGradient(0, 0, 0, 260);
+    fg.addColorStop(0, rgba(def.light, 0)); fg.addColorStop(0.75, rgba(def.light, 0.1)); fg.addColorStop(1, rgba(def.light, 0.22));
+    fx.fillStyle = fg; fx.fillRect(0, 0, 4, 260);
     this.initWeather();
   }
   initWeather() {
@@ -1578,12 +1681,16 @@ class Arena {
     for (const L of this.layers) ctx.drawImage(L.c, Math.round(-camX * L.factor), 0);
     if (this.def.dyn && SAVE.s.quality !== 'low') this.def.dyn(ctx, camX, t, this);
     else if (this.def.dyn && this.def.id === 'storm') this.def.dyn(ctx, camX, t, this);
+    if (SAVE.s.quality !== 'low') { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(this.fog, 0, GROUND - 260, W, 260); ctx.restore(); }
     this.drawFloor(ctx, camX, t);
   }
   drawFloor(ctx, camX, t) {
     const f = this.def.floor, top = GROUND - 2;
     const g = ctx.createLinearGradient(0, top, 0, H); g.addColorStop(0, f.top); g.addColorStop(1, f.bot);
     ctx.fillStyle = g; ctx.fillRect(0, top, W, H - top);
+    // glossy sheen: arena light bouncing off the floor near the horizon
+    const sh = ctx.createLinearGradient(0, top, 0, top + 46); sh.addColorStop(0, rgba(this.def.light, 0.28)); sh.addColorStop(1, rgba(this.def.light, 0));
+    ctx.fillStyle = sh; ctx.fillRect(0, top, W, 46);
     ctx.strokeStyle = f.line; ctx.lineWidth = 2; ctx.beginPath();
     const sp = 110, off = -(camX % sp);
     for (let x = off - sp * 6; x < W + sp * 6; x += sp) { ctx.moveTo(x, top); ctx.lineTo((x - W / 2) * 2.4 + W / 2, H); }
@@ -2346,9 +2453,11 @@ class Fighter {
 
   /* ---------------- render ---------------- */
   drawShadow(ctx) {
-    const h = clamp((GROUND - this.y) / 300, 0, 1);
-    ctx.fillStyle = `rgba(0,0,0,${0.45 * (1 - h * 0.6)})`;
-    ctx.beginPath(); ctx.ellipse(this.x, GROUND + 2, 38 * this.scale * (1 - h * 0.4), 7 * (1 - h * 0.4), 0, 0, TAU_); ctx.fill();
+    const h = clamp((GROUND - this.y) / 300, 0, 1), rw = 46 * this.scale * (1 - h * 0.4);
+    ctx.save(); ctx.translate(this.x, GROUND + 2); ctx.scale(1, 0.2);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rw);
+    g.addColorStop(0, `rgba(0,0,0,${0.7 * (1 - h * 0.6)})`); g.addColorStop(0.55, `rgba(0,0,0,${0.4 * (1 - h * 0.6)})`); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rw, 0, TAU_); ctx.fill(); ctx.restore();
   }
   draw(ctx, hq) {
     if (this.invis) return;
@@ -3030,6 +3139,7 @@ class Game {
   render() {
     const ctx = this.ctx, hq = SAVE.s.quality !== 'low';
     if (!this.arena || !this.f.length) return;
+    const k = this.res || 1; ctx.setTransform(k, 0, 0, k, 0, 0);
     ctx.save();
     const sx = this.shakeAmt ? rand(-this.shakeAmt, this.shakeAmt) : 0, sy = this.shakeAmt ? rand(-this.shakeAmt, this.shakeAmt) * 0.7 : 0;
     ctx.translate(sx, sy);
@@ -3037,6 +3147,7 @@ class Game {
     if (cine) { const k = Math.sin(Math.min(1, cine.t / cine.max) * Math.PI) * 0.12; const fx = cine.f.x - this.camX, fy = cine.f.y - 90; ctx.translate(fx, fy); ctx.scale(1 + k, 1 + k); ctx.translate(-fx, -fy); }
     this.arena.draw(ctx, this.camX, this.frame);
     if (cine) { ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(-50, -50, W + 100, H + 100); this.drawRays(ctx, cine.f.x - this.camX, cine.f.y - 90 * cine.f.scale, cine.f.look.glow); }
+    if (hq && !cine) this.drawReflections(ctx);
     ctx.save(); ctx.translate(-this.camX, 0);
     for (const f of this.f) f.drawShadow(ctx);
     this.fx.drawAfter(ctx);
@@ -3050,6 +3161,7 @@ class Game {
     this.arena.drawWeather(ctx, this.frame);
     if (this.fx.flash > 0) { ctx.fillStyle = rgba(this.fx.flashColor.startsWith('#') ? this.fx.flashColor : '#ffffff', Math.max(0, this.fx.flash) * 0.45); ctx.fillRect(-50, -50, W + 100, H + 100); }
     ctx.restore();
+    if (hq) this.postFx(ctx);
     // low-health vignette for player 1 in 1P modes
     const p1 = this.f[0];
     if (p1.hp < p1.maxHp * 0.25 && this.phase === 'fight' && !this.training && hq) { const a = 0.25 + Math.sin(this.frame * 0.12) * 0.12; const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, H * 0.9); g.addColorStop(0, 'rgba(255,0,0,0)'); g.addColorStop(1, `rgba(255,0,30,${a})`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
@@ -3058,6 +3170,33 @@ class Game {
     if (this.phase === 'intro') this.drawIntro(ctx);
     this.drawAnnounce(ctx);
     if (SAVE.s.fps) { ctx.font = '14px monospace'; ctx.fillStyle = '#0f0'; ctx.fillText(this.fps + ' FPS', 8, H - 8); }
+  }
+  /* mirrored fighters on the glossy floor, faded out with distance from the ground line */
+  drawReflections(ctx) {
+    const fh = H - GROUND;
+    if (!this.reflC) { this.reflC = document.createElement('canvas'); this.reflC.width = W; this.reflC.height = fh; this.reflX = this.reflC.getContext('2d'); }
+    const x = this.reflX; x.clearRect(0, 0, W, fh);
+    x.save(); x.translate(-this.camX, 0); x.scale(1, -1); x.translate(0, -GROUND); // y → GROUND - y
+    for (const f of this.f) if (!f.invis) drawFigure(x, f.look, f.pose, { x: f.x, y: f.y, dir: f.dir, scale: f.scale, t: f.t, flash: f.flash > 0 });
+    x.restore();
+    x.globalCompositeOperation = 'destination-in';
+    const g = x.createLinearGradient(0, 0, 0, fh); g.addColorStop(0, 'rgba(0,0,0,.42)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = g; x.fillRect(0, 0, W, fh); x.globalCompositeOperation = 'source-over';
+    ctx.drawImage(this.reflC, 0, GROUND);
+  }
+  /* bloom (bright areas bleed light) + lens vignette */
+  postFx(ctx) {
+    if (!this.bloomC) {
+      this.bloomC = document.createElement('canvas'); this.bloomC.width = W / 4; this.bloomC.height = H / 4; this.bloomX = this.bloomC.getContext('2d');
+      this.vigC = document.createElement('canvas'); this.vigC.width = W; this.vigC.height = H;
+      const v = this.vigC.getContext('2d'), g = v.createRadialGradient(W / 2, H * 0.45, H * 0.38, W / 2, H * 0.45, H * 1.05);
+      g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.55)'); v.fillStyle = g; v.fillRect(0, 0, W, H);
+    }
+    const b = this.bloomX;
+    b.globalCompositeOperation = 'copy'; b.filter = 'brightness(0.6) contrast(3) saturate(1.4) blur(3px)';
+    b.drawImage(this.cv, 0, 0, W / 4, H / 4); b.filter = 'none';
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.2 * this.arena.bloom; ctx.drawImage(this.bloomC, 0, 0, W, H); ctx.restore();
+    ctx.drawImage(this.vigC, 0, 0);
   }
   drawRays(ctx, x, y, color) {
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.translate(x, y); ctx.rotate(this.frame * 0.01);
@@ -3291,6 +3430,9 @@ const UI = {
     const cv = $('game'); const ww = window.innerWidth, wh = window.innerHeight;
     const s = Math.min(ww / W, wh / H);
     cv.style.width = Math.floor(W * s) + 'px'; cv.style.height = Math.floor(H * s) + 'px';
+    // render at the real on-screen pixel density (crisp on big / hi-dpi screens); LOW quality keeps 1280x720
+    const k = SAVE.s.quality === 'low' ? 1 : clamp(s * (window.devicePixelRatio || 1), 1, 2);
+    if (GAME.res !== k) { GAME.res = k; cv.width = Math.round(W * k); cv.height = Math.round(H * k); }
     MENU_BG.resize();
   },
   enter() {
@@ -3733,7 +3875,7 @@ const UI = {
     const v = panel('VIDEO & GAMEPLAY');
     toggle(v, 'SCREEN SHAKE', 'shake');
     seg(v, 'PARTICLES', 'particles', [['off', 'OFF'], ['low', 'LOW'], ['high', 'HIGH']], () => { if (GAME.arena) GAME.arena.initWeather(); });
-    seg(v, 'QUALITY', 'quality', [['low', 'LOW'], ['high', 'HIGH']]);
+    seg(v, 'QUALITY', 'quality', [['low', 'LOW'], ['high', 'HIGH']], () => this.resize());
     seg(v, 'DIFFICULTY', 'difficulty', Object.keys(DIFFS).map(k => [k, DIFFS[k].name]));
     toggle(v, 'SHOW FPS', 'fps');
     seg(v, 'TOUCH CONTROLS', 'touch', [['auto', 'AUTO'], ['on', 'ON'], ['off', 'OFF']], () => { if (GAME.running) this.updateTouch(GAME.cfg.mode); });
