@@ -305,9 +305,8 @@ function buildingIcon(t, lv, size) {
   const sp = t === 'wall' ? wallSprite(lv, 3) : spriteFor(t, lv, 3, true);
   const cv = document.createElement('canvas'); cv.width = size * 2; cv.height = Math.round(size * 1.4);
   const c = cv.getContext('2d');
-  // crop: ignore most of the shadow margin on the right
-  const sw = sp.w - 60, sc = Math.min(cv.width / sw, cv.height / sp.h) * 0.98;
-  c.drawImage(sp.cv, 0, 0, sw * sp.R, sp.cv.height, (cv.width - sw * sc) / 2, (cv.height - sp.h * sc) / 2, sw * sc, sp.h * sc);
+  const sc = Math.min(cv.width / sp.w, cv.height / sp.h) * 0.98;
+  c.drawImage(sp.cv, (cv.width - sp.w * sc) / 2, (cv.height - sp.h * sc) / 2, sp.w * sc, sp.h * sc);
   PORT.set(key, cv);
   return cv;
 }

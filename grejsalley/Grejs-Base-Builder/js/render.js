@@ -177,7 +177,7 @@ function prism(c, x0, y0, x1, y1, z0, z1, col, o) {
   if (o.topTex === 'plank') { c.save(); path(c, T); c.clip(); for (let u = x0 + 0.25; u < x1; u += 0.25) line(c, Pt(u, y0, z1), Pt(u, y1, z1), 'rgba(30,15,5,.2)'); c.restore(); }
   if (o.topTex === 'tiles') { c.save(); path(c, T); c.clip(); for (let u = x0 + 0.5; u < x1; u += 0.5) line(c, Pt(u, y0, z1), Pt(u, y1, z1), 'rgba(0,0,0,.14)'); for (let v = y0 + 0.5; v < y1; v += 0.5) line(c, Pt(x0, v, z1), Pt(x1, v, z1), 'rgba(0,0,0,.14)'); c.restore(); }
   c.lineJoin = 'round';
-  if (!o.noOutline) { poly(c, L, null, OUT, 1); poly(c, R, null, OUT, 1); poly(c, T, null, OUT, 1); }
+  if (!o.noOutline) { const oc = o.ol || OUT, lw = o.lw || 1; poly(c, L, null, oc, lw); poly(c, R, null, oc, lw); poly(c, T, null, oc, lw); }
   c.beginPath(); const a = Pt(x0, y1, z1), b = Pt(x1, y1, z1), d = Pt(x1, y0, z1);
   c.moveTo(a[0], a[1] + 0.8); c.lineTo(b[0], b[1] + 0.8); c.lineTo(d[0], d[1] + 0.8);
   c.strokeStyle = HI; c.lineWidth = 1; c.stroke();
