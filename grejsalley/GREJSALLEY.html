@@ -136,6 +136,7 @@
     border-bottom:1px solid var(--line);
   }
   .card .thumb canvas{width:100%;height:100%;image-rendering:pixelated}
+  .card .thumb img{width:100%;height:100%;object-fit:cover;display:block}
   .card .meta{padding:13px 14px 15px;display:flex;flex-direction:column;gap:5px}
   .card .name{font-weight:600;font-size:16px;letter-spacing:.2px}
   .card .lbl{font:500 10px/1 "DM Mono", monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--accent, var(--coral))}
@@ -841,7 +842,7 @@
     hint:"Sigt med mus / touch, klik for at skyde" });
 
   /* ---------------- GREJS BASE BUILDER (external page) ---------------- */
-  G({ id:"grejsbase", name:"Grejs Base Builder", tag:"arcade", href:"Grejs-Base-Builder/index.html", isNew:true,
+  G({ id:"grejsbase", name:"Grejs Base Builder", tag:"arcade", href:"Grejs-Base-Builder/index.html", img:"img/grejs-base-builder.jpg", isNew:true,
     desc:"Online multiplayer base-builder - byg din landsby, træn en hær, angrib rigtige spillere for loot og trofæer, og erobr 200 kampagnebaner i 20 verdener. Kræver konto. Opens in its own page.",
     hint:"Træk for at panorere · tap for at bygge og sætte tropper ind" });
 
@@ -1755,11 +1756,17 @@
       card.style.setProperty("--accent", TAGCOL[g.tag]);
 
       const thumb=document.createElement("div"); thumb.className="thumb";
-      const ic=document.createElement("canvas"); ic.width=240; ic.height=150;
-      const ictx=ic.getContext("2d");
-      ictx.fillStyle=COL.bg; ictx.fillRect(0,0,240,150);
-      ictx.save(); ictx.translate(45,0); icon(g.id, ictx, 150); ictx.restore();
-      thumb.appendChild(ic);
+      if(g.img){
+        // games with a cover picture show it instead of the drawn icon
+        const im=document.createElement("img"); im.src=g.img; im.alt=g.name; im.loading="lazy"; im.decoding="async";
+        thumb.appendChild(im);
+      } else {
+        const ic=document.createElement("canvas"); ic.width=240; ic.height=150;
+        const ictx=ic.getContext("2d");
+        ictx.fillStyle=COL.bg; ictx.fillRect(0,0,240,150);
+        ictx.save(); ictx.translate(45,0); icon(g.id, ictx, 150); ictx.restore();
+        thumb.appendChild(ic);
+      }
 
       const hi = +localStorage.getItem("pa_"+g.id) || 0;
       if(hi){
