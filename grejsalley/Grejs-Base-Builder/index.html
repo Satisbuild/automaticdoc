@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#20140b">
+<meta name="description" content="Grejs Base Builder - an online multiplayer base-building and PvP raiding game. Build your village, train an army, raid real players and conquer 200 campaign levels.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Grejs Base Builder</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2320140b'/%3E%3Cpath d='M32 8 56 22 56 44 32 58 8 44 8 22Z' fill='%236cbf4a' stroke='%23ffd23f' stroke-width='3'/%3E%3Cpath d='M20 40V28l12-8 12 8v12z' fill='%23c0392b'/%3E%3Crect x='27' y='32' width='10' height='9' fill='%23ffd23f'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!-- Grejs Base Builder - online base-building game. Backend: Grejs-Base.js in the Grejs backend. -->
+<canvas id="game"></canvas>
+
+<div id="loading">
+  <div class="logo"><div class="l1">GREJS</div><div class="l2">BASE BUILDER</div></div>
+  <div class="spin"></div>
+  <div id="loadMsg" class="h">Connecting to the Grejs server…</div>
+  <button id="loadRetry" class="btn hidden">RETRY</button>
+</div>
+
+<div id="auth" class="hidden">
+  <div class="logo"><div class="l1">GREJS</div><div class="l2">BASE BUILDER</div><div class="tag">Build. Raid. Conquer. Online with real players.</div></div>
+  <div id="authMain" class="auth-main">
+    <button class="btn big" data-auth="login">LOGIN</button>
+    <button class="btn big yellow" data-auth="register">CREATE ACCOUNT</button>
+  </div>
+  <div id="authLogin" class="modal auth-box hidden">
+    <div class="modal-head"><h2>LOGIN</h2><button class="btn xbtn" data-auth="back">✕</button></div>
+    <form class="modal-body" id="loginForm" autocomplete="on">
+      <div class="field"><label>Username or email</label><input name="login" autocomplete="username" required maxlength="254"></div>
+      <div class="field"><label>Password</label><input name="password" type="password" autocomplete="current-password" required maxlength="128"></div>
+      <label class="chk"><input type="checkbox" name="remember" checked> Keep me logged in on this device</label>
+      <div class="err" id="loginErr"></div>
+      <button class="btn big" type="submit">LOGIN</button>
+      <div class="note center">No account? <a href="#" data-auth="register" style="color:var(--gold)">Create one</a></div>
+    </form>
+  </div>
+  <div id="authRegister" class="modal auth-box hidden">
+    <div class="modal-head"><h2>CREATE ACCOUNT</h2><button class="btn xbtn" data-auth="back">✕</button></div>
+    <form class="modal-body" id="registerForm" autocomplete="on">
+      <div class="field"><label>Username (3-16: letters, digits, _ -)</label><input name="username" autocomplete="username" required minlength="3" maxlength="16" pattern="[A-Za-z0-9ÆØÅæøå_\-]{3,16}"></div>
+      <div class="field"><label>Email</label><input name="email" type="email" autocomplete="email" required maxlength="254"></div>
+      <div class="field"><label>Password (min 8 characters)</label><input name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="128"></div>
+      <div class="field"><label>Repeat password</label><input name="password2" type="password" autocomplete="new-password" required minlength="8" maxlength="128"></div>
+      <label class="chk"><input type="checkbox" name="remember" checked> Keep me logged in on this device</label>
+      <div class="err" id="registerErr"></div>
+      <button class="btn big yellow" type="submit">CREATE ACCOUNT</button>
+      <div class="note center">Your password is hashed on the server and never stored in plain text.</div>
+    </form>
+  </div>
+  <div class="online-pill chip" id="authOnline"><span class="dot on"></span><span>Online server</span></div>
+</div>
+
+<div id="hud" class="hidden">
+  <div class="topbar">
+    <div class="me-box" id="meBox" title="Profile">
+      <canvas id="meAvatar" width="96" height="96"></canvas>
+      <div>
+        <div class="me-name row" style="gap:.4em"><span class="lvl" id="meLvl">1</span><span id="meName">-</span></div>
+        <div class="bar xpbar"><i id="meXp" style="width:0%"></i></div>
+      </div>
+    </div>
+    <div class="trophy-box">
+      <div class="chip" id="meTrophies" title="Trophies"></div>
+      <div class="chip shield hidden" id="meShield" title="Shield - you cannot be attacked"></div>
+    </div>
+    <div class="res-col">
+      <div class="res gold"><div class="fill" id="fGold"></div><span class="cap" id="cGold"></span><span class="v" id="vGold">0</span><span class="ico" data-icon="gold"></span></div>
+      <div class="res elixir"><div class="fill" id="fElixir"></div><span class="cap" id="cElixir"></span><span class="v" id="vElixir">0</span><span class="ico" data-icon="elixir"></span></div>
+      <div class="res dark" id="rDark"><div class="fill" id="fDark"></div><span class="cap" id="cDark"></span><span class="v" id="vDark">0</span><span class="ico" data-icon="dark"></span></div>
+      <div class="ores"><span class="chip" title="Shiny Ore"><span class="ico" data-icon="shiny"></span><span id="vShiny">0</span></span><span class="chip" title="Glowy Ore"><span class="ico" data-icon="glowy"></span><span id="vGlowy">0</span></span><span class="chip" title="Starry Ore"><span class="ico" data-icon="starry"></span><span id="vStarry">0</span></span></div>
+    </div>
+  </div>
+  <div class="builders"><div class="chip" id="builderChip" title="Free builders"></div><div class="chip" id="onlineChip" title="Players online"><span class="dot on"></span><span id="onlineN">-</span></div></div>
+  <div class="sidebar">
+    <button class="btn nav blue" data-nav="leaderboard"><span data-icon="trophy"></span>RANKS</button>
+    <button class="btn nav purple" data-nav="log" style="position:relative"><span data-icon="scroll"></span>LOG<span class="notif-dot hidden" id="logDot">!</span></button>
+    <button class="btn nav grey" data-nav="settings"><span data-icon="gear"></span>SETTINGS</button>
+  </div>
+  <div class="bottombar" id="bottombar">
+    <button class="btn nav yellow" data-nav="campaign"><span data-icon="map"></span>CAMPAIGN</button>
+    <button class="btn nav blue" data-nav="army"><span data-icon="swords"></span>ARMY</button>
+    <button class="btn nav attack" data-nav="attack"><span data-icon="attack"></span>ATTACK</button>
+    <button class="btn nav purple" data-nav="heroes"><span data-icon="crown"></span>HEROES</button>
+    <button class="btn nav" data-nav="shop"><span data-icon="hammer"></span>BUILD</button>
+  </div>
+  <div id="selbar" class="selbar hidden"></div>
+</div>
+
+<div id="bhud" class="hidden">
+  <div class="b-top">
+    <div class="b-info">
+      <div class="who" id="bWho"></div>
+      <div class="note" id="bSub"></div>
+      <div class="b-loot" id="bLoot"></div>
+    </div>
+    <div class="b-info b-time"><div class="lbl" id="bTimeLbl">BATTLE ENDS IN</div><div class="t" id="bTime">3:00</div></div>
+  </div>
+  <div class="b-msg" id="bMsg"></div>
+  <div class="b-pct"><div class="b-stars stars" id="bStars"></div><div class="p" id="bPct">0%</div><div class="note h">OVERALL DAMAGE</div></div>
+  <button class="btn red b-end" id="bEnd">END BATTLE</button>
+  <div class="b-bar" id="bBar"></div>
+  <div class="replay-bar hidden" id="replayBar">
+    <span class="h" id="replayTitle">REPLAY</span>
+    <button class="btn small blue" id="rpSpeed">1x</button>
+    <button class="btn small red" id="rpExit">EXIT</button>
+  </div>
+</div>
+
+<div id="modals"></div>
+<div id="toasts"></div>
+
+<script src="js/core.js"></script>
+<script src="js/render.js"></script>
+<script src="js/art-buildings.js"></script>
+<script src="js/art-units.js"></script>
+<script src="js/home.js"></script>
+<script src="js/battle.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
