@@ -314,7 +314,7 @@ input, select { font-family: var(--font); font-size: 1em; }
   <div id="authLogin" class="modal auth-box hidden">
     <div class="modal-head"><h2>LOGIN</h2><button class="btn xbtn" data-auth="back">✕</button></div>
     <form class="modal-body" id="loginForm" autocomplete="on">
-      <div class="field"><label>Username or email</label><input name="login" autocomplete="username" required maxlength="254"></div>
+      <div class="field"><label>Username</label><input name="login" autocomplete="username" required maxlength="16"></div>
       <div class="field"><label>Password</label><input name="password" type="password" autocomplete="current-password" required maxlength="128"></div>
       <label class="chk"><input type="checkbox" name="remember" checked> Keep me logged in on this device</label>
       <div class="err" id="loginErr"></div>
@@ -326,7 +326,6 @@ input, select { font-family: var(--font); font-size: 1em; }
     <div class="modal-head"><h2>CREATE ACCOUNT</h2><button class="btn xbtn" data-auth="back">✕</button></div>
     <form class="modal-body" id="registerForm" autocomplete="on">
       <div class="field"><label>Username (3-16: letters, digits, _ -)</label><input name="username" autocomplete="username" required minlength="3" maxlength="16" pattern="[A-Za-z0-9ÆØÅæøå_\-]{3,16}"></div>
-      <div class="field"><label>Email</label><input name="email" type="email" autocomplete="email" required maxlength="254"></div>
       <div class="field"><label>Password (min 8 characters)</label><input name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="128"></div>
       <div class="field"><label>Repeat password</label><input name="password2" type="password" autocomplete="new-password" required minlength="8" maxlength="128"></div>
       <label class="chk"><input type="checkbox" name="remember" checked> Keep me logged in on this device</label>
@@ -3294,7 +3293,7 @@ $('#registerForm').onsubmit = async e => {
   if (f.elements.namedItem('password').value !== f.elements.namedItem('password2').value) { $('#registerErr').textContent = 'Passwords do not match'; return; }
   btn.disabled = true;
   try {
-    const r = await Net.post('/auth/register', { username: f.elements.namedItem('username').value.trim(), email: f.elements.namedItem('email').value.trim(), password: f.elements.namedItem('password').value });
+    const r = await Net.post('/auth/register', { username: f.elements.namedItem('username').value.trim(), password: f.elements.namedItem('password').value });
     Net.save(r.token, f.elements.namedItem('remember').checked);
     f.elements.namedItem('password').value = f.elements.namedItem('password2').value = '';
     Sound.play('victory');
