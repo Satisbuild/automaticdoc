@@ -12,7 +12,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap">
-<link rel="stylesheet" href="css/style.css">
+<script>
+/* Cache-busting: Cloudflare lets browsers keep JS/CSS for 4 hours. Every
+   GitHub Pages deploy changes this page's Last-Modified, so using it as a
+   version makes browsers fetch the new files right after an update. */
+window.GBB_V = Date.parse(document.lastModified) || Date.now();
+document.write('<link rel="stylesheet" href="css/style.css?v=' + window.GBB_V + '">');
+</script>
 </head>
 <body>
 <!-- Grejs Base Builder - online base-building game. Backend: Grejs-Base.js in the Grejs backend. -->
@@ -117,12 +123,10 @@
 <div id="modals"></div>
 <div id="toasts"></div>
 
-<script src="js/core.js"></script>
-<script src="js/render.js"></script>
-<script src="js/art-buildings.js"></script>
-<script src="js/art-units.js"></script>
-<script src="js/home.js"></script>
-<script src="js/battle.js"></script>
-<script src="js/ui.js"></script>
+<script>
+['core', 'render', 'art-buildings', 'art-units', 'home', 'battle', 'ui'].forEach(function (n) {
+  document.write('<script src="js/' + n + '.js?v=' + window.GBB_V + '"><\/script>');
+});
+</script>
 </body>
 </html>
