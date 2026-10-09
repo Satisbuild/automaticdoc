@@ -3523,6 +3523,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
     // --- wind
     let windMax = world.wind * (w === 1 && l <= 3 ? 0.4 : 0.6 + 0.4 * Math.min(1, l / 8));
     if (event === 'wind') windMax *= 2;
+    windMax = Math.min(2, windMax); // keep wind gentle: never more than 2
 
     const par = 2 + n * 2 + (isBoss ? 4 : 0) + (w >= 5 ? 1 : 0);
     const coins = Math.round((150 + w * 90 + l * 12) * (isBoss ? 2.5 : 1));
@@ -5978,7 +5979,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         if (t.falling || Math.abs(t.knockVx) > 4) return false;
         if (!t.alive && t.dying > 0.4) return false;
       }
-      for (const c of this.crates) if (c.alive && c.falling) return false;
+      // falling supply crates keep dropping during the next turn - no need to wait for them
       return true;
     }
 
