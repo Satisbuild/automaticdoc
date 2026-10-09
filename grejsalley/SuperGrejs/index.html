@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#1b1236" />
+<title>Super Grejs</title>
+<meta name="description" content="Super Grejs - et klassisk 2D-platformspil med 10 figurer, 8 verdener og 32 baner." />
+<link rel="icon" href="assets/images/icon.svg" type="image/svg+xml" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Press+Start+2P&family=Outfit:wght@400;600;700;800&display=swap" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/menu.css" />
+<link rel="stylesheet" href="css/game.css" />
+</head>
+<body>
+<div id="app">
+  <canvas id="screen" aria-label="Super Grejs spilverden"></canvas>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden" aria-live="off">
+    <div class="hud-group">
+      <canvas id="hud-face" width="48" height="48" aria-hidden="true"></canvas>
+      <div class="hud-cell"><span class="hud-label">LIV</span><span id="hud-lives">x5</span></div>
+      <div class="hud-cell"><span class="hud-label">MØNTER</span><span id="hud-coins"><i class="coin-ico"></i>00</span></div>
+    </div>
+    <div class="hud-group">
+      <div class="hud-cell"><span class="hud-label">VERDEN</span><span id="hud-world">1-1</span></div>
+      <div class="hud-cell" id="hud-power-cell"><span class="hud-label">KRAFT</span><span id="hud-power">-</span></div>
+      <div class="hud-cell"><span class="hud-label">TID</span><span id="hud-time">300</span></div>
+      <button class="hud-pause" id="btn-pause" aria-label="Pause">II</button>
+    </div>
+  </div>
+  <div id="boss-bar" class="hidden"><span id="boss-name">BOSS</span><div class="bar"><i id="boss-fill"></i></div></div>
+  <div id="toast" class="hidden" role="status"></div>
+
+  <!-- Touchknapper -->
+  <div id="touch" class="hidden" aria-hidden="true">
+    <div class="pad left">
+      <button data-act="left" class="t-btn">◀</button>
+      <button data-act="down" class="t-btn small">▼</button>
+      <button data-act="right" class="t-btn">▶</button>
+    </div>
+    <div class="pad right">
+      <button data-act="run" class="t-btn act b">LØB</button>
+      <button data-act="jump" class="t-btn act a">HOP</button>
+    </div>
+  </div>
+
+  <!-- Skærme (menuer). ui.js fylder indholdet. -->
+  <div id="screens"></div>
+
+  <div id="rotate-hint" class="hidden">Vend enheden til liggende for den bedste oplevelse</div>
+  <noscript><div class="noscript">Super Grejs kræver JavaScript.</div></noscript>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/util.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/input.js"></script>
+<script src="js/art.js"></script>
+<script src="js/characters.js"></script>
+<script src="js/physics.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/levels-data.js"></script>
+<script src="js/powerups.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/bosses.js"></script>
+<script src="js/player.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/game.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

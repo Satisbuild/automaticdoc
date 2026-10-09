@@ -1,0 +1,13 @@
+{
+  "name": "Super Grejs",
+  "short_name": "Super Grejs",
+  "description": "Et klassisk 2D-platformspil med 10 figurer, 8 verdener og 32 baner.",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1b1236",
+  "theme_color": "#1b1236",
+  "icons": [
+    { "src": "assets/images/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
