@@ -302,7 +302,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
 #scr-battle { background: #000; }
 #game { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
 .hud { position: absolute; inset: 0; pointer-events: none; font-size: clamp(11px, 1.15vmin + 5px, 17px); }
-.hud button, .hud .power-slider, .hud .weapon-bar { pointer-events: auto; }
+.hud button, .hud .power-slider, .hud .weapon-bar, .hud .hud-move { pointer-events: auto; }
 .hud-top { position: absolute; top: 6px; left: max(8px, var(--safe-l)); right: max(8px, var(--safe-r)); display: flex; align-items: flex-start; gap: 10px; }
 .hud-player { background: rgba(20, 14, 40, 0.72); border-radius: 14px; padding: 6px 10px; min-width: 170px; width: 24%; max-width: 280px; border: 2px solid rgba(75,227,107,0.5); }
 .hud-player .hn, .en .hn { font-family: var(--font-h); font-size: 1em; display: flex; justify-content: space-between; gap: 6px; white-space: nowrap; overflow: hidden; }
@@ -349,7 +349,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
 @keyframes toastOut2 { to { opacity: 0; transform: translateY(-8px); } }
 .hud-bottom { position: absolute; left: max(8px, var(--safe-l)); right: max(8px, var(--safe-r)); bottom: calc(6px + var(--safe-b)); display: flex; align-items: flex-end; gap: 10px; transition: opacity 0.3s, transform 0.3s; }
 .hud-bottom.off { opacity: 0.35; }
-.hud-bottom.off button, .hud-bottom.off .power-slider { pointer-events: none; }
+.hud-bottom.off button, .hud-bottom.off .power-slider, .hud-bottom.off .hud-move { pointer-events: none; }
 .hud-move { display: flex; align-items: center; gap: 6px; background: rgba(20, 14, 40, 0.6); border-radius: 18px; padding: 6px; }
 .mbtn { width: 3.6em; height: 3.6em; border-radius: 14px; background: linear-gradient(180deg, #7b6cf0, #4b3cb0); box-shadow: 0 4px 0 #2d2275; font-size: 1.2em; }
 .mbtn:active, .mbtn.held { transform: translateY(3px); box-shadow: 0 1px 0 #2d2275; }
@@ -400,6 +400,22 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
   .hud-mid { order: -1; flex-basis: 100%; }
 }
 
+/* ---------- touch screens: bigger targets, no tap delay / highlight / long-press menu ---------- */
+.hud button, .hud-move, .power-slider { touch-action: none; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+.hud-move { cursor: pointer; }
+.hud-move .mbtn { pointer-events: none; }
+@media (pointer: coarse) {
+  .mbtn { width: 4.4em; height: 4.4em; font-size: 1.35em; }
+  .hud-move { padding: 8px; gap: 8px; }
+  .fuel { height: 5.2em; width: 18px; }
+  .sbtn { width: 2.8em; height: 2.8em; font-size: 1.15em; }
+  .wchip { padding: 6px 11px; font-size: 0.85em; }
+  .hbtn { width: 3em; height: 3em; }
+  .fire { width: 6em; height: 6em; font-size: 1.25em; }
+  .power-slider { width: 3em; height: 8em; }
+  .ability { width: 4.2em; height: 4.2em; }
+}
+
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
   .ts-wrap, .garage, .weapons { flex-direction: column; overflow-y: auto; }
@@ -429,6 +445,19 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
   .power-slider { height: 5.6em; }
   .ability { width: 3.3em; height: 3.3em; }
   .fuel { height: 3.3em; }
+}
+/* phone held sideways: still compact, but thumb-sized */
+@media (pointer: coarse) {
+  .hud { font-size: clamp(13px, 1.4vmin + 6px, 18px); }
+}
+@media (pointer: coarse) and (max-height: 500px) and (orientation: landscape) {
+  .mbtn { width: 3.7em; height: 3.7em; }
+  .fuel { height: 4.2em; }
+  .sbtn { width: 2.5em; height: 2.5em; }
+  .fire { width: 5em; height: 5em; }
+  .power-slider { height: 6.4em; }
+  .ability { width: 3.6em; height: 3.6em; }
+  .hbtn { width: 2.6em; height: 2.6em; }
 }
 @media (max-width: 560px) {
   .menu-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -5594,7 +5623,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         ability: def.ability, isPlayer: true, hover: def.vis.move === 'hover'
       });
       p.maxFuel = 150 * (st.speed / 100);
-      p.moveSpeed = 70 * (0.6 + (0.4 * st.speed) / 100);
+      p.moveSpeed = 90 * (0.6 + (0.4 * st.speed) / 100); // a bit snappier than enemies so driving feels responsive
       // ability upgrades: stronger effect + faster recharge
       const abLvl = GT.Save.abilityLevel(p.ability);
       p.specialMult *= GT.Tanks.abilityMult(abLvl);
@@ -9496,13 +9525,27 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         const p = b.player;
         const m = R.muzzle(p, p.aim);
         const sp = b.worldToScreen(m.px, m.py);
-        const dx = pt.x - sp.x, dy = sp.y - pt.y;
+        aimVec(b, pt.x - sp.x, sp.y - pt.y);
+      };
+      const aimRef = (b) => Math.min(b.cw, b.ch) * 0.42;
+      const aimVec = (b, dx, dy) => {
         const dist = Math.hypot(dx, dy);
         if (dist < 12) return;
         let ang = U.deg(Math.atan2(dy, dx));
         if (ang < -90) ang += 360; // below horizontal on the left -> 180..270
-        const ref = Math.min(b.cw, b.ch) * 0.42;
-        b.setAim(ang, U.clamp((dist / ref) * 100, 5, 100));
+        b.setAim(ang, U.clamp((dist / aimRef(b)) * 100, 5, 100));
+      };
+      // touch aiming is relative: drag anywhere and the aim moves with the finger
+      // from where it was, so a tap never makes it jump and the finger doesn't hide the tank
+      const TOUCH_AIM_SENS = 0.6;
+      let touchAim = null;
+      const startTouchAim = (b, pt) => {
+        const p = b.player, len = (p.power / 100) * aimRef(b), a = U.rad(p.aim);
+        touchAim = { x: pt.x, y: pt.y, vx: Math.cos(a) * len, vy: Math.sin(a) * len, aim: p.aim, power: p.power };
+      };
+      const moveTouchAim = (b, pt) => {
+        if (!b || !b.isPlayerTurn() || !touchAim) return;
+        aimVec(b, touchAim.vx + (pt.x - touchAim.x) * TOUCH_AIM_SENS, touchAim.vy + (touchAim.y - pt.y) * TOUCH_AIM_SENS);
       };
       // camera pan: right/middle mouse drag, or two fingers on touch
       const touches = new Map(); // pointerId -> last point
@@ -9522,7 +9565,10 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         if (e.button === 1 || e.button === 2 || touches.size >= 2) {
           // start panning (cancels any aim drag in progress)
           e.preventDefault();
+          // second finger = pan: undo whatever the first finger did to the aim
+          if (aiming && touchAim && b.isPlayerTurn()) b.setAim(touchAim.aim, touchAim.power);
           aiming = false;
+          touchAim = null;
           panning = true;
           panLast = touches.size >= 2 ? touchCenter() : pt;
           try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
@@ -9536,7 +9582,8 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         if (!b.isPlayerTurn()) return;
         aiming = true;
         try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
-        applyAim(pt);
+        if (e.pointerType === 'touch') startTouchAim(b, pt);
+        else applyAim(pt);
       });
       canvas.addEventListener('pointermove', (e) => {
         const pt = local(e);
@@ -9548,11 +9595,15 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
           panLast = cur;
           return;
         }
-        if (aiming) applyAim(pt);
+        if (aiming) {
+          if (touchAim) moveTouchAim(this.battle, pt);
+          else applyAim(pt);
+        }
       });
       const stop = (e) => {
         touches.delete(e.pointerId);
         aiming = false;
+        touchAim = null;
         if (panning) {
           // lifting one of two fingers: keep panning with the other only if 2+ remain
           if (touches.size >= 2) panLast = touchCenter();
@@ -9568,27 +9619,39 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         b.nudgeAim(0, e.deltaY > 0 ? -2 : 2);
       }, { passive: false });
 
-      // move buttons (hold)
-      const hold = (id, dir) => {
-        const el = $(id);
-        const on = (e) => {
-          e.preventDefault();
-          GT.Audio.init();
-          if (this.battle) this.battle.setMove(dir);
-          el.classList.add('held');
-        };
-        const off = () => {
-          if (this.battle && this.battle.moveDir === dir) this.battle.setMove(0);
-          el.classList.remove('held');
-        };
-        el.addEventListener('pointerdown', on);
-        el.addEventListener('pointerup', off);
-        el.addEventListener('pointerleave', off);
-        el.addEventListener('pointercancel', off);
-        el.addEventListener('contextmenu', (e) => e.preventDefault());
+      // move pad: hold anywhere on it, slide the finger to switch direction.
+      // The pointer is captured so drifting off a button doesn't stop the tank.
+      const pad = $('.hud-move');
+      const bl = $('#btn-left'), br = $('#btn-right');
+      let padId = null;
+      const padDir = (e) => {
+        const r = pad.getBoundingClientRect();
+        return e.clientX < r.left + r.width / 2 ? -1 : 1;
       };
-      hold('#btn-left', -1);
-      hold('#btn-right', 1);
+      const padSet = (dir) => {
+        if (this.battle) this.battle.setMove(dir);
+        bl.classList.toggle('held', dir < 0);
+        br.classList.toggle('held', dir > 0);
+      };
+      pad.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        GT.Audio.init();
+        padId = e.pointerId;
+        try { pad.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+        padSet(padDir(e));
+      });
+      pad.addEventListener('pointermove', (e) => {
+        if (e.pointerId === padId) padSet(padDir(e));
+      });
+      const padOff = (e) => {
+        if (e.pointerId !== padId) return;
+        padId = null;
+        padSet(0);
+      };
+      pad.addEventListener('pointerup', padOff);
+      pad.addEventListener('pointercancel', padOff);
+      pad.addEventListener('lostpointercapture', padOff);
+      pad.addEventListener('contextmenu', (e) => e.preventDefault());
 
       // camera pan buttons (hold to look left/right)
       const holdPan = (id, dir) => {
