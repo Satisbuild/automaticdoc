@@ -996,11 +996,11 @@ function openPanel(which){
  $('sidePanel').classList.add('open')
 }
 // ---------- konto, cloud-save og rangliste ----------
-let acct=null,lbBy='best',lbCache={},syncMsg='',lastCloud=0,cloudBusy=false;
+let acct=null,lbBy='best',lbCache={},syncMsg='',lastCloud=0,cloudBusy=false,cloudReady=false,cloudStarting=false; // cloudReady: denne enhed er sammenlignet med skyen
 try{acct=JSON.parse(localStorage.getItem(ACCT_KEY))}catch(e){}
 if(!acct||!acct.token||!acct.name)acct=null;
 const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
-function setAcct(a){acct=a;try{a?localStorage.setItem(ACCT_KEY,JSON.stringify(a)):localStorage.removeItem(ACCT_KEY)}catch(e){}updAcctBtn()}
+function setAcct(a){acct=a;if(!a)cloudReady=false;try{a?localStorage.setItem(ACCT_KEY,JSON.stringify(a)):localStorage.removeItem(ACCT_KEY)}catch(e){}updAcctBtn()}
 function updAcctBtn(){let b=$('acctBtn');b.innerHTML='👤<span class="lg"> '+(acct?esc(acct.name):'Log ind')+'</span>';b.title=acct?'Logget ind som '+acct.name:'Konto og cloud-save';Cls(b,'on',!!acct)}
 async function api(path,opt={}){
  if(!API)throw Object.assign(new Error('Rangliste og cloud-save er slået fra i denne version'),{offline:true});
@@ -1014,23 +1014,26 @@ async function api(path,opt={}){
  return d}
 const cloudStats=()=>({score:S.lifetime,unlocked:S.unlocked,ach:Object.keys(S.ach).length,maxLvl:maxLvl(),world:WORLDS[S.unlocked-1].id});
 async function cloudSave(force){
- if(!acct||cloudBusy)return;if(!force&&Date.now()-lastCloud<25000)return;
+ if(!acct||cloudBusy)return;
+ if(!cloudReady)return cloudStartup(); // startede offline: sammenlign med skyen før vi uploader
+ if(!force&&Date.now()-lastCloud<25000)return;
  cloudBusy=true;save();
  try{await api('/api/save',{method:'PUT',body:{save:JSON.stringify(S),stats:cloudStats()}});lastCloud=Date.now();
   syncMsg='☁️ Gemt i skyen kl. '+new Date().toLocaleTimeString('da-DK',{hour:'2-digit',minute:'2-digit'})}
  catch(e){syncMsg='⚠️ '+e.message;if(e.status===401){setAcct(null);toast('Du er blevet logget ud – log ind igen')}}
  finally{cloudBusy=false;refreshAcctPanel()}}
 function cloudBeacon(){ // når siden lukkes/skjules – fetch kan blive afbrudt, sendBeacon kan ikke
- if(!API||!acct||!navigator.sendBeacon||Date.now()-lastCloud<5000)return;
+ if(!API||!acct||!cloudReady||!navigator.sendBeacon||Date.now()-lastCloud<5000)return;
  try{if(navigator.sendBeacon(API+'/api/save',new Blob([JSON.stringify({token:acct.token,save:JSON.stringify(S),stats:cloudStats()})],{type:'text/plain'})))lastCloud=Date.now()}catch(e){}}
 function useSave(d){S=d;S.acct=true;earnLog=[];build();save();let away=(Date.now()-(d.saved||Date.now()))/1000;if(away>30)grantAway(away,false)}
 const parseSave=str=>{try{let d=str?JSON.parse(str):null;return valid(d)?migrate(d):null}catch(e){return null}};
 async function cloudStartup(){
- if(!acct)return;
- try{let c=parseSave((await api('/api/save')).save);
+ if(!acct||cloudStarting)return;cloudStarting=true;
+ try{let c=parseSave((await api('/api/save')).save);cloudReady=true;
   if(c&&(c.lifetime>S.lifetime*1.0001+1||(c.lifetime>=S.lifetime&&c.saved>S.saved+5000))){useSave(c);toast('☁️ Hentede dit spil fra skyen')}
   else{S.acct=true;await cloudSave(true)}}
- catch(e){syncMsg='⚠️ '+e.message;if(e.status===401){setAcct(null);toast('Log ind igen for at gemme i skyen')}}}
+ catch(e){syncMsg='⚠️ '+e.message;if(e.status===401){setAcct(null);toast('Log ind igen for at gemme i skyen')}}
+ finally{cloudStarting=false;refreshAcctPanel()}}
 async function acctAction(a){
  const setErr=t=>{let el=$('acctErr');if(el)el.textContent=t};
  if(a==='logout'){if(!confirm('Log ud? Dit spil bliver stadig gemt på denne enhed.'))return;await cloudSave(true);api('/api/logout',{method:'POST',body:{}}).catch(()=>{});setAcct(null);syncMsg='';refreshAcctPanel();return}
@@ -1041,9 +1044,9 @@ async function acctAction(a){
  try{
   if(a==='register'){
    S.acct=true;save();let d=await api('/api/register',{method:'POST',noAuth:true,body:{name,pin,save:JSON.stringify(S),stats:cloudStats()}});
-   setAcct({name:d.name,token:d.token});lastCloud=Date.now();syncMsg='☁️ Dit spil gemmes nu i skyen';toast('🎉 Konto oprettet – velkommen '+d.name+'!');snd('big')}
+   setAcct({name:d.name,token:d.token});cloudReady=true;lastCloud=Date.now();syncMsg='☁️ Dit spil gemmes nu i skyen';toast('🎉 Konto oprettet – velkommen '+d.name+'!');snd('big')}
   else{
-   let d=await api('/api/login',{method:'POST',noAuth:true,body:{name,pin}});setAcct({name:d.name,token:d.token});
+   let d=await api('/api/login',{method:'POST',noAuth:true,body:{name,pin}});setAcct({name:d.name,token:d.token});cloudReady=true;
    let c=parseSave(d.save);
    if(c&&!(S.lifetime>c.lifetime*1.0001+1&&confirm(`Denne enhed har mere fremskridt (💰 ${fmt(S.lifetime)} tjent) end din cloud-save (💰 ${fmt(c.lifetime)}).\n\nOK = behold denne enhed og gem den i skyen\nAnnuller = hent spillet fra skyen`))){useSave(c);toast('👋 Velkommen tilbage '+d.name+' – spillet er hentet fra skyen')}
    else{S.acct=true;await cloudSave(true);toast('👋 Logget ind som '+d.name)}}
@@ -1092,7 +1095,8 @@ function frame(now){let dt=(now-last)/1000;last=now;
  requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 setInterval(checkAchievements,1000);setInterval(save,4000);
-setInterval(()=>cloudSave(false),30000);setInterval(()=>{if(panelIs('Rangliste'))loadLeaderboard()},30000);
+setInterval(()=>cloudSave(false),30000);addEventListener('online',()=>cloudSave(true)); // tilbage online: upload med det samme
+setInterval(()=>{if(panelIs('Rangliste'))loadLeaderboard()},30000);
 addEventListener('beforeunload',()=>{save();cloudBeacon()});document.addEventListener('visibilitychange',()=>{if(document.hidden){save();cloudBeacon()}});
 window.__DG={get S(){return S},act,build,travel,launch,renderUI};
 })();

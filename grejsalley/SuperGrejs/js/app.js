@@ -299,6 +299,11 @@ SG.app = (function () {
     if (SG.auth.loggedIn) {
       afterLogin().then(() => { if (SG.ui.current === 'main') SG.ui.show('main'); });
     }
+
+    // Tilbage online efter at have spillet offline: gem den nye verden online med det samme
+    window.addEventListener('online', () => {
+      if (SG.auth.loggedIn && SG.progress.pending) resync();
+    });
   }
 
   return {

@@ -1422,7 +1422,10 @@ const Cloud = (function(){
 
   /* First run on this device: hand the local save straight to the server so
      an existing player keeps everything they had before cloud sync existed. */
+  let claiming = false;
   function claim(){
+    if(claiming) return Promise.resolve();
+    claiming = true;
     setStatus('connecting','');
     return api('/api/register', { method:'POST', auth:false, body:{ name:'', save: serializable(S) } })
       .then(r=>{
@@ -1433,7 +1436,7 @@ const Cloud = (function(){
         toast('Cloud sync on', 'Your save now backs up to the server. Copy your token from the Stats tab to play on another device.', 'gold');
       })
       .catch(()=>{ setStatus('offline', 'Could not reach the server. Playing locally; it will retry.'); })
-      .then(()=>flushAway());
+      .then(()=>{ claiming = false; flushAway(); });
   }
 
   function attach(tok){
@@ -1518,9 +1521,16 @@ const Cloud = (function(){
   }
 
   // Called on the 30s timer. While held, keep retrying the restore instead of
-  // pushing - the server may simply have been down at boot.
+  // pushing - the server may simply have been down at boot. Also called when
+  // the browser comes back online, so progress made offline goes up at once.
   function periodic(){
-    if(hold){ if(auth) pull(); return; }
+    if(!base) return;
+    if(!auth){
+      // First run happened offline: register now, exactly as boot() would have.
+      if(!hold && !ls.get(OPTOUT_KEY)) claim();
+      return;
+    }
+    if(hold){ pull(); return; }
     push();
   }
 
@@ -2536,6 +2546,8 @@ setInterval(tick, 100);
 Cloud.boot();
 
 window.addEventListener('beforeunload', ()=>{ saveGame(); Cloud.beacon(); });
+// Back online after playing offline: upload right away instead of waiting for the timer.
+window.addEventListener('online', ()=>{ saveGame(); Cloud.periodic(); });
 document.addEventListener('visibilitychange', ()=>{
   if(document.hidden){ saveGame(); Cloud.beacon(); }
 });

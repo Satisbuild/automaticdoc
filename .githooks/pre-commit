@@ -1,0 +1,4 @@
+#!/bin/sh
+# Holder offline-listen i sw.js opdateret, så nye/ændrede filer kommer med i appen.
+node tools/update-sw.js || exit 1
+git add sw.js
