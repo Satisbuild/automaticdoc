@@ -101,6 +101,11 @@ input, select { font-family: var(--font); font-size: 1em; }
 .chk { display: flex; align-items: center; gap: .5em; font-weight: 700; font-size: .9em; color: var(--muted); }
 .auth-main { display: flex; flex-direction: column; gap: .9em; width: min(340px, 90vw); }
 .online-pill { position: fixed; right: 12px; bottom: calc(var(--safe-b) + 12px); z-index: 41; }
+/* links styled as buttons (back to GrejsAlley) */
+a.btn { text-decoration: none; color: #fff; font-family: var(--font-h); }
+a.btn:not(.nav) { display: inline-flex; align-items: center; gap: .4em; }
+.alley-back { position: fixed; left: 12px; top: calc(var(--safe-t) + 12px); z-index: 41; }
+.alley-back svg { width: 1.3em; height: 1.3em; display: block; }
 
 /* ---- HUD ---------------------------------------------------------------- */
 #hud { position: fixed; inset: 0; z-index: 10; pointer-events: none; }

@@ -109,6 +109,7 @@ const ICONS = {
   flask: '<svg viewBox="0 0 32 32"><path d="M12 4h8v8l7 12a3 3 0 0 1-3 4H8a3 3 0 0 1-3-4l7-12Z" fill="#e8f4ff" stroke="#1a2a3a" stroke-width="2"/><path d="M8 21h16l2 4a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="#45b8ff"/></svg>',
   people: '<svg viewBox="0 0 32 32"><circle cx="11" cy="11" r="5" fill="#f2c08a" stroke="#3a2410" stroke-width="2"/><circle cx="22" cy="12" r="4" fill="#f2c08a" stroke="#3a2410" stroke-width="2"/><path d="M3 27a8 8 0 0 1 16 0zM16 27a6 6 0 0 1 13 0z" fill="#45b8ff" stroke="#3a2410" stroke-width="2"/></svg>',
   eye: '<svg viewBox="0 0 32 32"><path d="M3 16s5-9 13-9 13 9 13 9-5 9-13 9S3 16 3 16Z" fill="#fff" stroke="#1a1a24" stroke-width="2"/><circle cx="16" cy="16" r="5" fill="#45b8ff" stroke="#1a1a24" stroke-width="2"/></svg>',
+  back: '<svg viewBox="0 0 32 32"><path d="M14 6 4 16l10 10v-6h8a6 6 0 0 1 6 6v0a12 12 0 0 0-12-14h-2Z" fill="#fff" stroke="#1a1a24" stroke-width="2.5" stroke-linejoin="round"/></svg>',
   dice: '<svg viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" rx="5" fill="#fff" stroke="#1a1a24" stroke-width="2.5"/><circle cx="11" cy="11" r="2.3"/><circle cx="21" cy="21" r="2.3"/><circle cx="16" cy="16" r="2.3"/><circle cx="21" cy="11" r="2.3"/><circle cx="11" cy="21" r="2.3"/></svg>',
 };
 const RICON = { gold: 'gold', elixir: 'elixir', dark: 'dark', shiny: 'shiny', glowy: 'glowy', starry: 'starry' };
