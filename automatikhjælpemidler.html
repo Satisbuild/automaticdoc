@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Automatikhjælpemidler</title>
-<meta name="description" content="El, motor, kabeldimensionering, hydraulik, pneumatik og talsystemer samlet i én værktøjskasse for automatikteknikere.">
+<meta name="description" content="El, motor, kabeldimensionering, hydraulik, pneumatik, talsystemer og tryktab i rør samlet i én værktøjskasse for automatikteknikere.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2322272A'/%3E%3Cpath d='M6 16c3-8 6-8 10 0s7 8 10 0' fill='none' stroke='%23FFB547' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -330,8 +330,8 @@ pre.calc .dim{color:var(--faint)}
 .term p{margin:0 0 12px;font-size:.9rem;color:var(--muted);line-height:1.45}
 .term code{font:400 .76rem/1.5 var(--mono);color:var(--blue);margin-bottom:14px}
 .term .tn{margin-top:auto;display:block;text-align:center;background:#FAFAF8;color:#22272A;border:1px solid var(--line-2);border-radius:2px;font:600 .95rem/1.5 var(--cond);font-variant-numeric:tabular-nums}
-@media (min-width:1240px){
-  .strip{grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+@media (min-width:1400px){
+  .strip{grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
   .strip::before{content:"";position:absolute;left:-14px;right:-14px;top:124px;height:34px;border-radius:2px;background:linear-gradient(180deg,var(--rail-a) 0,var(--rail-b) 22%,var(--rail-a) 50%,var(--rail-b) 78%,var(--rail-a) 100%);box-shadow:0 1px 0 rgba(0,0,0,.2)}
   .term{min-height:330px}
 }
@@ -392,8 +392,9 @@ pre.calc .dim{color:var(--faint)}
     <a href="#hydraulik" data-nav="hydraulik"><span class="wire" style="--w:#1F63C6"></span>Hydraulik<span class="k">4</span></a>
     <a href="#pneumatik" data-nav="pneumatik"><span class="wire" style="--w:#8C9297"></span>Pneumatik<span class="k">5</span></a>
     <a href="#talsystemer" data-nav="talsystemer"><span class="wire" style="--w:#E8791E"></span>Talsystemer<span class="k">6</span></a>
+    <a href="Pressure%20Drop/"><span class="wire" style="--w:#2A8C8C"></span>Tryktab i rør<span class="k">7</span></a>
   </nav>
-  <div class="side-foot">Tast <kbd>0</kbd> til <kbd>6</kbd> for at skifte værktøj. Alt regner, mens du skriver, og komma virker som decimaltegn.</div>
+  <div class="side-foot">Tast <kbd>0</kbd> til <kbd>7</kbd> for at skifte værktøj. Alt regner, mens du skriver, og komma virker som decimaltegn.</div>
 </aside>
 
 <main class="main"><div class="wrap">
@@ -402,7 +403,7 @@ pre.calc .dim{color:var(--faint)}
 <section class="view" id="v-oversigt" data-title="Oversigt">
   <header class="intro">
     <h1>Automatik&shy;hjælpemidler</h1>
-    <p class="lead">Seks beregnere til automatikteknikeren, samlet ét sted. Resultatet står klar, mens du skriver, og under hvert svar kan du se udregningen med dine egne tal sat ind.</p>
+    <p class="lead">Syv beregnere til automatikteknikeren, samlet ét sted. Resultatet står klar, mens du skriver, og under hvert svar kan du se udregningen med dine egne tal sat ind.</p>
   </header>
   <div class="strip">
     <a class="term" href="#el" style="--w:#7A4B2A"><span class="hole"><i></i></span><span class="screw"></span>
@@ -417,6 +418,8 @@ pre.calc .dim{color:var(--faint)}
       <h3>Pneumatik</h3><p>Tryk- og trækkraft samt luftforbrug pr. cyklus og pr. minut.</p><code>Q = A·s·(p+1,013)/1,013</code><span class="tn">5</span></a>
     <a class="term" href="#talsystemer" style="--w:#E8791E"><span class="hole"><i></i></span><span class="screw"></span>
       <h3>Talsystemer</h3><p>Decimal, binær, hex og oktal med klikbare bits, Gray-kode og BCD.</p><code>255 = 0xFF = 0o377</code><span class="tn">6</span></a>
+    <a class="term" href="Pressure%20Drop/" style="--w:#2A8C8C"><span class="hole"><i></i></span><span class="screw"></span>
+      <h3>Tryktab i rør</h3><p>Rør, bøjninger, ventiler og Kv-værdier lagt sammen til tryktabet for hele strækningen.</p><code>Δp = λ·(L/D)·ρv²/2</code><span class="tn">7</span></a>
   </div>
 </section>
 
@@ -938,6 +941,7 @@ const onInputs = (root, fn) => { root.addEventListener('input', fn); root.addEve
     if (t.closest && t.closest('input,textarea,select,[contenteditable]')) return;
     const i = '0123456'.indexOf(e.key);
     if (i >= 0) location.hash = order[i];
+    else if (e.key === '7') location.href = 'Pressure%20Drop/';
   });
 
   $('#themeBtn').addEventListener('click', () => {

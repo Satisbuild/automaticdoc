@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tryktab i rør · Pressure Drop</title>
+<meta name="description" content="Beregn tryktab i rørsystemer: lige rør, bøjninger, ventiler, tværsnitsændringer, blænder, Kv-værdier og højdeforskel for væsker og gasser.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2322272A'/%3E%3Cpath d='M6 16c3-8 6-8 10 0s7 8 10 0' fill='none' stroke='%23FFB547' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>try{var t=localStorage.getItem('ah-tema');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<style>
+/* Samme tema som automatikhjælpemidler.html */
+:root{
+  --sans:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --cond:"Barlow Semi Condensed","Barlow",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  --bg:#D4D7D2; --side:#E3E5E1; --plate:#F2F3F0; --field:#FFFFFF;
+  --line:#C9CDC7; --line-2:#A9AEA8;
+  --ink:#22272A; --muted:#545C61; --faint:#80888D;
+  --blue:#1D58A6; --blue-soft:rgba(29,88,166,.14); --calc-bg:#E3EBF5;
+  --ok:#2B8A43; --bad:#B3261E; --bad-soft:rgba(179,38,30,.08); --warn:#8A5A00; --warn-soft:rgba(232,160,30,.12);
+  --sel-bg:#22272A; --sel-ink:#F2F3F0;
+  --lcd:#12171A; --lcd-2:#182024; --lcd-line:#28323A; --lcd-k:#8E9AA1; --lcd-ink:#DCE2E5;
+  --led:#FFB547; --led-dim:#6A5331; --led-glow:rgba(255,181,71,.32);
+  --lift:0 1px 0 rgba(255,255,255,.7) inset, 0 1px 2px rgba(20,24,26,.06), 0 12px 28px -22px rgba(20,24,26,.35);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161A1D; --side:#111416; --plate:#1E2327; --field:#15191C;
+    --line:#2C3338; --line-2:#3F484F;
+    --ink:#E3E6E2; --muted:#A0A8AD; --faint:#6F787E;
+    --blue:#6FA8F2; --blue-soft:rgba(111,168,242,.16); --calc-bg:#1A2633;
+    --ok:#5BC77A; --bad:#FF8176; --bad-soft:rgba(255,129,118,.08); --warn:#F2B755; --warn-soft:rgba(242,183,85,.1);
+    --sel-bg:#E3E6E2; --sel-ink:#161A1D;
+    --lcd:#0B0E10; --lcd-2:#11171A; --lcd-line:#232C32;
+    --lift:0 1px 0 rgba(255,255,255,.03) inset, 0 14px 30px -22px rgba(0,0,0,.8);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161A1D; --side:#111416; --plate:#1E2327; --field:#15191C;
+  --line:#2C3338; --line-2:#3F484F;
+  --ink:#E3E6E2; --muted:#A0A8AD; --faint:#6F787E;
+  --blue:#6FA8F2; --blue-soft:rgba(111,168,242,.16); --calc-bg:#1A2633;
+  --ok:#5BC77A; --bad:#FF8176; --bad-soft:rgba(255,129,118,.08); --warn:#F2B755; --warn-soft:rgba(242,183,85,.1);
+  --sel-bg:#E3E6E2; --sel-ink:#161A1D;
+  --lcd:#0B0E10; --lcd-2:#11171A; --lcd-line:#232C32;
+  --lift:0 1px 0 rgba(255,255,255,.03) inset, 0 14px 30px -22px rgba(0,0,0,.8);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+/* ---------- topbar ---------- */
+.top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--side) 92%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1180px;margin:0 auto;padding:10px 40px;display:flex;align-items:center;gap:14px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);min-width:0;margin-right:auto}
+.mark{width:32px;height:32px;flex:none}
+.mark rect{fill:var(--sel-bg)}
+.mark path{fill:none;stroke:var(--led);stroke-width:2.6;stroke-linecap:round}
+.brand b{display:block;font:700 1.05rem/1.05 var(--cond)}
+.brand small{display:block;font-size:.78rem;color:var(--faint);margin-top:2px}
+.back{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line-2);border-radius:4px;background:var(--field);color:var(--muted);text-decoration:none;font-size:.9rem;font-weight:500;white-space:nowrap}
+.back:hover{color:var(--ink);border-color:var(--ink)}
+.back svg{width:16px;height:16px;flex:none}
+.themebtn{flex:none;width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line-2);border-radius:4px;background:var(--field);color:var(--muted);cursor:pointer}
+.themebtn:hover{color:var(--ink);border-color:var(--ink)}
+.themebtn svg{width:17px;height:17px}
+
+.wrap{max-width:1180px;margin:0 auto;padding:34px 40px 32px}
+.vh{margin-bottom:26px;padding-left:18px;position:relative}
+.vh::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:6px;border-radius:3px;background:linear-gradient(90deg,rgba(255,255,255,.35),rgba(255,255,255,0) 60%),#2A8C8C;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.kick{font:600 .82rem var(--cond);letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+h1{font:600 clamp(2rem,3.6vw,2.7rem)/1.05 var(--cond);letter-spacing:-.015em;margin:2px 0 8px}
+.lead{margin:0;max-width:66ch;color:var(--muted);font-size:1.02rem}
+.fstrip{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.fstrip code{font:400 .8rem var(--mono);padding:3px 9px;border:1px solid var(--line-2);border-radius:3px;background:var(--plate);color:var(--ink)}
+
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,420px);gap:18px;align-items:start}
+.stack{display:grid;gap:18px;min-width:0}
+.sticky{position:sticky;top:76px}
+@media (max-width:1080px){.split{grid-template-columns:minmax(0,1fr)}.sticky{position:static}}
+
+/* ---------- plade ---------- */
+.plate{background:var(--plate);border:1px solid var(--line-2);border-radius:5px;box-shadow:var(--lift);min-width:0}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px 0;flex-wrap:wrap}
+.ph h2{margin:0;font:600 1.18rem/1.2 var(--cond)}
+.ph .note{font-size:.82rem;color:var(--faint)}
+.sec{padding:16px 18px 18px}
+.sec + .sec{border-top:1px solid var(--line)}
+.hint{margin:10px 0 0;font-size:.84rem;color:var(--muted)}
+.msg{margin:0 18px 16px;padding:9px 12px;border-left:3px solid var(--bad);background:var(--bad-soft);color:var(--bad);font-size:.88rem;border-radius:0 3px 3px 0}
+.msg:empty{display:none}
+
+/* ---------- felter ---------- */
+.fg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.fg.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:560px){.fg,.fg.c3{grid-template-columns:1fr}}
+.fg + .fg{margin-top:14px}
+.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
+.lbl{display:flex;align-items:baseline;gap:6px;font-size:.88rem;font-weight:500;color:var(--muted)}
+.lbl i{font:italic 500 .92rem var(--sans);color:var(--ink)}
+.lbl em{display:none;margin-left:auto;font-style:normal;font-size:.76rem;color:var(--blue)}
+.inp{display:flex;align-items:center;background:var(--field);border:1px solid var(--line-2);border-radius:3px;transition:border-color .12s,box-shadow .12s}
+.inp:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.inp input{flex:1;min-width:0;border:0;outline:0;background:transparent;padding:9px 11px;font:500 1.1rem var(--cond);font-variant-numeric:tabular-nums}
+.inp .u{padding-right:11px;font-size:.88rem;color:var(--faint);white-space:nowrap}
+.inp select{border:0;border-left:1px solid var(--line);background:transparent;padding:9px 8px;font:500 .9rem var(--sans);color:var(--muted);cursor:pointer;outline:0}
+.inp select option{background:var(--plate);color:var(--ink)}
+.fld.is-calc .inp{background:var(--calc-bg);border-style:dashed;border-color:var(--blue)}
+.fld.is-calc input{color:var(--blue)}
+.fld.is-calc .lbl em{display:inline}
+.fld.bad .inp{border-color:var(--bad)}
+
+.selw{position:relative;min-width:0}
+.selw::after{content:"";position:absolute;right:13px;top:50%;width:7px;height:7px;border-right:1.6px solid var(--muted);border-bottom:1.6px solid var(--muted);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.sel{appearance:none;-webkit-appearance:none;width:100%;background:var(--field);border:1px solid var(--line-2);border-radius:3px;padding:10px 34px 10px 11px;font:500 .94rem var(--sans);cursor:pointer}
+.sel:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.sel option,.sel optgroup{background:var(--plate);color:var(--ink)}
+
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line-2);border-radius:3px;background:var(--field);overflow:hidden}
+.seg button{padding:6px 12px;font:500 .9rem var(--cond);color:var(--muted);cursor:pointer;background:transparent;border:0;border-left:1px solid var(--line)}
+.seg > :first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--sel-bg);color:var(--sel-ink)}
+
+.btn{font:500 .88rem var(--sans);padding:6px 12px;border:1px solid var(--line-2);border-radius:3px;background:var(--field);color:var(--ink);cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 .9rem var(--cond);padding:5px 11px;border-radius:3px;border:1px dashed var(--line-2);background:var(--field);color:var(--muted);cursor:pointer}
+.chip:hover{color:var(--ink);border-color:var(--ink);border-style:solid}
+
+/* ---------- elementer ---------- */
+.el{padding:14px 18px 16px;border-top:1px solid var(--line)}
+.el-h{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1.3fr) auto;gap:8px;align-items:center;margin-bottom:12px}
+.no{display:grid;place-items:center;width:28px;height:28px;border-radius:3px;background:#FAFAF8;color:#22272A;border:1px solid var(--line-2);font:600 .95rem var(--cond);font-variant-numeric:tabular-nums}
+.ib{width:34px;height:38px;display:grid;place-items:center;border:1px solid var(--line-2);border-radius:3px;background:var(--field);color:var(--muted);cursor:pointer}
+.ib:hover{color:var(--bad);border-color:var(--bad)}
+.ib svg{width:15px;height:15px}
+@media (max-width:560px){.el-h{grid-template-columns:auto minmax(0,1fr) auto}.el-h .selw.t{grid-column:1/-1;grid-row:2}}
+.el-r{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:12px;font-size:.86rem;color:var(--muted)}
+.el-r b{font:600 1rem var(--cond);font-variant-numeric:tabular-nums;color:var(--ink)}
+.el-r .dp b{color:var(--blue)}
+.el-eq{margin:6px 0 0;font:400 .76rem/1.6 var(--mono);color:var(--faint);overflow-wrap:anywhere}
+.el-w{margin:8px 0 0;padding:6px 10px;border-left:3px solid var(--warn);background:var(--warn-soft);color:var(--warn);font-size:.84rem;border-radius:0 3px 3px 0}
+.el-w.err{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.add{padding:14px 18px 18px;border-top:1px solid var(--line)}
+.add .k{font-size:.84rem;color:var(--muted);margin-bottom:8px}
+
+/* ---------- panelinstrument ---------- */
+.disp{margin:14px 18px 18px;background:var(--lcd);border-radius:4px;padding:5px;box-shadow:inset 0 0 0 1px var(--lcd-line),inset 0 10px 26px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.4)}
+.disp-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--lcd-line);border-radius:3px;overflow:hidden}
+.rd{background:var(--lcd-2);padding:11px 14px 12px;min-width:0}
+.rd.hero{grid-column:1/-1;padding:15px 16px 17px}
+.rd .k{font-size:.82rem;color:var(--lcd-k)}
+.rd .v{font:500 1.6rem/1.1 var(--cond);color:var(--led);font-variant-numeric:tabular-nums;text-shadow:0 0 14px var(--led-glow);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rd.hero .v{font-size:clamp(2.3rem,4vw,3rem)}
+.rd .v small{font-size:.55em;margin-left:5px;opacity:.72;text-shadow:none;font-weight:500}
+.rd .v.na{color:var(--led-dim);text-shadow:none}
+.rd .s{font-size:.8rem;color:var(--lcd-k);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---------- fordeling ---------- */
+.dt{width:100%;border-collapse:collapse}
+.dt th,.dt td{padding:8px 18px;text-align:right;border-top:1px solid var(--line)}
+.dt thead th{border-top:0;font:600 .88rem var(--cond);color:var(--muted);padding-top:12px}
+.dt td:first-child,.dt th:first-child{text-align:left;font-size:.9rem;color:var(--muted)}
+.dt td{font:500 1rem var(--cond);font-variant-numeric:tabular-nums}
+.dt td small{display:block;font:400 .78rem var(--sans);color:var(--faint)}
+.dt tfoot td{font-weight:600;color:var(--ink);border-top:2px solid var(--line-2)}
+.share{display:block;height:4px;margin-top:5px;border-radius:2px;background:var(--line);overflow:hidden}
+.share i{display:block;height:100%;background:var(--blue)}
+@media (max-width:560px){.dt th,.dt td{padding:8px 12px}}
+
+.foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-size:.84rem;color:var(--faint);max-width:90ch}
+.foot p{margin:0 0 6px}
+
+@media (max-width:900px){
+  .top-in{padding:10px 16px}
+  .brand small{display:none}
+  .back span{display:none}
+  .wrap{padding:24px 16px 28px}
+  .ph{padding:14px 14px 0}
+  .sec,.el,.add{padding-left:14px;padding-right:14px}
+  .disp{margin:14px 14px 14px}
+  .msg{margin:0 14px 14px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="top"><div class="top-in">
+  <a class="brand" href="../automatikhj%C3%A6lpemidler.html">
+    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6"/><path d="M6 16c3-8 6-8 10 0s7 8 10 0"/></svg>
+    <span><b>Automatik&shy;hjælpemidler</b><small>Beregnere til hverdagen</small></span>
+  </a>
+  <a class="back" href="../automatikhj%C3%A6lpemidler.html" aria-label="Tilbage til automatikhjælpemidler"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7M8 12h13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Alle beregnere</span></a>
+  <button class="themebtn" id="themeBtn" type="button" aria-label="Skift mellem lyst og mørkt tema" title="Lyst / mørkt tema">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17z" fill="currentColor"/></svg>
+  </button>
+</div></div>
+
+<main class="wrap">
+  <header class="vh">
+    <div class="kick">Pressure Drop</div>
+    <h1>Tryktab i rør</h1>
+    <p class="lead">Byg rørstrækningen op element for element: lige rør, bøjninger, ventiler, tværsnitsændringer og meget mere. Tryktabet for hvert element og for hele strækningen regnes, mens du skriver.</p>
+    <div class="fstrip"><code>Δp = λ·(L/D)·ρv²/2</code><code>Δp = ζ·ρv²/2</code><code>Re = ρ·v·D/μ</code><code>Δp = (Q/Kv)²·ρ/1000</code></div>
+  </header>
+
+  <div class="split">
+    <div class="stack">
+      <section class="plate" aria-labelledby="h-med">
+        <div class="ph"><h2 id="h-med">Medie og flow</h2><button class="btn" type="button" id="reset">Nulstil alt</button></div>
+        <div class="sec">
+          <div class="fg">
+            <div class="fld"><span class="lbl">Medie</span>
+              <div class="selw"><select class="sel" id="m-med">
+                <optgroup label="Væsker">
+                  <option value="vand">Vand</option>
+                  <option value="vg32">Hydraulikolie ISO VG 32</option>
+                  <option value="vg46">Hydraulikolie ISO VG 46</option>
+                  <option value="vg68">Hydraulikolie ISO VG 68</option>
+                  <option value="vaeske">Anden væske</option>
+                </optgroup>
+                <optgroup label="Gasser">
+                  <option value="luft">Luft</option>
+                  <option value="n2">Nitrogen (N₂)</option>
+                  <option value="gas">Anden gas</option>
+                </optgroup>
+              </select></div>
+            </div>
+            <label class="fld" id="f-T"><span class="lbl">Temperatur <i>t</i></span><span class="inp"><input id="m-T" inputmode="decimal" autocomplete="off"><span class="u">°C</span></span></label>
+          </div>
+          <div class="fg" id="g-gas">
+            <label class="fld"><span class="lbl">Indløbstryk, absolut <i>p₁</i></span><span class="inp"><input id="m-p1" inputmode="decimal" autocomplete="off"><span class="u">bar(a)</span></span></label>
+            <p class="hint" style="margin:0;align-self:end">Overtryk + 1,013 = absolut tryk. 6 bar(g) svarer til ca. 7 bar(a).</p>
+          </div>
+          <div class="fg">
+            <label class="fld" id="f-rho"><span class="lbl">Densitet <i>ρ</i><em>beregnet</em></span><span class="inp"><input id="m-rho" inputmode="decimal" autocomplete="off"><span class="u">kg/m³</span></span></label>
+            <div class="fld" id="f-vis"><span class="lbl" id="l-vis">Viskositet<em>beregnet</em></span><span class="inp"><input id="m-vis" inputmode="decimal" autocomplete="off" aria-labelledby="l-vis"><select id="m-vm" aria-label="Viskositetstype"><option value="dyn">mPa·s (dyn.)</option><option value="kin">mm²/s = cSt (kin.)</option></select></span></div>
+          </div>
+        </div>
+        <div class="sec">
+          <div class="fg">
+            <div class="fld"><span class="lbl" id="l-Q">Flow <i>Q</i></span><span class="inp"><input id="m-Q" inputmode="decimal" autocomplete="off" aria-labelledby="l-Q"><select id="m-qu" aria-label="Enhed for flow"></select></span></div>
+            <p class="hint" id="q-conv" style="margin:0;align-self:end"></p>
+          </div>
+          <div class="fg">
+            <div class="fld"><span class="lbl">Rørmateriale</span>
+              <div class="selw"><select class="sel" id="m-mat">
+                <option value="0.045">Stålrør, nyt</option>
+                <option value="0.15">Stålrør, galvaniseret</option>
+                <option value="0.2">Stålrør, let rustent</option>
+                <option value="1">Stålrør, kraftigt rustent</option>
+                <option value="0.015">Rustfrit stål</option>
+                <option value="0.0015">Kobber, messing, PVC, PE</option>
+                <option value="0.007">Gummi- og hydraulikslange</option>
+                <option value="0.25">Støbejern</option>
+                <option value="egen">Egen ruhed</option>
+              </select></div>
+            </div>
+            <label class="fld"><span class="lbl">Ruhed <i>k</i></span><span class="inp"><input id="m-k" inputmode="decimal" autocomplete="off"><span class="u">mm</span></span></label>
+          </div>
+        </div>
+        <div class="msg" id="m-msg" role="alert"></div>
+      </section>
+
+      <section class="plate" aria-labelledby="h-els">
+        <div class="ph"><h2 id="h-els">Rørstrækning</h2><span class="note">Elementerne lægges sammen i serie</span></div>
+        <div id="els" style="margin-top:14px"></div>
+        <div class="add">
+          <div class="k">Tilføj element</div>
+          <div class="chips" id="quick">
+            <button class="chip" type="button" data-q="ror.cirk">+ Rør</button>
+            <button class="chip" type="button" data-q="boj.knae90">+ Knæ 90°</button>
+            <button class="chip" type="button" data-q="boj.bue">+ Rørbøjning</button>
+            <button class="chip" type="button" data-q="tee.run">+ T-stykke</button>
+            <button class="chip" type="button" data-q="ven.kugle">+ Kuglehane</button>
+            <button class="chip" type="button" data-q="ven.kv">+ Kv-ventil</button>
+            <button class="chip" type="button" data-q="kon.klap">+ Kontraventil</button>
+            <button class="chip" type="button" data-q="tvs.udv">+ Tværsnitsændring</button>
+            <button class="chip" type="button" data-q="div.hoejde">+ Højdeforskel</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="stack sticky">
+      <section class="plate" aria-labelledby="h-res">
+        <div class="ph"><h2 id="h-res">Resultat</h2>
+          <div class="seg" id="pu" role="group" aria-label="Trykenhed">
+            <button type="button" data-u="bar">bar</button><button type="button" data-u="mbar">mbar</button><button type="button" data-u="kPa">kPa</button><button type="button" data-u="psi">psi</button>
+          </div>
+        </div>
+        <div class="disp" aria-live="polite">
+          <div class="disp-g">
+            <div class="rd hero"><div class="k">Samlet tryktab Δp</div><div class="v" id="r-dp">–</div><div class="s" id="r-dps"></div></div>
+            <div class="rd"><div class="k" id="r-hk">Løftehøjde</div><div class="v" id="r-h">–</div><div class="s" id="r-hs"></div></div>
+            <div class="rd"><div class="k">Hydraulisk effekt</div><div class="v" id="r-p">–</div><div class="s">P = Q · Δp</div></div>
+            <div class="rd"><div class="k">Største hastighed</div><div class="v" id="r-v">–</div><div class="s" id="r-vs"></div></div>
+            <div class="rd"><div class="k">Strømning</div><div class="v" id="r-re">–</div><div class="s" id="r-res"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="plate" aria-labelledby="h-fd">
+        <div class="ph"><h2 id="h-fd">Fordeling</h2><span class="note">Hvor går trykket tabt?</span></div>
+        <div style="overflow-x:auto"><table class="dt" id="fd"></table></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="foot">
+    <p>Lige rør regnes med Darcy-Weisbach. Rørfriktionstallet λ findes med 64/Re ved laminar strømning (Re &lt; 2320) og med Colebrook-White ved turbulent strømning. Mellem Re 2320 og 4000 er strømningen ustabil, og resultatet er usikkert.</p>
+    <p>Modstandstal for bøjninger, T-stykker, ventiler og kontraventiler er typiske værdier for fuldt åbne komponenter efter Crane TP-410 (ζ = n·fT). Indløb, tværsnitsændringer og blænder følger Idelchik og Crane. Brug producentens Kv- eller ζ-værdi, når du har den.</p>
+    <p>For gasser regnes isotermt: p₂ = √(p₁² − 2·p₁·Δp), hvor Δp er tryktabet ved indløbsdensiteten. Ved tryktab over ca. 40 % af p₁ eller hastigheder tæt på lydens bliver resultatet upræcist.</p>
+  </div>
+</main>
+
+<script>
+'use strict';
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const num = s => { if (s == null) return NaN; s = String(s).trim().replace(/\s/g, ''); if (s === '') return NaN; if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.'); return Number(s); };
+const fmt = (x, d = 3) => {
+  if (!Number.isFinite(x)) return '–';
+  if (x === 0) return '0';
+  const dec = Math.min(6, Math.max(0, d - 1 - Math.floor(Math.log10(Math.abs(x)))));
+  return x.toLocaleString('da-DK', { maximumFractionDigits: dec });
+};
+const fi = x => Number.isFinite(x) ? x.toLocaleString('da-DK', { maximumFractionDigits: 0 }) : '–';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const G0 = 9.80665, PN = 101325, TN = 273.15;
+
+/* =========================================================
+   Medier
+   ========================================================= */
+const MEDIA = {
+  vand:   { liq: true,  T: '20' },
+  vg32:   { liq: true,  T: '40', oil: [32, 5.4] },
+  vg46:   { liq: true,  T: '40', oil: [46, 6.8] },
+  vg68:   { liq: true,  T: '40', oil: [68, 8.7] },
+  vaeske: { liq: true,  custom: true },
+  luft:   { liq: false, T: '20', M: 28.96,  mu0: 1.716e-5, S: 110.4 },
+  n2:     { liq: false, T: '20', M: 28.013, mu0: 1.663e-5, S: 106.7 },
+  gas:    { liq: false, custom: true }
+};
+// ρ i kg/m³ og μ i Pa·s ved temperatur T (°C) og tryk p (Pa abs)
+function props(key, T, p) {
+  const m = MEDIA[key];
+  if (key === 'vand') {
+    const rho = 1000 * (1 - (T + 288.9414) / (508929.2 * (T + 68.12963)) * (T - 3.9863) ** 2);
+    return { rho, mu: 2.414e-5 * 10 ** (247.8 / (T + 133.15)) };
+  }
+  if (m.oil) { // Walther (ASTM D341) gennem ν40 og ν100
+    const W = v => Math.log10(Math.log10(v + 0.7)), [n40, n100] = m.oil;
+    const B = (W(n40) - W(n100)) / (Math.log10(373.15) - Math.log10(313.15)), A = W(n40) + B * Math.log10(313.15);
+    const nu = 10 ** (10 ** (A - B * Math.log10(T + 273.15))) - 0.7;
+    const rho = 870 * (1 - 0.00065 * (T - 15));
+    return { rho, mu: nu * 1e-6 * rho };
+  }
+  const TK = T + 273.15; // ideal gas + Sutherland
+  return { rho: p * m.M / (8314.46 * TK), mu: m.mu0 * (TK / TN) ** 1.5 * (TN + m.S) / (TK + m.S) };
+}
+
+const QU_LIQ = [['m3h', 'm³/h'], ['lmin', 'l/min'], ['ls', 'l/s'], ['m3s', 'm³/s'], ['kgh', 'kg/h'], ['kgs', 'kg/s']];
+const QU_GAS = [['Nm3h', 'Nm³/h'], ['Nlmin', 'Nl/min'], ['m3h', 'm³/h (drift)'], ['lmin', 'l/min (drift)'], ['kgh', 'kg/h'], ['kgs', 'kg/s']];
+
+/* =========================================================
+   Elementkatalog
+   ========================================================= */
+// sc: faktor til SI. ok: tilladt værdi
+const FLD = {
+  D:  { l: 'Indv. diameter', s: 'D', u: 'mm', sc: 1e-3, d: '50' },
+  L:  { l: 'Længde', s: 'L', u: 'm', sc: 1, d: '10' },
+  B:  { l: 'Bredde', s: 'B', u: 'mm', sc: 1e-3, d: '100' },
+  H:  { l: 'Højde', s: 'H', u: 'mm', sc: 1e-3, d: '50' },
+  Di: { l: 'Inderrørets udv. diameter', s: 'd', u: 'mm', sc: 1e-3, d: '25' },
+  A:  { l: 'Tværsnitsareal', s: 'A', u: 'mm²', sc: 1e-6, d: '2000' },
+  U:  { l: 'Vådt omkreds', s: 'U', u: 'mm', sc: 1e-3, d: '200' },
+  r:  { l: 'Afrundingsradius', s: 'r', u: 'mm', sc: 1e-3, d: '5' },
+  dl: { l: 'Indløbsvinkel mod væg', s: 'δ', u: '°', sc: 1, d: '45', max: 90 },
+  D1: { l: 'Diameter før', s: 'D₁', u: 'mm', sc: 1e-3, d: '50' },
+  D2: { l: 'Diameter efter', s: 'D₂', u: 'mm', sc: 1e-3, d: '80' },
+  th: { l: 'Konusvinkel, samlet', s: 'θ', u: '°', sc: 1, d: '20', max: 180 },
+  R:  { l: 'Bøjningsradius (til midte)', s: 'R', u: 'mm', sc: 1e-3, d: '75' },
+  bw: { l: 'Bøjningsvinkel', s: 'θ', u: '°', sc: 1, d: '90', max: 360 },
+  mw: { l: 'Gæringsvinkel', s: 'θ', u: '°', sc: 1, d: '90', max: 90 },
+  d:  { l: 'Blændeåbning', s: 'd', u: 'mm', sc: 1e-3, d: '25' },
+  fa: { l: 'Fri areal', s: 'f', u: '%', sc: 0.01, d: '40', max: 100 },
+  Kv: { l: 'Kv-værdi', s: 'Kv', u: 'm³/h', sc: 1, d: '10' },
+  z:  { l: 'Modstandstal', s: 'ζ', u: '', sc: 1, d: '1' },
+  Hz: { l: 'Højdeforskel (+ opad)', s: 'H', u: 'm', sc: 1, d: '5', any: true }
+};
+
+const lin = (tab, x) => {
+  if (x <= tab[0][0]) return tab[0][1];
+  for (let i = 1; i < tab.length; i++) if (x <= tab[i][0]) { const [a, b] = [tab[i - 1], tab[i]]; return a[1] + (b[1] - a[1]) * (x - a[0]) / (b[0] - a[0]); }
+  return tab[tab.length - 1][1];
+};
+const rad = a => a * Math.PI / 180;
+const BEND = [[1, 20], [1.5, 14], [2, 12], [3, 12], [4, 14], [6, 17], [8, 24], [10, 30], [12, 34], [14, 38], [16, 42], [20, 50]];
+const MITRE = [[0, 2], [15, 4], [30, 8], [45, 15], [60, 25], [75, 40], [90, 60]];
+const ROUND = [[0, 0.5], [0.02, 0.28], [0.04, 0.24], [0.06, 0.15], [0.1, 0.09], [0.15, 0.04]];
+const holeZ = f => ((1 + 0.707 * Math.sqrt(1 - f) - f) / f) ** 2; // Idelchik, tynd skarpkantet åbning, ζ ift. rørhastighed
+
+// Fittings med ζ = n·fT
+const nfT = (id, n, k) => ({ id, n, f: ['D'], z: (g, fT) => ({ z: k * fT(g.D), D: g.D, eq: `ζ = ${k}·fT = ${k}·${fmt(fT(g.D))}` }) });
+
+const GROUPS = [
+  { id: 'ror', n: 'Lige rør', t: [
+    { id: 'cirk', n: 'Cirkulært rør', f: ['D', 'L'], pipe: g => ({ A: Math.PI * g.D ** 2 / 4, Dh: g.D }) },
+    { id: 'rekt', n: 'Rektangulær kanal', f: ['B', 'H', 'L'], pipe: g => ({ A: g.B * g.H, Dh: 2 * g.B * g.H / (g.B + g.H) }) },
+    { id: 'ring', n: 'Ringspalte (rør i rør)', f: ['D', 'Di', 'L'], pipe: g => g.Di >= g.D ? { err: 'Inderrørets diameter d skal være mindre end D.' } : ({ A: Math.PI * (g.D ** 2 - g.Di ** 2) / 4, Dh: g.D - g.Di }) },
+    { id: 'anden', n: 'Anden tværsnitsform', f: ['A', 'U', 'L'], pipe: g => ({ A: g.A, Dh: 4 * g.A / g.U }) }
+  ]},
+  { id: 'ind', n: 'Indløb og udløb', t: [
+    { id: 'skarp', n: 'Indløb, skarpkantet', f: ['D'], z: g => ({ z: 0.5, D: g.D, eq: 'ζ = 0,5' }) },
+    { id: 'rund', n: 'Indløb, afrundet', f: ['D', 'r'], z: g => { const x = g.r / g.D; return { z: lin(ROUND, x), D: g.D, eq: `r/D = ${fmt(x)} → ζ = ${fmt(lin(ROUND, x))}` }; } },
+    { id: 'indrag', n: 'Indløb, indragende rør', f: ['D'], z: g => ({ z: 0.78, D: g.D, eq: 'ζ = 0,78' }) },
+    { id: 'skraa', n: 'Indløb, skråt afskåret', f: ['D', 'dl'], z: g => { const c = Math.cos(rad(g.dl)), z = 0.5 + 0.3 * c + 0.2 * c * c; return { z, D: g.D, eq: `ζ = 0,5 + 0,3·cos δ + 0,2·cos² δ = ${fmt(z)}` }; } },
+    { id: 'udlob', n: 'Udløb til beholder/fri', f: ['D'], z: g => ({ z: 1, D: g.D, eq: 'ζ = 1 (hele hastighedsenergien tabes)' }) }
+  ]},
+  { id: 'tvs', n: 'Tværsnitsændring', t: [
+    { id: 'udv', n: 'Pludselig udvidelse', f: ['D1', 'D2'], z: g => { if (g.D2 <= g.D1) return { err: 'Ved udvidelse skal D₂ være større end D₁.' }; const b = g.D1 / g.D2, z = (1 - b * b) ** 2; return { z, D: g.D1, eq: `ζ = (1 − (D₁/D₂)²)² = ${fmt(z)}, ift. v i D₁` }; } },
+    { id: 'diff', n: 'Gradvis udvidelse (diffusor)', f: ['D1', 'D2', 'th'], z: g => { if (g.D2 <= g.D1) return { err: 'Ved udvidelse skal D₂ være større end D₁.' }; const b = g.D1 / g.D2, k = g.th <= 45 ? 2.6 * Math.sin(rad(g.th / 2)) : 1, z = k * (1 - b * b) ** 2; return { z, D: g.D1, eq: `ζ = ${g.th <= 45 ? '2,6·sin(θ/2)·' : ''}(1 − β²)² = ${fmt(z)}, ift. v i D₁` }; } },
+    { id: 'ind', n: 'Pludselig indsnævring', f: ['D1', 'D2'], z: g => { if (g.D2 >= g.D1) return { err: 'Ved indsnævring skal D₂ være mindre end D₁.' }; const b = g.D2 / g.D1, z = 0.5 * (1 - b * b); return { z, D: g.D2, eq: `ζ = 0,5·(1 − (D₂/D₁)²) = ${fmt(z)}, ift. v i D₂` }; } },
+    { id: 'konf', n: 'Gradvis indsnævring (konus)', f: ['D1', 'D2', 'th'], z: g => { if (g.D2 >= g.D1) return { err: 'Ved indsnævring skal D₂ være mindre end D₁.' }; const b = g.D2 / g.D1, s = Math.sin(rad(g.th / 2)), z = g.th <= 45 ? 0.8 * s * (1 - b * b) : 0.5 * Math.sqrt(s) * (1 - b * b); return { z, D: g.D2, eq: `ζ = ${g.th <= 45 ? '0,8·sin(θ/2)' : '0,5·√sin(θ/2)'}·(1 − β²) = ${fmt(z)}, ift. v i D₂` }; } }
+  ]},
+  { id: 'boj', n: 'Bøjninger', t: [
+    nfT('knae90', 'Standardknæ 90°', 30),
+    nfT('knae45', 'Standardknæ 45°', 16),
+    nfT('lang90', 'Langradius-knæ 90°', 20),
+    nfT('retur', 'Returbøjning 180°', 50),
+    { id: 'bue', n: 'Rørbøjning med radius', f: ['D', 'R', 'bw'], z: (g, fT) => {
+      const rd = g.R / g.D, f = fT(g.D), K90 = lin(BEND, rd) * f;
+      let z, eq;
+      if (g.bw >= 90) { const n = g.bw / 90; z = (n - 1) * (0.25 * Math.PI * f * rd + 0.5 * K90) + K90; eq = `ζ90 = ${fmt(lin(BEND, rd))}·fT = ${fmt(K90)}; ${fmt(g.bw)}° → ζ = ${fmt(z)}`; }
+      else { const a = g.bw <= 70 ? 0.9 * Math.sin(rad(g.bw)) : 0.9 * Math.sin(rad(70)) + (1 - 0.9 * Math.sin(rad(70))) * (g.bw - 70) / 20; z = K90 * a; eq = `ζ90 = ${fmt(lin(BEND, rd))}·fT = ${fmt(K90)}; vinkelfaktor ${fmt(a)} → ζ = ${fmt(z)}`; }
+      return { z, D: g.D, eq, warn: rd < 1 ? 'R/D under 1 ligger uden for tabellen. Der regnes med R/D = 1.' : '' };
+    }},
+    { id: 'gaer', n: 'Gæringsbøjning (svejst)', f: ['D', 'mw'], z: (g, fT) => { const n = lin(MITRE, g.mw), z = n * fT(g.D); return { z, D: g.D, eq: `ζ = ${fmt(n)}·fT = ${fmt(z)}` }; } }
+  ]},
+  { id: 'tee', n: 'T-stykker', t: [
+    nfT('run', 'T-stykke, ligeløb', 20),
+    nfT('branch', 'T-stykke, gennem afgrening', 60)
+  ]},
+  { id: 'ven', n: 'Ventiler (fuldt åbne)', t: [
+    nfT('kugle', 'Kuglehane, fuld boring', 3),
+    nfT('skyde', 'Skydeventil', 8),
+    nfT('hane', 'Hane, lige gennemløb', 18),
+    nfT('sommer', 'Sommerfugleventil', 45),
+    nfT('saede', 'Sædeventil, lige', 340),
+    nfT('saedeY', 'Sædeventil, Y-type', 55),
+    nfT('vinkel', 'Vinkelventil', 150),
+    { id: 'kv', n: 'Ventil med Kv-værdi', f: ['Kv'], dp: (g, c) => {
+      const qh = c.Q * 3600, dp = 1e5 * (qh / g.Kv) ** 2 * c.rho / 1000;
+      return { dp, eq: `Δp = (Q/Kv)²·ρ/1000 = (${fmt(qh)}/${fmt(g.Kv)})²·${fmt(c.rho / 1000)} = ${fmt(dp / 1e5)} bar`, warn: c.gas ? 'Kv-formlen her gælder for væsker. Brug producentens gasformel for gasser.' : '' };
+    }}
+  ]},
+  { id: 'kon', n: 'Kontraventiler', t: [
+    nfT('klap', 'Klapkontraventil', 100),
+    nfT('klapfri', 'Klapkontraventil, fri passage', 50),
+    nfT('loft', 'Løftekontraventil', 600),
+    nfT('loftY', 'Løftekontraventil, Y-type', 55),
+    nfT('fod', 'Fodventil med si', 420)
+  ]},
+  { id: 'bla', n: 'Blænder og hulplader', t: [
+    { id: 'blaende', n: 'Blænde, tynd skarpkantet', f: ['D', 'd'], z: g => { if (g.d >= g.D) return { err: 'Blændeåbningen d skal være mindre end D.' }; const f = (g.d / g.D) ** 2, z = holeZ(f); return { z, D: g.D, eq: `f = (d/D)² = ${fmt(f)}; ζ = ((1 + 0,707·√(1−f) − f)/f)² = ${fmt(z)}` }; } },
+    { id: 'hul', n: 'Hulplade, tynd', f: ['D', 'fa'], z: g => { if (g.fa >= 1) return { err: 'Det fri areal skal være under 100 %.' }; const z = holeZ(g.fa); return { z, D: g.D, eq: `ζ = ((1 + 0,707·√(1−f) − f)/f)² = ${fmt(z)}` }; } }
+  ]},
+  { id: 'div', n: 'Diverse', t: [
+    { id: 'hoejde', n: 'Højdeforskel', f: ['Hz'], dp: (g, c) => { const dp = c.rho * G0 * g.Hz; return { dp, eq: `Δp = ρ·g·H = ${fmt(c.rho, 4)}·9,81·${fmt(g.Hz)} = ${fmt(dp / 1e5)} bar` + (g.Hz < 0 ? ' (trykgevinst)' : '') }; } },
+    { id: 'zeta', n: 'Komponent med kendt ζ', f: ['D', 'z'], z: g => ({ z: g.z, D: g.D, eq: `ζ = ${fmt(g.z)} (indtastet)` }) }
+  ]}
+];
+const typeOf = el => { const g = GROUPS.find(x => x.id === el.g) || GROUPS[0]; return g.t.find(x => x.id === el.t) || g.t[0]; };
+
+/* =========================================================
+   Strømning
+   ========================================================= */
+function lambda(Re, rr) {
+  if (Re < 2320) return 64 / Re;
+  let x = -2 * Math.log10(rr / 3.7 + 5.74 / Re ** 0.9); // Swamee-Jain som start, derefter Colebrook
+  for (let i = 0; i < 40; i++) { const nx = -2 * Math.log10(rr / 3.7 + 2.51 * x / Re); if (Math.abs(nx - x) < 1e-10) { x = nx; break; } x = nx; }
+  return 1 / (x * x);
+}
+
+function calcEl(el, c) {
+  const T = typeOf(el), g = {};
+  for (const k of T.f) {
+    const F = FLD[k], x = num(el.v[k]);
+    if (!Number.isFinite(x)) return { err: `Udfyld ${F.s}.`, bad: k };
+    if (!F.any && !(x > 0)) return { err: `${F.s} skal være større end 0.`, bad: k };
+    if (F.max && x > F.max) return { err: `${F.s} må højst være ${F.max} ${F.u}.`, bad: k };
+    g[k] = x * F.sc;
+  }
+  const fT = D => { const x = -2 * Math.log10(c.k / D / 3.7 + 5.74 / 1e7 ** 0.9); return 1 / (x * x); };
+  const vel = D => c.Q / (Math.PI * D * D / 4);
+  const warns = [];
+  if (T.pipe) {
+    const p = T.pipe(g); if (p.err) return p;
+    const v = c.Q / p.A, Re = c.rho * v * p.Dh / c.mu, lam = lambda(Re, c.k / p.Dh), dp = lam * g.L / p.Dh * c.rho * v * v / 2;
+    if (Re >= 2320 && Re < 4000) warns.push('Overgangsområde mellem laminar og turbulent strømning. λ er usikker.');
+    const dh = T.id === 'cirk' ? 'D' : 'Dₕ';
+    return { dp, v, Re, lam, eq: `${T.id === 'cirk' ? '' : `Dₕ = ${fmt(p.Dh * 1000)} mm; `}Δp = λ·(L/${dh})·ρv²/2 = ${fmt(lam)}·(${fmt(g.L)}/${fmt(p.Dh, 3)})·${fmt(c.rho, 4)}·${fmt(v)}²/2`, warn: warns.join(' ') };
+  }
+  if (T.z) {
+    const r = T.z(g, fT); if (r.err) return r;
+    const v = vel(r.D), Re = c.rho * v * r.D / c.mu, dp = r.z * c.rho * v * v / 2;
+    if (r.warn) warns.push(r.warn);
+    if (Re < 2320) warns.push('Laminar strømning. ζ-værdien gælder for turbulent strømning, så tryktabet er sandsynligvis større.');
+    return { dp, v, Re, z: r.z, eq: `${r.eq}; Δp = ζ·ρv²/2 = ${fmt(r.z)}·${fmt(c.rho, 4)}·${fmt(v)}²/2`, warn: warns.join(' ') };
+  }
+  return T.dp(g, c);
+}
+
+/* =========================================================
+   Tilstand
+   ========================================================= */
+const KEY = 'ah-tryktab';
+const DEFAULT = () => ({
+  med: 'vand', T: '20', p1: '7', rho: '998,2', vis: '1,002', vm: 'dyn', Q: '10', qu: 'm3h', mat: '0.045', k: '0,045', pu: 'bar',
+  els: [
+    { g: 'ror', t: 'cirk', v: { D: '50', L: '25' } },
+    { g: 'boj', t: 'knae90', v: { D: '50' } },
+    { g: 'boj', t: 'knae90', v: { D: '50' } },
+    { g: 'ven', t: 'kugle', v: { D: '50' } },
+    { g: 'kon', t: 'klap', v: { D: '50' } },
+    { g: 'div', t: 'hoejde', v: { Hz: '3' } }
+  ]
+});
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)); } catch { S = null; }
+if (!S || !Array.isArray(S.els)) S = DEFAULT();
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} };
+
+/* =========================================================
+   Medie-UI
+   ========================================================= */
+const I = { med: $('#m-med'), T: $('#m-T'), p1: $('#m-p1'), rho: $('#m-rho'), vis: $('#m-vis'), vm: $('#m-vm'), Q: $('#m-Q'), qu: $('#m-qu'), mat: $('#m-mat'), k: $('#m-k') };
+let ctx = null; // seneste medie-beregning
+
+function fillQU() {
+  const gas = !MEDIA[S.med].liq, list = gas ? QU_GAS : QU_LIQ;
+  if (!list.some(u => u[0] === S.qu)) S.qu = list[0][0];
+  I.qu.innerHTML = list.map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
+  I.qu.value = S.qu;
+}
+function syncMediumUI() {
+  const m = MEDIA[S.med];
+  I.med.value = S.med;
+  $('#f-T').hidden = !!(m.custom && m.liq);
+  $('#g-gas').hidden = m.liq;
+  I.rho.readOnly = I.vis.readOnly = !m.custom;
+  $('#f-rho').classList.toggle('is-calc', !m.custom);
+  $('#f-vis').classList.toggle('is-calc', !m.custom);
+  $('#f-rho .lbl i').textContent = m.liq ? 'ρ' : 'ρ₁';
+  I.T.value = S.T; I.p1.value = S.p1; I.Q.value = S.Q; I.vm.value = S.vm; I.k.value = S.k; I.mat.value = S.mat;
+  if (m.custom) { I.rho.value = S.rho; I.vis.value = S.vis; }
+  fillQU();
+}
+
+function medium() {
+  const m = MEDIA[S.med], gas = !m.liq, errs = [];
+  const T = num(S.T), p1 = num(S.p1) * 1e5;
+  ['T', 'p1', 'rho', 'vis', 'Q', 'k'].forEach(k => I[k].closest('.fld').classList.remove('bad'));
+  const bad = (k, t) => { I[k].closest('.fld').classList.add('bad'); errs.push(t); };
+  const needT = !(m.custom && m.liq);
+  if (needT && !Number.isFinite(T)) bad('T', 'Skriv en temperatur.');
+  else if (needT && T <= -273.15) bad('T', 'Temperaturen skal være over det absolutte nulpunkt.');
+  else if (S.med === 'vand' && (T < 0 || T > 100)) bad('T', 'Vandets egenskaber regnes kun mellem 0 og 100 °C.');
+  if (gas && !(p1 > 0)) bad('p1', 'Skriv indløbstrykket som absolut tryk over 0 bar.');
+  let rho, mu;
+  if (!m.custom) {
+    if (!errs.length) {
+      ({ rho, mu } = props(S.med, T, p1));
+      I.rho.value = fmt(rho, 4);
+      I.vis.value = fmt(S.vm === 'dyn' ? mu * 1e3 : mu / rho * 1e6, 4);
+    } else { I.rho.value = ''; I.vis.value = ''; }
+  } else {
+    rho = num(S.rho); const vv = num(S.vis);
+    if (!(rho > 0)) bad('rho', 'Skriv densiteten.');
+    if (!(vv > 0)) bad('vis', 'Skriv viskositeten.');
+    if (rho > 0 && vv > 0) mu = S.vm === 'dyn' ? vv * 1e-3 : vv * 1e-6 * rho;
+  }
+  const q = num(S.Q);
+  if (!(q > 0)) bad('Q', 'Skriv et flow større end 0.');
+  const k = num(S.k);
+  if (!(k >= 0)) bad('k', 'Ruheden skal være 0 eller mere.');
+  $('#m-msg').textContent = errs[0] || '';
+  if (errs.length) { $('#q-conv').textContent = ''; return null; }
+  const nf = (p1 > 0 ? PN / p1 : 1) * (T + 273.15) / TN; // Nm³ → driftsm³
+  const Q = { m3h: q / 3600, lmin: q / 60000, ls: q / 1000, m3s: q, kgh: q / 3600 / rho, kgs: q / rho, Nm3h: q / 3600 * nf, Nlmin: q / 60000 * nf }[S.qu];
+  const conv = [`${fmt(Q * 3600)} m³/h`, `${fmt(Q * 60000)} l/min`, `${fmt(Q * rho * 3600)} kg/h`];
+  if (gas) conv.unshift(`${fmt(Q * 3600 / nf)} Nm³/h`);
+  $('#q-conv').textContent = '= ' + conv.filter((_, i) => !(gas ? [S.qu === 'Nm3h', S.qu === 'm3h', S.qu === 'lmin', S.qu === 'kgh'] : [S.qu === 'm3h', S.qu === 'lmin', S.qu === 'kgh'])[i]).join(' · ') + (gas ? ` (ved ${fmt(p1 / 1e5)} bar(a), ${fmt(T)} °C)` : '');
+  return { Q, rho, mu, k: k * 1e-3, gas, p1, T };
+}
+
+/* =========================================================
+   Elementer
+   ========================================================= */
+const box = $('#els');
+const lastD = () => { for (let i = S.els.length - 1; i >= 0; i--) { const v = S.els[i].v; const d = v.D || v.D2; if (d) return d; } return FLD.D.d; };
+function fillDefaults(el) {
+  const D = lastD();
+  typeOf(el).f.forEach(k => { if (el.v[k] == null || el.v[k] === '') el.v[k] = (k === 'D' || k === 'D1') ? D : FLD[k].d; });
+}
+const X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+
+function renderEls() {
+  if (!S.els.length) { box.innerHTML = '<p class="hint" style="padding:0 18px 14px">Ingen elementer endnu. Tilføj et rør eller en komponent herunder.</p>'; return; }
+  box.innerHTML = S.els.map((el, i) => {
+    const T = typeOf(el);
+    const gOpts = GROUPS.map(g => `<option value="${g.id}"${g.id === el.g ? ' selected' : ''}>${g.n}</option>`).join('');
+    const tOpts = GROUPS.find(g => g.id === el.g).t.map(t => `<option value="${t.id}"${t.id === T.id ? ' selected' : ''}>${t.n}</option>`).join('');
+    const flds = T.f.map(k => { const F = FLD[k]; return `<label class="fld"><span class="lbl">${F.l} <i>${F.s}</i></span><span class="inp"><input data-k="${k}" value="${esc(el.v[k] ?? '')}" inputmode="decimal" autocomplete="off">${F.u ? `<span class="u">${F.u}</span>` : ''}</span></label>`; }).join('');
+    return `<div class="el" data-i="${i}">
+      <div class="el-h"><span class="no">${i + 1}</span>
+        <div class="selw"><select class="sel g" aria-label="Gruppe for element ${i + 1}">${gOpts}</select></div>
+        <div class="selw t"><select class="sel t" aria-label="Type for element ${i + 1}">${tOpts}</select></div>
+        <button class="ib x" type="button" aria-label="Fjern element ${i + 1}" title="Fjern">${X}</button></div>
+      <div class="fg c3">${flds}</div>
+      <div class="el-r"></div><div class="el-eq"></div><div class="el-w" hidden></div>
+    </div>`;
+  }).join('');
+}
+
+box.addEventListener('input', e => {
+  const inp = e.target.closest('input[data-k]'); if (!inp) return;
+  S.els[+inp.closest('.el').dataset.i].v[inp.dataset.k] = inp.value; compute();
+});
+box.addEventListener('change', e => {
+  const s = e.target.closest('select'); if (!s) return;
+  const el = S.els[+s.closest('.el').dataset.i];
+  if (s.classList.contains('g')) { el.g = s.value; el.t = GROUPS.find(g => g.id === el.g).t[0].id; }
+  else el.t = s.value;
+  fillDefaults(el); renderEls(); compute();
+  $(`.el[data-i="${S.els.indexOf(el)}"] select.${s.classList.contains('g') ? 'g' : 't'}`)?.focus();
+});
+box.addEventListener('click', e => {
+  const b = e.target.closest('.x'); if (!b) return;
+  const i = +b.closest('.el').dataset.i; S.els.splice(i, 1); renderEls(); compute();
+  const next = $$('.el .x')[Math.min(i, S.els.length - 1)]; (next || $('#quick .chip')).focus();
+});
+$('#quick').addEventListener('click', e => {
+  const b = e.target.closest('[data-q]'); if (!b) return;
+  const [g, t] = b.dataset.q.split('.'), el = { g, t, v: {} };
+  fillDefaults(el); S.els.push(el); renderEls(); compute();
+  const last = $$('.el').pop(); last.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); $('input', last)?.focus();
+});
+
+/* =========================================================
+   Beregning og visning
+   ========================================================= */
+const PU = { bar: 1e5, mbar: 100, kPa: 1e3, psi: 6894.757 };
+const pq = (pa, d = 3) => fmt(pa / PU[S.pu], d);
+
+function compute() {
+  save();
+  ctx = medium();
+  const rows = $$('.el', box);
+  const res = S.els.map((el, i) => {
+    const r = ctx ? calcEl(el, ctx) : { err: '' };
+    const n = rows[i]; if (!n) return r;
+    $$('.fld', n).forEach(f => f.classList.toggle('bad', !!r.bad && $('input', f).dataset.k === r.bad));
+    const w = $('.el-w', n);
+    if (r.err != null) {
+      $('.el-r', n).innerHTML = ''; $('.el-eq', n).textContent = '';
+      w.hidden = !r.err; w.classList.add('err'); w.textContent = r.err;
+      return r;
+    }
+    const parts = [];
+    if (r.v != null) parts.push(`<span>v <b>${fmt(r.v)}</b> m/s</span>`, `<span>Re <b>${fi(r.Re)}</b></span>`);
+    if (r.lam != null) parts.push(`<span>λ <b>${fmt(r.lam)}</b></span>`);
+    if (r.z != null) parts.push(`<span>ζ <b>${fmt(r.z)}</b></span>`);
+    parts.push(`<span class="dp">Δp <b>${pq(r.dp)}</b> ${S.pu}</span>`);
+    $('.el-r', n).innerHTML = parts.join('');
+    $('.el-eq', n).textContent = r.eq;
+    w.classList.remove('err'); w.hidden = !r.warn; w.textContent = r.warn || '';
+    return r;
+  });
+
+  const ok = ctx && S.els.length && res.every(r => r.err == null);
+  const setV = (id, html) => { const e = $(id); e.innerHTML = html; e.classList.toggle('na', html === '–'); };
+  $$('#pu button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.u === S.pu)));
+  if (!ok) {
+    ['#r-dp', '#r-h', '#r-p', '#r-v', '#r-re'].forEach(id => setV(id, '–'));
+    ['#r-dps', '#r-hs', '#r-vs', '#r-res'].forEach(id => $(id).textContent = '');
+    $('#r-dps').textContent = !S.els.length ? 'Tilføj mindst ét element' : 'Ret de markerede felter';
+    $('#fd').innerHTML = '';
+    return;
+  }
+
+  const dpInc = res.reduce((a, r) => a + r.dp, 0);
+  let dp = dpInc, gasNote = '';
+  if (ctx.gas) {
+    const d = ctx.p1 * ctx.p1 - 2 * ctx.p1 * dpInc;
+    if (d <= 0) { setV('#r-dp', '–'); $('#r-dps').textContent = 'Tryktabet er større end indløbstrykket. Øg diameteren eller trykket.'; ['#r-h', '#r-p', '#r-v', '#r-re'].forEach(id => setV(id, '–')); $('#fd').innerHTML = ''; return; }
+    dp = ctx.p1 - Math.sqrt(d);
+    if (dp / ctx.p1 > 0.4) gasNote = ' · over 40 % af p₁, usikkert';
+  }
+  setV('#r-dp', `${pq(dp)}<small>${S.pu}</small>`);
+  $('#r-dps').textContent = (S.pu === 'bar' ? `${fmt(dp / 1000)} kPa · ${fmt(dp / 100)} mbar` : `${fmt(dp / 1e5)} bar · ${fi(dp)} Pa`) + gasNote;
+
+  if (ctx.gas) {
+    $('#r-hk').textContent = 'Udløbstryk p₂';
+    setV('#r-h', `${fmt((ctx.p1 - dp) / 1e5)}<small>bar(a)</small>`);
+    $('#r-hs').textContent = `${fmt((ctx.p1 - dp - PN) / 1e5)} bar(g)`;
+  } else {
+    $('#r-hk').textContent = 'Løftehøjde';
+    setV('#r-h', `${fmt(dp / (ctx.rho * G0))}<small>m</small>`);
+    $('#r-hs').textContent = 'H = Δp / (ρ·g), væskesøjle';
+  }
+  const P = ctx.Q * dp;
+  setV('#r-p', P >= 1000 ? `${fmt(P / 1000)}<small>kW</small>` : `${fmt(P)}<small>W</small>`);
+
+  let vmax = -1, iv = -1;
+  res.forEach((r, i) => { if (r.v != null && r.v > vmax) { vmax = r.v; iv = i; } });
+  if (iv >= 0) {
+    setV('#r-v', `${fmt(vmax)}<small>m/s</small>`);
+    let s = `i element ${iv + 1}`;
+    if (ctx.gas) { const c = Math.sqrt(1.4 * ctx.p1 / ctx.rho); if (vmax > 0.3 * c) s += ` · Mach ${fmt(vmax / c, 2)}, for højt`; }
+    else if (vmax > 3) s += ' · højt for de fleste anlæg';
+    $('#r-vs').textContent = s;
+  } else { setV('#r-v', '–'); $('#r-vs').textContent = 'Ingen rør eller komponenter med diameter'; }
+
+  const re = res.filter(r => r.Re != null).map(r => r.Re);
+  if (re.length) {
+    const lo = Math.min(...re), hi = Math.max(...re);
+    const kind = hi < 2320 ? 'Laminar' : lo >= 4000 ? 'Turbulent' : lo < 2320 && hi >= 4000 ? 'Blandet' : 'Overgang';
+    setV('#r-re', kind);
+    $('#r-res').textContent = lo === hi ? `Re = ${fi(lo)}` : `Re ${fi(lo)} til ${fi(hi)}`;
+  } else { setV('#r-re', '–'); $('#r-res').textContent = ''; }
+
+  const scale = ctx.gas ? dp / dpInc : 1, mx = Math.max(...res.map(r => Math.abs(r.dp)));
+  $('#fd').innerHTML = `<thead><tr><th>Element</th><th>v <span>m/s</span></th><th>Δp <span>${S.pu}</span></th></tr></thead><tbody>` +
+    res.map((r, i) => `<tr><td>${i + 1}. ${esc(typeOf(S.els[i]).n)}<span class="share"><i style="width:${mx ? Math.abs(r.dp) / mx * 100 : 0}%"></i></span></td><td>${r.v != null ? fmt(r.v) : '–'}</td><td>${pq(r.dp * scale)}<small>${fmt(dpInc ? r.dp / dpInc * 100 : 0, 2)} %</small></td></tr>`).join('') +
+    `</tbody><tfoot><tr><td>I alt</td><td></td><td>${pq(dp)}</td></tr></tfoot>`;
+}
+
+/* =========================================================
+   Hændelser
+   ========================================================= */
+I.med.addEventListener('change', () => {
+  const prev = MEDIA[S.med], m = MEDIA[I.med.value];
+  if (m.custom && !prev.custom) { S.rho = I.rho.value; S.vis = I.vis.value; } // start fra de beregnede værdier
+  if (m.liq !== prev.liq && m.custom) { S.rho = m.liq ? '1000' : '1,2'; S.vis = S.vm === 'dyn' ? (m.liq ? '1' : '0,018') : (m.liq ? '1' : '15'); }
+  if (m.T) S.T = m.T;
+  S.med = I.med.value; syncMediumUI(); compute();
+});
+['T', 'p1', 'rho', 'vis', 'Q'].forEach(k => I[k].addEventListener('input', () => { S[k] = I[k].value; compute(); }));
+I.vm.addEventListener('change', () => {
+  if (MEDIA[S.med].custom && ctx) { // behold betydningen ved skift mellem dyn. og kin.
+    const vv = num(S.vis); if (vv > 0) S.vis = fmt(I.vm.value === 'kin' ? vv / ctx.rho * 1e3 : vv * ctx.rho / 1e3, 4);
+  }
+  S.vm = I.vm.value; I.vis.value = S.vis; compute();
+});
+I.qu.addEventListener('change', () => { S.qu = I.qu.value; compute(); });
+I.mat.addEventListener('change', () => { S.mat = I.mat.value; if (S.mat !== 'egen') { S.k = fmt(Number(S.mat), 4); I.k.value = S.k; } compute(); });
+I.k.addEventListener('input', () => { S.k = I.k.value; S.mat = 'egen'; I.mat.value = 'egen'; compute(); });
+$('#pu').addEventListener('click', e => { const b = e.target.closest('[data-u]'); if (b) { S.pu = b.dataset.u; compute(); } });
+$('#reset').addEventListener('click', () => { S = DEFAULT(); syncMediumUI(); renderEls(); compute(); });
+
+$('#themeBtn').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('ah-tema', next); } catch {}
+});
+
+syncMediumUI(); renderEls(); compute();
+</script>
+</body>
+</html>
