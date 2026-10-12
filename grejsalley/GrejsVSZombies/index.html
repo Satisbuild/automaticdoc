@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#14301c">
+  <meta name="description" content="Grejs vs Zombies - tower defense i Grejs-universet. 39 planter, 44 zombier, 10 verdener, 150 baner, bosser, opgraderinger, Endless Survival og daglige udfordringer.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Grejs vs Zombies</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314301c'/%3E%3Cpath d='M32 58 Q30 44 34 34' stroke='%232a1b12' stroke-width='7' fill='none'/%3E%3Cpath d='M32 58 Q30 44 34 34' stroke='%234c9a2a' stroke-width='4' fill='none'/%3E%3Crect x='38' y='20' width='16' height='12' rx='5' fill='%238fe05a' stroke='%232a1b12' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='26' r='14' fill='%238fe05a' stroke='%232a1b12' stroke-width='3'/%3E%3Ccircle cx='34' cy='23' r='5' fill='%23fff' stroke='%232a1b12' stroke-width='2'/%3E%3Ccircle cx='36' cy='23' r='2.4' fill='%231b120c'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="menuBg" aria-hidden="true"></canvas>
+
+    <!-- Hovedmenu -->
+    <section class="screen" id="scr-menu">
+      <div class="menu-wrap">
+        <div class="logo" aria-label="Grejs vs Zombies">
+          <span class="logo-a">GREJS</span><span class="logo-vs">vs</span><span class="logo-b">ZOMBIES</span>
+        </div>
+        <div class="profile" id="profile"></div>
+        <div class="menu-btns" id="menuBtns"></div>
+        <a class="back-alley" href="../GREJSALLEY.html">← Tilbage til GrejsAlley</a>
+      </div>
+    </section>
+
+    <!-- Verdenskort -->
+    <section class="screen" id="scr-worlds">
+      <header class="topbar"><button class="btn-back" data-back>‹</button><h2>Eventyr</h2><div class="chips"></div></header>
+      <div class="worlds-scroll" id="worldList"></div>
+    </section>
+
+    <!-- Baner i en verden -->
+    <section class="screen" id="scr-levels">
+      <header class="topbar"><button class="btn-back" data-back>‹</button><h2 id="levelsTitle">Verden</h2><div class="chips"></div></header>
+      <div class="levels-wrap">
+        <div class="levels-map" id="levelMap"></div>
+        <div class="chest-bar" id="chestBar"></div>
+      </div>
+    </section>
+
+    <!-- Bane-intro + loadout -->
+    <section class="screen" id="scr-loadout">
+      <header class="topbar"><button class="btn-back" data-back>‹</button><h2 id="loadTitle">Vælg planter</h2><div class="chips"></div></header>
+      <div class="loadout">
+        <aside class="lvl-info" id="lvlInfo"></aside>
+        <div class="picker">
+          <div class="slots" id="slots"></div>
+          <div class="picker-tools" id="pickerTools"></div>
+          <div class="plant-grid" id="pickGrid"></div>
+          <div class="pick-detail" id="pickDetail"></div>
+        </div>
+      </div>
+      <div class="start-row"><div id="abilityPreview" class="ability-preview"></div><button class="btn big go" id="btnStart">Kæmp!</button></div>
+    </section>
+
+    <!-- Kamp -->
+    <section class="screen" id="scr-battle">
+      <div id="stageWrap">
+        <div id="stage">
+          <canvas id="battleCanvas"></canvas>
+          <div id="hud">
+            <div class="sunbox" id="sunBox"><div class="sun-ico"></div><span id="sunTxt">50</span></div>
+            <div class="bank" id="bank"></div>
+            <button class="tool shovel" id="btnShovel" title="Skovl (S)"></button>
+            <div class="topright">
+              <div class="coinchip" id="coinChip"><i class="coin-ico"></i><span>0</span></div>
+              <button class="tool small" id="btnSpeed" title="Hastighed">1×</button>
+              <button class="tool small" id="btnPause" title="Pause (Esc)">❚❚</button>
+            </div>
+            <div class="abilities" id="abilities"></div>
+            <button class="ppbtn" id="btnPower" title="Plant Power (Q)"><span class="pp-leaves" id="ppLeaves"></span><b>Plant Power</b></button>
+            <div class="wavebar" id="waveBar"><div class="wb-name" id="wbName"></div><div class="wb-track"><div class="wb-fill" id="wbFill"></div><div class="wb-flags" id="wbFlags"></div><div class="wb-head" id="wbHead"></div></div></div>
+            <div class="objective" id="objBox"></div>
+            <div class="tip" id="tipBox"></div>
+          </div>
+        </div>
+      </div>
+      <div class="rotate-hint" id="rotateHint">Vend telefonen til liggende format for den bedste oplevelse ↻</div>
+    </section>
+
+    <!-- Plantesamling -->
+    <section class="screen" id="scr-collection">
+      <header class="topbar"><button class="btn-back" data-back>‹</button><h2>Plantesamling</h2><div class="chips"></div></header>
+      <div class="split">
+        <div class="col-left"><div class="filter-row" id="colFilter"></div><div class="plant-grid big" id="colGrid"></div></div>
+        <div class="col-right" id="colDetail"></div>
+      </div>
+    </section>
+
+    <!-- Opgraderinger -->
+    <section class="screen" id="scr-upgrades">
+      <header class="topbar"><button class="btn-back" data-back>‹</button><h2>Planteopgraderinger</h2><div class="chips"></div></header>
+      <div class="up-wrap">
+        <div class="up-list" id="upList"></div>
+        <div class="shop" id="shop"></div>
+      </div>
+    </section>
+
+    <!-- Leksikon -->
+    <section class="screen" id="scr-almanac">
+      <header class="topbar"><button class="btn-back" data-back>‹</button><h2>Leksikon</h2><div class="chips"></div></header>
+      <div class="tabs" id="almTabs"></div>
+      <div class="split">
+        <div class="col-left"><div class="plant-grid big" id="almGrid"></div></div>
+        <div class="col-right" id="almDetail"></div>
+      </div>
+    </section>
+
+    <!-- Udfordringer -->
+    <section class="screen" id="scr-challenges">
+      <header class="topbar"><button class="btn-back" data-back>‹</button><h2>Udfordringer</h2><div class="chips"></div></header>
+      <div class="tabs" id="chTabs"></div>
+      <div class="ch-list" id="chList"></div>
+    </section>
+
+    <!-- Endless -->
+    <section class="screen" id="scr-endless">
+      <header class="topbar"><button class="btn-back" data-back>‹</button><h2>Endless Survival</h2><div class="chips"></div></header>
+      <div class="endless" id="endlessBox"></div>
+    </section>
+
+    <!-- Indstillinger -->
+    <section class="screen" id="scr-settings">
+      <header class="topbar"><button class="btn-back" data-back>‹</button><h2>Indstillinger</h2><div class="chips"></div></header>
+      <div class="settings" id="settingsBox"></div>
+    </section>
+
+    <div class="modal-back" id="modalBack"><div class="modal" id="modal"></div></div>
+    <div class="toasts" id="toasts"></div>
+    <div class="fade" id="fade"></div>
+  </div>
+
+  <script src="js/core.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/plants.js"></script>
+  <script src="js/zombies.js"></script>
+  <script src="js/worlds.js"></script>
+  <script src="js/progression.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

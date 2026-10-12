@@ -7,7 +7,7 @@
 //   caches ALDRIG - et spil må ikke få en gammel cloud-save serveret, når man er offline.
 
 // <precache> (genereret af tools/update-sw.js - rediger ikke i hånden)
-const VERSION = '09c7b6b458';
+const VERSION = '84279d2dcd';
 const PRECACHE = [
   "/",
   "/Automatikteknikker.ico",
@@ -36,6 +36,18 @@ const PRECACHE = [
   "/grejsalley/Grejs-Base-Builder/js/ui.js",
   "/grejsalley/GrejsFarm.html",
   "/grejsalley/GrejsFigur.html",
+  "/grejsalley/GrejsVSZombies/css/style.css",
+  "/grejsalley/GrejsVSZombies/index.html",
+  "/grejsalley/GrejsVSZombies/",
+  "/grejsalley/GrejsVSZombies/js/audio.js",
+  "/grejsalley/GrejsVSZombies/js/core.js",
+  "/grejsalley/GrejsVSZombies/js/game.js",
+  "/grejsalley/GrejsVSZombies/js/main.js",
+  "/grejsalley/GrejsVSZombies/js/plants.js",
+  "/grejsalley/GrejsVSZombies/js/progression.js",
+  "/grejsalley/GrejsVSZombies/js/ui.js",
+  "/grejsalley/GrejsVSZombies/js/worlds.js",
+  "/grejsalley/GrejsVSZombies/js/zombies.js",
   "/grejsalley/Grejs_Heroes.html",
   "/grejsalley/SuperGrejs/assets/images/icon.svg",
   "/grejsalley/SuperGrejs/css/game.css",
@@ -77,6 +89,7 @@ const PRECACHE = [
   "/grejsalley/grejs-tanks.html",
   "/grejsalley/grejsman-2d-kombat.html",
   "/grejsalley/img/grejs-base-builder.jpg",
+  "/grejsalley/img/grejs-vs-zombies.jpg",
   "/grejsalley/img/super-grejs.png",
   "/grejsalley/klassisk_neon_tetris.html",
   "/grejsalley/neon_snake.html",
