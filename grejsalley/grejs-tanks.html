@@ -9034,7 +9034,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       });
       rs.appendChild(rb);
       body.appendChild(rs);
-      body.appendChild(U.el('div', 'set-row', '<div>⌨️ Controls<small>Drag on the battlefield to aim (angle + power) · ←/→ or A/D move · ↑/↓ angle · W/S power · Space fire · 1-9 / Q/E weapons · F special · Z overview · J/L look around (or right-drag / two-finger drag) · C recenter · Esc pause</small></div>'));
+      body.appendChild(U.el('div', 'set-row', '<div>⌨️ Controls<small>Drag on the battlefield to aim (angle + power) · ←/→ move · W/Q (or ↑/↓) angle +/− · S/A power +/− · Space fire · 1-9 / R/E weapons · F special · Z overview · J/L look around (or right-drag / two-finger drag) · C recenter · Esc pause</small></div>'));
     },
 
     /* ================================================================
@@ -9752,12 +9752,12 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         const k = e.key.toLowerCase();
         const step = e.shiftKey ? 5 : 1;
         if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' '].includes(k)) e.preventDefault();
-        if (k === 'arrowleft' || k === 'a') { b.setMove(-1); keys.move = -1; }
-        else if (k === 'arrowright' || k === 'd') { b.setMove(1); keys.move = 1; }
-        else if (k === 'arrowup') elevate(step);
-        else if (k === 'arrowdown') elevate(-step);
-        else if (k === 'w') b.nudgeAim(0, step);
-        else if (k === 's') b.nudgeAim(0, -step);
+        if (k === 'arrowleft') { b.setMove(-1); keys.move = -1; }
+        else if (k === 'arrowright') { b.setMove(1); keys.move = 1; }
+        else if (k === 'arrowup' || k === 'w') elevate(step);
+        else if (k === 'arrowdown' || k === 'q') elevate(-step);
+        else if (k === 's') b.nudgeAim(0, step);
+        else if (k === 'a') b.nudgeAim(0, -step);
         else if (k === ' ' || k === 'enter') { if (!e.repeat) { GT.Audio.init(); b.fire(); } }
         else if (k === 'f' || k === 'x') { if (!e.repeat) { b.useAbility(); this.updateAbilityBtn(b); this.renderWeaponBar(b); } }
         else if (k === 'z') b.toggleOverview();
@@ -9765,7 +9765,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
         else if (k === 'l') b.setPan(1);
         else if (k === 'c') b.resetPan();
         else if (k === 'escape' || k === 'p') this.pause();
-        else if (k === 'q' || k === 'e') {
+        else if (k === 'r' || k === 'e') {
           const p = b.player, n = p.weapons.length;
           let i = p.weapon;
           for (let t = 0; t < n; t++) {
@@ -9782,7 +9782,7 @@ textarea { width: 100%; height: 90px; border-radius: 12px; background: rgba(0,0,
       window.addEventListener('keyup', (e) => {
         const b = this.battle;
         const k = e.key.toLowerCase();
-        if (b && ['arrowleft', 'arrowright', 'a', 'd'].includes(k)) b.setMove(0);
+        if (b && ['arrowleft', 'arrowright'].includes(k)) b.setMove(0);
         if (b && (k === 'j' || k === 'l')) b.setPan(0);
       });
       window.addEventListener('blur', () => {
