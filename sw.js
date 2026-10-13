@@ -7,7 +7,7 @@
 //   caches ALDRIG - et spil må ikke få en gammel cloud-save serveret, når man er offline.
 
 // <precache> (genereret af tools/update-sw.js - rediger ikke i hånden)
-const VERSION = '1c6e89c750';
+const VERSION = '646717e2ab';
 const PRECACHE = [
   "/",
   "/Automatikteknikker.ico",
@@ -40,6 +40,26 @@ const PRECACHE = [
   "/grejsalley/Grejs-Base-Builder/js/ui.js",
   "/grejsalley/GrejsFarm.html",
   "/grejsalley/GrejsFigur.html",
+  "/grejsalley/GrejsTank/css/style.css",
+  "/grejsalley/GrejsTank/index.html",
+  "/grejsalley/GrejsTank/",
+  "/grejsalley/GrejsTank/js/ai.js",
+  "/grejsalley/GrejsTank/js/audio.js",
+  "/grejsalley/GrejsTank/js/cloud.js",
+  "/grejsalley/GrejsTank/js/game.js",
+  "/grejsalley/GrejsTank/js/levels.js",
+  "/grejsalley/GrejsTank/js/main.js",
+  "/grejsalley/GrejsTank/js/particles.js",
+  "/grejsalley/GrejsTank/js/physics.js",
+  "/grejsalley/GrejsTank/js/progress.js",
+  "/grejsalley/GrejsTank/js/render.js",
+  "/grejsalley/GrejsTank/js/save.js",
+  "/grejsalley/GrejsTank/js/scenery.js",
+  "/grejsalley/GrejsTank/js/tanks.js",
+  "/grejsalley/GrejsTank/js/ui.js",
+  "/grejsalley/GrejsTank/js/utils.js",
+  "/grejsalley/GrejsTank/js/weapons.js",
+  "/grejsalley/GrejsTank/js/worlds.js",
   "/grejsalley/GrejsVSZombies/css/style.css",
   "/grejsalley/GrejsVSZombies/index.html",
   "/grejsalley/GrejsVSZombies/",

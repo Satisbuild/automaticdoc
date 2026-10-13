@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1b1530">
+  <meta name="description" content="Grejs Tanks - a turn-based artillery tank battle game with destructible terrain, 60 tanks, 40 weapons, 10 worlds and 150 levels.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Grejs Tanks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Teko:wght@500;600;700&display=swap">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYmciIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM1YWI4ZmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNiZmU4ZmYiLz48L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJib2R5IiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjOGJlMzZiIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMmU3ZDMyIi8+PC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHJ4PSIyOCIgZmlsbD0idXJsKCNiZykiLz4KICA8cGF0aCBkPSJNMCA5NiBRMzIgODAgNjQgOTIgVDEyOCA4OCBWMTI4IEgwWiIgZmlsbD0iIzVjYzQ1YSIvPgogIDxwYXRoIGQ9Ik0wIDEwNCBRNDAgOTQgNzAgMTAyIFQxMjggOTggVjEyOCBIMFoiIGZpbGw9IiM4YTVhMzIiLz4KICA8ZyBzdHJva2U9IiMxZDFhMjYiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CiAgICA8cmVjdCB4PSI2MiIgeT0iNDQiIHdpZHRoPSI0NiIgaGVpZ2h0PSIxMCIgcng9IjQiIGZpbGw9IiM0YTQ4NTgiIHRyYW5zZm9ybT0icm90YXRlKC0yOCA2MiA1OCkiLz4KICAgIDxyZWN0IHg9IjI2IiB5PSI3OCIgd2lkdGg9Ijc2IiBoZWlnaHQ9IjE4IiByeD0iOSIgZmlsbD0iIzJhMjgzMyIvPgogICAgPHBhdGggZD0iTTI4IDgwIFY2NCBRMzAgNTggMzYgNTggSDkwIEwxMDAgNjggVjgwWiIgZmlsbD0idXJsKCNib2R5KSIvPgogICAgPHBhdGggZD0iTTQ2IDU4IEExOCAxOCAwIDAgMSA4MiA1OFoiIGZpbGw9IiM2ZmQzNmEiLz4KICA8L2c+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSI4NyIgcj0iNCIgZmlsbD0iIzZjNjk3OCIvPjxjaXJjbGUgY3g9IjU2IiBjeT0iODciIHI9IjQiIGZpbGw9IiM2YzY5NzgiLz48Y2lyY2xlIGN4PSI3MiIgY3k9Ijg3IiByPSI0IiBmaWxsPSIjNmM2OTc4Ii8+PGNpcmNsZSBjeD0iODgiIGN5PSI4NyIgcj0iNCIgZmlsbD0iIzZjNjk3OCIvPgo8L3N2Zz4K">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- UI icon sprite (menu, level select, top bar) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="g-coin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9a0"/><stop offset=".55" stop-color="#ffc23a"/><stop offset="1" stop-color="#d98a0c"/></linearGradient>
+      <linearGradient id="g-star" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0a8"/><stop offset=".5" stop-color="#ffcf3a"/><stop offset="1" stop-color="#f09a10"/></linearGradient>
+      <linearGradient id="g-bp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6cc8ff"/><stop offset="1" stop-color="#1f74d6"/></linearGradient>
+    </defs>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.6v14.8a1 1 0 0 0 1.53.85l11.6-7.4a1 1 0 0 0 0-1.7L8.53 3.75A1 1 0 0 0 7 4.6z"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6 9 4z"/><path d="M9 4v14M15 6v14"/></symbol>
+    <symbol id="i-tank" viewBox="0 0 24 24"><rect x="2.5" y="14.5" width="19" height="5" rx="2.5"/><path d="M5 14.5 6.8 11h10.4l1.8 3.5"/><path d="M9 11V8.5h5.5L15.5 11"/><path d="M14.5 9.5 22 7.5"/><circle cx="7" cy="17" r=".6"/><circle cx="12" cy="17" r=".6"/><circle cx="17" cy="17" r=".6"/></symbol>
+    <symbol id="i-shell" viewBox="0 0 24 24"><path d="M12 2.5c2.6 1.7 4 4.5 4 8v8H8v-8c0-3.5 1.4-6.3 4-8z"/><path d="M8 14.5h8M7 21.5h10M9 18.5v3M15 18.5v3"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7.5 3.5h9V9a4.5 4.5 0 0 1-9 0V3.5z"/><path d="M16.5 5H20v1.5a3.5 3.5 0 0 1-3.6 3.5M7.5 5H4v1.5A3.5 3.5 0 0 0 7.6 10"/><path d="M12 13.5V17M8 21h8M9 17h6v4H9z"/></symbol>
+    <symbol id="i-cards" viewBox="0 0 24 24"><rect x="8" y="3" width="12.5" height="15.5" rx="2"/><path d="M5.5 6.5 4 7.2a1.5 1.5 0 0 0-.7 2l4.9 10.4a1.5 1.5 0 0 0 2 .7l1.6-.8"/><path d="m14.25 8.2 1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3-2.3 1.3.4-2.6-1.9-1.8 2.6-.4z"/></symbol>
+    <symbol id="i-podium" viewBox="0 0 24 24"><path d="M8.5 21V10h7v11M2.5 21v-6.5h6M15.5 21v-8.5h6V21M1.5 21h21"/><path d="m12 3.2.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 5.3l2-.3z"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 4.8 4.8L19.5 7"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.6l2.85 5.95 6.55.85-4.8 4.55 1.2 6.5L12 17.3l-5.8 3.15 1.2-6.5-4.8-4.55 6.55-.85z"/></symbol>
+    <symbol id="i-star-g" viewBox="0 0 24 24"><path d="M12 2.6l2.85 5.95 6.55.85-4.8 4.55 1.2 6.5L12 17.3l-5.8 3.15 1.2-6.5-4.8-4.55 6.55-.85z" fill="url(#g-star)" stroke="#a35f00" stroke-width="1" stroke-linejoin="round"/></symbol>
+    <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="url(#g-coin)" stroke="#9a5a00" stroke-width="1.1"/><circle cx="12" cy="12" r="6.3" fill="none" stroke="#b97300" stroke-width="1.1" opacity=".75"/><path d="M12 8.6v6.8" stroke="#8a4f00" stroke-width="1.9" stroke-linecap="round"/></symbol>
+    <symbol id="i-bp" viewBox="0 0 24 24"><rect x="4.5" y="2.5" width="15" height="19" rx="2" fill="url(#g-bp)" stroke="#0c4a8e" stroke-width="1"/><path d="M8 8h8M8 11.5h8M8 15h4.5" stroke="#dff2ff" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  </svg>
+  <div id="app">
+    <!-- ================= LOADING ================= -->
+    <section class="screen active" id="scr-loading">
+      <div class="loading-box">
+        <div class="logo small"><span>GREJS</span><b>TANKS</b></div>
+        <div class="loadbar"><i id="loadbar-fill"></i></div>
+        <p id="load-text">Loading...</p>
+      </div>
+    </section>
+
+    <!-- ================= MAIN MENU ================= -->
+    <section class="screen" id="scr-menu">
+      <canvas id="menu-bg"></canvas>
+      <div class="menu-fx" aria-hidden="true">
+        <i style="--x:8%;--s:3px;--d:14s;--dl:-2s;--dx:40px"></i><i style="--x:17%;--s:2px;--d:11s;--dl:-7s;--dx:-30px"></i>
+        <i style="--x:26%;--s:4px;--d:17s;--dl:-11s;--dx:60px"></i><i style="--x:38%;--s:2px;--d:12s;--dl:-4s;--dx:20px"></i>
+        <i style="--x:47%;--s:3px;--d:15s;--dl:-9s;--dx:-50px"></i><i style="--x:58%;--s:2px;--d:10s;--dl:-1s;--dx:35px"></i>
+        <i style="--x:66%;--s:3px;--d:16s;--dl:-13s;--dx:-20px"></i><i style="--x:75%;--s:2px;--d:13s;--dl:-6s;--dx:45px"></i>
+        <i style="--x:84%;--s:4px;--d:18s;--dl:-15s;--dx:-40px"></i><i style="--x:93%;--s:2px;--d:12s;--dl:-3s;--dx:-25px"></i>
+      </div>
+      <a class="alley-back" href="../GREJSALLEY.html" title="Tilbage til Grejs Alley"><svg class="ico"><use href="#i-back"/></svg>Grejs Alley</a>
+      <div class="topbar" data-topbar></div>
+      <div class="menu-wrap">
+        <div class="logo"><span>GREJS</span><b>TANKS</b></div>
+        <div class="menu-sub" id="menu-sub">Turn-based tank warfare</div>
+        <button class="play-cta" id="btn-play">
+          <span class="pc-ic"><svg class="ico fill"><use href="#i-play"/></svg></span>
+          <span class="pc-tx"><b>PLAY</b><small id="play-sub">World 1 · Level 1</small></span>
+          <span class="pc-go"><svg class="ico"><use href="#i-chev"/></svg></span>
+        </button>
+        <nav class="menu-dock">
+          <button class="dock-btn" data-go="worldmap"><svg class="ico"><use href="#i-map"/></svg><span>World Map</span></button>
+          <button class="dock-btn" data-go="garage"><svg class="ico"><use href="#i-tank"/></svg><span>Garage</span></button>
+          <button class="dock-btn" data-go="weapons"><svg class="ico"><use href="#i-shell"/></svg><span>Weapons</span></button>
+          <button class="dock-btn" data-go="challenges"><svg class="ico"><use href="#i-target"/></svg><span>Challenges</span><i class="badge" id="badge-ch"></i></button>
+          <button class="dock-btn" data-go="achievements"><svg class="ico"><use href="#i-trophy"/></svg><span>Achievements</span></button>
+          <button class="dock-btn" data-go="collection"><svg class="ico"><use href="#i-cards"/></svg><span>Collection</span></button>
+          <button class="dock-btn" data-go="leaderboard"><svg class="ico"><use href="#i-podium"/></svg><span>Leaderboard</span></button>
+          <button class="dock-btn" data-go="settings"><svg class="ico"><use href="#i-gear"/></svg><span>Settings</span></button>
+        </nav>
+      </div>
+      <div class="menu-foot">v1.0 · Progress is saved automatically in this browser</div>
+    </section>
+
+    <!-- ================= WORLD MAP ================= -->
+    <section class="screen" id="scr-worldmap">
+      <header class="head"><button class="btn-back" data-back>‹</button><h2>World Map</h2><div class="topbar inline" data-topbar></div></header>
+      <div class="scroll"><div class="world-grid" id="world-grid"></div></div>
+    </section>
+
+    <!-- ================= LEVEL SELECT ================= -->
+    <section class="screen" id="scr-levels">
+      <div class="levels-bg" id="levels-bg"></div>
+      <header class="head"><button class="btn-back" data-back aria-label="Back"><svg class="ico"><use href="#i-back"/></svg></button><h2 id="levels-title">World</h2><div class="topbar inline" data-topbar></div></header>
+      <div class="scroll"><div class="lv-wrap"><div class="lv-banner" id="lv-banner"></div><div class="level-path" id="level-path"></div></div></div>
+    </section>
+
+    <!-- ================= TANK SELECT ================= -->
+    <section class="screen" id="scr-tankselect">
+      <header class="head"><button class="btn-back" data-back>‹</button><h2>Choose Your Tank</h2><div class="topbar inline" data-topbar></div></header>
+      <div class="ts-wrap">
+        <div class="ts-main">
+          <div class="ts-level" id="ts-level"></div>
+          <div class="ts-preview"><canvas id="ts-canvas" width="720" height="450"></canvas></div>
+          <div class="ts-info" id="ts-info"></div>
+        </div>
+        <div class="ts-side">
+          <h3>Your tanks</h3>
+          <div class="ts-list" id="ts-list"></div>
+          <h3>Loadout <small>(tap to change)</small></h3>
+          <div class="loadout" id="ts-loadout"></div>
+          <button class="btn btn-go" id="btn-battle">⚔️ BATTLE!</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= BATTLE ================= -->
+    <section class="screen" id="scr-battle">
+      <canvas id="game"></canvas>
+      <div class="hud" id="hud">
+        <div class="hud-top">
+          <div class="hud-player" id="hud-player"></div>
+          <div class="hud-center">
+            <div class="hud-turn" id="hud-turn">Get ready!</div>
+            <div class="hud-wind" id="hud-wind"><span class="wind-arrow" id="wind-arrow">➜</span><b id="wind-val">0</b></div>
+          </div>
+          <div class="hud-enemies" id="hud-enemies"></div>
+          <div class="hud-btns">
+            <button class="hbtn hidden" id="btn-recenter" title="Recenter camera (C)">🎯</button>
+            <button class="hbtn" id="btn-zoom" title="Overview (Z)">🔍</button>
+            <button class="hbtn" id="btn-pause" title="Pause (Esc)">⏸</button>
+          </div>
+        </div>
+        <div class="hud-boss" id="hud-boss"></div>
+        <button class="pan-btn pan-l" id="btn-pan-l" title="Look left (J)" aria-label="Move camera left">◀</button>
+        <button class="pan-btn pan-r" id="btn-pan-r" title="Look right (L)" aria-label="Move camera right">▶</button>
+        <div class="hud-msg" id="hud-msg"></div>
+        <div class="hud-toast" id="hud-toast"></div>
+        <div class="hud-bottom" id="hud-bottom">
+          <div class="hud-move">
+            <button class="mbtn" id="btn-left" aria-label="Move left">◀</button>
+            <div class="fuel"><i id="fuel-fill"></i><span>FUEL</span></div>
+            <button class="mbtn" id="btn-right" aria-label="Move right">▶</button>
+          </div>
+          <div class="hud-mid">
+            <div class="weapon-bar" id="weapon-bar"></div>
+            <div class="aim-row">
+              <button class="sbtn" data-aim="-1">−</button>
+              <div class="aim-read"><small>ANGLE</small><b id="aim-angle">45°</b></div>
+              <button class="sbtn" data-aim="1">+</button>
+              <button class="sbtn" data-pow="-1">−</button>
+              <div class="aim-read"><small>POWER</small><b id="aim-power">60</b></div>
+              <button class="sbtn" data-pow="1">+</button>
+            </div>
+          </div>
+          <div class="hud-fire">
+            <button class="ability" id="btn-ability"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="19" class="ring-bg"/><circle cx="22" cy="22" r="19" class="ring" id="ability-ring"/></svg><span id="ability-icon">★</span></button>
+            <div class="power-slider" id="power-slider"><i id="power-fill"></i><b id="power-knob"></b></div>
+            <button class="fire" id="btn-fire">FIRE</button>
+          </div>
+        </div>
+        <div class="rotate-hint" id="rotate-hint">↻ Rotate your device for the best experience</div>
+      </div>
+    </section>
+
+    <!-- ================= GARAGE ================= -->
+    <section class="screen" id="scr-garage">
+      <header class="head"><button class="btn-back" data-back>‹</button><h2>Tank Garage</h2><div class="topbar inline" data-topbar></div></header>
+      <div class="garage">
+        <div class="g-left">
+          <div class="filters" id="g-filters"></div>
+          <div class="g-list scroll" id="g-list"></div>
+        </div>
+        <div class="g-right scroll" id="g-detail"></div>
+      </div>
+    </section>
+
+    <!-- ================= WEAPONS ================= -->
+    <section class="screen" id="scr-weapons">
+      <header class="head"><button class="btn-back" data-back>‹</button><h2>Weapons</h2><div class="topbar inline" data-topbar></div></header>
+      <div class="weapons">
+        <div class="w-left">
+          <div class="loadout big" id="w-loadout"></div>
+          <div class="scroll" id="w-list"></div>
+        </div>
+        <div class="w-right scroll" id="w-detail"></div>
+      </div>
+    </section>
+
+    <!-- ================= ACHIEVEMENTS ================= -->
+    <section class="screen" id="scr-achievements">
+      <header class="head"><button class="btn-back" data-back>‹</button><h2>Achievements</h2><div class="topbar inline" data-topbar></div></header>
+      <div class="scroll"><div class="list-wrap" id="ach-list"></div></div>
+    </section>
+
+    <!-- ================= CHALLENGES ================= -->
+    <section class="screen" id="scr-challenges">
+      <header class="head"><button class="btn-back" data-back>‹</button><h2>Daily Challenges</h2><div class="topbar inline" data-topbar></div></header>
+      <div class="scroll"><div class="list-wrap" id="ch-list"></div></div>
+    </section>
+
+    <!-- ================= COLLECTION ================= -->
+    <section class="screen" id="scr-collection">
+      <header class="head"><button class="btn-back" data-back>‹</button><h2>Collection</h2><div class="topbar inline" data-topbar></div></header>
+      <div class="tabs" id="col-tabs"></div>
+      <div class="scroll"><div class="list-wrap" id="col-body"></div></div>
+    </section>
+
+    <!-- ================= LEADERBOARD ================= -->
+    <section class="screen" id="scr-leaderboard">
+      <header class="head"><button class="btn-back" data-back>‹</button><h2>Leaderboard</h2><div class="topbar inline" data-topbar></div></header>
+      <div class="tabs" id="lb-tabs"></div>
+      <div class="scroll"><div class="list-wrap" id="lb-body"></div></div>
+    </section>
+
+    <!-- ================= SETTINGS ================= -->
+    <section class="screen" id="scr-settings">
+      <header class="head"><button class="btn-back" data-back>‹</button><h2>Settings</h2><div class="topbar inline" data-topbar></div></header>
+      <div class="scroll"><div class="list-wrap" id="settings-body"></div></div>
+    </section>
+
+    <!-- ================= MODAL / TOASTS ================= -->
+    <div class="modal-back" id="modal-back"><div class="modal" id="modal"></div></div>
+    <div class="toasts" id="toasts"></div>
+  </div>
+
+  <!-- Game scripts (plain scripts: works from file:// and GitHub Pages) -->
+  <script src="js/utils.js"></script>
+  <script src="js/save.js"></script>
+  <script src="js/cloud.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/physics.js"></script>
+  <script src="js/weapons.js"></script>
+  <script src="js/tanks.js"></script>
+  <script src="js/worlds.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/progress.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/scenery.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
