@@ -93,6 +93,14 @@ h2, h3, .logo, .btn, .fire { font-family: var(--font-h); letter-spacing: 0.5px; 
   filter: drop-shadow(0 3px 0 #2c0f02) drop-shadow(0 0 30px rgba(255,120,20,0.32)); animation: logoShine 7s ease-in-out infinite; }
 .logo.small span { font-size: 26px; } .logo.small b { font-size: 84px; }
 @keyframes logoShine { 0%, 62% { background-position: 160% 0, 0 0; } 82%, 100% { background-position: -60% 0, 0 0; } }
+/* neon badge logo (image) */
+.logo-wrap { margin: 0; line-height: 0; }
+.logo-img { display: block; width: auto; height: clamp(170px, 34vmin, 300px); max-width: 82vw; object-fit: contain;
+  filter: drop-shadow(0 0 3px rgba(10,6,22,0.95)) drop-shadow(0 0 14px rgba(10,6,22,0.8)) drop-shadow(0 0 24px rgba(255,80,200,0.3)); animation: logoGlow 4s ease-in-out infinite; }
+.logo-img.small { height: 180px; animation: none; }
+@keyframes logoGlow { 0%, 100% { filter: drop-shadow(0 0 3px rgba(10,6,22,0.95)) drop-shadow(0 0 14px rgba(10,6,22,0.8)) drop-shadow(0 0 20px rgba(255,80,200,0.3)); } 50% { filter: drop-shadow(0 0 3px rgba(10,6,22,0.95)) drop-shadow(0 0 14px rgba(10,6,22,0.8)) drop-shadow(0 0 30px rgba(80,220,255,0.45)); } }
+@media (max-height: 500px) and (orientation: landscape) { .logo-img { height: 120px; } }
+@media (prefers-reduced-motion: reduce) { .logo-img { animation: none; } }
 #menu-bg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .menu-fx { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden;
   background: radial-gradient(ellipse 75% 65% at 50% 46%, transparent 35%, rgba(4,3,10,0.7) 100%), linear-gradient(180deg, rgba(4,3,10,0.6) 0%, transparent 20%, transparent 52%, rgba(4,3,10,0.88) 100%); }

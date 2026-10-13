@@ -7,7 +7,7 @@
 //   caches ALDRIG - et spil må ikke få en gammel cloud-save serveret, når man er offline.
 
 // <precache> (genereret af tools/update-sw.js - rediger ikke i hånden)
-const VERSION = '2e9da318fc';
+const VERSION = '17b83b1f4b';
 const PRECACHE = [
   "/",
   "/Automatikteknikker.ico",
@@ -112,6 +112,8 @@ const PRECACHE = [
   "/grejsalley/grejs-sport.html",
   "/grejsalley/grejsman-2d-kombat.html",
   "/grejsalley/img/grejs-base-builder.jpg",
+  "/grejsalley/img/grejs-tanks-logo-neon.png",
+  "/grejsalley/img/grejs-tanks-logo.png",
   "/grejsalley/img/grejs-vs-zombies.jpg",
   "/grejsalley/img/super-grejs.png",
   "/grejsalley/klassisk_neon_tetris.html",

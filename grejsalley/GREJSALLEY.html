@@ -33,13 +33,15 @@
   body{
     margin:0;
     background:
+      radial-gradient(700px 900px at -6% 30%, rgba(255,77,170,.16) 0%, transparent 60%),
+      radial-gradient(700px 900px at 106% 45%, rgba(84,216,255,.14) 0%, transparent 60%),
       radial-gradient(1200px 600px at 50% -8%, #2a1c47 0%, transparent 60%),
-      radial-gradient(900px 500px at 100% 100%, #1c2b45 0%, transparent 55%),
       var(--bg);
     color:var(--ink);
     font-family:"Outfit", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
     line-height:1.5;
     min-height:100vh;
+    overflow-x:hidden;
   }
   body::after{
     content:"";
@@ -54,95 +56,246 @@
     *{animation-duration:.001ms!important;transition-duration:.001ms!important}
   }
 
-  .wrap{max-width:1120px;margin:0 auto;padding:32px 20px 64px}
+  /* ---- the back alley: brick wall, cables, neon signs ---- */
+  .alley{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+  .alley::before{
+    content:"";position:absolute;inset:0;opacity:.5;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.45) 0 2px, transparent 2px 34px),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.35) 0 2px, transparent 2px 72px),
+      linear-gradient(180deg, #1b1430, #0d0a18);
+    -webkit-mask-image:linear-gradient(90deg,#000 0,transparent 38%,transparent 62%,#000 100%);
+    mask-image:linear-gradient(90deg,#000 0,transparent 38%,transparent 62%,#000 100%);
+  }
+  .alley svg{position:absolute;top:0;height:100%;width:34%;opacity:.55}
+  .alley svg.l{left:0}
+  .alley svg.r{right:0;transform:scaleX(-1)}
+  .neon{
+    position:absolute;
+    font-family:"Bungee",cursive;letter-spacing:.12em;
+    padding:10px 14px;border:2px solid currentColor;border-radius:10px;
+    box-shadow:0 0 14px currentColor, inset 0 0 14px currentColor;
+    text-shadow:0 0 6px currentColor, 0 0 18px currentColor;
+    animation:flicker 6s infinite;
+  }
+  .neon.n1{left:3%;top:22%;color:#ff4dab;writing-mode:vertical-rl;font-size:22px}
+  .neon.n2{right:3%;top:16%;color:var(--cyan);font-size:18px;animation-delay:-2.5s}
+  .neon.n3{right:5%;top:58%;color:var(--amber);font-size:15px;animation-delay:-4s;border-radius:50%;padding:18px 14px}
+  .neon.n4{left:4%;top:66%;color:var(--green);font-size:14px;animation-delay:-1s}
+  @keyframes flicker{0%,18%,22%,62%,64%,100%{opacity:.85}20%,63%{opacity:.3}}
+  @media (max-width:1320px){ .neon{display:none} }
 
+  .wrap{max-width:1120px;margin:0 auto;padding:24px 20px 64px}
+
+  /* ---- hanging marquee sign ---- */
   header.marquee{
-    text-align:center;
-    padding:28px 16px 34px;
     position:relative;
+    display:flex;justify-content:center;
+    padding:46px 0 0;
+  }
+  header.marquee::before,header.marquee::after{
+    content:"";position:absolute;top:0;width:4px;height:52px;
+    background:repeating-linear-gradient(180deg,#5a5470 0 6px,#2c283b 6px 9px);
+    border-radius:2px;
+  }
+  header.marquee::before{left:calc(50% - 150px)}
+  header.marquee::after{right:calc(50% - 150px)}
+  .signboard{
+    position:relative;
+    width:min(560px,100%);
+    text-align:center;
+    padding:20px 26px 16px;
+    border-radius:14px;
+    background:linear-gradient(180deg,#2a2440,#17122a);
+    border:3px solid #4a4466;
+    box-shadow:
+      0 0 0 2px #0b0814,
+      inset 0 0 0 2px rgba(255,255,255,.05),
+      inset 0 0 26px rgba(84,216,255,.12),
+      0 0 30px rgba(84,216,255,.22),
+      0 22px 40px -18px rgba(0,0,0,.9);
+  }
+  .signboard::before{
+    content:"";position:absolute;inset:6px;border-radius:9px;pointer-events:none;
+    border:1px solid rgba(84,216,255,.35);
+    box-shadow:0 0 10px rgba(84,216,255,.25), inset 0 0 10px rgba(84,216,255,.15);
   }
   .sign{
     font-family:"Bungee", cursive;
-    font-size:clamp(38px, 8vw, 76px);
-    line-height:.98;
+    font-size:clamp(34px, 7vw, 64px);
+    line-height:1;
     letter-spacing:.5px;
-    text-wrap:balance;
     margin:0;
-    color:var(--ink);
+    color:#ffe1ef;
     text-shadow:
       0 0 2px #fff,
-      0 0 14px var(--coral),
-      0 0 30px rgba(255,77,109,.5),
-      4px 5px 0 rgba(0,0,0,.35);
+      0 0 12px #ff4dab,
+      0 0 26px rgba(255,77,171,.6),
+      3px 4px 0 rgba(0,0,0,.4);
   }
-  .sign .b{color:var(--cyan);text-shadow:0 0 2px #fff,0 0 14px var(--cyan),0 0 30px rgba(84,216,255,.45),4px 5px 0 rgba(0,0,0,.35)}
+  .sign .b{color:#dcf8ff;text-shadow:0 0 2px #fff,0 0 12px var(--cyan),0 0 26px rgba(84,216,255,.55),3px 4px 0 rgba(0,0,0,.4)}
   .tag{
-    margin:14px auto 0;
-    max-width:52ch;
+    margin:10px auto 0;
+    max-width:48ch;
     color:var(--muted);
-    font-size:15px;
+    font-size:13.5px;
+    line-height:1.45;
   }
-  .bulbs{display:flex;gap:10px;justify-content:center;margin-top:18px}
-  .bulbs i{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px var(--amber);opacity:.5;animation:blink 1.4s infinite}
-  .bulbs i:nth-child(2){animation-delay:.2s;background:var(--coral);box-shadow:0 0 10px var(--coral)}
-  .bulbs i:nth-child(3){animation-delay:.4s;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
-  .bulbs i:nth-child(4){animation-delay:.6s;background:var(--green);box-shadow:0 0 10px var(--green)}
-  .bulbs i:nth-child(5){animation-delay:.8s;background:var(--violet);box-shadow:0 0 10px var(--violet)}
+  .counter{
+    display:inline-flex;align-items:center;gap:8px;
+    margin-top:12px;padding:5px 12px;
+    font:500 11px/1 "DM Mono",monospace;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);
+    background:#0d0a18;border:1px solid var(--line);border-radius:6px;
+  }
+  .counter b{color:var(--amber);font-weight:500;text-shadow:0 0 8px rgba(255,194,75,.5)}
+  .bulbs{display:inline-flex;gap:6px}
+  .bulbs i{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);opacity:.5;animation:blink 1.4s infinite}
+  .bulbs i:nth-child(2){animation-delay:.2s;background:var(--coral);box-shadow:0 0 8px var(--coral)}
+  .bulbs i:nth-child(3){animation-delay:.4s;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
   @keyframes blink{0%,100%{opacity:.35}50%{opacity:1}}
+
+  /* ---- the cabinet body that holds every game ---- */
+  .machine{
+    position:relative;
+    margin-top:22px;
+    padding:0 18px 22px;
+    border-radius:18px 18px 10px 10px;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.012) 0 2px, transparent 2px 5px),
+      linear-gradient(180deg,#2a2638,#1a1726 40%,#141220);
+    border:2px solid #3f3a55;
+    box-shadow:
+      0 0 0 3px #0a0812,
+      inset 0 2px 0 rgba(255,255,255,.06),
+      inset 0 0 40px rgba(0,0,0,.5),
+      0 30px 60px -20px rgba(0,0,0,.9);
+  }
+  .machine::before,.machine::after{
+    /* bolts in the corners */
+    content:"";position:absolute;top:12px;width:8px;height:8px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%,#9a95b0,#3a3550);
+    box-shadow:0 1px 0 rgba(0,0,0,.6);
+  }
+  .machine::before{left:10px}
+  .machine::after{right:10px}
+  .ctrl{
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    align-items:center;gap:18px;
+    margin:0 -18px 20px;
+    padding:16px 30px 14px;
+    background:linear-gradient(180deg,#24202f,#18151f);
+    border-bottom:2px solid #0a0812;
+    border-radius:16px 16px 0 0;
+    box-shadow:inset 0 -1px 0 rgba(255,255,255,.04);
+  }
+  .knobs,.switches{display:flex;align-items:center;gap:10px}
+  .knob{
+    appearance:none;cursor:pointer;
+    width:34px;height:28px;border-radius:6px;
+    border:2px solid #0a0812;
+    background:linear-gradient(180deg,var(--kc) 0%,color-mix(in srgb,var(--kc) 55%,#000) 100%);
+    box-shadow:0 4px 0 color-mix(in srgb,var(--kc) 35%,#000), 0 0 14px color-mix(in srgb,var(--kc) 45%,transparent), inset 0 2px 0 rgba(255,255,255,.35);
+    transition:transform .08s ease, box-shadow .08s ease;
+  }
+  .knob:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--kc) 35%,#000), 0 0 18px var(--kc), inset 0 2px 0 rgba(255,255,255,.35)}
+  .knob.g{--kc:#3ee07a}
+  .knob.r{--kc:#ff3b55}
+  .knob.off{filter:saturate(.25) brightness(.6)}
+  .knob:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+  .vent{display:grid;gap:3px}
+  .vent i{display:block;width:22px;height:3px;border-radius:2px;background:#0b0914;box-shadow:0 1px 0 rgba(255,255,255,.05)}
+  .switches button{
+    appearance:none;cursor:pointer;padding:0;
+    width:16px;height:34px;border-radius:4px;
+    border:2px solid #0a0812;background:#0f0d18;position:relative;
+  }
+  .switches button::after{
+    content:"";position:absolute;left:1px;right:1px;top:2px;height:14px;border-radius:2px;
+    background:linear-gradient(180deg,#e8e6f0,#8c88a0);
+    transition:top .12s ease;
+  }
+  .switches button[aria-pressed="true"]::after{top:14px;background:linear-gradient(180deg,var(--amber),#9a6a10);box-shadow:0 0 8px var(--amber)}
+  .switches button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+  .ctrl-mid{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0}
 
   .filters{
     display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
-    margin:26px 0 22px;
+    margin:0;
   }
   .chip{
-    font:500 13px/1 "DM Mono", ui-monospace, monospace;
-    letter-spacing:.06em;
+    font:500 12px/1 "DM Mono", ui-monospace, monospace;
+    letter-spacing:.08em;
     text-transform:uppercase;
-    padding:9px 14px;
+    padding:8px 14px;
     border-radius:999px;
-    border:1px solid var(--line);
-    background:var(--panel);
+    border:1px solid #4a4466;
+    background:#0f0c1a;
     color:var(--muted);
     cursor:pointer;
-    transition:transform .12s ease, border-color .12s ease, color .12s ease, background .12s ease;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+    transition:transform .12s ease, border-color .12s ease, color .12s ease, background .12s ease, box-shadow .12s ease;
   }
   .chip:hover{color:var(--ink);border-color:var(--muted)}
-  .chip[aria-pressed="true"]{background:var(--coral);border-color:var(--coral);color:#2a0713;font-weight:500}
+  .chip[aria-pressed="true"]{background:var(--coral);border-color:#ff8aa0;color:#2a0713;box-shadow:0 0 14px rgba(255,77,109,.6), inset 0 1px 0 rgba(255,255,255,.35)}
   .chip:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 
   .grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(224px, 1fr));
-    gap:16px;
+    grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+    gap:14px;
   }
   .card{
     display:flex;flex-direction:column;
     text-align:left;
-    background:linear-gradient(180deg, var(--panel-2), var(--panel));
-    border:1px solid var(--line);
-    border-radius:var(--r);
+    padding:8px 8px 0;
+    background:linear-gradient(180deg,#262236,#1b1828);
+    border:1px solid #3a3550;
+    border-radius:10px;
     overflow:hidden;
     cursor:pointer;
     color:inherit;
     font:inherit;
+    box-shadow:0 0 0 2px #0a0812, inset 0 1px 0 rgba(255,255,255,.06);
     transition:transform .14s ease, border-color .14s ease, box-shadow .14s ease;
   }
-  .card:hover{transform:translateY(-4px);border-color:var(--accent, var(--coral));box-shadow:0 16px 30px -14px rgba(0,0,0,.7), 0 0 0 1px var(--accent, var(--coral)) inset}
+  .card:hover{transform:translateY(-4px);border-color:var(--accent, var(--coral));box-shadow:0 0 0 2px #0a0812, 0 16px 30px -14px rgba(0,0,0,.8), 0 0 18px -4px var(--accent, var(--coral))}
   .card:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
   .card .thumb{
     aspect-ratio:16/10;
     display:grid;place-items:center;
-    background:radial-gradient(120px 80px at 50% 30%, rgba(255,255,255,.06), transparent), var(--bg-2);
-    border-bottom:1px solid var(--line);
+    background:radial-gradient(120px 80px at 50% 30%, rgba(255,255,255,.06), transparent), #07050d;
+    border:3px solid #0a0812;
+    border-radius:6px;
+    overflow:hidden;
+    box-shadow:0 0 0 1px #3a3550, inset 0 0 18px rgba(0,0,0,.8);
+  }
+  .card .thumb::after{
+    /* glass glare + scanlines on each little screen */
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      linear-gradient(160deg, rgba(255,255,255,.08) 0%, transparent 35%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px);
   }
   .card .thumb canvas{width:100%;height:100%;image-rendering:pixelated}
   .card .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-  .card .meta{padding:13px 14px 15px;display:flex;flex-direction:column;gap:5px}
-  .card .name{font-weight:600;font-size:16px;letter-spacing:.2px}
-  .card .lbl{font:500 10px/1 "DM Mono", monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--accent, var(--coral))}
-  .card .desc{color:var(--muted);font-size:12.5px;line-height:1.45}
+  .card .thumb img.contain{object-fit:contain;background:#0d0d10}
+  .card .meta{padding:11px 6px 14px;display:flex;flex-direction:column;gap:4px}
+  .card .name{font-weight:600;font-size:15.5px;letter-spacing:.2px}
+  .card .lbl{font:500 10px/1 "DM Mono", monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--accent, var(--coral));text-shadow:0 0 8px color-mix(in srgb,var(--accent, var(--coral)) 60%,transparent)}
+  .card .desc{color:var(--muted);font-size:12px;line-height:1.45}
 
-  footer.legal{margin-top:44px;text-align:center;color:var(--muted);font-size:12px}
+  footer.legal{margin-top:30px;text-align:center;color:var(--muted);font-size:12px}
+
+  @media (max-width:720px){
+    .ctrl{grid-template-columns:1fr auto;padding:14px 16px 12px;gap:12px}
+    .ctrl-mid{grid-column:1/-1;grid-row:2}
+    .machine{padding:0 10px 14px}
+    .ctrl{margin:0 -10px 14px}
+    header.marquee::before{left:18%}
+    header.marquee::after{right:18%}
+  }
 
   /* ---- cabinet ---- */
   .cabinet{
@@ -258,15 +411,16 @@
   .hint{color:var(--muted);font:400 11.5px/1.45 "Outfit",sans-serif;max-width:20ch;text-align:right}
 
   /* ---- search ---- */
-  .search{display:flex;justify-content:center;margin:0 0 20px}
+  .search{display:flex;justify-content:center;width:100%}
   .search input{
-    width:min(340px,100%);
-    font:400 14px/1 "Outfit",sans-serif;
-    padding:11px 16px;border-radius:999px;
-    border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    width:min(300px,100%);
+    font:400 13px/1 "DM Mono",monospace;
+    padding:9px 14px;border-radius:6px;
+    border:2px solid #0a0812;background:#0b1a14;color:#8dffc0;
+    box-shadow:0 0 0 1px #3a3550, inset 0 0 12px rgba(0,0,0,.8);
   }
-  .search input::placeholder{color:var(--muted)}
-  .search input:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 2px rgba(84,216,255,.25)}
+  .search input::placeholder{color:rgba(141,255,192,.45)}
+  .search input:focus{outline:none;box-shadow:0 0 0 1px var(--green), 0 0 12px rgba(92,230,160,.35), inset 0 0 12px rgba(0,0,0,.8)}
   .empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:46px 0}
 
   /* ---- card badges ---- */
@@ -278,11 +432,13 @@
     background:rgba(9,6,15,.72);border:1px solid var(--line);color:var(--amber);
   }
   .card .new{
-    position:absolute;top:8px;left:8px;
+    position:absolute;top:7px;left:7px;z-index:1;
     font:600 9px/1 "DM Mono",monospace;letter-spacing:.16em;
-    padding:5px 7px;border-radius:999px;
-    background:var(--coral);color:#2a0713;
+    padding:4px 6px;border-radius:4px;
+    background:rgba(60,6,18,.85);border:1px solid var(--coral);color:#ff8aa0;
+    box-shadow:0 0 8px rgba(255,77,109,.55);text-shadow:0 0 6px rgba(255,77,109,.8);
   }
+  .card .hi{z-index:1}
 
   /* ---- cabinet chrome ---- */
   .iconbtn{
@@ -315,19 +471,55 @@
 </head>
 <body>
 
+<div class="alley" aria-hidden="true">
+  <svg class="l" viewBox="0 0 400 1000" preserveAspectRatio="none" fill="none" stroke="#06040b" stroke-width="5" stroke-linecap="round">
+    <path d="M0 80 C120 160 220 120 400 260"/>
+    <path d="M0 140 C90 260 260 240 400 380"/>
+    <path d="M60 0 C40 220 160 420 120 1000"/>
+    <path d="M0 520 C140 470 300 560 400 520"/>
+    <path d="M0 700 C160 640 220 760 400 690" stroke-width="7"/>
+    <path d="M240 0 C260 140 200 300 400 420" stroke-width="3"/>
+  </svg>
+  <svg class="r" viewBox="0 0 400 1000" preserveAspectRatio="none" fill="none" stroke="#06040b" stroke-width="5" stroke-linecap="round">
+    <path d="M0 60 C140 140 260 100 400 220"/>
+    <path d="M90 0 C60 260 180 480 150 1000"/>
+    <path d="M0 360 C120 420 280 330 400 430" stroke-width="7"/>
+    <path d="M0 610 C150 560 240 700 400 640"/>
+    <path d="M300 0 C280 200 360 360 330 1000" stroke-width="3"/>
+  </svg>
+  <span class="neon n1">ARCADE</span>
+  <span class="neon n2">OPEN 24/7</span>
+  <span class="neon n3">1UP</span>
+  <span class="neon n4">INSERT COIN</span>
+</div>
+
 <div class="wrap">
   <a class="backlink" href="../index.html">← Tilbage</a>
   <header class="marquee">
-    <h1 class="sign">GREJS <span class="b">ALLEY</span></h1>
-    <p class="tag">A cramped neon arcade at the end of the block. A back room full of coin-op miniatures, one dusty cabinet. Keyboard, mouse, or the on-screen stick.</p>
-    <div class="bulbs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="signboard">
+      <h1 class="sign">GREJS <span class="b">ALLEY</span></h1>
+      <p class="tag">A cramped neon arcade at the end of the block. A back room full of coin-op miniatures, one dusty cabinet. Keyboard, mouse, or the on-screen stick.</p>
+      <div class="counter"><span class="bulbs" aria-hidden="true"><i></i><i></i><i></i></span><span><b id="gameCount">0</b> games</span></div>
+    </div>
   </header>
 
-  <nav class="filters" id="filters" aria-label="Filter games by cabinet row"></nav>
-  <div class="search">
-    <input id="q" type="search" placeholder="Search the cabinet…" aria-label="Search games" autocomplete="off" spellcheck="false" />
-  </div>
-  <main class="grid" id="grid"></main>
+  <section class="machine">
+    <div class="ctrl">
+      <div class="knobs">
+        <button class="knob g" id="knobRandom" aria-label="Random game" title="Random game"></button>
+        <button class="knob r" id="knobSound" aria-label="Toggle sound" title="Sound"></button>
+        <span class="vent" aria-hidden="true"><i></i><i></i><i></i></span>
+      </div>
+      <div class="ctrl-mid">
+        <nav class="filters" id="filters" aria-label="Filter games by cabinet row"></nav>
+        <div class="search">
+          <input id="q" type="search" placeholder="Search the cabinet…" aria-label="Search games" autocomplete="off" spellcheck="false" />
+        </div>
+      </div>
+      <div class="switches" aria-hidden="true"><button tabindex="-1"></button><button tabindex="-1"></button><button tabindex="-1"></button><button tabindex="-1"></button></div>
+    </div>
+    <main class="grid" id="grid"></main>
+  </section>
 
   <footer class="legal">Grejs Alley · all games run locally in your browser · high scores saved to this device</footer>
 </div>
@@ -857,7 +1049,7 @@
     hint:"Vælg en plante · tryk på et felt · saml sol" });
 
   /* ---------------- GREJS TANKS (external page) ---------------- */
-  G({ id:"grejstanks", name:"Grejs Tanks", tag:"arcade", href:"GrejsTank/index.html", isNew:true,
+  G({ id:"grejstanks", name:"Grejs Tanks", tag:"arcade", href:"GrejsTank/index.html", img:"img/grejs-tanks-logo.png", imgFit:"contain", isNew:true,
     desc:"Turbaseret tank-artilleri med ødelæggeligt terræn — 60 tanks, 81 våben, 23 verdener og 345 baner med bosser, opgraderinger og daglige udfordringer. Opens in its own page.",
     hint:"Træk for at sigte · FIRE for at skyde · A/D kør" });
 
@@ -1728,10 +1920,10 @@
   const cabSound = $("#cabSound"), cabPause = $("#cabPause"), veil = $("#veil"), qInput = $("#q");
 
   const ROWS = [
-    {key:"all", label:"All "+GAMES.length},
-    {key:"arcade", label:"Arcade Row"},
-    {key:"puzzle", label:"Puzzle Row"},
-    {key:"reflex", label:"Reflex Row"},
+    {key:"all", label:"All"},
+    {key:"arcade", label:"Arcade"},
+    {key:"puzzle", label:"Puzzle"},
+    {key:"reflex", label:"Reflex"},
     {key:"classic", label:"Classics"}
   ];
   let activeFilter = "all";
@@ -1769,6 +1961,7 @@
       if(g.img){
         // games with a cover picture show it instead of the drawn icon
         const im=document.createElement("img"); im.src=g.img; im.alt=g.name; im.loading="lazy"; im.decoding="async";
+        if(g.imgFit==="contain") im.className="contain";
         thumb.appendChild(im);
       } else {
         const ic=document.createElement("canvas"); ic.width=240; ic.height=150;
@@ -1882,8 +2075,22 @@
     cabSound.title = SFX.enabled() ? "Sound on" : "Sound off";
   }
   paintSoundBtn();
-  cabSound.onclick=()=>{ SFX.set(!SFX.enabled()); paintSoundBtn(); SFX.ui(); };
+  cabSound.onclick=()=>{ SFX.set(!SFX.enabled()); paintSoundBtn(); paintKnob(); SFX.ui(); };
   cabPause.onclick=()=>{ if(current) setPaused(!current.loop.paused); };
+
+  // cabinet front panel: green = random game, red = sound, switches are just for fun
+  $("#gameCount").textContent = GAMES.length;
+  const knobSound = $("#knobSound");
+  const paintKnob = ()=>knobSound.classList.toggle("off", !SFX.enabled());
+  paintKnob();
+  knobSound.onclick=()=>{ SFX.set(!SFX.enabled()); paintKnob(); paintSoundBtn(); SFX.ui(); };
+  $("#knobRandom").onclick=()=>{
+    const cards=[...grid.querySelectorAll(".card")];
+    if(cards.length) cards[rand(cards.length)].click();
+  };
+  document.querySelectorAll(".switches button").forEach(b=>{
+    b.onclick=()=>{ b.setAttribute("aria-pressed", b.getAttribute("aria-pressed")!=="true"); SFX.blip(); };
+  });
 
   document.addEventListener("visibilitychange",()=>{ if(document.hidden && current) setPaused(true); });
 
