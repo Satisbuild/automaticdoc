@@ -3967,11 +3967,32 @@ button { font-family: inherit; }
     /* ============================== aiming & firing ============================== */
     setAimFromPoint(px, py) {
       if (!this.canAim()) { this._pendingAimPoint = [px, py]; return; }
-      const dx = px - LAUNCH.x, dy = Math.max(1, py - LAUNCH.y);
-      const a = Math.max(-MAX_AIM, Math.min(MAX_AIM, Math.atan2(dx, dy)));
+      const a = this._ballisticAim(px, py);
       this.aimMoved += Math.abs(a - this.aimTarget);
       this.aimTarget = a;
       this._pendingAimPoint = null;
+    }
+    // Angle whose gravity arc passes exactly through (px,py). Matches the
+    // fixed-step integrator (semi-implicit Euler adds ½·g·dt·t of drop).
+    _ballisticAim(px, py) {
+      const g = Phys().GRAVITY, dt = Phys().STEP;
+      const landX = (a) => {
+        const sx = Math.sin(a), cy = Math.cos(a);
+        const x0 = LAUNCH.x + sx * 34, y0 = LAUNCH.y + cy * 34;
+        const vy = cy * LAUNCH_SPEED + 0.5 * g * dt;
+        const depth = Math.max(1, py - y0);
+        const t = (-vy + Math.sqrt(vy * vy + 2 * g * depth)) / g;
+        return x0 + sx * LAUNCH_SPEED * t;
+      };
+      // landX is monotonic in the angle, so bisect for the hit
+      let lo = -MAX_AIM, hi = MAX_AIM;
+      if (px <= landX(lo)) return lo;
+      if (px >= landX(hi)) return hi;
+      for (let i = 0; i < 40; i++) {
+        const mid = (lo + hi) / 2;
+        if (landX(mid) < px) lo = mid; else hi = mid;
+      }
+      return (lo + hi) / 2;
     }
     nudgeAim(d) { this.aimTarget = Math.max(-MAX_AIM, Math.min(MAX_AIM, this.aimTarget + d)); this.aimMoved += Math.abs(d); }
     canAim() { return this.active && (this.mode === 'aim' || this.mode === 'intro' || this.mode === 'shot' || this.mode === 'clear'); }
@@ -4268,7 +4289,7 @@ button { font-family: inherit; }
       const ph = this.predHooks;
       ph.st.bounces = 0; ph.st.hit = false;
       ph.st.max = precise ? 4 : 0;
-      const maxLen = precise ? 1500 : this.diff === 'easy' ? 380 : this.diff === 'hard' ? 170 : 260;
+      const maxLen = precise ? 2000 : this.diff === 'easy' ? 1400 : this.diff === 'hard' ? 600 : 1000;
       const dx = Math.sin(this.aimTarget), dy = Math.cos(this.aimTarget);
       const b = { x: LAUNCH.x + dx * 34, y: LAUNCH.y + dy * 34, vx: dx * LAUNCH_SPEED, vy: dy * LAUNCH_SPEED, r: BALL_R, gmul: 1, rest: 0, precise: true, teleCD: 0 };
       const w = this.world;
@@ -4277,18 +4298,18 @@ button { font-family: inherit; }
       pw.blocks = w.blocks; pw.bumpers = w.bumpers; pw.segments = w.segments; pw.portals = w.portals; pw.zones = w.zones; pw.rims = w.rims;
       const pts = this.prediction; pts.length = 0;
       let len = 0, lx = b.x, ly = b.y, n = 0;
-      const STEP = Phys().STEP * 2;
+      const STEP = Phys().STEP;   // same step as the real ball, so the preview is exact
       let afterHit = -1;
-      for (let i = 0; i < 1200; i++) {
+      for (let i = 0; i < 3000; i++) {
         const stop = Phys().step(b, pw, STEP, ph, true);
         len += Math.hypot(b.x - lx, b.y - ly); lx = b.x; ly = b.y;
-        if (++n % 3 === 0) pts.push(b.x, b.y);
+        if (++n % 6 === 0) pts.push(b.x, b.y);
         if (stop) {
           pts.push(ph.st.x, ph.st.y);
           if (this.diff === 'easy' && afterHit < 0) { afterHit = 0; ph.st.max = 99; continue; }
           break;
         }
-        if (afterHit >= 0 && ++afterHit > 22) break;
+        if (afterHit >= 0 && ++afterHit > 44) break;
         if (len > maxLen || b.y > GN.H) break;
       }
       this.predictionEnd = ph.st.hit ? { x: ph.st.x, y: ph.st.y } : null;
