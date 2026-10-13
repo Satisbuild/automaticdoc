@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="da" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grejs Apps</title>
+    <link rel="icon" href="../Automatikteknikker.ico" type="image/x-icon">
+    <meta name="theme-color" content="#0f172a">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-orange-500 selection:text-white">
+
+    <!-- Top Glow Effect -->
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-orange-600/10 blur-[120px] pointer-events-none rounded-full"></div>
+
+    <!-- Header / Navigation -->
+    <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <a href="../" class="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition-colors">
+                <span>←</span> Tilbage til portalen
+            </a>
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                Grejs Apps
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <!-- Hero Section -->
+        <div class="text-center max-w-3xl mx-auto mb-14">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-medium mb-6">
+                Programmer til download
+            </div>
+            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-white mb-4">
+                <span class="bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">Grejs Apps</span>
+            </h1>
+            <p class="text-slate-400 text-lg sm:text-xl leading-relaxed">
+                Hent de apps, vi selv har lavet, og installer dem på din egen computer.
+            </p>
+        </div>
+
+        <!-- Apps Grid (udfyldes fra APPS-listen nedenfor) -->
+        <div id="apps" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-900/40 py-8 text-center mt-12">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col items-center gap-3">
+            <div class="w-12 h-1 bg-orange-500 rounded-full mb-1"></div>
+            <p class="text-slate-300 text-sm">
+                Udviklet af <strong class="text-white font-semibold">Automatikteknikerne</strong>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Listen kommer fra apps.json, som tools/publish-apps.js laver automatisk,
+        // når der lægges en ny fil i DelApps/ og committes.
+        // Beskrivelse, platform og installationstrin skrives i apps-info.json.
+
+        const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const grid = document.getElementById('apps');
+        const message = (text) => {
+            grid.innerHTML = `<p class="col-span-full text-center text-slate-400">${esc(text)}</p>`;
+        };
+
+        fetch('apps.json', { cache: 'no-cache' })
+            .then((res) => (res.ok ? res.json() : []))
+            .then((all) => {
+                const apps = all.filter((app) => app.latest);
+                if (!apps.length) return message('Der er ingen apps endnu.');
+                render(apps);
+            })
+            .catch(() => message('Kunne ikke hente listen over apps.'));
+
+        const render = (apps) => grid.innerHTML = apps.map((app) => `
+            <div class="relative bg-slate-900/50 border border-slate-800 hover:border-orange-500/50 rounded-2xl p-6 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/10 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-xl">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-medium text-orange-400 bg-orange-500/10 px-2.5 py-1 rounded-full border border-orange-500/20">v${esc(app.version)}</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">${esc(app.name)}</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-4">${esc(app.description || 'Et program lavet af Automatikteknikerne.')}</p>
+                    <div class="flex flex-wrap gap-2 text-xs text-slate-400 mb-4">
+                        ${app.platform ? `<span class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700">${esc(app.platform)}</span>` : ''}
+                        <span class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700">${esc(app.size)}</span>
+                    </div>
+                    ${app.steps && app.steps.length ? `<details class="text-sm text-slate-400">
+                        <summary class="cursor-pointer text-slate-300 hover:text-white">Sådan installerer du</summary>
+                        <ol class="list-decimal list-inside mt-2 space-y-1">
+                            ${app.steps.map((s) => `<li>${esc(s)}</li>`).join('')}
+                        </ol>
+                    </details>` : ''}
+                </div>
+                <a href="${esc(app.url)}" download class="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 font-semibold text-sm px-4 py-2.5 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    Download
+                </a>
+            </div>
+        `).join('');
+    </script>
+
+</body>
+</html>

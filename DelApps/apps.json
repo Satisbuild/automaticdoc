@@ -1,0 +1,19 @@
+[
+  {
+    "file": "Grejs-Game-Library-1.1.0.zip",
+    "name": "Grejs Game Library",
+    "version": "1.1.0",
+    "bytes": 111599930,
+    "size": "106 MB",
+    "url": "https://github.com/Satisbuild/automaticdoc/releases/download/grejs-game-library-v1.1.0/Grejs-Game-Library-1.1.0.zip",
+    "latest": true,
+    "platform": "Windows 10/11 (64-bit)",
+    "description": "Saml, organisér og start dine gamle PC-spil fra DVD'er, downloads og mapper på dine drev. Virker helt offline – ingen konto og intet login.",
+    "steps": [
+      "Pak zip-filen ud (højreklik → \"Udpak alle\").",
+      "Dobbeltklik på setup-filen (.exe).",
+      "Viser Windows \"Windows beskyttede din pc\", så klik \"Flere oplysninger\" og derefter \"Kør alligevel\".",
+      "Følg installationen. Der kommer en genvej på skrivebordet."
+    ]
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "Grejs Game Library": {
+    "platform": "Windows 10/11 (64-bit)",
+    "description": "Saml, organisér og start dine gamle PC-spil fra DVD'er, downloads og mapper på dine drev. Virker helt offline – ingen konto og intet login.",
+    "steps": [
+      "Pak zip-filen ud (højreklik → \"Udpak alle\").",
+      "Dobbeltklik på setup-filen (.exe).",
+      "Viser Windows \"Windows beskyttede din pc\", så klik \"Flere oplysninger\" og derefter \"Kør alligevel\".",
+      "Følg installationen. Der kommer en genvej på skrivebordet."
+    ]
+  }
+}

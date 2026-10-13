@@ -11,7 +11,8 @@ const { execSync } = require('child_process');
 const root = path.resolve(__dirname, '..');
 const swPath = path.join(root, 'sw.js');
 
-const SKIP = [/^\./, /^tools\//, /(^|\/)README\.md$/, /^CNAME$/, /^sw\.js$/];
+// Store downloads (zip/exe) skal ikke gemmes offline hos alle besøgende.
+const SKIP = [/^\./, /^tools\//, /(^|\/)README\.md$/, /^CNAME$/, /^sw\.js$/, /\.(zip|exe|msi)$/i];
 
 const files = execSync('git ls-files -z --cached --others --exclude-standard', { cwd: root })
   .toString('utf8')

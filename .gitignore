@@ -1,0 +1,4 @@
+# App-filer er for store til GitHub (max 100 MB) - de lægges op som GitHub Releases.
+DelApps/*.zip
+DelApps/*.exe
+DelApps/*.msi
