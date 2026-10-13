@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Teko:wght@500;600;700&display=swap">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYmciIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM1YWI4ZmYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNiZmU4ZmYiLz48L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJib2R5IiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjOGJlMzZiIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMmU3ZDMyIi8+PC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHJ4PSIyOCIgZmlsbD0idXJsKCNiZykiLz4KICA8cGF0aCBkPSJNMCA5NiBRMzIgODAgNjQgOTIgVDEyOCA4OCBWMTI4IEgwWiIgZmlsbD0iIzVjYzQ1YSIvPgogIDxwYXRoIGQ9Ik0wIDEwNCBRNDAgOTQgNzAgMTAyIFQxMjggOTggVjEyOCBIMFoiIGZpbGw9IiM4YTVhMzIiLz4KICA8ZyBzdHJva2U9IiMxZDFhMjYiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CiAgICA8cmVjdCB4PSI2MiIgeT0iNDQiIHdpZHRoPSI0NiIgaGVpZ2h0PSIxMCIgcng9IjQiIGZpbGw9IiM0YTQ4NTgiIHRyYW5zZm9ybT0icm90YXRlKC0yOCA2MiA1OCkiLz4KICAgIDxyZWN0IHg9IjI2IiB5PSI3OCIgd2lkdGg9Ijc2IiBoZWlnaHQ9IjE4IiByeD0iOSIgZmlsbD0iIzJhMjgzMyIvPgogICAgPHBhdGggZD0iTTI4IDgwIFY2NCBRMzAgNTggMzYgNTggSDkwIEwxMDAgNjggVjgwWiIgZmlsbD0idXJsKCNib2R5KSIvPgogICAgPHBhdGggZD0iTTQ2IDU4IEExOCAxOCAwIDAgMSA4MiA1OFoiIGZpbGw9IiM2ZmQzNmEiLz4KICA8L2c+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSI4NyIgcj0iNCIgZmlsbD0iIzZjNjk3OCIvPjxjaXJjbGUgY3g9IjU2IiBjeT0iODciIHI9IjQiIGZpbGw9IiM2YzY5NzgiLz48Y2lyY2xlIGN4PSI3MiIgY3k9Ijg3IiByPSI0IiBmaWxsPSIjNmM2OTc4Ii8+PGNpcmNsZSBjeD0iODgiIGN5PSI4NyIgcj0iNCIgZmlsbD0iIzZjNjk3OCIvPgo8L3N2Zz4K">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=2">
 </head>
 <body>
   <!-- UI icon sprite (menu, level select, top bar) -->
@@ -44,7 +44,7 @@
     <!-- ================= LOADING ================= -->
     <section class="screen active" id="scr-loading">
       <div class="loading-box">
-        <img class="logo-img small" src="../img/grejs-tanks-logo-neon.png" alt="Grejs Tanks" width="547" height="560">
+        <img class="logo-img small" src="../img/grejs-tanks-logo-neon.png" alt="Grejs Tanks" width="547" height="560" style="height:180px;max-height:40vh;width:auto">
         <div class="loadbar"><i id="loadbar-fill"></i></div>
         <p id="load-text">Loading...</p>
       </div>
@@ -63,7 +63,7 @@
       <a class="alley-back" href="../GREJSALLEY.html" title="Tilbage til Grejs Alley"><svg class="ico"><use href="#i-back"/></svg>Grejs Alley</a>
       <div class="topbar" data-topbar></div>
       <div class="menu-wrap">
-        <h1 class="logo-wrap"><img class="logo-img" src="../img/grejs-tanks-logo-neon.png" alt="Grejs Tanks" width="547" height="560"></h1>
+        <h1 class="logo-wrap"><img class="logo-img" src="../img/grejs-tanks-logo-neon.png" alt="Grejs Tanks" width="547" height="560" style="max-height:30vh;width:auto"></h1>
         <div class="menu-sub" id="menu-sub">Turn-based tank warfare</div>
         <button class="play-cta" id="btn-play">
           <span class="pc-ic"><svg class="ico fill"><use href="#i-play"/></svg></span>

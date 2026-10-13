@@ -95,7 +95,7 @@ h2, h3, .logo, .btn, .fire { font-family: var(--font-h); letter-spacing: 0.5px; 
 @keyframes logoShine { 0%, 62% { background-position: 160% 0, 0 0; } 82%, 100% { background-position: -60% 0, 0 0; } }
 /* neon badge logo (image) */
 .logo-wrap { margin: 0; line-height: 0; }
-.logo-img { display: block; width: auto; height: clamp(170px, 34vmin, 300px); max-width: 82vw; object-fit: contain;
+.logo-img { display: block; width: auto; height: clamp(110px, 30vh, 280px); max-width: 82vw; object-fit: contain;
   filter: drop-shadow(0 0 3px rgba(10,6,22,0.95)) drop-shadow(0 0 14px rgba(10,6,22,0.8)) drop-shadow(0 0 24px rgba(255,80,200,0.3)); animation: logoGlow 4s ease-in-out infinite; }
 .logo-img.small { height: 180px; animation: none; }
 @keyframes logoGlow { 0%, 100% { filter: drop-shadow(0 0 3px rgba(10,6,22,0.95)) drop-shadow(0 0 14px rgba(10,6,22,0.8)) drop-shadow(0 0 20px rgba(255,80,200,0.3)); } 50% { filter: drop-shadow(0 0 3px rgba(10,6,22,0.95)) drop-shadow(0 0 14px rgba(10,6,22,0.8)) drop-shadow(0 0 30px rgba(80,220,255,0.45)); } }
