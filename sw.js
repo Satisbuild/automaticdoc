@@ -7,7 +7,7 @@
 //   caches ALDRIG - et spil må ikke få en gammel cloud-save serveret, når man er offline.
 
 // <precache> (genereret af tools/update-sw.js - rediger ikke i hånden)
-const VERSION = '01502fa7ae';
+const VERSION = '9a6c07c39b';
 const PRECACHE = [
   "/",
   "/Automatikteknikker.ico",

@@ -1,11 +1,13 @@
 /* =====================================================================
  * GREJS TANKS - worlds.js
- * 23 themed worlds: visuals, atmosphere, physics tweaks, music,
- * enemy pools, level templates and unlock requirements.
+ * 100 themed worlds: visuals, atmosphere, physics tweaks, music,
+ * enemy pools, level templates, unlock requirements and (for worlds
+ * 24-100) generated bosses.
  * ===================================================================== */
 (function () {
   'use strict';
   const GT = window.GT;
+  const U = GT.U;
 
   const WORLDS = [
     {
@@ -285,6 +287,164 @@
       features: { craters: 3, metal: 2, platforms: 1 }, stars: 645, lavaLevel: 900, big: true
     }
   ];
+
+  /* ------------------------------------------------------------
+   * Worlds 24-100. Each row borrows gameplay structure (terrain
+   * templates, deco, enemies, hazard) from a base world and gets its
+   * own name, palette, music, level names and boss.
+   * [name, sub, icon, base, [sky0, sky1], groundTop, soil, levelKey, bossName, opts]
+   * opts: gravity, wind, hazard, islands, skyStars, big, metal, noHills
+   * ------------------------------------------------------------ */
+  const LAVA = (color, dmg) => ({ type: 'lava', color, dmg });
+  const ACID = (color, dmg) => ({ type: 'acid', color, dmg });
+  const SWAMP = (color, dmg) => ({ type: 'swamp', color, dmg });
+  const EXTRA = [
+    ['Coral Depths', 'Undersea base among glowing reefs', '🐠', 14, ['#032a4a', '#0a8aa8'], '#3ac8b4', '#2a5a6a', 'Coral', 'Abyssal Kraken', { gravity: 0.8 }],
+    ['Volcano Isles', 'Smoking islands in a boiling sea', '🏝️', 20, ['#3a1a10', '#ff8a3a'], '#5a4030', '#3a2418', 'Ember Isle', 'Isle Inferno', {}],
+    ['Robot City', 'Neon streets ruled by machines', '🏙️', 18, ['#1a1035', '#ff4fa0'], '#5a6070', '#30343f', 'Neon', 'Chrome Mayor', {}],
+    ['Arctic Outpost', 'A frozen military base at the pole', '🛰️', 4, ['#5a7a9a', '#d8eaf8'], '#e8f4ff', '#6a8aa8', 'Outpost', 'Polar Commander', { metal: 2 }],
+    ['Orbital Station', 'Battles on a rotating space station', '🛸', 21, ['#020210', '#1a2a5a'], '#9aa4b8', '#4a5268', 'Orbit', 'Station AI', {}],
+    ['Temple of Vines', 'Ancient temples swallowed by jungle', '🛕', 5, ['#1a5a3a', '#d8e890'], '#4a9a3a', '#6a5a3a', 'Temple', 'Idol Guardian', {}],
+    ['Clockwork Citadel', 'A fortress of gears and springs', '⚙️', 8, ['#4a3020', '#d8a860'], '#a07840', '#5a4028', 'Gear', 'Clockwork King', {}],
+    ['Storm Planet', 'Endless lightning on an alien world', '🌩️', 19, ['#1a1040', '#5a4aa0'], '#5a5a7a', '#30304a', 'Storm', 'Tempest Core', { gravity: 0.8 }],
+    ['Mushroom Forest', 'Giant glowing fungi everywhere', '🍄', 13, ['#2a1a4a', '#a06ad8'], '#c060a0', '#4a2a4a', 'Spore', 'Fungal Overlord', { hazard: SWAMP('#b04ad8', 60) }],
+    ['Sunken City', 'Drowned ruins of an old empire', '🏛️', 6, ['#0a3a5a', '#4ab0c8'], '#7a9a8a', '#3a5050', 'Sunken', 'Drowned Emperor', { hazard: SWAMP('#2a8aa8', 60) }],
+    ['Savanna Strike', 'Golden grasslands at sunset', '🦁', 2, ['#e8783a', '#ffd890'], '#d0b040', '#8a6030', 'Savanna', 'Pride Leader', {}],
+    ['Glacier Fortress', 'Ice walls and frozen cannons', '🏰', 4, ['#3a5a8a', '#b8d8f0'], '#c8e8ff', '#5a7aa8', 'Glacier', 'Ice Warden', { metal: 2 }],
+    ['Neon Grid', 'A digital arena made of light', '💠', 18, ['#05001a', '#2a0a5a'], '#00e5ff', '#1a1040', 'Grid', 'Firewall', { skyStars: true }],
+    ['Canyon Raiders', 'Red rock canyons and outlaw camps', '🤠', 2, ['#c0502a', '#ffc080'], '#c0603a', '#7a3a20', 'Canyon', 'Outlaw Baron', {}],
+    ['Bamboo Valley', 'Misty bamboo forests', '🎋', 1, ['#8ab890', '#e8f4d8'], '#6ab850', '#5a4a30', 'Bamboo', 'Jade Shogun', { wind: 8 }],
+    ['Meteor Fields', 'Craters left by falling stars', '☄️', 7, ['#0a0518', '#3a1a4a'], '#8a7a70', '#4a3a38', 'Meteor', 'Comet Crusher', { gravity: 0.7 }],
+    ['Rust Harbor', 'Old docks and rusting warships', '⚓', 15, ['#5a6a7a', '#c8b8a0'], '#8a6a50', '#4a3a2a', 'Harbor', 'Rust Admiral', { metal: 2 }],
+    ['Sky Citadel', 'Floating castles above the clouds', '🌤️', 9, ['#3a6ad8', '#ffe0c0'], '#88d870', '#8a7050', 'Citadel', 'Cloud Emperor', {}],
+    ['Ash Wastes', 'Grey plains after the great eruption', '🌫️', 6, ['#4a4848', '#a8a0a0'], '#7a7878', '#4a4646', 'Ash', 'Cinder Tyrant', { hazard: LAVA('#ff6a2a', 70) }],
+    ['Crystal Desert', 'Glass dunes that glitter in the sun', '🔮', 2, ['#4ab0d8', '#fff0d0'], '#a8e8f0', '#c0a070', 'Glass', 'Prism Sphinx', {}],
+    ['Toxic Refinery', 'Leaking pipes and green sludge', '🧪', 8, ['#2a3a1a', '#8aa040'], '#5a6a4a', '#33402a', 'Refinery', 'Sludge Baron', { hazard: ACID('#9dff3a', 70) }],
+    ['Pyramid Sands', 'Tombs of the ancient tank pharaohs', '🔺', 2, ['#f0a040', '#ffe8b0'], '#e8c070', '#a07838', 'Pyramid', 'Tank Pharaoh', { big: true }],
+    ['Midnight Metro', 'Underground tunnels and runaway trains', '🚇', 11, ['#0a0a1a', '#2a2a4a'], '#4a4a5a', '#2a2a33', 'Metro', 'Night Conductor', {}],
+    ['Aurora Tundra', 'Battles under the northern lights', '🌌', 4, ['#0a1a3a', '#3ad8a0'], '#e0f0ff', '#4a6a8a', 'Aurora', 'Aurora Wraith', { skyStars: true }],
+    ['Dino Valley', 'Prehistoric jungle full of giant bones', '🦖', 5, ['#4a8a5a', '#f0e0a0'], '#5aa040', '#6a4a2a', 'Fossil', 'Rex Crusher', {}],
+    ['Asteroid Mines', 'Mining rigs on drifting rocks', '⛏️', 21, ['#020208', '#2a1a2a'], '#8a7060', '#4a3a30', 'Mine', 'Drill Baron', {}],
+    ['Grejs Colosseum', 'The great arena halfway to glory', '🏟️', 10, ['#4a1a1a', '#ffb060'], '#c8a060', '#7a5030', 'Arena', 'Champion Grejsus', { big: true }],
+    ['Blossom Gardens', 'Cherry blossoms and quiet pagodas', '🌸', 16, ['#ffb0c8', '#fff0f4'], '#7ac060', '#6a4a3a', 'Blossom', 'Petal Shogun', {}],
+    ['Magma Forge', 'Where the tank armies are made', '🔨', 3, ['#2a0a05', '#d0501a'], '#4a3a30', '#2a1a14', 'Forge', 'Forge Master', { metal: 2 }],
+    ['Frostbite Caverns', 'Icy tunnels deep below the snow', '🧊', 14, ['#0a1a3a', '#4a8ac8'], '#b0e0ff', '#3a5a8a', 'Frost', 'Cryo Hydra', {}],
+    ['Wild West', 'Saloons, mesas and high-noon showdowns', '🌵', 2, ['#e88a4a', '#ffe0a0'], '#d8a060', '#8a5a30', 'Mesa', 'Sheriff Steel', {}],
+    ['Cyber Jungle', 'Nature overgrown with circuits', '🦎', 5, ['#0a2a2a', '#2ad8a0'], '#20c080', '#1a3a3a', 'Cyber', 'Data Serpent', { hazard: ACID('#2affd0', 70) }],
+    ['Phantom Marsh', 'Fog, wisps and sunken graves', '🕯️', 17, ['#1a1a2a', '#5a6a7a'], '#4a5a4a', '#2a302a', 'Wisp', 'Marsh Wraith', {}],
+    ['Thunder Plateau', 'High flat mesas under storm clouds', '🌪️', 19, ['#3a3a50', '#8a90a8'], '#7a8070', '#4a4a40', 'Plateau', 'Cyclone Lord', {}],
+    ['Solar Station', 'Mirrors and power beams in orbit', '☀️', 21, ['#0a0510', '#ff9a3a'], '#c0b080', '#5a5040', 'Solar', 'Sun Engine', {}],
+    ['Kraken Trench', 'The deepest point of the ocean', '🦑', 14, ['#000818', '#0a3a6a'], '#3a6a8a', '#1a2a40', 'Trench', 'Elder Kraken', { gravity: 0.75, hazard: SWAMP('#1a5a8a', 70) }],
+    ['Sand Fortress', 'A citadel built on shifting dunes', '🧱', 22, ['#c08040', '#ffe0a0'], '#d8b070', '#9a7040', 'Sandkeep', 'Dune Warlord', { hazard: null }],
+    ['Rainbow Highlands', 'Colourful hills and waterfalls', '🌈', 1, ['#5ab8ff', '#ffd0f0'], '#70d870', '#8a6040', 'Rainbow', 'Prism Dragon', {}],
+    ['Junkyard Kingdom', 'Mountains of scrap metal', '🗑️', 6, ['#5a5040', '#b0a080'], '#7a7060', '#4a4238', 'Junk', 'Scrap Emperor', { metal: 2 }],
+    ['Ice Comet', 'Riding a frozen comet through space', '🌠', 21, ['#000010', '#1a3a6a'], '#d0e8ff', '#5a7aa0', 'Comet', 'Comet Heart', { gravity: 0.5 }],
+    ['Spider Caves', 'Webs and pitch-dark tunnels', '🕷️', 17, ['#100a10', '#3a2a3a'], '#4a404a', '#2a2228', 'Web', 'Widow Queen', {}],
+    ['Lava Factory', 'Conveyors of molten steel', '🏗️', 8, ['#2a1008', '#c0601a'], '#6a5a50', '#3a2a22', 'Smelter', 'Molten Press', { hazard: LAVA('#ff5a1a', 80) }],
+    ['Moonlit Bayou', 'A night swamp under a huge moon', '🐊', 13, ['#0a1a2a', '#3a5a6a'], '#3a5a3a', '#22302a', 'Bayou', 'Gator King', {}],
+    ['Celestial Gardens', 'Floating gardens among the stars', '🌺', 9, ['#1a0a3a', '#8a5ad8'], '#a0e080', '#6a4a7a', 'Celestial', 'Star Gardener', { skyStars: true }],
+    ['Titan Quarry', 'Giant stone pits and rusty cranes', '🪨', 6, ['#7a8090', '#d0c8b8'], '#a09888', '#6a6058', 'Quarry', 'Stone Titan', { hazard: null }],
+    ['Obsidian Peaks', 'Black glass mountains', '🖤', 3, ['#1a0a1a', '#6a2a4a'], '#2a2a3a', '#1a1a24', 'Obsidian', 'Obsidian Drake', {}],
+    ['Mirror Lake', 'A frozen lake that reflects the sky', '🪞', 4, ['#6a9ad8', '#f0f8ff'], '#d8f0ff', '#7a98b8', 'Mirror', 'The Reflection', {}],
+    ['Martian Colony', 'Red dust and domed cities', '🔴', 7, ['#4a1a10', '#d8804a'], '#c0603a', '#7a3a22', 'Mars', 'Red Governor', { gravity: 0.7 }],
+    ['Gold Mine', 'Glittering veins of treasure', '💰', 14, ['#2a1a0a', '#8a6a2a'], '#d8b040', '#5a4020', 'Gold', 'Golden Golem', {}],
+    ['Hurricane Coast', 'Battered shores in a mega storm', '🌊', 15, ['#2a3a4a', '#7a8a9a'], '#c0b080', '#7a6a4a', 'Hurricane', 'Storm Captain', { wind: 14 }],
+    ['Necro Citadel', 'A fortress of undead machines', '💀', 22, ['#0a0a10', '#3a4a3a'], '#3a3a3a', '#1a1a1a', 'Necro', 'Lich Tank', { hazard: ACID('#7aff9a', 85) }],
+    ['Biolab Zero', 'Experiments gone horribly wrong', '🧬', 18, ['#0a2a1a', '#5ad890'], '#a0b0b8', '#3a4a50', 'Biolab', 'Specimen X', { hazard: ACID('#5aff8a', 80) }],
+    ['Sandstorm Expanse', 'Endless dunes in a blinding storm', '🌬️', 2, ['#a07040', '#e0c090'], '#d8b878', '#9a7a48', 'Dune', 'Sand Wyrm', { wind: 13 }],
+    ['Firefly Forest', 'Ancient woods glowing at night', '✨', 1, ['#0a1a20', '#2a4a3a'], '#3a7a3a', '#3a2a1a', 'Firefly', 'Elder Treant', { skyStars: true }],
+    ['Iron Wall', 'A thousand-mile line of defences', '🛡️', 22, ['#3a3a40', '#9a9aa0'], '#7a7a80', '#4a4a50', 'Rampart', 'Wall Breaker', { hazard: null, metal: 3 }],
+    ['Nebula Drift', 'Colourful gas clouds in deep space', '🌀', 21, ['#1a0530', '#c040a0'], '#a080c0', '#4a3060', 'Nebula', 'Nebula Wyrm', {}],
+    ['Grejs Harbor', 'The great port of the Grejs empire', '⛵', 15, ['#3a8ad8', '#ffe8c0'], '#e0c890', '#a08050', 'Grejsport', 'Admiral Grejs', {}],
+    ['Boiling Geysers', 'Steam vents and scalding springs', '♨️', 3, ['#5a6a7a', '#e0d8d0'], '#b0a080', '#6a5a40', 'Geyser', 'Steam Titan', { hazard: SWAMP('#8ad8ff', 80) }],
+    ['Ancient Ruins', 'Lost civilisation of the first tanks', '🗿', 6, ['#8a9aa0', '#e8e0c8'], '#a09a78', '#6a6048', 'Relic', 'Stone Colossus', { hazard: null }],
+    ['Quantum Lab', 'Where the laws of physics break down', '⚛️', 18, ['#000a1a', '#3a8aff'], '#80a0d0', '#2a3a5a', 'Quantum', 'Paradox Engine', { gravity: 0.75 }],
+    ['Dragon Peaks', 'Lair of the fire-breathing tanks', '🐉', 3, ['#3a0a0a', '#ff6a3a'], '#5a4a40', '#3a2a22', 'Dragon', 'Dragon Tank', {}],
+    ['Polar Night', 'Six months of darkness', '🌑', 4, ['#02050f', '#1a2a4a'], '#c8d8e8', '#4a5a70', 'Polar', 'Night Mammoth', { skyStars: true }],
+    ['Carnival Chaos', 'A haunted funfair', '🎪', 16, ['#3a0a3a', '#ff7a3a'], '#e04a8a', '#5a2a3a', 'Carnival', 'The Ringmaster', {}],
+    ['Black Hole Rim', 'At the edge of the event horizon', '🕳️', 21, ['#000000', '#1a0a2a'], '#5a4a6a', '#2a2030', 'Horizon', 'Singularity', { gravity: 0.35 }],
+    ['Titanium Tundra', 'Armoured plains of the far north', '🏔️', 4, ['#4a5a6a', '#c8d0d8'], '#d0d8e0', '#6a7480', 'Titanium', 'Titan Plow', { metal: 3 }],
+    ['Venom Jungle', 'Every plant here wants you dead', '🐍', 5, ['#0a2a0a', '#6aa03a'], '#3a8a2a', '#2a3a18', 'Venom', 'Venom Hydra', { hazard: ACID('#b0ff3a', 90) }],
+    ['Inferno Gate', 'The doorway to the burning core', '🚪', 22, ['#2a0000', '#ff3a00'], '#4a2a20', '#2a1410', 'Inferno', 'The Gatekeeper', {}],
+    ['Celestial Forge', 'Stars hammered into weapons', '🌟', 21, ['#0a0520', '#ffb03a'], '#c0a060', '#4a3a40', 'Starforge', 'Star Smith', {}],
+    ['Shadow Realm', 'Where light goes to die', '🌘', 17, ['#000000', '#2a0a3a'], '#2a2030', '#120c18', 'Shadow', 'Shadow Tank', { hazard: SWAMP('#5a2a8a', 90) }],
+    ['Mecha Megacity', 'Capital of the robot empire', '🌆', 18, ['#1a0a2a', '#ff6a3a'], '#6a7080', '#33363f', 'Megacity', 'Mecha Emperor', { big: true }],
+    ['Eternal Winter', 'The blizzard that never ends', '🌨️', 4, ['#4a5a7a', '#d0dae8'], '#f0f8ff', '#7088a8', 'Winter', 'Winter King', { wind: 14 }],
+    ['Cosmic Ocean', 'Islands floating in starlight', '🪼', 9, ['#05001a', '#3a1a8a'], '#60c0d0', '#3a3a6a', 'Cosmic', 'Leviathan Prime', { skyStars: true, gravity: 0.7 }],
+    ['Apocalypse Plains', 'The world after the last war', '🏚️', 10, ['#2a0a05', '#a04a1a'], '#5a4030', '#2a1a12', 'Apocalypse', 'The Horseman', {}],
+    ['Chaos Dimension', 'Reality torn to pieces', '🧿', 21, ['#3a003a', '#00e5ff'], '#ff3ad8', '#3a1a5a', 'Chaos', 'Chaos Engine', {}],
+    ["Titan's Fortress", 'Stronghold of the tank titans', '🗼', 22, ['#1a0a0a', '#8a2a1a'], '#5a4a4a', '#2a2222', 'Titan', 'Titan Lord', {}],
+    ['Throne Approach', 'The final road to the Grejs throne', '🛤️', 23, ['#2a0a4a', '#ff8a3a'], '#e0b030', '#5a3070', 'Throne', 'Royal Guard', {}],
+    ['Grejs Eternity', 'The final battle for the Grejs universe', '🏆', 23, ['#0a0020', '#ffd23f'], '#ffd23f', '#4a2070', 'Eternity', 'Grejs Omega', { big: true, hazard: LAVA('#ffd23f', 100) }]
+  ];
+
+  EXTRA.forEach((row, i) => {
+    const [name, sub, icon, baseId, sky, top, soil, key, bossName, o] = row;
+    const id = 24 + i;
+    const b = WORLDS[baseId - 1];
+    const w = Object.assign({}, b, {
+      id, name, sub, icon, base: baseId, levelKey: key, bossName,
+      sky: sky.slice(),
+      sun: Object.assign({}, b.sun, { x: 0.15 + ((id * 37) % 70) / 100 }),
+      hills: b.hills ? [U.mix(soil, sky[1], 0.45), U.mix(soil, sky[0], 0.35)] : null,
+      clouds: b.clouds ? U.mix('#ffffff', sky[1], 0.25) : null,
+      terrain: Object.assign({}, b.terrain, {
+        top, top2: U.shade(top, 0.3), soil: [soil, U.shade(soil, -0.3), U.shade(soil, -0.55)], speck: U.shade(top, 0.15)
+      }),
+      features: Object.assign({}, b.features),
+      music: Object.assign({}, b.music, { id: 'm' + id, seed: id * 111, root: 45 + ((id * 7) % 17), bpm: 100 + ((id * 13) % 40) }),
+      enemies: b.enemies.slice(),
+      // ~30 extra stars per world, continuing the curve of worlds 1-23
+      stars: 645 + (id - 23) * 30
+    });
+    if (o.gravity) w.gravity = o.gravity;
+    if (o.wind) w.wind = o.wind;
+    if ('hazard' in o) w.hazard = o.hazard;
+    if (o.skyStars) w.skyStars = true;
+    if (o.big) w.big = true;
+    if (o.metal) w.features.metal = (w.features.metal || 0) + o.metal;
+    if (w.hazard && w.hazard.type !== 'void' && !w.lavaLevel) w.lavaLevel = 915;
+    // later worlds field tougher escorts
+    for (const t of id >= 60 ? ['juggernaut', 'hydra', 'lancer'] : id >= 40 ? ['juggernaut'] : []) if (!w.enemies.includes(t)) w.enemies.push(t);
+    WORLDS.push(w);
+  });
+
+  /* ------------------------------------------------------------
+   * Bosses for worlds 24-100: the base world's boss, recoloured and
+   * scaled up gradually. Every 10th world and worlds 90+ get an extra
+   * phase; world 100 is the final showdown.
+   * ------------------------------------------------------------ */
+  const BOSSES = GT.Enemies.bosses;
+  const LAST = WORLDS.length;
+  const EXTRA_PHASES = [
+    { w: ['nuke', 'hellfire'], enter: 'barrage', say: 'Total bombardment!' },
+    { w: ['antimatter', 'storm_lance'], enter: 'rage', say: 'Maximum power!' },
+    { w: ['armageddon', 'railgun'], enter: 'heal', say: 'I am not finished yet!' }
+  ];
+  for (const w of WORLDS) {
+    if (w.id <= 23) continue;
+    const src = BOSSES[w.base - 1];
+    const k = w.id - 23; // 1..77
+    const final = w.id === LAST;
+    let phases = JSON.parse(JSON.stringify(final ? BOSSES[22].phases : src.phases)).map((p) => { delete p.at; return p; });
+    const extra = final ? 2 : w.id % 10 === 0 || w.id >= 90 ? 1 : 0;
+    for (let i = 0; i < extra; i++) phases.push(Object.assign({}, EXTRA_PHASES[(w.id + i) % EXTRA_PHASES.length]));
+    phases = phases.map((p, i) => (i ? Object.assign({ at: +(1 - i / phases.length).toFixed(2) }, p) : p));
+    if (final) phases[phases.length - 1].say = 'THE GREJS UNIVERSE ENDS HERE!';
+    BOSSES.push({
+      id: 'boss_' + w.id, name: w.bossName, world: w.id,
+      hp: final ? 26000 : 13500 + k * 110,
+      armor: final ? 62 : Math.min(60, Math.round(50 + k * 0.13)),
+      dmg: final ? 1.45 : +Math.min(1.45, 1.3 + k * 0.002).toFixed(3),
+      acc: final ? 0.94 : +Math.min(0.94, 0.88 + k * 0.0008).toFixed(3),
+      scale: final ? 2.6 : Math.min(2.5, src.scale + 0.1),
+      vis: Object.assign({}, src.vis, {
+        body: w.terrain.soil[0], accent: w.terrain.top,
+        deco: final ? ['crown', 'core', 'spikes', 'horns', 'lights'] : src.vis.deco
+      }),
+      phases
+    });
+  }
 
   // Boss music (shared, darker, faster)
   const BOSS_MUSIC = { id: 'boss', bpm: 148, root: 45, scale: [0, 1, 3, 5, 7, 8, 11], prog: [0, 1, 0, 5], lead: 'sawtooth', bass: 'sawtooth', drums: 'boss', seed: 666, density: 0.6 };

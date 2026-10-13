@@ -21,7 +21,7 @@
     ['kills_400', 'Annihilator', 'Destroy 400 enemy tanks', '☠️', (d) => d.stats.kills, 400, 6000],
     ['boss_1', 'Boss Slayer', 'Defeat your first boss', '🐉', (d) => Object.keys(d.bosses).length, 1, 800],
     ['boss_5', 'Giant Killer', 'Defeat 5 bosses', '⚔️', (d) => Object.keys(d.bosses).length, 5, 3000],
-    ['boss_10', 'Legend of Grejs', 'Defeat all 10 bosses', '🏆', (d) => Object.keys(d.bosses).length, 10, 10000],
+    ['boss_10', 'Legend of Grejs', 'Defeat 10 bosses', '🏆', (d) => Object.keys(d.bosses).length, 10, 10000],
     ['tanks_5', 'Small Fleet', 'Unlock 5 tanks', '🚜', (d) => d.unlockedTanks.length, 5, 400],
     ['tanks_10', 'Tank Collector', 'Unlock 10 tanks', '🛻', (d) => d.unlockedTanks.length, 10, 1000],
     ['tanks_25', 'Armored Division', 'Unlock 25 tanks', '🏭', (d) => d.unlockedTanks.length, 25, 3000],
@@ -35,7 +35,7 @@
     ['stars_30', 'Rising Star', 'Collect 30 stars', '⭐', (d) => GT.Save.totalStars(), 30, 500],
     ['stars_120', 'Star Hunter', 'Collect 120 stars', '🌠', (d) => GT.Save.totalStars(), 120, 2000],
     ['stars_300', 'Constellation', 'Collect 300 stars', '✨', (d) => GT.Save.totalStars(), 300, 5000],
-    ['stars_all', 'Superstar', 'Collect all 450 stars', '💫', (d) => GT.Save.totalStars(), 450, 20000],
+    ['stars_all', 'Superstar', 'Collect 450 stars', '💫', (d) => GT.Save.totalStars(), 450, 20000],
     ['crits_10', 'Sharpshooter', 'Land 10 critical hits', '🔥', (d) => d.stats.crits, 10, 500],
     ['crits_100', 'Deadeye', 'Land 100 critical hits', '👁️', (d) => d.stats.crits, 100, 3000],
     ['dmg_10k', 'Heavy Hitter', 'Deal 10 000 total damage', '📈', (d) => d.stats.damage, 10000, 600],
@@ -360,7 +360,7 @@
         if (lv.isBoss) {
           if (!d.bosses[lv.world]) {
             out.blueprints += 2;
-            out.unlocks.push({ kind: 'world', text: lv.world < GT.Worlds.count ? 'Path to ' + GT.Worlds.get(lv.world + 1).name + ' opened!' : 'You conquered Grejs World!' });
+            out.unlocks.push({ kind: 'world', text: lv.world < GT.Worlds.count ? 'Path to ' + GT.Worlds.get(lv.world + 1).name + ' opened!' : 'You conquered ' + GT.Worlds.get(lv.world).name + ' - all ' + GT.Worlds.count + ' worlds beaten!' });
           }
           d.bosses[lv.world] = true;
           st.bossKills++;

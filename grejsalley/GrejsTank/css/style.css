@@ -151,7 +151,7 @@ h2, h3, .logo, .btn, .fire { font-family: var(--font-h); letter-spacing: 0.5px; 
 .loadbar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--yellow), var(--orange)); transition: width 0.2s; }
 
 /* ---------- world map ---------- */
-.world-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; max-width: 1300px; margin: 0 auto; }
+.world-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 18px; max-width: 1900px; margin: 0 auto; }
 .world-card { position: relative; border-radius: 18px; overflow: hidden; background: var(--panel); box-shadow: var(--shadow); cursor: pointer; transition: transform 0.12s; border: 3px solid rgba(255,255,255,0.1); }
 .world-card:hover { transform: translateY(-3px); }
 .world-card canvas { display: block; width: 100%; aspect-ratio: 16/8; }
@@ -165,6 +165,19 @@ h2, h3, .logo, .btn, .fire { font-family: var(--font-h); letter-spacing: 0.5px; 
 .world-card .lock { position: absolute; inset: 0 0 auto 0; aspect-ratio: 16/8; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 10px; font-weight: 900; font-size: 0.85em; text-shadow: 0 2px 3px #000; }
 .world-card .lock b { font-size: 2.2em; }
 .world-card .boss-tag { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.6); border-radius: 999px; padding: 2px 10px; font-weight: 900; font-size: 0.75em; }
+.world-card .boss-tag.cur { background: var(--yellow); color: #2a1a00; }
+.world-card .final-tag { position: absolute; top: 8px; right: 8px; background: linear-gradient(180deg, #ffd23f, #ff8a2a); color: #2a1a00; border-radius: 999px; padding: 2px 10px; font-weight: 900; font-size: 0.75em; }
+.world-card .wc-tx { min-width: 0; }
+.world-card.locked .wc-info { opacity: 0.6; }
+.world-card.current { border-color: var(--yellow); box-shadow: 0 0 0 3px var(--yellow), 0 0 26px rgba(255,210,63,0.45); }
+.world-card.cleared .wc-prog i { background: linear-gradient(90deg, var(--green), #2fbf5a); }
+.wm-summary { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; padding: 12px 16px; border-radius: 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); }
+.wm-summary div { display: flex; flex-direction: column; gap: 2px; }
+.wm-summary small { color: var(--muted); font-weight: 800; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.04em; }
+.wm-summary b { font-size: 1.05em; white-space: nowrap; }
+.wm-summary .wm-goal { flex: 1; min-width: 200px; }
+.wm-summary .wm-goal b { white-space: normal; font-size: 0.95em; }
+.wm-summary .wm-jump { padding: 8px 16px; font-size: 0.9em; }
 
 /* ---------- levels ---------- */
 #scr-levels { background: #07060d; }
@@ -671,6 +684,7 @@ html, body { background: #140f26; }
 /* world map + level nodes */
 .world-card { border: 1px solid var(--edge); box-shadow: var(--hi), var(--lift); background: linear-gradient(180deg, rgba(70,55,130,0.95), rgba(34,25,70,0.95)); transition: transform 0.15s, box-shadow 0.2s; }
 .world-card:hover { transform: translateY(-4px); box-shadow: var(--hi), 0 16px 30px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,210,63,0.35); }
+.world-card.current, .world-card.current:hover { border-color: var(--yellow); box-shadow: 0 0 0 3px var(--yellow), 0 0 26px rgba(255,210,63,0.45); }
 
 /* ---------- battle HUD ---------- */
 .hud-player, .en, .hud-turn, .hud-wind, .aim-row, .hud-move, .wchip, .hbtn, .power-slider {

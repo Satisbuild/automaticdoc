@@ -20,7 +20,7 @@
       GT.Save.load();
       GT.Save.validate();
       GT.Particles.setQuality(GT.Save.data.settings.quality);
-      setLoad(0.35, 'Building 150 levels...');
+      setLoad(0.35, 'Building ' + GT.Levels.total() + ' levels in ' + GT.Worlds.count + ' worlds...');
       // sanity: make sure every level definition can be built
       let ok = 0;
       for (let w = 1; w <= GT.Worlds.count; w++) for (let l = 1; l <= GT.Levels.PER_WORLD; l++) if (GT.Levels.get(w, l)) ok++;
@@ -58,7 +58,7 @@
       const d = GT.Save.data;
       d.unlockedTanks = GT.Tanks.list.map((t) => t.id);
       d.unlockedWeapons = GT.Weapons.list.map((w) => w.id);
-      for (let w = 1; w <= GT.Worlds.count; w++) { d.bosses[w] = true; for (let l = 1; l <= 15; l++) { d.completed['w' + w + '_l' + l] = true; d.stars['w' + w + '_l' + l] = 3; } }
+      for (let w = 1; w <= GT.Worlds.count; w++) { d.bosses[w] = true; for (let l = 1; l <= GT.Levels.PER_WORLD; l++) { d.completed['w' + w + '_l' + l] = true; d.stars['w' + w + '_l' + l] = 3; } }
       GT.Save.save();
       GT.UI.home();
     }

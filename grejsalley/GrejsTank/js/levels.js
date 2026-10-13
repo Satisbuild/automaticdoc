@@ -1,6 +1,6 @@
 /* =====================================================================
  * GREJS TANKS - levels.js
- * Deterministic level generator: 23 worlds x 15 levels = 345 levels.
+ * Deterministic level generator: 100 worlds x 15 levels = 1500 levels.
  * Each level varies terrain template, map width, wind, enemies,
  * spawn positions, events and features. Level 15 of each world is
  * the boss. Increase LEVELS_PER_WORLD or add worlds to extend.
@@ -74,11 +74,23 @@
     23: ['meteors', 'barrels', 'double', 'toxic', 'platforms', 'wind', 'crates']
   };
 
+  // worlds 24+ name their levels "<world key> <place>", rotating through these
+  const PLACES = ['Gate', 'Outpost', 'Crossing', 'Ridge', 'Depot', 'Watch', 'Hollow', 'Bridge', 'Fields', 'Bastion', 'Pass', 'Rift', 'Works', 'Summit',
+    'Trail', 'Harbor', 'Basin', 'Tower', 'Front', 'Keep', 'Run', 'Point', 'Reach', 'Core', 'Gauntlet', 'Edge', 'Siege', 'Heights'];
+  function levelName(world, l) {
+    if (NAMES[world.id]) return NAMES[world.id][l - 1];
+    return world.levelKey + ' ' + PLACES[(l - 1 + world.id * 5) % PLACES.length];
+  }
+
   const cache = {};
 
   function build(w, l) {
     const world = GT.Worlds.get(w);
     const r = U.rng(w * 7919 + l * 104729 + 17);
+    // worlds past 23 keep growing in difficulty, but on a flatter curve so
+    // map size, terrain height and enemy stats stay playable up to world 100
+    const wg = Math.min(w, 23);
+    const events = WORLD_EVENTS[w] || WORLD_EVENTS[world.base] || WORLD_EVENTS[23];
     const isBoss = l === LEVELS_PER_WORLD;
     const id = 'w' + w + '_l' + l;
 
@@ -90,7 +102,7 @@
     else template = world.templates[(l + r.int(0, world.templates.length - 1)) % world.templates.length];
 
     // --- size
-    let width = 1500 + w * 50 + (l > 7 ? 150 : 0) + r.int(0, 3) * 50;
+    let width = 1500 + wg * 50 + (l > 7 ? 150 : 0) + r.int(0, 3) * 50;
     if (world.big) width = 2300 + r.int(0, 4) * 60;
     if (isBoss) width = Math.max(width, 1800);
     if (template === 'islands') width = Math.max(width, 1900);
@@ -118,7 +130,7 @@
     }
 
     // --- difficulty scalar 0..~10
-    const diff = (w - 1) + (l - 1) / LEVELS_PER_WORLD;
+    const diff = (w <= 23 ? w - 1 : 22 + (w - 23) * 0.25) + (l - 1) / LEVELS_PER_WORLD;
 
     // --- spawns
     const playerRight = !isBoss && l % 4 === 3;
@@ -152,8 +164,8 @@
     // --- event
     let event = null;
     if (!(w === 1 && l <= 3)) {
-      if ([4, 7, 10, 13].includes(l) || (l > 3 && r() < 0.22)) event = r.pick(WORLD_EVENTS[w]);
-      if (isBoss && w >= 3) event = r() < 0.5 ? r.pick(WORLD_EVENTS[w]) : null;
+      if ([4, 7, 10, 13].includes(l) || (l > 3 && r() < 0.22)) event = r.pick(events);
+      if (isBoss && w >= 3) event = r() < 0.5 ? r.pick(events) : null;
     }
 
     // --- wind
@@ -162,16 +174,16 @@
     windMax = Math.min(2, windMax); // keep wind gentle: never more than 2
 
     const par = 2 + n * 2 + (isBoss ? 4 : 0) + (w >= 5 ? 1 : 0);
-    const coins = Math.round((150 + w * 90 + l * 12) * (isBoss ? 2.5 : 1));
-    const xp = Math.round((45 + w * 18 + l * 2) * (isBoss ? 2 : 1));
+    const coins = Math.round((150 + wg * 90 + (w - wg) * 25 + l * 12) * (isBoss ? 2.5 : 1));
+    const xp = Math.round((45 + wg * 18 + (w - wg) * 4 + l * 2) * (isBoss ? 2 : 1));
 
     return {
       id, world: w, index: l, isBoss,
-      name: isBoss ? 'BOSS: ' + GT.Enemies.boss(w).name : (NAMES[w] && NAMES[w][l - 1]) || 'Level ' + l,
+      name: isBoss ? 'BOSS: ' + GT.Enemies.boss(w).name : levelName(world, l) || 'Level ' + l,
       seed: w * 1000 + l * 37 + 5,
       template, width, height: 1000,
-      amp: 35 + w * 5 + r.range(0, 35) + (template === 'flat' ? -20 : 0),
-      peak: 170 + w * 14 + r.range(0, 80),
+      amp: 35 + wg * 5 + r.range(0, 35) + (template === 'flat' ? -20 : 0),
+      peak: 170 + wg * 14 + r.range(0, 80),
       base: template === 'islands' ? 1000 : 1000 * r.range(0.6, 0.68),
       flip: playerRight,
       features: f,

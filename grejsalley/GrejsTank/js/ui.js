@@ -179,17 +179,66 @@
       const grid = $('#world-grid');
       grid.innerHTML = '';
       GT.Audio.playMusic(GT.Worlds.MENU_MUSIC);
+      const per = GT.Levels.PER_WORLD, maxStars = per * 3, count = GT.Worlds.count;
+      const cleared = (id) => { let n = 0; for (let l = 1; l <= per; l++) if (S().completed['w' + id + '_l' + l]) n++; return n; };
+
+      // summary: unlocked worlds, bosses, stars, current world and next goal
+      let unlockedN = 0, firstLocked = null;
+      for (const w of GT.Worlds.list) {
+        if (GT.Worlds.isUnlocked(w.id)) unlockedN++;
+        else if (!firstLocked) firstLocked = w;
+      }
+      const nx = GT.Levels.nextCampaign();
+      const allDone = nx && nx.w === count && nx.l === per && S().completed['w' + count + '_l' + per];
+      const current = nx ? nx.w : firstLocked ? firstLocked.id - 1 : count;
+      const goal = allDone ? '🏆 All ' + count + ' worlds conquered!'
+        : nx ? `Next: World ${nx.w} · Level ${nx.l} (${esc(GT.Levels.get(nx.w, nx.l).name)})`
+        : `Unlock ${esc(firstLocked.name)}: ${esc(GT.Worlds.lockReason(firstLocked.id))}`;
+      const sum = U.el('div', 'wm-summary', `
+        <div><small>Worlds unlocked</small><b>🗺️ ${unlockedN}/${count}</b></div>
+        <div><small>Bosses defeated</small><b>👑 ${Object.keys(S().bosses).length}/${count}</b></div>
+        <div><small>Stars</small><b>⭐ ${GT.Save.totalStars()}/${GT.Levels.total() * 3}</b></div>
+        <div class="wm-goal"><small>Current world ${current} · ${esc(GT.Worlds.get(current).name)}</small><b>${goal}</b></div>
+        <button class="btn yellow wm-jump">Jump to current</button>`);
+      grid.appendChild(sum);
+
+      // thumbnails are drawn lazily as cards scroll into view (100 canvases up front stalls the UI)
+      const thumbs = (this._worldThumbs = this._worldThumbs || {});
+      if (this._wmObs) this._wmObs.disconnect();
+      const draw = (cv) => {
+        if (cv._drawn) return;
+        cv._drawn = true;
+        const w = GT.Worlds.get(+cv.dataset.w);
+        if (!thumbs[w.id]) thumbs[w.id] = R.worldThumb(w, 480, 240);
+        cv.getContext('2d').drawImage(thumbs[w.id], 0, 0);
+      };
+      const obs = (this._wmObs = 'IntersectionObserver' in window
+        ? new IntersectionObserver((ents) => {
+          for (const e of ents) if (e.isIntersecting) { obs.unobserve(e.target); draw(e.target); }
+        }, { root: grid.closest('.scroll'), rootMargin: '400px 0px' })
+        : null);
+
+      let currentCard = null;
       for (const w of GT.Worlds.list) {
         const unlocked = GT.Worlds.isUnlocked(w.id);
         const stars = GT.Save.worldStars(w.id);
-        const done = Array.from({ length: 15 }, (_, i) => S().completed['w' + w.id + '_l' + (i + 1)]).filter(Boolean).length;
-        const card = U.el('div', 'world-card' + (unlocked ? '' : ' locked'));
-        const cv = R.worldThumb(w, 480, 240);
+        const done = cleared(w.id);
+        const card = U.el('div', 'world-card' + (unlocked ? '' : ' locked') + (w.id === current ? ' current' : '') + (done === per ? ' cleared' : ''));
+        if (w.id === current) currentCard = card;
+        const cv = document.createElement('canvas');
+        cv.width = 480;
+        cv.height = 240;
+        cv.dataset.w = w.id;
+        cv.style.background = `linear-gradient(${w.sky[0]}, ${w.sky[1]})`;
         card.appendChild(cv);
+        if (obs) obs.observe(cv);
+        else draw(cv);
         if (S().bosses[w.id]) card.appendChild(U.el('div', 'boss-tag', '👑 Boss defeated'));
+        else if (w.id === current && unlocked) card.appendChild(U.el('div', 'boss-tag cur', '▶ Current world'));
+        if (w.id === count) card.appendChild(U.el('div', 'final-tag', '🏆 Final world'));
         if (!unlocked) card.appendChild(U.el('div', 'lock', `<b>🔒</b>${esc(GT.Worlds.lockReason(w.id))}`));
-        card.appendChild(U.el('div', 'wc-prog', `<i style="width:${(done / 15) * 100}%"></i>`));
-        card.appendChild(U.el('div', 'wc-info', `<div class="wc-num">${w.id}</div><div><h3>${w.icon} ${esc(w.name)}</h3><p>${esc(w.sub)}${w.gravity < 1 ? ' · Low gravity' : ''}</p></div><div class="wc-stars">⭐ ${stars}/45<br><small>${done}/15</small></div>`));
+        card.appendChild(U.el('div', 'wc-prog', `<i style="width:${(done / per) * 100}%"></i>`));
+        card.appendChild(U.el('div', 'wc-info', `<div class="wc-num">${w.id}</div><div class="wc-tx"><h3>${w.icon} ${esc(w.name)}</h3><p>${esc(w.sub)}${w.gravity < 1 ? ' · Low gravity' : ''}</p></div><div class="wc-stars">⭐ ${stars}/${maxStars}<br><small>${done}/${per} levels</small></div>`));
         card.onclick = () => {
           if (!unlocked) {
             snd('error');
@@ -200,6 +249,18 @@
         };
         grid.appendChild(card);
       }
+      const jump = (smooth) => currentCard && currentCard.scrollIntoView({ block: 'center', behavior: smooth ? 'smooth' : 'auto' });
+      sum.querySelector('.wm-jump').onclick = () => { snd('click'); jump(true); };
+      if (current > 2) requestAnimationFrame(() => jump(false));
+      // fill in the remaining thumbnails in the background, a few per tick
+      const gen = (this._wmGen = (this._wmGen || 0) + 1);
+      const queue = Array.from(grid.querySelectorAll('.world-card canvas'));
+      const pump = () => {
+        if (gen !== this._wmGen) return;
+        for (let n = 0; n < 3 && queue.length; n++) draw(queue.shift());
+        if (queue.length) setTimeout(pump, 30);
+      };
+      setTimeout(pump, 300);
     },
 
     /* ================================================================
