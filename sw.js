@@ -7,7 +7,7 @@
 //   caches ALDRIG - et spil må ikke få en gammel cloud-save serveret, når man er offline.
 
 // <precache> (genereret af tools/update-sw.js - rediger ikke i hånden)
-const VERSION = '9a6c07c39b';
+const VERSION = '46a9dc1546';
 const PRECACHE = [
   "/",
   "/Automatikteknikker.ico",
@@ -188,8 +188,9 @@ async function networkFirst(event, req) {
     if (res.ok) event.waitUntil(cache.put(req, res.clone()));
     return res;
   } catch (e) {
-    const cached = await cache.match(req, { ignoreSearch: req.mode === 'navigate' })
-      || await caches.match(req, { ignoreSearch: req.mode === 'navigate' });
+    // ignoreSearch: filer med ?v=... (cache-busting) findes i precachen uden query
+    const cached = await cache.match(req, { ignoreSearch: true })
+      || await caches.match(req, { ignoreSearch: true });
     if (cached) return cached;
     if (req.mode === 'navigate') {
       const home = await cache.match('/');
