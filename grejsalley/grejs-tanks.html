@@ -216,6 +216,7 @@ h2, h3, .logo, .btn, .fire { font-family: var(--font-h); letter-spacing: 0.5px; 
 .ln-stars svg.on { color: var(--gold); filter: drop-shadow(0 0 4px rgba(255,190,50,0.65)); }
 .ln-tl, .ln-tr { position: absolute; top: 8px; display: flex; align-items: center; gap: 4px; font-family: var(--f-ui); font-weight: 700; font-size: 12px; letter-spacing: 0.08em; color: rgba(255,255,255,0.45); }
 .ln-tl { left: 10px; } .ln-tr { right: 8px; }
+.ln-ev.bounty { background: rgba(255,200,60,0.18); border-color: rgba(255,200,60,0.55); box-shadow: 0 0 8px rgba(255,190,50,0.45); }
 .ln-tl .ico { font-size: 15px; }
 .ln-ev { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 6px; font-size: 15px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); }
 .ln-play { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 2px 8px; border-radius: 4px; font-family: var(--f-ui); font-weight: 800; font-size: 12px; letter-spacing: 0.18em; color: #241000; background: linear-gradient(180deg, #ffdb76, #f38a1c); box-shadow: 0 2px 8px rgba(255,140,30,0.45); }
@@ -1153,6 +1154,7 @@ html, body { background: #140f26; }
         seenEnemies: {},
         lastLevel: 'w1_l1',
         challenges: { date: '', list: [], completedTotal: 0 },
+        bounties: { date: '', list: [] }, // daily: levelIds that pay coins again once
         stats: {
           battles: 0, wins: 0, losses: 0, kills: 0, damage: 0, shots: 0, crits: 0,
           bossKills: 0, perfectWins: 0, fewShotWins: 0, multiKills: 0, crates: 0,
@@ -1223,6 +1225,7 @@ html, body { background: #140f26; }
         return w && d.unlockedWeapons.includes(w) && w !== 'shell' ? w : null;
       });
       d.coins = Math.max(0, Math.floor(d.coins || 0));
+      if (!d.bounties || !Array.isArray(d.bounties.list)) d.bounties = { date: '', list: [] };
       d.xp = Math.max(0, Math.floor(d.xp || 0));
       d.blueprints = Math.max(0, Math.floor(d.blueprints || 0));
       for (const id in d.stars) {
@@ -4558,6 +4561,36 @@ html, body { background: #140f26; }
       GT.Save.save();
       return d.challenges.list;
     },
+    /** coins paid for each star on a level (3 shares = 1.5x the base reward) */
+    starShare(lv) {
+      return Math.round((lv.rewards.coins * 0.5) / 5) * 5;
+    },
+    /** coins still to earn on a level from stars */
+    coinsLeft(lv) {
+      return Math.max(0, 3 - (GT.Save.data.stars[lv.id] || 0)) * this.starShare(lv);
+    },
+
+    /* ---------- daily bounties: 3 cleared levels that pay again today ---------- */
+    ensureBounties() {
+      const d = GT.Save.data;
+      const key = U.todayKey();
+      if (d.bounties.date === key && d.bounties.list.length) return d.bounties.list;
+      const done = Object.keys(d.completed).filter((id) => /^w\d+_l\d+$/.test(id)).sort();
+      d.bounties.date = key;
+      d.bounties.list = [];
+      if (!done.length) return d.bounties.list;
+      const r = U.rng(U.hashStr('bounty' + key + done.length));
+      d.bounties.list = r.shuffle(done).slice(0, 3).map((id, i) => {
+        const [w, l] = id.slice(1).split('_l').map(Number);
+        const lv = GT.Levels.get(w, l);
+        return { id, w, l, reward: Math.round((lv.rewards.coins * (1 + i * 0.25)) / 10) * 10, claimed: false };
+      });
+      GT.Save.save();
+      return d.bounties.list;
+    },
+    bountyFor(id) {
+      return this.ensureBounties().find((b) => b.id === id && !b.claimed) || null;
+    },
     challengeText(c) {
       const tpl = CH_TEMPLATES.find((t) => t.type === c.type) || CH_TEMPLATES[0];
       return tpl.text(c);
@@ -4643,33 +4676,52 @@ html, body { background: #140f26; }
           out.newBest = !!d.bestTurns[lv.id];
           d.bestTurns[lv.id] = res.turns;
         }
-        let coins = lv.rewards.coins * (first ? 1 : 0.5);
+        // coins are only paid for NEW stars: each level has 3 star-shares of
+        // coins. Once a level has 3 stars it pays nothing more (bounties aside).
+        const newStars = Math.max(0, out.stars - prevStars);
+        const share = GT.Progress.starShare(lv);
+        const paid = newStars > 0;
+        out.newStars = newStars;
+        out.maxedBefore = prevStars >= 3;
+        out.coinsLeft = Math.max(0, 3 - Math.max(out.stars, prevStars)) * share;
+        let coins = newStars * share;
         let xp = lv.rewards.xp * (first ? 1 : 0.6);
-        out.bonuses.push({ name: first ? 'Victory' : 'Victory (replay)', coins: Math.round(coins) });
-        if (res.damageTaken <= 0) {
-          const b = Math.round(coins * 0.3);
-          out.bonuses.push({ name: 'Untouchable - no damage', coins: b });
-          coins += b;
-          st.perfectWins++;
+        if (res.damageTaken <= 0) st.perfectWins++;
+        if (paid) {
+          out.bonuses.push({ name: newStars === 1 ? 'New star' : newStars + ' new stars', coins: Math.round(coins) });
+          // bonuses only count on runs that earn new stars
+          if (res.damageTaken <= 0) {
+            const b = Math.round(coins * 0.3);
+            out.bonuses.push({ name: 'Untouchable - no damage', coins: b });
+            coins += b;
+          }
+          if (res.turns <= lv.par) {
+            const b = Math.round(coins * 0.2);
+            out.bonuses.push({ name: 'Quick victory', coins: b });
+            coins += b;
+          }
+          if (res.crits) {
+            const b = res.crits * 25;
+            out.bonuses.push({ name: 'Critical hits x' + res.crits, coins: b });
+            coins += b;
+          }
+          if (res.multiKills) {
+            const b = res.multiKills * 120;
+            out.bonuses.push({ name: 'Multi-kill x' + res.multiKills, coins: b });
+            coins += b;
+          }
+          if (res.coinsFound) {
+            out.bonuses.push({ name: 'Supply crates', coins: res.coinsFound });
+            coins += res.coinsFound;
+          }
         }
-        if (res.turns <= lv.par) {
-          const b = Math.round(coins * 0.2);
-          out.bonuses.push({ name: 'Quick victory', coins: b });
-          coins += b;
-        }
-        if (res.crits) {
-          const b = res.crits * 25;
-          out.bonuses.push({ name: 'Critical hits x' + res.crits, coins: b });
-          coins += b;
-        }
-        if (res.multiKills) {
-          const b = res.multiKills * 120;
-          out.bonuses.push({ name: 'Multi-kill x' + res.multiKills, coins: b });
-          coins += b;
-        }
-        if (res.coinsFound) {
-          out.bonuses.push({ name: 'Supply crates', coins: res.coinsFound });
-          coins += res.coinsFound;
+        // daily bounty: pays once per day on a win, even on 3-star levels
+        const bounty = this.ensureBounties().find((b) => b.id === lv.id && !b.claimed);
+        if (bounty) {
+          bounty.claimed = true;
+          out.bounty = bounty.reward;
+          out.bonuses.push({ name: '💰 Bounty collected', coins: bounty.reward });
+          coins += bounty.reward;
         }
         if (res.shots <= 2) st.fewShotWins++;
         if (res.hpPct < 0.1) st.survivorWins++;
@@ -4687,7 +4739,8 @@ html, body { background: #140f26; }
       } else {
         st.losses++;
         // consolation: small coins for damage dealt, never lose progress
-        out.coins = Math.round(Math.min(lv.rewards.coins * 0.25, res.damage * 0.1) + (res.coinsFound || 0));
+        // (nothing on levels that already have 3 stars)
+        if ((d.stars[lv.id] || 0) < 3) out.coins = Math.round(Math.min(lv.rewards.coins * 0.25, res.damage * 0.1) + (res.coinsFound || 0));
         out.xp = Math.round(lv.rewards.xp * 0.15);
       }
       out.blueprints += res.bpFound || 0;
@@ -11218,7 +11271,8 @@ html, body { background: #140f26; }
         }
         const starRow = `<div class="ln-stars">${[0, 1, 2].map((i) => `<svg class="${i < st ? 'on' : ''}"><use href="#i-star"/></svg>`).join('')}</div>`;
         const ev = lv.event ? GT.Levels.EVENTS[lv.event] : null;
-        const evChip = ev ? `<span class="ln-ev" title="${esc(ev.name)}: ${esc(ev.desc)}">${ev.icon}</span>` : '';
+        const bty = GT.Progress.bountyFor(id);
+        const evChip = (bty ? `<span class="ln-ev bounty" title="Bounty: +${bty.reward} coins today">💰</span>` : '') + (ev ? `<span class="ln-ev" title="${esc(ev.name)}: ${esc(ev.desc)}">${ev.icon}</span>` : '');
         if (lv.isBoss) {
           const b = GT.Enemies.boss(w);
           const cv = document.createElement('canvas');
@@ -11226,7 +11280,7 @@ html, body { background: #140f26; }
           cv.height = 160;
           R.tankPreview(cv, Object.assign({}, b.vis, { deco: (b.vis.deco || []).concat(['visor']) }), { aim: 160, facing: -1, zoom: 0.95, dark: !unlocked });
           node.appendChild(cv);
-          node.appendChild(U.el('div', 'bs-tx', `<small>Boss battle${ev ? ' · ' + esc(ev.name) : ''}</small><b>${esc(b.name)}</b>${starRow}`));
+          node.appendChild(U.el('div', 'bs-tx', `<small>Boss battle${ev ? ' · ' + esc(ev.name) : ''}${bty ? ' · 💰 Bounty +' + bty.reward : ''}</small><b>${esc(b.name)}</b>${starRow}`));
           node.appendChild(U.el('div', 'bs-cta' + (done ? ' won' : ''),
             !unlocked ? `${ico('i-lock')}<span>Clear mission ${pad(l - 1)}</span>`
               : done ? `${ico('i-check')}<span>Defeated</span>`
@@ -11263,6 +11317,7 @@ html, body { background: #140f26; }
         return { name: d.name, vis: d.vis };
       });
       const ev = lv.event ? GT.Levels.EVENTS[lv.event] : null;
+      const share = GT.Progress.starShare(lv), left = GT.Progress.coinsLeft(lv), bty = GT.Progress.bountyFor(id);
       const m = this.modal(`
         <h2>${w}-${l} ${esc(lv.name)}</h2>
         <p>${world.icon} ${esc(world.name)} · ${TEMPLATE_NAMES[lv.template] || lv.template}</p>
@@ -11271,7 +11326,8 @@ html, body { background: #140f26; }
           <div><small>Enemies</small>${enemies.length}${lv.isBoss ? ' (Boss)' : ''}</div>
           <div><small>Wind</small>${lv.windMax < 1 ? 'Calm' : 'up to ' + Math.round(lv.windMax)}</div>
           <div><small>Gravity</small>${world.gravity < 1 || lv.event === 'lowgrav' ? 'Low' : 'Normal'}</div>
-          <div><small>Rewards</small>🪙 ${lv.rewards.coins} · ✨ ${lv.rewards.xp} XP</div>
+          <div><small>Coins left</small>${left ? '🪙 ' + left + ' <small>(' + share + ' per new ★)</small>' : '✅ All earned'}</div>
+          ${bty ? `<div style="grid-column:1/-1"><small>Bounty today</small>💰 Win this level today for +${bty.reward} coins</div>` : ''}
           ${ev ? `<div style="grid-column:1/-1"><small>Special event</small>${ev.icon} ${ev.name} - ${ev.desc}</div>` : ''}
         </div>
         <div class="star-req">
@@ -11796,6 +11852,28 @@ html, body { background: #140f26; }
         } else ir.textContent = U.fmt(c.progress) + ' / ' + U.fmt(tg);
         list.appendChild(it);
       });
+      // daily bounties: replay cleared levels for coins, even 3-star ones
+      const bounties = GT.Progress.ensureBounties();
+      list.appendChild(U.el('h3', '', '💰 Daily Bounties'));
+      list.lastChild.style.cssText = 'margin:18px 0 6px';
+      if (!bounties.length) list.appendChild(U.el('p', '', 'Clear your first level to unlock bounties.'));
+      bounties.forEach((b) => {
+        const lv = GT.Levels.get(b.w, b.l);
+        const it = U.el('div', 'item' + (b.claimed ? ' done' : ''), `<div class="ii">${b.claimed ? '✅' : '💰'}</div><div class="ib"><b>Win ${b.w}-${b.l} ${esc(lv.name)}</b><p>Bounty: 🪙 ${U.fmt(b.reward)} · pays even if you already have ⭐⭐⭐</p></div><div class="ir"></div>`);
+        const ir = it.querySelector('.ir');
+        if (b.claimed) ir.textContent = 'Collected';
+        else {
+          const btn = U.el('button', 'btn yellow small', 'PLAY');
+          btn.onclick = () => {
+            snd('click');
+            this.levelInfo(b.w, b.l);
+          };
+          ir.appendChild(btn);
+        }
+        list.appendChild(it);
+      });
+      list.appendChild(U.el('p', '', '<br>Each level only pays coins for new stars - once it has ⭐⭐⭐ it pays nothing more. Bounties and challenges are the way to keep earning. New ones every day.'));
+      list.lastChild.style.cssText = 'color:var(--muted);font-weight:800;text-align:center;font-size:0.85em';
       list.appendChild(U.el('p', '', '<br>Challenges are generated locally every day. Completing them unlocks special tanks like Rusty Bucket, Patchwork Medic and Chaos Engine.'));
       list.lastChild.style.cssText = 'color:var(--muted);font-weight:800;text-align:center;font-size:0.85em';
     },
@@ -12402,12 +12480,16 @@ html, body { background: #140f26; }
       for (const a of out.achievements) unlockHtml.push(`<div>${a.icon} Achievement: ${esc(a.name)} (+${a.reward} 🪙)</div>`);
       const statLine = `<div class="stat-line"><span>Damage dealt <b>${U.fmt(res.damage)}</b></span><span>Turns <b>${res.turns}</b></span><span>Destroyed <b>${res.kills}</b></span><span>Crits <b>${res.crits}</b></span>${res.win ? `<span>HP left <b>${Math.round(res.hpPct * 100)}%</b></span>` : ''}</div>`;
       let html;
+      const coinNote = !res.win || out.newStars ? '' : out.maxedBefore
+        ? '<p style="font-size:0.8em;color:var(--muted)">⭐⭐⭐ already earned here - no more coins from this level. Look for 💰 bounties in Challenges!</p>'
+        : `<p style="font-size:0.8em;color:var(--muted)">No new stars this time. Still ${U.fmt(out.coinsLeft)} 🪙 to earn here with more stars.</p>`;
       if (res.win) {
         html = `<div class="big-title win">VICTORY!</div>
           <div class="stars-big"><span>⭐</span><span>⭐</span><span>⭐</span></div>
           <p style="font-size:0.8em">${out.starFlags.map((f, i) => (f ? '✔' : '✖') + ' ' + ['Win', '50% HP', lv.par + ' turns'][i]).join(' · ')}</p>
           ${statLine}
           <div class="reward-row"><div class="reward">🪙 +${U.fmt(out.coins)}</div><div class="reward">✨ +${out.xp} XP</div>${out.blueprints ? `<div class="reward">📘 +${out.blueprints}</div>` : ''}</div>
+          ${coinNote}
           <div class="bonus-list">${out.bonuses.map((b) => `<div><span>${esc(b.name)}</span><b>+${U.fmt(b.coins)}</b></div>`).join('')}</div>
           <div class="unlock-list">${unlockHtml.join('')}</div>
           <div class="row">${nextOk ? '<button class="btn green" data-next>NEXT LEVEL ›</button>' : ''}<button class="btn" data-replay>↻ REPLAY</button><button class="btn gray" data-map>🗺 WORLD MAP</button></div>`;
