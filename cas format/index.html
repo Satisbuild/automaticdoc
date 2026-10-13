@@ -155,6 +155,23 @@ a{color:var(--acc)}
 .prev.text{justify-content:flex-start;font-family:Calibri,Carlito,Inter,sans-serif;font-size:1rem;line-height:1.45}
 .prev.heading{justify-content:flex-start;font-family:"Calibri Light",Calibri,Inter,sans-serif;font-size:1.45rem}
 .prev .katex-display{margin:0}
+/* Word-/WordMat-agtig ligning: Cambria Math i en grå ligningsboks med greb */
+.prev math{font-family:"Cambria Math","STIX Two Math","Latin Modern Math",math;font-size:1.32rem;color:#111}
+.prev.text math,.prev.heading math{font-size:1.05em}
+.prev math mrow.fn{padding-left:.167em}
+.prev math mrow.fn:first-child{padding-left:0}
+.eq{position:relative;display:inline-flex;align-items:center;max-width:100%;padding:3px 12px 3px 4px;background:#eef1f5;border:1px solid #d5dbe3;border-radius:2px}
+.eq .grip{align-self:stretch;display:flex;align-items:center;margin-right:8px;padding:0 3px;color:#8b96a5;font-size:.8rem;letter-spacing:-2px;border-right:1px solid #d5dbe3;user-select:none}
+.eq math{overflow-x:auto;overflow-y:hidden;padding:2px 0}
+.card:hover .eq,.card.sel .eq{border-color:#9db4d3;background:#e8eef6}
+.prev.math{justify-content:center}
+.prev.left{justify-content:flex-start}
+.copy{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:7px;border:1px solid rgba(56,189,248,.35);background:var(--acc-soft);color:var(--acc);font-size:.8rem;font-weight:500;cursor:pointer}
+.copy:hover{background:rgba(56,189,248,.2)}
+.copy svg{width:14px;height:14px}
+.copy.tex{border-color:var(--line2);background:transparent;color:var(--muted);font-family:var(--mono);font-size:.74rem;padding:0 8px}
+.copy.tex:hover{color:var(--ink)}
+.copy.done{color:var(--ok);border-color:rgba(52,211,153,.4);background:var(--ok-soft)}
 .prev .err{color:#b91c1c;font:500 .82rem var(--mono);white-space:pre-wrap}
 .orig{display:flex;gap:8px;align-items:center}
 .orig{overflow:hidden}
@@ -1191,6 +1208,72 @@ function onode(n) {
   }
   return '';
 }
+/* ---------- 4b. LaTeX → MathML (til forhåndsvisning og kopiering til Word) ---------- */
+const MML_ACC = { '⃗': '→', '̂': '^', '̇': '˙', '̈': '¨', '̃': '~', '́': '´', '̀': '`', '̌': 'ˇ', '̆': '˘', '̅': '¯' };
+function mmlRun(n) {
+  const t = n.t;
+  if (!t) return '';
+  if (n.nor) return '<mtext>' + esc(t) + '</mtext>';
+  if (n.sty === 'p' && /[\p{L}]/u.test(t)) return '<mi mathvariant="normal">' + esc(t) + '</mi>';
+  let x = '';
+  const re = /(\d+(?:[.,]\d+)*)|([\p{L}])|([ -​  ]+)|(.)/gsu;
+  let m;
+  while ((m = re.exec(t))) {
+    if (m[1]) x += '<mn>' + esc(m[1]) + '</mn>';
+    else if (m[2]) x += n.sty === 'b' ? '<mi mathvariant="bold-italic">' + esc(m[2]) + '</mi>' : '<mi>' + esc(m[2]) + '</mi>';
+    else if (m[3]) x += '<mspace width="' + (m[3].includes(' ') ? m[3].length + 'em' : '0.25em') + '"/>';
+    else x += '<mo>' + esc(m[4]) + '</mo>';
+  }
+  return x;
+}
+function mml(nodes) {
+  let x = '', buf = null;
+  const flush = () => { if (buf) { x += mmlRun(buf); buf = null; } };
+  for (const n of nodes) {
+    if (n.k === 'r') {
+      if (buf && buf.sty === n.sty && !!buf.nor === !!n.nor && !n.fn && !buf.fn) { buf.t += n.t; continue; }
+      flush(); buf = { ...n }; continue;
+    }
+    flush(); x += mnode(n);
+  }
+  flush();
+  return x;
+}
+const row = nodes => '<mrow>' + mml(nodes || []) + '</mrow>';
+function mnode(n) {
+  switch (n.k) {
+    case 'grp': return row(n.e);
+    case 'f': return '<mfrac' + (n.noBar ? ' linethickness="0"' : '') + '>' + row(n.num) + row(n.den) + '</mfrac>';
+    case 'rad': return n.deg && n.deg.length ? '<mroot>' + row(n.e) + row(n.deg) + '</mroot>' : '<msqrt>' + mml(n.e) + '</msqrt>';
+    case 'sS':
+      if (n.sup && n.sub) return '<msubsup>' + row(n.e) + row(n.sub) + row(n.sup) + '</msubsup>';
+      if (n.sup) return '<msup>' + row(n.e) + row(n.sup) + '</msup>';
+      return '<msub>' + row(n.e) + row(n.sub) + '</msub>';
+    case 'd': return '<mrow>' + (n.beg ? '<mo fence="true" stretchy="true">' + esc(n.beg) + '</mo>' : '') + row(n.e) + (n.end ? '<mo fence="true" stretchy="true">' + esc(n.end) + '</mo>' : '') + '</mrow>';
+    case 'nary': {
+      const op = '<mo largeop="true" movablelimits="false">' + n.chr + '</mo>';
+      const isInt = /[∫∬∭∮]/.test(n.chr);
+      let head = op;
+      if (n.sub && n.sup) head = (isInt ? '<msubsup>' : '<munderover>') + op + row(n.sub) + row(n.sup) + (isInt ? '</msubsup>' : '</munderover>');
+      else if (n.sub) head = (isInt ? '<msub>' : '<munder>') + op + row(n.sub) + (isInt ? '</msub>' : '</munder>');
+      else if (n.sup) head = (isInt ? '<msup>' : '<mover>') + op + row(n.sup) + (isInt ? '</msup>' : '</mover>');
+      return '<mrow>' + head + mml(n.e) + '</mrow>';
+    }
+    case 'func': return '<mrow class="fn">' + mml(n.name) + '<mo>&#x2061;</mo>' + mml(n.e) + '</mrow>';
+    case 'acc': return '<mover accent="true">' + row(n.e) + '<mo stretchy="false">' + esc(MML_ACC[n.chr] || n.chr) + '</mo></mover>';
+    case 'bar': return n.pos === 'bot' ? '<munder>' + row(n.e) + '<mo>_</mo></munder>' : '<mover accent="true">' + row(n.e) + '<mo stretchy="true">¯</mo></mover>';
+    case 'limLow': return '<munder>' + row(n.e) + row(n.lim) + '</munder>';
+    case 'limUpp': return '<mover>' + row(n.e) + row(n.lim) + '</mover>';
+    case 'm': return '<mtable>' + n.rows.map(r => '<mtr>' + r.map(c => '<mtd>' + mml(c) + '</mtd>').join('') + '</mtr>').join('') + '</mtable>';
+    case 'eqArr': return '<mtable columnalign="left">' + n.rows.map(r => '<mtr><mtd>' + mml(r) + '</mtd></mtr>').join('') + '</mtable>';
+  }
+  return '';
+}
+function latexToMathml(src, display = true) {
+  const { tree, issues } = parseLatex(src);
+  return { xml: '<math xmlns="http://www.w3.org/1998/Math/MathML"' + (display ? ' display="block"' : '') + '>' + row(tree) + '</math>', issues };
+}
+
 function latexToOmml(src) {
   const { tree, issues } = parseLatex(src);
   return { xml: '<m:oMath>' + omml(tree) + '</m:oMath>', issues };
@@ -1268,7 +1351,7 @@ async function buildDocx(JSZip, blocks, opt = {}) {
   return zip;
 }
 
-return { extractPage, analyzePage, parseLatex, latexToOmml, buildDocx, inlineParts };
+return { extractPage, analyzePage, parseLatex, latexToOmml, latexToMathml, buildDocx, inlineParts };
 })();
 if (typeof module !== 'undefined') module.exports = CASCore;
 window.CASCore = CASCore;
@@ -1456,6 +1539,8 @@ function status(b) {
 
 /* ---------- liste ---------- */
 const ICON = {
+  copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>',
   pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
   plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
   undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
@@ -1482,6 +1567,7 @@ function cardHTML(b, i) {
     '<div class="ch"><span class="no">' + i + '</span><select class="kind" aria-label="Type">' + opts + '</select>' +
     '<span class="badge ' + st.cls + '">' + esc(st.text) + '</span>' + (b.result ? '<span class="badge res" title="Blå linje i CAS-udskriften">Resultat</span>' : '') +
     '<span class="sp"></span>' +
+    (b.kind === 'math' ? '<button class="copy" data-a="copy" type="button" title="Kopiér som Word-ligning. Indsæt i Word med Ctrl+V.">' + ICON.copy + 'Kopiér</button><button class="copy tex" data-a="copytex" type="button" title="Kopiér LaTeX-koden">LaTeX</button>' : '') +
     (b.manual ? '' : '<button class="ib" data-a="pin" type="button" title="Vis i PDF" aria-label="Vis i PDF">' + ICON.pin + '</button>') +
     (b.src !== b.orig && !b.manual ? '<button class="ib" data-a="undo" type="button" title="Gendan genkendt version" aria-label="Gendan">' + ICON.undo + '</button>' : '') +
     '<button class="ib" data-a="add" type="button" title="Indsæt formel under" aria-label="Indsæt formel under">' + ICON.plus + '</button>' +
@@ -1504,13 +1590,16 @@ function issuesHTML(st) {
 function paintPreview(b) {
   const card = document.querySelector('.card[data-id="' + b.id + '"]'); if (!card) return;
   const el = card.querySelector('[data-prev]'); if (!el) return;
+  // Forhåndsvisningen bygges af samme struktur som Word-filen, vist med Cambria Math som i Word
+  el.classList.toggle('left', S.opts.align === 'left');
   if (b.kind === 'math') {
-    try { katex.render(b.src || '\\square', el, { throwOnError: true, displayMode: true, strict: 'ignore' }); }
+    if (!b.src.trim()) { el.innerHTML = '<span class="eq"><span class="grip">⋮⋮</span><span style="color:#8b96a5;font-family:Cambria Math,serif">Skriv din ligning her.</span></span>'; return; }
+    try { el.innerHTML = '<span class="eq"><span class="grip" aria-hidden="true">⋮⋮</span>' + C.latexToMathml(b.src, false).xml + '</span>'; }
     catch (e) { el.innerHTML = '<span class="err">' + esc(e.message || e) + '</span>'; }
   } else {
     el.innerHTML = C.inlineParts(b.src).map(p => {
       if (p.t === 'text') return esc(p.v);
-      try { return katex.renderToString(p.v, { throwOnError: true, strict: 'ignore' }); } catch (e) { return '<span class="err">$' + esc(p.v) + '$</span>'; }
+      try { return C.latexToMathml(p.v, false).xml; } catch (e) { return '<span class="err">$' + esc(p.v) + '$</span>'; }
     }).join('') || '&nbsp;';
   }
 }
@@ -1557,6 +1646,18 @@ list.addEventListener('click', e => {
   const btn = e.target.closest('[data-a]'); if (!btn || btn.tagName === 'INPUT') { const c = e.target.closest('.card'); if (c && !e.target.closest('textarea,select,button,input,label')) select(+c.dataset.id, false); return; }
   const b = blockOf(btn);
   const a = btn.dataset.a;
+  if (a === 'copy' || a === 'copytex') {
+    const st = status(b);
+    if (a === 'copy' && st.cls === 'bad') { toast('Ret fejlen i formlen, før du kopierer den.'); return; }
+    const txt = a === 'copy' ? C.latexToMathml(b.src).xml : b.src;
+    copyText(txt).then(ok => {
+      if (!ok) { toast('Kopieringen blev blokeret af browseren. Markér LaTeX-koden og kopiér med Ctrl+C.'); return; }
+      const old = btn.innerHTML; btn.classList.add('done'); btn.innerHTML = ICON.check + (a === 'copy' ? 'Kopieret' : 'OK');
+      setTimeout(() => { btn.classList.remove('done'); btn.innerHTML = old; }, 1600);
+      toast(a === 'copy' ? '<b>Ligningen er kopieret.</b> Indsæt den i Word eller WordMat med Ctrl+V, så bliver den en redigerbar ligning.' : 'LaTeX-koden er kopieret.');
+    });
+    return;
+  }
   if (a === 'pin') select(b.id, false);
   if (a === 'undo') { b.src = b.orig; refreshCard(b, true); }
   if (a === 'add') {
@@ -1567,6 +1668,14 @@ list.addEventListener('click', e => {
   }
   if (a === 'del') { S.blocks.splice(S.blocks.indexOf(b), 1); renderList(); }
 });
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; } catch (e) {
+    const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch {}
+    ta.remove(); return ok;
+  }
+}
 const blockOf = el => { const c = el.closest('.card'); return c && S.blocks.find(b => b.id === +c.dataset.id); };
 function textToLatex(t) {
   return t.replace(/²/g, '^{2}').replace(/³/g, '^{3}').replace(/·|⋅/g, '\\cdot ').replace(/−/g, '-').replace(/≤/g, '\\le ').replace(/≥/g, '\\ge ').replace(/≈/g, '\\approx ').replace(/π/g, '\\pi ').replace(/√/g, '\\sqrt ');
@@ -1588,7 +1697,7 @@ function updateStats() {
 $('#stats').addEventListener('click', e => { const c = e.target.closest('[data-go]'); if (c) select(+c.dataset.go, true); });
 
 /* ---------- indstillinger ---------- */
-$('#align').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.opts.align = b.dataset.v; $('#align').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
+$('#align').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.opts.align = b.dataset.v; $('#align').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); S.blocks.forEach(paintPreview); });
 $('#optRes').addEventListener('change', e => { S.opts.results = e.target.checked; updateStats(); });
 $('#optMark').addEventListener('change', e => { S.opts.mark = e.target.checked; });
 $('#optPage').addEventListener('change', e => { S.opts.pagebreak = e.target.checked; });
