@@ -13,7 +13,6 @@
   U.clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
   U.lerp = (a, b, t) => a + (b - a) * t;
   U.rand = (a, b) => a + Math.random() * (b - a);
-  U.randInt = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
   U.pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   U.dist = (x1, y1, x2, y2) => Math.hypot(x2 - x1, y2 - y1);
   U.deg = (r) => (r * 180) / Math.PI;
@@ -114,7 +113,6 @@
     const d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   };
-  U.deepClone = (o) => JSON.parse(JSON.stringify(o));
 
   /* ---------- DOM ---------- */
   U.el = function (tag, cls, html) {
@@ -127,6 +125,5 @@
   U.$$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
   U.esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  U.isTouch = () => 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 })();
 

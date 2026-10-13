@@ -234,9 +234,6 @@
     levelsCompleted() {
       return Object.keys(this.data.completed).length;
     },
-    bossCount() {
-      return Object.keys(this.data.bosses).length;
-    },
     upgrades(tankId) {
       let u = this.data.tankUpgrades[tankId];
       if (!u) u = this.data.tankUpgrades[tankId] = {};

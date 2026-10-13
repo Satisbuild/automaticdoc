@@ -61,8 +61,6 @@ h2, h3, .logo, .btn, .fire { font-family: var(--font-h); letter-spacing: 0.5px; 
 .pill .ic { font-size: 1.1em; }
 .pill.lvl { padding-left: 4px; }
 .pill.lvl .lv { background: var(--yellow); color: #3a2400; border-radius: 999px; padding: 1px 8px; font-family: var(--font-h); }
-.xpbar { width: 56px; height: 7px; border-radius: 6px; background: rgba(255,255,255,0.15); overflow: hidden; }
-.xpbar i { display: block; height: 100%; background: linear-gradient(90deg, #7af, #a6f); }
 
 /* ---------- buttons ---------- */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0.55em 1.2em; border-radius: 14px; background: linear-gradient(180deg, #6b5cd6, #4b3cb0); box-shadow: 0 5px 0 #2d2275, 0 8px 14px rgba(0,0,0,0.3); font-size: 1.05em; color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,0.3); transition: transform 0.08s, filter 0.15s; position: relative; }

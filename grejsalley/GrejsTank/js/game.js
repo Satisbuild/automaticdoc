@@ -586,18 +586,6 @@
       c.panY = U.clamp(c.panY, -this.H, this.H);
     }
 
-    /** pointer in world coords (aim drag / teleport tap) */
-    pointerAim(wx, wy) {
-      if (this.state === 'teleport') return;
-      if (!this.isPlayerTurn()) return;
-      const p = this.player;
-      const m = R.muzzle(p, p.aim);
-      const dx = wx - m.px, dy = m.py - wy;
-      let ang = U.deg(Math.atan2(dy, dx));
-      if (ang < -90) ang += 360; // below horizontal on the left -> 180..270
-      p.aim = U.clamp(ang, -80, 260);
-      // power from distance (in screen pixels, converted by UI)
-    }
     pointerTap(wx, wy) {
       if (this.state !== 'teleport') return false;
       const p = this.player;

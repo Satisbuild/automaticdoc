@@ -197,11 +197,6 @@
       // return a fresh copy since battle code may mutate spawns
       return JSON.parse(JSON.stringify(cache[id]));
     },
-    parseId(id) {
-      const m = /^w(\d+)_l(\d+)$/.exec(id || '');
-      if (!m) return { w: 1, l: 1 };
-      return { w: U.clamp(+m[1], 1, GT.Worlds.count), l: U.clamp(+m[2], 1, LEVELS_PER_WORLD) };
-    },
     /** level is playable if first of world, or previous completed */
     isUnlocked(w, l) {
       if (!GT.Worlds.isUnlocked(w)) return false;

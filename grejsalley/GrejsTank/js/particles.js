@@ -223,12 +223,6 @@
       }
     },
 
-    smallPuff(x, y, color) {
-      for (let i = 0; i < this.n(6); i++) {
-        this.add({ x, y, vx: U.rand(-60, 60), vy: U.rand(-80, -10), life: U.rand(0.4, 0.8), size: U.rand(3, 6), size2: 12, color: color || '#bbb', type: 'smoke', alpha: 0.5, drag: 0.93 });
-      }
-    },
-
     muzzle(x, y, ang, big) {
       const dx = Math.cos(ang), dy = Math.sin(ang);
       this.flashes.push({ x: x + dx * 10, y: y + dy * 10, r: big ? 54 : 34, life: 0.1, max: 0.1, color: '#fff2b0' });
