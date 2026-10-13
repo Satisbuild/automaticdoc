@@ -7,7 +7,7 @@
 //   caches ALDRIG - et spil må ikke få en gammel cloud-save serveret, når man er offline.
 
 // <precache> (genereret af tools/update-sw.js - rediger ikke i hånden)
-const VERSION = '1c8985e2ba';
+const VERSION = 'b0de43c6dc';
 const PRECACHE = [
   "/",
   "/Automatikteknikker.ico",
@@ -15,6 +15,8 @@ const PRECACHE = [
   "/Pressure Drop/index.html",
   "/Pressure Drop/",
   "/automatikhjælpemidler.html",
+  "/cas format/index.html",
+  "/cas format/",
   "/filmguide/dc.html",
   "/filmguide/fastfurious.html",
   "/filmguide/harrypotter.html",
@@ -112,6 +114,12 @@ const CDN = [
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
+  // CAS PDF til Word
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs',
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs',
+  'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css',
+  'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
 ];
 const CDN_HOSTS = ['cdn.tailwindcss.com', 'cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 const NETWORK_TIMEOUT = 4000;

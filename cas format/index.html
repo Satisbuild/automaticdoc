@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CAS PDF til Word</title>
+<meta name="description" content="Konvertér PDF'er fra dit CAS-værktøj til et Word-dokument med rigtige, redigerbare ligninger. Alt foregår lokalt i browseren.">
+<meta name="theme-color" content="#0b1017">
+<link rel="icon" href="../Automatikteknikker.ico" type="image/x-icon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css">
+<style>
+:root{
+  --bg:#0b1017; --bg2:#0f151e; --panel:#121a25; --panel2:#17202d; --line:#223044; --line2:#2d3d55;
+  --ink:#e6edf5; --muted:#9aa8b8; --faint:#66768a;
+  --acc:#38bdf8; --acc2:#0ea5e9; --acc-soft:rgba(56,189,248,.12);
+  --ok:#34d399; --ok-soft:rgba(52,211,153,.12); --warn:#fbbf24; --warn-soft:rgba(251,191,36,.12); --bad:#f87171; --bad-soft:rgba(248,113,113,.12);
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+a{color:var(--acc)}
+
+/* top */
+.top{position:sticky;top:0;z-index:30;background:rgba(11,16,23,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1500px;margin:0 auto;padding:0 20px;height:58px;display:flex;align-items:center;gap:14px}
+.logo{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--acc-soft);border:1px solid rgba(56,189,248,.25);color:var(--acc);flex:none}
+.logo svg{width:19px;height:19px}
+.brand{display:flex;flex-direction:column;line-height:1.15;margin-right:auto;min-width:0}
+.brand b{font-weight:700;font-size:1.02rem}
+.brand small{color:var(--faint);font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.back{display:inline-flex;align-items:center;gap:7px;color:var(--muted);text-decoration:none;font-size:.88rem;padding:7px 11px;border:1px solid var(--line);border-radius:8px}
+.back:hover{color:var(--ink);border-color:var(--line2)}
+.back svg{width:15px;height:15px}
+.lock{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ok);background:var(--ok-soft);border:1px solid rgba(52,211,153,.25);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.lock svg{width:13px;height:13px}
+@media (max-width:700px){.lock{display:none}.back span{display:none}}
+
+/* intro */
+.intro{max-width:980px;margin:0 auto;padding:48px 20px 40px}
+.intro h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.1;letter-spacing:-.02em;margin:0 0 12px;font-weight:700}
+.intro h1 span{background:linear-gradient(90deg,#38bdf8,#22d3ee);-webkit-background-clip:text;background-clip:text;color:transparent}
+.intro .lead{color:var(--muted);max-width:68ch;margin:0 0 28px;font-size:1.04rem}
+.drop{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;min-height:270px;padding:34px 20px;border:2px dashed var(--line2);border-radius:18px;background:linear-gradient(180deg,rgba(56,189,248,.04),rgba(56,189,248,0)),var(--bg2);transition:border-color .15s,background .15s;cursor:pointer}
+.drop:hover,.drop.over{border-color:var(--acc);background:linear-gradient(180deg,rgba(56,189,248,.1),rgba(56,189,248,.02)),var(--bg2)}
+.drop .ic{width:62px;height:62px;border-radius:16px;display:grid;place-items:center;background:var(--acc-soft);color:var(--acc);border:1px solid rgba(56,189,248,.25)}
+.drop .ic svg{width:30px;height:30px}
+.drop b{font-size:1.15rem}
+.drop p{margin:0;color:var(--muted);font-size:.92rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 15px;border-radius:9px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);font-weight:500;font-size:.9rem;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:hover{border-color:#40526d;background:#1c2737}
+.btn svg{width:16px;height:16px;flex:none}
+.btn.pri{background:linear-gradient(180deg,#38bdf8,#0ea5e9);border-color:#0ea5e9;color:#04121c;font-weight:600}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn.pri:disabled{filter:grayscale(.8) brightness(.6);cursor:not-allowed}
+.btn.sm{padding:5px 10px;font-size:.82rem;border-radius:7px}
+.btn.ghost{background:transparent}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:22px}
+.step{padding:16px 16px 15px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+.step i{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;background:var(--acc-soft);color:var(--acc);font-style:normal;font-weight:700;font-size:.82rem;margin-bottom:8px}
+.step b{display:block;margin-bottom:3px}
+.step span{color:var(--muted);font-size:.88rem}
+@media (max-width:760px){.steps{grid-template-columns:1fr}}
+.note{margin-top:22px;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--muted);font-size:.86rem}
+.note b{color:var(--ink)}
+
+/* arbejdsområde */
+.work{max-width:1500px;margin:0 auto;padding:16px 20px 40px}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);margin-bottom:14px}
+.file{display:flex;align-items:center;gap:10px;min-width:0;margin-right:auto}
+.file .fi{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;background:rgba(248,113,113,.12);color:#fca5a5;border:1px solid rgba(248,113,113,.25);flex:none;font-size:.7rem;font-weight:700}
+.file b{display:block;max-width:42vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file small{color:var(--faint);font-size:.8rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:.8rem;border:1px solid var(--line2);color:var(--muted);background:var(--bg2)}
+.chip .d{width:7px;height:7px;border-radius:50%;background:currentColor}
+.chip.ok{color:var(--ok);border-color:rgba(52,211,153,.3)}
+.chip.warn{color:var(--warn);border-color:rgba(251,191,36,.3);cursor:pointer}
+.chip.bad{color:var(--bad);border-color:rgba(248,113,113,.3);cursor:pointer}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.opts{display:flex;flex-wrap:wrap;gap:14px;align-items:center;width:100%;padding-top:10px;border-top:1px solid var(--line);font-size:.86rem;color:var(--muted)}
+.opts label{display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+.opts input[type=checkbox]{accent-color:var(--acc);width:15px;height:15px}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:4px 10px;color:var(--muted);cursor:pointer;font-size:.82rem}
+.seg button[aria-pressed=true]{background:var(--acc-soft);color:var(--acc)}
+
+.progress{padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);margin-bottom:14px}
+.progress .t{display:flex;justify-content:space-between;font-size:.88rem;color:var(--muted);margin-bottom:8px}
+.pbar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#38bdf8,#22d3ee);transition:width .2s}
+
+.alert{padding:12px 15px;border-radius:12px;margin-bottom:14px;font-size:.9rem;border:1px solid}
+.alert.bad{background:var(--bad-soft);border-color:rgba(248,113,113,.35);color:#fecaca}
+.alert.warn{background:var(--warn-soft);border-color:rgba(251,191,36,.35);color:#fde68a}
+.alert.ok{background:var(--ok-soft);border-color:rgba(52,211,153,.35);color:#a7f3d0}
+.alert b{color:#fff}
+
+.panes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:14px;align-items:start}
+@media (max-width:1050px){.panes{grid-template-columns:minmax(0,1fr)}}
+.pane{border:1px solid var(--line);border-radius:14px;background:var(--panel);min-width:0}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.ph h2{margin:0;font-size:.95rem;font-weight:600}
+.ph .sub{color:var(--faint);font-size:.8rem}
+.viewer{position:sticky;top:72px}
+@media (max-width:1050px){.viewer{position:static}}
+.pnav{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted)}
+.pnav button{width:30px;height:30px;padding:0}
+.stage{position:relative;padding:14px;background:#0a0e14;border-radius:0 0 14px 14px;max-height:calc(100vh - 150px);overflow:auto}
+.pagewrap{position:relative;margin:0 auto;box-shadow:0 10px 30px rgba(0,0,0,.5);background:#fff}
+.pagewrap canvas{display:block;width:100%;height:auto}
+.ov{position:absolute;border:1.5px solid transparent;border-radius:3px;cursor:pointer;transition:background .1s}
+.ov.math{border-color:rgba(56,189,248,.55)}
+.ov.text,.ov.heading{border-color:rgba(148,163,184,.4)}
+.ov.figure{border-color:rgba(167,139,250,.6)}
+.ov.warn{border-color:rgba(251,191,36,.9);background:rgba(251,191,36,.08)}
+.ov.bad{border-color:rgba(248,113,113,.95);background:rgba(248,113,113,.1)}
+.ov.skip{border-color:rgba(100,116,139,.35);border-style:dashed}
+.ov:hover{background:rgba(56,189,248,.12)}
+.ov.sel{border-color:var(--acc);background:rgba(56,189,248,.18);box-shadow:0 0 0 3px rgba(56,189,248,.35)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;padding:9px 14px;border-top:1px solid var(--line);font-size:.78rem;color:var(--faint)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;border:1.5px solid var(--c)}
+
+/* blokke */
+.list{padding:10px;display:grid;gap:10px}
+.pagehead{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;padding:6px 4px 0}
+.pagehead::after{content:"";flex:1;height:1px;background:var(--line)}
+.card{border:1px solid var(--line);border-radius:12px;background:var(--bg2);transition:border-color .15s,box-shadow .15s;scroll-margin:90px}
+.card.sel{border-color:var(--acc);box-shadow:0 0 0 3px rgba(56,189,248,.18)}
+.card.warn{border-left:3px solid var(--warn)}
+.card.bad{border-left:3px solid var(--bad)}
+.card.skip{opacity:.55}
+.ch{display:flex;align-items:center;gap:8px;padding:8px 10px;flex-wrap:wrap}
+.ch .no{font:500 .76rem var(--mono);color:var(--faint);min-width:2.2em}
+.kind{background:var(--panel2);border:1px solid var(--line2);border-radius:7px;padding:4px 8px;font-size:.82rem;cursor:pointer}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:.76rem;padding:2px 9px;border-radius:999px;border:1px solid}
+.badge.ok{color:var(--ok);border-color:rgba(52,211,153,.3);background:var(--ok-soft)}
+.badge.warn{color:var(--warn);border-color:rgba(251,191,36,.3);background:var(--warn-soft)}
+.badge.bad{color:var(--bad);border-color:rgba(248,113,113,.3);background:var(--bad-soft)}
+.badge.skip{color:var(--faint);border-color:var(--line2)}
+.badge.res{color:#93c5fd;border-color:rgba(147,197,253,.3)}
+.ch .sp{flex:1}
+.ib{width:28px;height:28px;display:inline-grid;place-items:center;border-radius:7px;border:1px solid transparent;background:transparent;color:var(--faint);cursor:pointer;padding:0}
+.ib:hover{color:var(--ink);border-color:var(--line2);background:var(--panel2)}
+.ib svg{width:15px;height:15px}
+.cb{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:0 10px 10px}
+.prev{min-height:44px;padding:10px 12px;border-radius:9px;background:#fdfdfd;color:#111;overflow-x:auto;display:flex;align-items:center;justify-content:center}
+.prev.text{justify-content:flex-start;font-family:Calibri,Carlito,Inter,sans-serif;font-size:1rem;line-height:1.45}
+.prev.heading{justify-content:flex-start;font-family:"Calibri Light",Calibri,Inter,sans-serif;font-size:1.45rem}
+.prev .katex-display{margin:0}
+.prev .err{color:#b91c1c;font:500 .82rem var(--mono);white-space:pre-wrap}
+.orig{display:flex;gap:8px;align-items:center}
+.orig{overflow:hidden}
+.orig img{max-width:100%;height:auto;border-radius:6px;background:#fff;border:1px solid var(--line)}
+.orig.fig{justify-content:center}
+.lbl{font-size:.74rem;color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
+.src{width:100%;min-height:42px;resize:vertical;border:1px solid var(--line2);border-radius:9px;background:#0a0f16;padding:8px 10px;font:400 .86rem/1.5 var(--mono);color:#dbeafe}
+.src:focus{outline:0;border-color:var(--acc);box-shadow:0 0 0 3px rgba(56,189,248,.15)}
+.issues{margin:0;padding:8px 10px 8px 28px;border-radius:9px;font-size:.84rem}
+.issues.warn{background:var(--warn-soft);color:#fde68a}
+.issues.bad{background:var(--bad-soft);color:#fecaca}
+.issues li+li{margin-top:2px}
+.foot{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:.84rem;color:var(--muted)}
+.foot label{display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+.foot input{accent-color:var(--ok);width:15px;height:15px}
+.foot .sp{flex:1}
+.hint{color:var(--faint);font-size:.8rem}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;max-width:min(92vw,560px);padding:12px 16px;border-radius:12px;background:#0f1722;border:1px solid var(--line2);box-shadow:0 10px 30px rgba(0,0,0,.5);font-size:.9rem;transition:opacity .2s,transform .2s;z-index:60}
+.toast.show{opacity:1;transform:translateX(-50%);pointer-events:auto}
+.helpbox{font-size:.84rem;color:var(--muted);padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.helpbox code{font-family:var(--mono);color:#bae6fd;font-size:.8rem}
+@media (max-width:600px){.work{padding:12px 10px 30px}.bar{padding:10px}.actions{width:100%}.actions .btn{flex:1}}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M8.5 6v12M15 10l5 8M20 10l-5 8"/></svg></div>
+  <div class="brand"><b>CAS PDF til Word</b><small>Redigerbare Word-ligninger fra dit CAS</small></div>
+  <span class="lock" title="PDF'en sendes ikke nogen steder hen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Alt foregår lokalt i din browser</span>
+  <a class="back" href="../index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7M8 12h13"/></svg><span>Forside</span></a>
+</div></header>
+
+<section class="intro" id="intro">
+  <h1>Fra CAS-PDF til <span>rigtige Word-ligninger</span></h1>
+  <p class="lead">Importér en PDF fra dit CAS-værktøj. Værktøjet genopbygger brøker, potenser, rødder, integraler og matricer og laver dem til ligninger, du kan redigere i Words ligningseditor og arbejde videre med i WordMat.</p>
+  <label class="drop" id="drop" for="file">
+    <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"/></svg></span>
+    <b>Træk en PDF hertil</b>
+    <p>eller</p>
+    <span class="btn pri">Vælg PDF-fil</span>
+    <p class="hint">Fungerer bedst med PDF'er, hvor teksten kan markeres (fx udskrift fra Systematisk CAS).</p>
+  </label>
+  <input type="file" id="file" accept="application/pdf,.pdf" hidden>
+  <div class="steps">
+    <div class="step"><i>1</i><b>Importér</b><span>PDF'en læses tegn for tegn med placering, størrelse og skrift.</span></div>
+    <div class="step"><i>2</i><b>Kontrollér</b><span>Se original og resultat side om side. Ret formler i LaTeX med live-forhåndsvisning.</span></div>
+    <div class="step"><i>3</i><b>Download</b><span>Hent en .docx med Word-ligninger (OMML), tekst, overskrifter og grafer.</span></div>
+  </div>
+  <div class="note"><b>Privatliv:</b> Filen bliver i din browser. Den uploades ikke, gemmes ikke og sendes ikke til nogen tjeneste. Når du trykker <b>Ny fil</b> eller lukker siden, frigives alt.</div>
+</section>
+
+<section class="work" id="work" hidden>
+  <div class="bar">
+    <div class="file"><span class="fi">PDF</span><div style="min-width:0"><b id="fname"></b><small id="fmeta"></small></div></div>
+    <div class="chips" id="stats"></div>
+    <div class="actions">
+      <button class="btn pri" id="dlDocx" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download som Word (.docx)</button>
+      <button class="btn" id="dlTxt" type="button" title="Tekst med formler som LaTeX">Tekst (.txt)</button>
+      <button class="btn ghost" id="reset" type="button">Ny fil</button>
+    </div>
+    <div class="opts">
+      <span>Ligninger i Word:</span>
+      <span class="seg" id="align"><button type="button" data-v="center" aria-pressed="true">Centreret</button><button type="button" data-v="left" aria-pressed="false">Venstre</button></span>
+      <label><input type="checkbox" id="optRes" checked> Medtag CAS-resultater (blå linjer)</label>
+      <label><input type="checkbox" id="optMark" checked> Markér ukontrollerede formler i Word</label>
+      <label><input type="checkbox" id="optPage"> Sideskift mellem sider</label>
+    </div>
+  </div>
+  <div class="progress" id="progress" hidden><div class="t"><span id="ptext">Læser PDF …</span><span id="pnum"></span></div><div class="pbar"><i id="pbar"></i></div></div>
+  <div id="alerts"></div>
+  <div class="panes" id="panes">
+    <section class="pane viewer" aria-label="Original PDF">
+      <div class="ph"><h2>Original</h2>
+        <div class="pnav"><button class="btn sm" id="prev" type="button" aria-label="Forrige side">‹</button><span id="pinfo">–</span><button class="btn sm" id="next" type="button" aria-label="Næste side">›</button></div>
+      </div>
+      <div class="stage" id="stage"><div class="pagewrap" id="pagewrap"><canvas id="pcanvas"></canvas></div></div>
+      <div class="legend"><span style="--c:#38bdf8">Formel</span><span style="--c:#94a3b8">Tekst</span><span style="--c:#a78bfa">Figur</span><span style="--c:#fbbf24">Kontrollér</span><span style="--c:#f87171">Fejl</span></div>
+    </section>
+    <section class="pane" aria-label="Konverteret indhold">
+      <div class="ph"><h2>Konverteret indhold</h2><span class="sub">Klik på et område i PDF'en for at finde det her</span></div>
+      <div class="list" id="list"></div>
+      <div style="padding:0 10px 12px">
+        <div class="helpbox">Formler skrives i LaTeX, fx <code>\frac{a}{b}</code>, <code>x^{2}</code>, <code>\sqrt{x}</code>, <code>\sqrt[3]{x}</code>, <code>\int_{0}^{1} x\,dx</code>, <code>\vec{v}</code>, <code>\begin{pmatrix}1\\2\end{pmatrix}</code>. I tekst kan en formel stå mellem dollartegn: <code>Løs $x^{2}=4$</code>.</div>
+      </div>
+    </section>
+  </div>
+</section>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+/* =========================================================
+   CAS PDF til Word: kerne (uden DOM). Bruges både i browseren og i test.
+   1) extractPage: læser PDF'ens tegneinstruktioner tegn for tegn
+   2) analyzePage: finder linjer, overskrifter, tekst, formler og figurer
+   3) parseMath:   genopbygger matematikken (brøker, potenser, rødder ...) som LaTeX
+   4) latexToOmml: oversætter LaTeX til Words ligningsformat (OMML)
+   5) buildDocx:   samler en .docx med rigtige Word-ligninger
+   ========================================================= */
+const CASCore = (() => {
+'use strict';
+
+/* ---------- 1. Udtrækning ---------- */
+const mul = (m, n) => [m[0] * n[0] + m[1] * n[2], m[0] * n[1] + m[1] * n[3], m[2] * n[0] + m[3] * n[2], m[2] * n[1] + m[3] * n[3], m[4] * n[0] + m[5] * n[2] + n[4], m[4] * n[1] + m[5] * n[3] + n[5]];
+const apply = (m, x, y) => [x * m[0] + y * m[2] + m[4], x * m[1] + y * m[3] + m[5]];
+const rgb = a => {
+  if (a == null) return [0, 0, 0];
+  const hex = h => { h = h.replace('#', ''); return [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16)); };
+  if (typeof a === 'string') return hex(a);
+  if (typeof a[0] === 'string') return hex(a[0]);
+  return [a[0], a[1], a[2]].map(v => v <= 1 && !Number.isInteger(v) ? Math.round(v * 255) : v);
+};
+const bboxOf = pts => { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const [x, y] of pts) { if (x < x0) x0 = x; if (y < y0) y0 = y; if (x > x1) x1 = x; if (y > y1) y1 = y; } return [x0, y0, x1, y1]; };
+
+async function extractPage(page, OPS) {
+  const vp = page.getViewport({ scale: 1 });
+  const ol = await page.getOperatorList();
+  const glyphs = [], paths = [], images = [];
+  const fonts = {};
+  const fontOf = name => {
+    if (!(name in fonts)) {
+      let f = null; try { f = page.commonObjs.get(name); } catch (e) { f = null; }
+      fonts[name] = { name: (f && (f.name || f.loadedName)) || name, fm: (f && f.fontMatrix) || [0.001, 0, 0, 0.001, 0, 0] };
+    }
+    return fonts[name];
+  };
+  let g = { clip: null, ctm: vp.transform.slice(), fill: [0, 0, 0], stroke: [0, 0, 0], lw: 1, font: null, fsize: 0, cs: 0, ws: 0, hs: 1, rise: 0, lead: 0, mode: 0 };
+  let tm = [1, 0, 0, 1, 0, 0], tx = 0, ty = 0, lx = 0, ly = 0;
+  const stack = [];
+  let cur = null, pendingClip = false;
+  const isect = (a, b) => !a ? b : !b ? a : [Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.min(a[2], b[2]), Math.min(a[3], b[3])];
+  const applyClip = () => { if (pendingClip && cur && cur.pts.length) g.clip = isect(g.clip, bboxOf(cur.pts)); pendingClip = false; };
+  const startPath = () => { if (!cur) cur = { pts: [], rects: 0, lines: 0, curves: 0 }; };
+  const addPt = (x, y) => cur.pts.push(apply(g.ctm, x, y));
+  const inClip = (x, y) => !g.clip || (x >= g.clip[0] - 1 && x <= g.clip[2] + 1 && y >= g.clip[1] - 1 && y <= g.clip[3] + 1);
+  const paint = (filled, stroked) => {
+    if (!cur || !cur.pts.length) { cur = null; return; }
+    applyClip();
+    let [x0, y0, x1, y1] = bboxOf(cur.pts);
+    if (g.clip) { x0 = Math.max(x0, g.clip[0]); y0 = Math.max(y0, g.clip[1]); x1 = Math.min(x1, g.clip[2]); y1 = Math.min(y1, g.clip[3]); if (x1 < x0 || y1 < y0) { cur = null; return; } }
+    const lw = stroked ? g.lw * Math.hypot(g.ctm[0], g.ctm[1]) : 0;
+    paths.push({ x0: x0 - lw / 2, y0: y0 - lw / 2, x1: x1 + lw / 2, y1: y1 + lw / 2, rects: cur.rects, lines: cur.lines, curves: cur.curves, filled, stroked, col: (filled ? g.fill : g.stroke).slice() });
+    cur = null;
+  };
+  const F = ol.fnArray, A = ol.argsArray;
+  for (let i = 0; i < F.length; i++) {
+    const fn = F[i], a = A[i];
+    switch (fn) {
+      case OPS.save: stack.push({ ...g, ctm: g.ctm.slice() }); break;
+      case OPS.restore: if (stack.length) g = stack.pop(); break;
+      case OPS.clip: case OPS.eoClip: pendingClip = true; break;
+      case OPS.transform: g.ctm = mul(a.length === 1 ? a[0] : a, g.ctm); break;
+      case OPS.paintFormXObjectBegin: stack.push({ ...g, ctm: g.ctm.slice() }); if (a && a[0]) g.ctm = mul(a[0], g.ctm); break;
+      case OPS.paintFormXObjectEnd: if (stack.length) g = stack.pop(); break;
+      case OPS.setLineWidth: g.lw = a[0]; break;
+      case OPS.setFillRGBColor: g.fill = rgb(a); break;
+      case OPS.setStrokeRGBColor: g.stroke = rgb(a); break;
+      case OPS.setFillGray: g.fill = [a[0] * 255, a[0] * 255, a[0] * 255]; break;
+      case OPS.setTextRenderingMode: g.mode = a[0]; break;
+      case OPS.beginText: tm = [1, 0, 0, 1, 0, 0]; tx = ty = lx = ly = 0; break;
+      case OPS.setFont: g.font = fontOf(a[0]); g.fsize = a[1]; break;
+      case OPS.setTextMatrix: tm = (a.length === 1 ? a[0] : a).slice(); tx = ty = lx = ly = 0; break;
+      case OPS.moveText: lx += a[0]; ly += a[1]; tx = lx; ty = ly; break;
+      case OPS.setLeadingMoveText: g.lead = a[1]; lx += a[0]; ly += a[1]; tx = lx; ty = ly; break;
+      case OPS.setLeading: g.lead = -a[0]; break;
+      case OPS.nextLine: ly += g.lead; tx = lx; ty = ly; break;
+      case OPS.setCharSpacing: g.cs = a[0]; break;
+      case OPS.setWordSpacing: g.ws = a[0]; break;
+      case OPS.setHScale: g.hs = a[0] / 100; break;
+      case OPS.setTextRise: g.rise = a[0]; break;
+      case OPS.showText: {
+        const f = g.font; if (!f || !g.fsize) break;
+        const size = Math.abs(g.fsize), dir = g.fsize < 0 ? -1 : 1, hs = g.hs * dir;
+        const was = size * f.fm[0];
+        const M = mul(tm, g.ctm);
+        const eff = Math.hypot(M[2], M[3]) * size * Math.abs(f.fm[3] / (f.fm[0] || 0.001));
+        let gx = 0;
+        for (const gl of a[0]) {
+          if (typeof gl === 'number') { gx -= gl * size / 1000; continue; }
+          const adv = gl.width * was + ((gl.isSpace ? g.ws : 0) + g.cs) * dir;
+          const ox = tx + gx * hs, oy = ty + g.rise;
+          const p = apply(M, ox, oy), q = apply(M, ox + adv * hs, oy);
+          const u = gl.unicode;
+          if (u && u.trim() !== '' && g.mode !== 3 && g.mode !== 7 && inClip(p[0], p[1] - eff * 0.3))
+            glyphs.push({ c: u, x: p[0], y: p[1], x2: Math.max(q[0], p[0] + 0.01), s: eff, f: f.name, col: g.fill.slice() });
+          gx += adv;
+        }
+        tx += gx * hs;
+        break;
+      }
+      case OPS.constructPath: {
+        startPath();
+        const ops = a[0], co = a[1]; let j = 0;
+        for (const op of ops) {
+          if (op === OPS.rectangle) { const x = co[j], y = co[j + 1], w = co[j + 2], h = co[j + 3]; j += 4; addPt(x, y); addPt(x + w, y); addPt(x, y + h); addPt(x + w, y + h); cur.rects++; }
+          else if (op === OPS.moveTo) { addPt(co[j], co[j + 1]); j += 2; }
+          else if (op === OPS.lineTo) { addPt(co[j], co[j + 1]); j += 2; cur.lines++; }
+          else if (op === OPS.curveTo) { addPt(co[j], co[j + 1]); addPt(co[j + 2], co[j + 3]); addPt(co[j + 4], co[j + 5]); j += 6; cur.curves++; }
+          else if (op === OPS.curveTo2 || op === OPS.curveTo3) { addPt(co[j], co[j + 1]); addPt(co[j + 2], co[j + 3]); j += 4; cur.curves++; }
+        }
+        break;
+      }
+      case OPS.fill: case OPS.eoFill: paint(true, false); break;
+      case OPS.stroke: case OPS.closeStroke: paint(false, true); break;
+      case OPS.fillStroke: case OPS.eoFillStroke: case OPS.closeFillStroke: case OPS.closeEOFillStroke: paint(true, true); break;
+      case OPS.endPath: applyClip(); cur = null; break;
+      case OPS.paintImageXObject: case OPS.paintInlineImageXObject: case OPS.paintImageMaskXObject: case OPS.paintSolidColorImageMask:
+      case OPS.paintImageXObjectRepeat: case OPS.paintInlineImageXObjectGroup: case OPS.paintImageMaskXObjectGroup: {
+        const [x0, y0, x1, y1] = bboxOf([apply(g.ctm, 0, 0), apply(g.ctm, 1, 0), apply(g.ctm, 0, 1), apply(g.ctm, 1, 1)]);
+        images.push({ x0, y0, x1, y1 });
+        break;
+      }
+    }
+  }
+  return { w: vp.width, h: vp.height, glyphs, paths, images };
+}
+
+/* ---------- tegn og skrifttyper ---------- */
+const MATHFONT = /KaTeX|MathJax|MJX|Math|CMMI|CMSY|CMEX|CMR\d|CMBX|STIX|Cambria|Symbol|LatinModern|LMRoman|LMMath|XITS|TeXGyre|Asana|Euclid|MTExtra|MT-Extra/i;
+const SIZEFONT = /KaTeX_Size|CMEX|_Size[1-4]|Size[1-4]-/i;
+const ITALIC = /Math-Italic|Italic|Oblique|CMMI|-It\b|It$/i;
+const BOLD = /Bold|Black|Heavy|Semibold|SemiBold|Demi/i;
+const isMathFont = f => MATHFONT.test(f);
+const isSizeFont = f => SIZEFONT.test(f);
+
+// Matematiske alfanumeriske tegn (fx 𝑥 fra Words PDF-eksport) → almindelige bogstaver
+function plainChar(c) {
+  const cp = c.codePointAt(0);
+  if (cp >= 0x1D400 && cp <= 0x1D6A3) {
+    const i = cp - 0x1D400, k = i % 52;
+    if (cp === 0x1D455) return 'h';
+    return k < 26 ? String.fromCharCode(65 + k) : String.fromCharCode(97 + k - 26);
+  }
+  if (cp >= 0x1D6A8 && cp <= 0x1D7C9) {
+    const greekU = 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡϴΣΤΥΦΧΨΩ∇', greekL = 'αβγδεζηθικλμνξοπρςστυφχψω∂ϵϑϰϕϱϖ';
+    const i = (cp - 0x1D6A8) % 58;
+    return i < 26 ? greekU[i] : greekL[i - 26] || c;
+  }
+  if (cp >= 0x1D7CE && cp <= 0x1D7FF) return String((cp - 0x1D7CE) % 10);
+  if (cp === 0x210E) return 'h';
+  return c;
+}
+
+const GREEK = { α: 'alpha', β: 'beta', γ: 'gamma', δ: 'delta', ε: 'varepsilon', ϵ: 'epsilon', ζ: 'zeta', η: 'eta', θ: 'theta', ϑ: 'vartheta', ι: 'iota', κ: 'kappa', λ: 'lambda', μ: 'mu', ν: 'nu', ξ: 'xi', π: 'pi', ϖ: 'varpi', ρ: 'rho', ϱ: 'varrho', σ: 'sigma', ς: 'varsigma', τ: 'tau', υ: 'upsilon', φ: 'varphi', ϕ: 'phi', χ: 'chi', ψ: 'psi', ω: 'omega', Γ: 'Gamma', Δ: 'Delta', Θ: 'Theta', Λ: 'Lambda', Ξ: 'Xi', Π: 'Pi', Σ: 'Sigma', Υ: 'Upsilon', Φ: 'Phi', Ψ: 'Psi', Ω: 'Omega' };
+const SYM = {
+  '−': '-', '–': '-', '⋅': '\\cdot', '·': '\\cdot', '∙': '\\cdot', '×': '\\times', '÷': '\\div', '±': '\\pm', '∓': '\\mp',
+  '≤': '\\le', '⩽': '\\le', '≥': '\\ge', '⩾': '\\ge', '≠': '\\neq', '≈': '\\approx', '≡': '\\equiv', '∼': '\\sim', '≅': '\\cong', '∝': '\\propto',
+  '≔': '\\coloneqq', '→': '\\to', '←': '\\leftarrow', '⇒': '\\Rightarrow', '⇐': '\\Leftarrow', '⇔': '\\Leftrightarrow', '↔': '\\leftrightarrow', '⟹': '\\Rightarrow', '⟺': '\\Leftrightarrow', '↦': '\\mapsto',
+  '∞': '\\infty', '∂': '\\partial', '∇': '\\nabla', '∈': '\\in', '∉': '\\notin', '⊂': '\\subset', '⊆': '\\subseteq', '∪': '\\cup', '∩': '\\cap', '∅': '\\emptyset', '∀': '\\forall', '∃': '\\exists',
+  '∧': '\\wedge', '∨': '\\vee', '¬': '\\neg', '…': '\\ldots', '⋯': '\\cdots', '⋮': '\\vdots', '°': '^{\\circ}', '∘': '\\circ', '′': "'", '″': "''",
+  '∣': '|', '∥': '\\|', '‖': '\\|', '⟨': '\\langle', '⟩': '\\rangle', '⌊': '\\lfloor', '⌋': '\\rfloor', '⌈': '\\lceil', '⌉': '\\rceil',
+  '∫': '\\int', '∬': '\\iint', '∮': '\\oint', '∑': '\\sum', '∏': '\\prod', '√': '\\surd', 'ℝ': '\\mathbb{R}', 'ℕ': '\\mathbb{N}', 'ℤ': '\\mathbb{Z}', 'ℚ': '\\mathbb{Q}', 'ℂ': '\\mathbb{C}',
+  '{': '\\{', '}': '\\}', '%': '\\%', '#': '\\#', '&': '\\&', '$': '\\$', '_': '\\_', '~': '\\sim', '⁡': '', '⁢': '', '​': ''
+};
+const FN = new Set(['sin', 'cos', 'tan', 'cot', 'sec', 'csc', 'arcsin', 'arccos', 'arctan', 'sinh', 'cosh', 'tanh', 'coth', 'log', 'ln', 'lg', 'exp', 'lim', 'max', 'min', 'det', 'gcd', 'deg', 'dim', 'ker', 'inf', 'sup', 'arg', 'liminf', 'limsup', 'Pr', 'hom']);
+const BIGOP = new Set(['∑', '∏', '∐', '⋃', '⋂', '⨁', '⨂']);
+const REL = new Set(['=', '<', '>', '≤', '≥', '≠', '≈', '≡', '∼', '≔', '→', '⇒', '⇔', '⇐', '∈', '⊂', '⊆', '∝', '≅', '⩽', '⩾', '⟹', '⟺', '↦', ':']);
+const BIN = new Set(['+', '−', '-', '⋅', '·', '×', '÷', '±', '∓', '∨', '∧', '∪', '∩', '∘']);
+const PUNCT = new Set([',', ';']);
+const OPEN = { '(': ')', '[': ']', '{': '}', '⟨': '⟩', '⌊': '⌋', '⌈': '⌉' };
+const COMBINING = { '⃗': 'vec', '⃑': 'vec', '̂': 'hat', '̇': 'dot', '̈': 'ddot', '̃': 'tilde', '̄': 'bar', '̅': 'bar', '́': 'acute', '̀': 'grave', '̌': 'check', '̆': 'breve' };
+const ACCENTS = { 'ˆ': 'hat', '^': 'hat', '˙': 'dot', '¨': 'ddot', '˜': 'tilde', '~': 'tilde', 'ˉ': 'bar', '¯': 'bar', '⃗': 'vec', '→': 'vec', '´': 'acute', '`': 'grave', 'ˇ': 'check', '˘': 'breve' };
+
+const median = a => { if (!a.length) return 0; const s = a.slice().sort((x, y) => x - y); return s[s.length >> 1]; };
+
+/* ---------- 3. Matematik: fra placeringer til LaTeX ---------- */
+// item: {k:'g'|'bar'|'rad'|'acc'|node, x0,x1, y (grundlinje), s, top, bot}
+const gTop = g => g.y - 0.75 * g.s, gBot = g => g.y + 0.22 * g.s;
+const cx = i => (i.x0 + i.x1) / 2;
+const cy = i => i.k === 'g' ? i.y - 0.3 * i.s : (i.k === 'bar' ? i.y : (i.top + i.bot) / 2);
+
+function makeGlyph(g) {
+  const c = plainChar(g.c);
+  return { k: 'g', c, x0: g.x, x1: g.x2, y: g.y, s: g.s, f: g.f, top: gTop(g), bot: gBot(g), size: isSizeFont(g.f), it: ITALIC.test(g.f) || plainChar(g.c) !== g.c && /[a-zA-Zα-ω]/.test(c) && g.c.codePointAt(0) >= 0x1D434, math: isMathFont(g.f), src: g };
+}
+
+function parseMath(rawItems, emHint, warn) {
+  const used = new Set();
+  const latex = buildLatex(rawItems, emHint, warn, used);
+  return latex;
+}
+
+function buildLatex(items, emHint, warn, used) {
+  const nodes = buildNodes(items, emHint, warn);
+  return serialize(nodes, warn);
+}
+
+// Finder beholdere (brøkstreger, rodtegn, accenter) og bygger træet
+function buildNodes(items, emHint, warn) {
+  let rest = items.slice();
+  const glyphSizes = rest.filter(i => i.k === 'g' && !i.size).map(i => i.s);
+  const em = glyphSizes.length ? Math.max(...glyphSizes) : emHint;
+  // kombinerende accenter (fx v⃗ fra Word): læg accenten på tegnet den står over
+  for (const a of rest.filter(i => i.k === 'g' && COMBINING[i.c])) {
+    const cands = rest.filter(i => i !== a && i.k === 'g' && !COMBINING[i.c] && i.x0 <= cx(a) + 0.3 * i.s && i.x1 >= a.x0 - 0.3 * i.s);
+    cands.sort((p, q) => Math.abs(cx(p) - cx(a)) - Math.abs(cx(q) - cx(a)));
+    const t = cands[0];
+    rest = rest.filter(i => i !== a);
+    if (!t) continue;
+    rest = rest.filter(i => i !== t);
+    rest.push({ k: 'accent', acc: COMBINING[a.c], e: [{ n: t, x1: t.x1, sup: null, sub: null, over: null, under: null }], x0: t.x0, x1: Math.max(t.x1, a.x1), y: t.y, s: t.s, top: Math.min(t.top, a.top), bot: t.bot });
+  }
+  // glyf-accenter (ˆ ˙ ¨ ...) med et tegn lige under
+  for (const a of rest.filter(i => i.k === 'g' && ACCENTS[i.c] && i.c !== '→' && i.c !== '^' && i.c !== '~')) {
+    const below = rest.filter(i => i !== a && i.k === 'g' && Math.abs(cx(i) - cx(a)) < Math.max(0.35 * i.s, (a.x1 - a.x0)) && i.y > a.y + 0.15 * a.s && i.top < a.y + 0.6 * a.s);
+    if (below.length === 1) { rest.push({ k: 'acc0', x0: a.x0, x1: a.x1, top: a.top, bot: a.bot, acc: ACCENTS[a.c], self: a }); rest = rest.filter(i => i !== a); }
+  }
+  const cont = rest.filter(i => i.k === 'bar' || i.k === 'rad' || i.k === 'acc' || i.k === 'acc0').sort((a, b) => (b.x1 - b.x0) - (a.x1 - a.x0));
+  for (const c of cont) {
+    if (!rest.includes(c)) continue;
+    rest = rest.filter(i => i !== c);
+    if (c.k === 'bar') {
+      const mem = rest.filter(i => cx(i) >= c.x0 - 0.5 && cx(i) <= c.x1 + 0.5);
+      const num = mem.filter(i => cy(i) < c.y), den = mem.filter(i => cy(i) > c.y);
+      rest = rest.filter(i => !mem.includes(i));
+      if (num.length && den.length) {
+        const s = median(mem.filter(i => i.k === 'g').map(i => i.s)) || em;
+        const n = buildNodes(num, s, warn), d = buildNodes(den, s, warn);
+        rest.push({ k: 'frac', num: n, den: d, x0: c.x0, x1: c.x1, y: c.y + 0.25 * s, s, top: Math.min(...num.map(i => i.top)), bot: Math.max(...den.map(i => i.bot)) });
+      } else if (den.length) {
+        rest.push({ k: 'over', e: buildNodes(den, em, warn), x0: c.x0, x1: c.x1, y: base0(den), s: em, top: c.y, bot: Math.max(...den.map(i => i.bot)) });
+      } else if (num.length) {
+        rest.push({ k: 'under', e: buildNodes(num, em, warn), x0: c.x0, x1: c.x1, y: base0(num), s: em, top: Math.min(...num.map(i => i.top)), bot: c.y });
+      } else if (c.x1 - c.x0 < 1.2 * em) {
+        rest.push({ k: 'g', c: '−', x0: c.x0, x1: c.x1, y: c.y + 0.25 * em, s: em, f: 'rect', top: c.y - 0.1 * em, bot: c.y + 0.1 * em, math: true });
+      } else warn.push('En vandret streg uden tal over eller under er sprunget over.');
+    } else if (c.k === 'rad') {
+      const h = c.bot - c.top, mid = (c.top + c.bot) / 2;
+      const idx = rest.filter(i => i.k === 'g' && i.s < 0.85 * em && cx(i) >= c.x0 - 0.8 * em && cx(i) <= c.x0 + 0.65 * em && cy(i) < mid);
+      const body = rest.filter(i => !idx.includes(i) && i.x0 >= c.x0 + 0.3 * Math.min(em, h) && cx(i) <= c.x1 + 0.5 && cy(i) > c.top - 1 && cy(i) < c.bot + 0.3 * em);
+      rest = rest.filter(i => !idx.includes(i) && !body.includes(i));
+      if (!body.length) warn.push('Et rodtegn uden indhold er fundet. Kontrollér formlen.');
+      const e = buildNodes(body, em, warn);
+      rest.push({ k: 'sqrt', e, idx: idx.length ? buildNodes(idx, em, warn) : null, x0: Math.min(c.x0, ...idx.map(i => i.x0)), x1: c.x1, y: body.length ? base0(body) : c.bot - 0.2 * em, s: em, top: c.top, bot: c.bot });
+    } else {
+      const below = rest.filter(i => cx(i) >= c.x0 - 1 && cx(i) <= c.x1 + 1 && cy(i) > c.bot - 0.5 && i.top < c.bot + 0.9 * em);
+      if (!below.length) { if (c.k === 'acc0') rest.push(c.self); continue; }
+      rest = rest.filter(i => !below.includes(i));
+      const acc = c.k === 'acc0' ? c.acc : (below.length > 1 ? 'overrightarrow' : 'vec');
+      rest.push({ k: 'accent', acc, e: buildNodes(below, em, warn), x0: Math.min(c.x0, ...below.map(i => i.x0)), x1: Math.max(c.x1, ...below.map(i => i.x1)), y: base0(below), s: em, top: c.top, bot: Math.max(...below.map(i => i.bot)) });
+    }
+  }
+  // √-tegn + vinkelstreg (fx Words PDF) → rod
+  for (const r of rest.filter(i => i.k === 'g' && i.c === '√')) {
+    const ov = rest.filter(i => i.k === 'over' && i.x0 >= r.x0 - 1 && i.x0 <= r.x1 + 0.4 * em).sort((a, b) => a.x0 - b.x0)[0];
+    if (!ov) continue;
+    const idx = rest.filter(i => i.k === 'g' && i !== r && i.s < 0.85 * em && i.x1 <= r.x0 + 0.7 * (r.x1 - r.x0) && i.x1 >= r.x0 - 0.8 * em && cy(i) < cy(r));
+    rest = rest.filter(i => i !== r && i !== ov && !idx.includes(i));
+    rest.push({ k: 'sqrt', e: ov.e, idx: idx.length ? buildNodes(idx, em, warn) : null, x0: Math.min(r.x0, ...idx.map(i => i.x0)), x1: ov.x1, y: ov.y, s: em, top: Math.min(r.top, ov.top), bot: Math.max(r.bot, ov.bot) });
+  }
+  return linearize(rest, em, warn);
+}
+
+// grundlinje for en gruppe (største skrift, flest tegn)
+function base0(items) {
+  const g = items.filter(i => i.k !== 'g' || !i.size);
+  if (!g.length) return items[0] ? items[0].y : 0;
+  const mx = Math.max(...g.map(i => i.s || 0));
+  const cand = g.filter(i => (i.s || 0) >= 0.85 * mx);
+  const cl = [];
+  for (const i of cand) { const c = cl.find(c => Math.abs(c.y - i.y) < 0.2 * mx); if (c) { c.w += i.x1 - i.x0; c.ys.push(i.y); } else cl.push({ y: i.y, w: i.x1 - i.x0, ys: [i.y] }); }
+  cl.sort((a, b) => b.w - a.w);
+  return median(cl[0].ys);
+}
+
+function linearize(items, emIn, warn, depth = 0) {
+  if (!items.length) return [];
+  const g = items.filter(i => !(i.k === 'g' && i.size));
+  const em = Math.max(...g.map(i => i.s || 0), 0) || emIn;
+  const B = base0(items);
+  const tol = 0.2 * em;
+  const onBase = i => (i.k === 'g' && i.size) || (i.k === 'g' && i.s < 0.85 * em ? Math.abs(i.y - B) <= 0.06 * em : Math.abs(i.y - B) <= tol) || (i.k !== 'g' && Math.abs(i.y - B) <= 0.35 * em);
+  items = items.slice().sort((a, b) => a.x0 - b.x0 || a.y - b.y);
+
+  // Grænser under og over ∑, ∏ og lim (kan starte til venstre for tegnet)
+  const lims = new Map();
+  const ops = [];
+  for (const i of items) if (i.k === 'g' && BIGOP.has(i.c) && onBase(i)) ops.push({ x0: i.x0, x1: i.x1, top: i.top, bot: i.bot, it: i });
+  const baseItems = items.filter(onBase);
+  for (let k = 0; k + 2 < baseItems.length; k++) {
+    const [l, i2, m] = [baseItems[k], baseItems[k + 1], baseItems[k + 2]];
+    if ([l, i2, m].every(x => x.k === 'g' && !x.it) && l.c + i2.c + m.c === 'lim') ops.push({ x0: l.x0, x1: m.x1, top: Math.min(l.top, m.top), bot: Math.max(l.bot, m.bot), it: m, lim: true });
+  }
+  for (const op of ops) {
+    const free = items.filter(i => !onBase(i) && i !== op.it && ![...lims.values()].some(v => v.under.includes(i) || v.over.includes(i)));
+    const chain = list => {
+      const sel = list.filter(i => i.x1 > op.x0 - 0.1 * em && i.x0 < op.x1 + 0.1 * em);
+      if (!sel.length) return [];
+      let lo = Math.min(...sel.map(i => i.x0)), hi = Math.max(...sel.map(i => i.x1));
+      for (let again = true; again;) {
+        again = false;
+        for (const i of list) if (!sel.includes(i) && i.x0 <= hi + 0.35 * em && i.x1 >= lo - 0.35 * em) { sel.push(i); lo = Math.min(lo, i.x0); hi = Math.max(hi, i.x1); again = true; }
+      }
+      return sel;
+    };
+    const under = chain(free.filter(i => i.top >= op.bot - 0.3 * em && i.y > B));
+    const over = chain(free.filter(i => i.bot <= op.top + 0.3 * em && i.y < B));
+    if (under.length || over.length) lims.set(op.it, { under, over });
+  }
+  if (lims.size) {
+    const taken = new Set([...lims.values()].flatMap(v => v.under.concat(v.over)));
+    items = items.filter(i => !taken.has(i));
+  }
+
+  // Stablede rækker i fuld størrelse (matrix, ligningssystem)
+  const DEL = /^[()[\]{}|∣‖⟨⟩]$/;
+  const stacked = depth < 6 ? items.filter(i => !onBase(i) && (i.s || 0) >= 0.85 * em && i.k === 'g' && !DEL.test(i.c)) : [];
+  if (stacked.length) {
+    const sx0 = Math.min(...stacked.map(i => i.x0)) - 0.3 * em, sx1 = Math.max(...stacked.map(i => i.x1)) + 0.3 * em;
+    const sy = (Math.min(...stacked.map(i => cy(i))) + Math.max(...stacked.map(i => cy(i)))) / 2;
+    let region;
+    // udvid til nærmeste store parenteser på hver side
+    const isDelim = (i, re) => i.k === 'g' && re.test(i.c) && (i.size || onBase(i) || Math.abs(cy(i) - sy) < 0.7 * em);
+    const left = items.filter(i => isDelim(i, /^[(\[{|∣‖⟨]$/) && i.x1 <= sx0 + 0.6 * em).pop();
+    const right = items.find(i => isDelim(i, /^[)\]}|∣‖⟩]$/) && i.x0 >= sx1 - 0.6 * em);
+    if (left) left.size = true;
+    if (right) right.size = true;
+    const lo = left ? left.x1 : sx0, hi = right ? right.x0 : sx1;
+    region = items.filter(i => !(i.k === 'g' && i.size) && cx(i) > lo && cx(i) < hi);
+    const rows = [];
+    for (const i of region.filter(i => (i.s || 0) >= 0.85 * em).sort((a, b) => a.y - b.y)) { const r = rows.find(r => Math.abs(r.y - i.y) < 0.4 * em); if (!r) rows.push({ y: i.y, items: [] }); }
+    rows.sort((a, b) => a.y - b.y);
+    if (rows.length < 2 || !stacked.every(i => region.includes(i))) return linearize(items.map(i => stacked.includes(i) ? { ...i, s: i.s * 0.84 } : i), em, warn, depth + 6);
+    for (const i of region) { let best = rows[0]; for (const r of rows) if (Math.abs(r.y - cy(i) - 0.3 * em) < Math.abs(best.y - cy(i) - 0.3 * em)) best = r; best.items.push(i); }
+    // kolonner ud fra vandrette overlap på tværs af rækker
+    const iv = region.map(i => [i.x0, i.x1]).sort((a, b) => a[0] - b[0]);
+    const cols = [];
+    for (const [a, b] of iv) { const c = cols[cols.length - 1]; if (c && a <= c[1] + 0.6 * em) c[1] = Math.max(c[1], b); else cols.push([a, b]); }
+    const mat = rows.map(r => cols.map(([a, b]) => buildNodes(r.items.filter(i => cx(i) >= a - 0.1 && cx(i) <= b + 0.1), em, warn)));
+    const node = { k: 'mat', rows: mat, open: left ? left.c : '', close: right ? right.c : '', x0: left ? left.x0 : lo, x1: right ? right.x1 : hi, y: B, s: em, top: Math.min(...region.map(i => i.top)), bot: Math.max(...region.map(i => i.bot)) };
+    warn.push(rows.length > 1 && cols.length === 1 && !right && left && left.c === '{' ? 'Et ligningssystem er genkendt. Kontrollér rækkerne.' : 'En matrix eller vektor er genkendt. Kontrollér rækker og kolonner.');
+    const rest = items.filter(i => !region.includes(i) && i !== left && i !== right);
+    rest.push(node);
+    for (const [it, v] of lims) rest.push(...v.under, ...v.over);
+    return linearize(rest, em, warn, depth + 1);
+  }
+
+  // Grundlinje-atomer med hævet/sænket skrift og grænser
+  const out = [];
+  for (const i of items) {
+    if (onBase(i) || !out.length) {
+      if (!onBase(i)) warn.push('Hævet eller sænket skrift uden grundtegn. Kontrollér formlen.');
+      const l = lims.get(i);
+      out.push({ n: i, sup: [], sub: [], over: l ? l.over : [], under: l ? l.under : [] });
+      continue;
+    }
+    const prev = out[out.length - 1];
+    const raised = i.y < B - 0.1 * em;
+    (raised ? prev.sup : prev.sub).push(i);
+  }
+  return out.map(a => ({
+    n: a.n,
+    x1: Math.max(a.n.x1, ...a.sup.map(i => i.x1), ...a.sub.map(i => i.x1), ...a.over.map(i => i.x1), ...a.under.map(i => i.x1)),
+    sup: a.sup.length ? buildNodes(a.sup, em * 0.7, warn) : null,
+    sub: a.sub.length ? buildNodes(a.sub, em * 0.7, warn) : null,
+    over: a.over.length ? buildNodes(a.over, em * 0.7, warn) : null,
+    under: a.under.length ? buildNodes(a.under, em * 0.7, warn) : null
+  }));
+}
+
+// ---------- serialisering til LaTeX ----------
+const isLetter = c => /^[A-Za-zÆØÅæøå]$/.test(c);
+function charLatex(c) {
+  if (GREEK[c]) return '\\' + GREEK[c];
+  if (c in SYM) return SYM[c];
+  return c;
+}
+const spaceCls = c => REL.has(c) ? 'rel' : BIN.has(c) ? 'bin' : PUNCT.has(c) ? 'punct' : 'ord';
+
+function serialize(atoms, warn) {
+  // 1) saml ord: opretstående bogstaver uden mellemrum → funktionsnavne
+  const toks = [];
+  for (let k = 0; k < atoms.length; k++) {
+    const a = atoms[k], n = a.n;
+    if (n.k === 'g' && isLetter(n.c) && !n.it && n.math && n.f !== 'rect') {
+      let w = n.c, j = k, last = a;
+      while (j + 1 < atoms.length && !last.sup && !last.sub) {
+        const b = atoms[j + 1];
+        if (!(b.n.k === 'g' && isLetter(b.n.c) && !b.n.it && b.n.math && b.n.x0 - atoms[j].n.x1 < 0.12 * n.s)) break;
+        w += b.n.c; j++; last = b;
+      }
+      const nx = atoms[j + 1];
+      const paren = nx && nx.n.k === 'g' && /[([]/.test(nx.n.c) && nx.n.x0 - (last.x1 || last.n.x1) < 0.3 * n.s;
+      if (FN.has(w) || (w.length > 1 && paren)) {
+        toks.push({ tex: FN.has(w) ? '\\' + w : '\\operatorname{' + w + '}', cls: 'op', x0: n.x0, x1: last.x1 || last.n.x1, s: n.s, a: last, fn: true, lim: w === 'lim' });
+        k = j; continue;
+      }
+      if (w.length > 1) {
+        // almindelige ord i formlen, fx "Arealet er" → \text{...}
+        while (j + 1 < atoms.length && !last.sup && !last.sub) {
+          const b = atoms[j + 1], gap = b.n.x0 - (last.x1 || last.n.x1);
+          if (!(b.n.k === 'g' && /^[\p{L}]$/u.test(b.n.c) && !b.n.it && b.n.math && gap < 0.6 * n.s)) break;
+          w += (gap > 0.15 * n.s ? ' ' : '') + b.n.c; j++; last = b;
+        }
+        const after = atoms[j + 1] ? atoms[j + 1].n.x0 - (last.x1 || last.n.x1) : 0;
+        toks.push({ tex: '\\text{' + w + (after > 0.08 * n.s ? ' ' : '') + '}', cls: 'ord', x0: n.x0, x1: atoms[j + 1] ? atoms[j + 1].n.x0 : (last.x1 || last.n.x1), s: n.s, a: last });
+        k = j; continue;
+      }
+    }
+    // tekst i ikke-matematisk skrift (fx ord i en formel)
+    if (n.k === 'g' && !n.math && isLetter(n.c)) {
+      let w = n.c, j = k, last = a;
+      while (j + 1 < atoms.length && !last.sup && !last.sub) {
+        const b = atoms[j + 1];
+        if (!(b.n.k === 'g' && !b.n.math && /^[\p{L}\p{N}.,\-]$/u.test(b.n.c) && b.n.x0 - atoms[j].n.x1 < 0.4 * n.s)) break;
+        w += (b.n.x0 - atoms[j].n.x1 > 0.18 * n.s ? ' ' : '') + b.n.c; j++; last = b;
+      }
+      if (w.length > 1) { toks.push({ tex: '\\text{' + w + '}', cls: 'ord', x0: n.x0, x1: last.x1 || last.n.x1, s: n.s, a: last }); k = j; continue; }
+    }
+    toks.push({ tex: null, cls: n.k === 'g' ? spaceCls(n.c) : 'ord', x0: n.x0, x1: a.x1 || n.x1, s: n.s || 10, a, c: n.k === 'g' ? n.c : null });
+  }
+  // 2) := og store parenteser
+  let s = '';
+  const bigStack = [];
+  for (let k = 0; k < toks.length; k++) {
+    const t = toks[k], a = t.a, n = a.n;
+    let body;
+    if (t.tex) body = t.tex;
+    else if (n.k === 'g') {
+      if (n.c === ':' && toks[k + 1] && toks[k + 1].c === '=' && toks[k + 1].x0 - t.x1 < 0.15 * t.s) { body = '\\coloneqq'; k++; t.x1 = toks[k].x1; t.cls = 'rel'; }
+      else if (n.size && (OPEN[n.c] || '([{|∣‖⟨⌊⌈'.includes(n.c)) && (OPEN[n.c] || !bigStack.length || bigStack[bigStack.length - 1] !== n.c)) { bigStack.push(n.c); body = '\\left' + bigDelim(n.c); }
+      else if (n.size && bigStack.length && ')]}|∣‖⟩⌋⌉'.includes(n.c)) { bigStack.pop(); body = '\\right' + bigDelim(n.c); }
+      else if (n.c === ',' && /\d$/.test(s) && toks[k + 1] && /^\d$/.test(toks[k + 1].c || '') && toks[k + 1].x0 - t.x1 < 0.12 * t.s) body = '{,}';
+      else {
+        body = charLatex(n.c);
+        if (/[^\x20-\x7e]/.test(body) && !GREEK[n.c] && !/[ÆØÅæøå]/.test(body)) warn.push('Ukendt tegn "' + n.c + '" i formlen. Kontrollér det.');
+      }
+    } else body = nodeLatex(n, warn);
+    // grænser og indeks
+    if (a.under || a.over) {
+      if (t.lim || (n.k === 'g' && BIGOP.has(n.c))) { if (a.under) body += '_{' + serialize(a.under, warn) + '}'; if (a.over) body += '^{' + serialize(a.over, warn) + '}'; }
+      else { if (a.under) body = '\\underset{' + serialize(a.under, warn) + '}{' + body + '}'; if (a.over) body = '\\overset{' + serialize(a.over, warn) + '}{' + body + '}'; }
+    }
+    if (a.sub) body += '_{' + serialize(a.sub, warn) + '}';
+    if (a.sup) {
+      const sup = serialize(a.sup, warn);
+      if (/^'+$/.test(sup)) body += sup;
+      else if (sup === '\\circ' || sup === '^{\\circ}') body += '^{\\circ}';
+      else body += '^{' + sup + '}';
+    }
+    // mellemrum
+    if (k > 0 && s) {
+      const p = toks[k - 1];
+      const gap = t.x0 - p.x1, em = Math.max(p.s, t.s) || 10;
+      const exp = (p.cls === 'rel' || t.cls === 'rel') ? 0.28 : (p.cls === 'bin' || t.cls === 'bin') ? 0.22 : p.cls === 'punct' ? 0.17 : (p.fn ? 0.17 : 0);
+      const extra = gap / em - exp;
+      if (extra > 1.6) s += '\\qquad ';
+      else if (extra > 0.7) s += '\\quad ';
+      else if (p.cls !== 'bin' && t.cls !== 'bin' && p.cls !== 'rel' && t.cls !== 'rel' && extra > (p.cls === 'punct' ? 0.15 : 0.3)) s += '\\ ';
+    }
+    s += body;
+    if (/\\[a-zA-Z]+$/.test(body) && k + 1 < toks.length) s += ' ';
+  }
+  if (bigStack.length) { warn.push('En stor parentes mangler sin modpart. Kontrollér formlen.'); while (bigStack.length) { bigStack.pop(); s += '\\right.'; } }
+  return s.replace(/ +/g, ' ').replace(/(?<!\\) (?=[}^_)\]])/g, '').trim();
+}
+const bigDelim = c => ({ '{': '\\{', '}': '\\}', '∣': '|', '‖': '\\|', '⟨': '\\langle', '⟩': '\\rangle', '⌊': '\\lfloor', '⌋': '\\rfloor', '⌈': '\\lceil', '⌉': '\\rceil' })[c] || c;
+
+function nodeLatex(n, warn) {
+  switch (n.k) {
+    case 'frac': return '\\frac{' + serialize(n.num, warn) + '}{' + serialize(n.den, warn) + '}';
+    case 'sqrt': return n.idx ? '\\sqrt[' + serialize(n.idx, warn) + ']{' + serialize(n.e, warn) + '}' : '\\sqrt{' + serialize(n.e, warn) + '}';
+    case 'over': return '\\overline{' + serialize(n.e, warn) + '}';
+    case 'under': return '\\underline{' + serialize(n.e, warn) + '}';
+    case 'accent': return '\\' + n.acc + '{' + serialize(n.e, warn) + '}';
+    case 'mat': {
+      const env = n.open === '(' ? 'pmatrix' : n.open === '[' ? 'bmatrix' : (n.open === '|' || n.open === '∣') ? 'vmatrix' : n.open === '{' && !n.close ? 'cases' : n.open === '{' ? 'Bmatrix' : 'matrix';
+      return '\\begin{' + env + '}' + n.rows.map(r => r.map(c => serialize(c, warn)).join(' & ')).join(' \\\\ ') + '\\end{' + env + '}';
+    }
+  }
+  return '';
+}
+
+/* ---------- 2. Sideanalyse ---------- */
+function analyzePage(P, pageNo, opt = {}) {
+  const W = P.w, H = P.h;
+  const blocks = [];
+  let G = P.glyphs.filter(g => g.x > -2 && g.x < W + 2 && g.y > -2 && g.y < H + 2 && g.s > 0.5);
+  const sizes = G.map(g => g.s);
+  const med = median(sizes) || 11;
+  // klassificér stier
+  const rules = [], bars = [], rads = [], accs = [], graphics = [];
+  for (const p of P.paths) {
+    const w = p.x1 - p.x0, h = p.y1 - p.y0;
+    const white = p.filled && !p.stroked && p.col.every(v => v > 245);
+    if (white || w * h > 0.5 * W * H) continue;
+    if (h <= 2.5 && w >= 0.4 * W) { rules.push(p); continue; }
+    if (h <= Math.max(1.8, 0.12 * med) && w >= 1.5 && w < 0.4 * W && p.curves === 0 && (p.rects > 0 || p.lines <= 2)) { bars.push({ k: 'bar', x0: p.x0, x1: p.x1, y: (p.y0 + p.y1) / 2, top: p.y0, bot: p.y1 }); continue; }
+    if (p.filled && p.curves + p.lines >= 6 && p.rects === 0 && h >= 0.6 * med && h < 6 * med && w >= 0.6 * med && w < 0.6 * W) { rads.push({ k: 'rad', x0: p.x0, x1: p.x1, top: p.y0, bot: p.y1, y: p.y1 }); continue; }
+    if (p.filled && h < 0.4 * med && w < 3 * med && p.curves + p.lines >= 2 && p.rects === 0) { accs.push({ k: 'acc', x0: p.x0, x1: p.x1, top: p.y0, bot: p.y1, y: p.y1 }); continue; }
+    graphics.push(p);
+  }
+  // rodtegn uden indhold er sandsynligvis grafik
+  for (const r of rads.slice()) {
+    const has = G.some(g => g.x >= r.x0 + 0.3 * med && g.x2 <= r.x1 + 1 && g.y - 0.3 * g.s > r.top && g.y - 0.3 * g.s < r.bot + 2);
+    if (!has) { rads.splice(rads.indexOf(r), 1); graphics.push({ ...r, y0: r.top, y1: r.bot, rects: 0, lines: 4, curves: 4 }); }
+  }
+  // figurer: klynger af grafik og billeder
+  const gfx = graphics.map(p => ({ x0: p.x0, y0: p.y0, x1: p.x1, y1: p.y1, n: 1, img: 0, onlyRect: p.lines + p.curves === 0 }))
+    .concat(P.images.filter(i => (i.x1 - i.x0) > 4 && (i.y1 - i.y0) > 4).map(i => ({ ...i, n: 1, img: 1, onlyRect: false })));
+  const pad = 14;
+  let clusters = [];
+  for (const b of gfx) {
+    let m = { ...b, cnt: 1, rectOnly: b.onlyRect };
+    for (let again = true; again;) {
+      again = false;
+      for (const c of clusters) {
+        if (c.x0 - pad < m.x1 && m.x0 < c.x1 + pad && c.y0 - pad < m.y1 && m.y0 < c.y1 + pad) {
+          m = { x0: Math.min(m.x0, c.x0), y0: Math.min(m.y0, c.y0), x1: Math.max(m.x1, c.x1), y1: Math.max(m.y1, c.y1), img: m.img + c.img, cnt: m.cnt + c.cnt, rectOnly: m.rectOnly && c.rectOnly };
+          clusters = clusters.filter(x => x !== c); again = true; break;
+        }
+      }
+    }
+    clusters.push(m);
+  }
+  const figs = clusters.filter(c => !c.rectOnly && ((c.img && (c.x1 - c.x0) * (c.y1 - c.y0) > 600) || (c.cnt >= 2 && c.x1 - c.x0 > 50 && c.y1 - c.y0 > 35)));
+  const used = new Set();
+  for (const f of figs) {
+    for (const g of G) {
+      const inside = g.x >= f.x0 - 2 && g.x2 <= f.x1 + 2 && g.y <= f.y1 + 2 && g.y - 0.7 * g.s >= f.y0 - 2;
+      const near = !isMathFont(g.f) && g.x >= f.x0 - 1.6 * med && g.x2 <= f.x1 + 1.6 * med && g.y <= f.y1 + 1.6 * med && g.y >= f.y0 - 0.6 * med;
+      if (inside || near) { used.add(g); f.x0 = Math.min(f.x0, g.x); f.x1 = Math.max(f.x1, g.x2); f.y0 = Math.min(f.y0, g.y - 0.8 * g.s); f.y1 = Math.max(f.y1, g.y + 0.25 * g.s); }
+    }
+  }
+  G = G.filter(g => !used.has(g));
+  const inFig = o => figs.some(f => cx(o) >= f.x0 && cx(o) <= f.x1 && (o.top + o.bot) / 2 >= f.y0 && (o.top + o.bot) / 2 <= f.y1);
+  const cbars = bars.filter(b => !inFig(b)), crads = rads.filter(r => !inFig(r)), caccs = accs.filter(a => !inFig(a));
+
+  // rækker: skillelinjer over hele bredden
+  const cuts = rules.map(r => (r.y0 + r.y1) / 2).sort((a, b) => a - b);
+  const rowOf = y => { let r = 0; for (const c of cuts) if (y > c) r++; return r; };
+
+  // bånd (visuelle linjer)
+  const ext = i => { const m = /Size([1-4])/.exec(i.f); const k = m ? +m[1] : (i.size ? 2 : 0); return k ? [i.y - (0.55 + 0.3 * k) * i.s, i.y + (0.05 + 0.3 * k) * i.s] : [i.top, i.bot]; };
+  const items = G.map(makeGlyph).map(i => {
+    // store operatorer er høje tegn, også når skriftstørrelsen er normal (fx Words Cambria Math)
+    if (!i.size && i.math && /^[∑∏∐∫∬∭∮⋃⋂]$/.test(i.c)) { i.size = true; return { ...i, bt: i.y - 1.25 * i.s, bb: i.y + 0.8 * i.s }; }
+    const [bt, bb] = ext(i); return { ...i, bt, bb };
+  });
+  for (const b of cbars) items.push({ ...b, bt: b.y - 0.55 * med, bb: b.y + 0.6 * med });
+  for (const r of crads) items.push({ ...r, bt: r.top, bb: r.bot });
+  for (const a of caccs) items.push({ ...a, bt: a.top, bb: a.bot + 0.35 * med });
+  const byRow = new Map();
+  for (const i of items) { const r = rowOf((i.bt + i.bb) / 2); if (!byRow.has(r)) byRow.set(r, []); byRow.get(r).push(i); }
+  const bands = [];
+  for (const [row, list] of byRow) {
+    list.sort((a, b) => a.bt - b.bt);
+    let cur = null;
+    for (const i of list) {
+      if (cur && i.bt < cur.bb - 0.5) { cur.items.push(i); cur.bb = Math.max(cur.bb, i.bb); }
+      else { cur = { row, bt: i.bt, bb: i.bb, items: [i] }; bands.push(cur); }
+    }
+  }
+  // del bånd vandret, hvis der er et meget stort hul (spalter / side om side)
+  const bands2 = [];
+  for (const b of bands) {
+    const its = b.items.slice().sort((x, y) => x.x0 - y.x0);
+    let part = [its[0]], mx = its[0].x1;
+    for (let k = 1; k < its.length; k++) {
+      if (its[k].x0 - mx > 6 * med) { bands2.push(mkBand(b.row, part)); part = []; }
+      part.push(its[k]); mx = Math.max(mx, its[k].x1);
+    }
+    bands2.push(mkBand(b.row, part));
+  }
+  function mkBand(row, its) { return { row, items: its, bt: Math.min(...its.map(i => i.bt)), bb: Math.max(...its.map(i => i.bb)), x0: Math.min(...its.map(i => i.x0)), x1: Math.max(...its.map(i => i.x1)) }; }
+
+  // tekststørrelse i brødtekst
+  const midSize = median(G.filter(g => g.y > 0.08 * H && g.y < 0.92 * H).map(g => g.s)) || med;
+  const textGl = G.filter(g => !isMathFont(g.f));
+  const bodySize = median(textGl.map(g => g.s)) || med;
+
+  for (const b of bands2) {
+    const gl = b.items.filter(i => i.k === 'g');
+    const maxS = Math.max(0, ...gl.map(i => i.s));
+    // sidehoved og sidefod (fx browserens dato, titel, adresse og sidetal)
+    if (opt.dropHeaderFooter !== false && (b.bb < 0.07 * H || b.bt > 0.93 * H) && maxS < 0.9 * midSize && !gl.some(i => i.math)) continue;
+    const anyMath = gl.some(i => i.math) || b.items.some(i => i.k !== 'g');
+    const scripts = !anyMath && hasScripts(gl);
+    const bbox = [b.x0, b.bt, b.x1, b.bb];
+    const colr = dominantColor(gl);
+    if (anyMath || scripts) {
+      const mathPart = gl.filter(i => i.math).length, textWords = textRuns(gl.filter(i => !i.math));
+      if (!scripts && textWords >= 2 && mathPart > 0 && b.items.every(i => i.k === 'g')) {
+        blocks.push({ page: pageNo, row: b.row, kind: 'text', bbox, src: mixedLine(b.items, med), size: maxS, color: colr, warnings: [] });
+        continue;
+      }
+      // forstørrede parenteser (større skrift end resten af linjen) behandles som store tegn
+      const bm = median(gl.filter(i => !i.size && !/[()[\]{}|‖∣⟨⟩]/.test(i.c)).map(i => i.s)) || med;
+      for (const i of gl) if (!i.size && /^[()[\]{}|‖∣⟨⟩⌊⌋⌈⌉]$/.test(i.c) && i.s > 1.3 * bm) i.size = true;
+      const warn = [];
+      let latex = '';
+      try { latex = buildLatex(b.items, med, warn, null); } catch (e) { warn.push('Formlen kunne ikke opbygges automatisk: ' + e.message); latex = plainText(gl); }
+      blocks.push({ page: pageNo, row: b.row, kind: 'math', bbox, src: latex, size: maxS, color: colr, warnings: uniq(warn), auto: true });
+    } else {
+      const txt = plainText(gl);
+      const bold = gl.filter(i => BOLD.test(i.f)).length > gl.length / 2;
+      const heading = txt.length < 90 && (maxS >= 1.3 * bodySize || (bold && maxS >= 1.08 * bodySize));
+      blocks.push({ page: pageNo, row: b.row, kind: heading ? 'heading' : 'text', level: maxS >= 1.7 * bodySize ? 1 : 2, bbox, src: txt, size: maxS, color: colr, warnings: [], x0: b.x0 });
+    }
+  }
+  for (const f of figs) blocks.push({ page: pageNo, row: rowOf((f.y0 + f.y1) / 2), kind: 'figure', bbox: [f.x0 - 3, f.y0 - 3, f.x1 + 3, f.y1 + 3], src: '', warnings: [] });
+  blocks.sort((a, b) => a.bbox[1] - b.bbox[1] || a.bbox[0] - b.bbox[0]);
+  // sammenflet tekstlinjer til afsnit
+  const merged = [];
+  for (const bl of blocks) {
+    const p = merged[merged.length - 1];
+    if (p && p.kind === 'text' && bl.kind === 'text' && p.row === bl.row && Math.abs(p.size - bl.size) < 0.6 && Math.abs((p.x0 ?? p.bbox[0]) - bl.bbox[0]) < 0.8 * bl.size + 2 && bl.bbox[1] - p.bbox[3] < 0.9 * bl.size) {
+      p.src = /-$/.test(p.src) ? p.src.slice(0, -1) + bl.src : p.src + ' ' + bl.src;
+      p.bbox = [Math.min(p.bbox[0], bl.bbox[0]), p.bbox[1], Math.max(p.bbox[2], bl.bbox[2]), bl.bbox[3]];
+      continue;
+    }
+    merged.push(bl);
+  }
+  return { blocks: merged, empty: P.glyphs.length === 0, hasImages: P.images.length > 0 };
+}
+const uniq = a => [...new Set(a)];
+function hasScripts(gl) {
+  if (gl.length < 2) return false;
+  const B = median(gl.map(i => i.y)), S = median(gl.map(i => i.s));
+  return gl.some(i => i.s < 0.85 * S && Math.abs(i.y - B) > 0.2 * S && /[0-9a-zA-Z+\-−]/.test(i.c));
+}
+function textRuns(gl) {
+  let words = 0, run = 0;
+  const s = gl.slice().sort((a, b) => a.x0 - b.x0);
+  for (let k = 0; k < s.length; k++) { if (isLetter(s[k].c)) run++; else run = 0; if (run === 3) words++; if (k + 1 < s.length && s[k + 1].x0 - s[k].x1 > 0.2 * s[k].s) run = 0; }
+  return words;
+}
+function plainText(gl) {
+  const s = gl.slice().sort((a, b) => a.x0 - b.x0);
+  let t = '';
+  for (let k = 0; k < s.length; k++) {
+    if (k && s[k].x0 - s[k - 1].x1 > 0.18 * Math.max(s[k].s, s[k - 1].s)) t += ' ';
+    t += s[k].c;
+  }
+  return t.replace(/\s+/g, ' ').trim();
+}
+// linje med både tekst og formel-skrift → tekst med $...$
+function mixedLine(items, med) {
+  const s = items.slice().sort((a, b) => a.x0 - b.x0);
+  const parts = [];
+  for (const i of s) {
+    const kind = i.math ? 'm' : 't';
+    const p = parts[parts.length - 1];
+    if (p && (p.kind === kind || (i.c === ' '))) p.items.push(i); else parts.push({ kind, items: [i] });
+  }
+  let out = '';
+  parts.forEach((p, k) => {
+    if (k) { const prev = parts[k - 1].items, gap = p.items[0].x0 - Math.max(...prev.map(i => i.x1)); if (gap > 0.18 * med) out += ' '; }
+    out += p.kind === 't' ? plainText(p.items) : '$' + buildLatex(p.items, med, [], null) + '$';
+  });
+  return out.replace(/\s+/g, ' ').trim();
+}
+function dominantColor(gl) {
+  const cnt = {};
+  for (const g of gl) { const c = g.src ? g.src.col : g.col; if (!c) continue; const k = c.map(v => Math.round(v)).join(','); cnt[k] = (cnt[k] || 0) + 1; }
+  const k = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];
+  return k ? k.split(',').map(Number) : [0, 0, 0];
+}
+
+/* ---------- 4. LaTeX → OMML ---------- */
+const CMD_SYM = {
+  cdot: '⋅', times: '×', div: '÷', pm: '±', mp: '∓', le: '≤', leq: '≤', leqslant: '≤', ge: '≥', geq: '≥', geqslant: '≥', neq: '≠', ne: '≠', approx: '≈', equiv: '≡', sim: '∼', cong: '≅', propto: '∝',
+  coloneqq: '≔', coloneq: '≔', to: '→', rightarrow: '→', leftarrow: '←', Rightarrow: '⇒', Leftarrow: '⇐', Leftrightarrow: '⇔', leftrightarrow: '↔', iff: '⇔', implies: '⇒', mapsto: '↦', longrightarrow: '⟶', Longrightarrow: '⟹',
+  infty: '∞', partial: '∂', nabla: '∇', in: '∈', notin: '∉', subset: '⊂', subseteq: '⊆', supset: '⊃', cup: '∪', cap: '∩', emptyset: '∅', varnothing: '∅', forall: '∀', exists: '∃',
+  wedge: '∧', land: '∧', vee: '∨', lor: '∨', neg: '¬', lnot: '¬', ldots: '…', dots: '…', cdots: '⋯', vdots: '⋮', ddots: '⋱', circ: '∘', degree: '°', prime: '′', angle: '∠', perp: '⊥', parallel: '∥',
+  langle: '⟨', rangle: '⟩', lfloor: '⌊', rfloor: '⌋', lceil: '⌈', rceil: '⌉', vert: '|', mid: '|', Vert: '‖', '|': '‖', surd: '√', hbar: 'ℏ', ell: 'ℓ', Re: 'ℜ', Im: 'ℑ', aleph: 'ℵ',
+  '{': '{', '}': '}', '%': '%', '#': '#', '&': '&', '$': '$', '_': '_', backslash: '\\', triangle: '△', square: '□', star: '⋆', ast: '∗', bullet: '∙', checkmark: '✓', therefore: '∴', because: '∵', setminus: '∖'
+};
+for (const [ch, nm] of Object.entries(GREEK)) CMD_SYM[nm] = ch;
+CMD_SYM.epsilon = 'ϵ'; CMD_SYM.varepsilon = 'ε'; CMD_SYM.phi = 'ϕ'; CMD_SYM.varphi = 'φ';
+const NARY = { int: '∫', iint: '∬', iiint: '∭', oint: '∮', sum: '∑', prod: '∏', coprod: '∐', bigcup: '⋃', bigcap: '⋂', bigoplus: '⨁', bigotimes: '⨂' };
+const ACC_CHR = { vec: '⃗', overrightarrow: '⃗', hat: '̂', widehat: '̂', dot: '̇', ddot: '̈', tilde: '̃', widetilde: '̃', acute: '́', grave: '̀', check: '̌', breve: '̆', bar: '̅' };
+const SPACES = { ',': ' ', ':': ' ', ';': ' ', ' ': ' ', '!': '', quad: ' ', qquad: '  ', enspace: ' ', thinspace: ' ', medspace: ' ', thickspace: ' ', nobreakspace: ' ' };
+const BB = { R: 'ℝ', N: 'ℕ', Z: 'ℤ', Q: 'ℚ', C: 'ℂ', P: 'ℙ' };
+const RELCH = new Set(['=', '<', '>', '≤', '≥', '≠', '≈', '≡', '∼', '≔', '→', '⇒', '⇔', '⇐', '∈', '⊂', '⊆', '∝', '≅', '⟹', '⟶', '↦']);
+const BINCH = new Set(['+', '−', '⋅', '×', '÷', '±', '∓', '∨', '∧', '∪', '∩', '∘', '∗']);
+
+function tokenize(s) {
+  const t = []; let i = 0;
+  while (i < s.length) {
+    const c = s[i];
+    if (c === '\\') {
+      const m = /^\\([a-zA-Z]+)\*?/.exec(s.slice(i));
+      if (m) { t.push({ t: 'cmd', v: m[1] }); i += m[0].length; }
+      else { t.push({ t: 'cmd', v: s[i + 1] || '' }); i += 2; }
+    } else if (c === '%') { while (i < s.length && s[i] !== '\n') i++; }
+    else if (/\s/.test(c)) { t.push({ t: 'ws' }); i++; }
+    else if ('{}^_&'.includes(c)) { t.push({ t: c }); i++; }
+    else { const ch = String.fromCodePoint(s.codePointAt(i)); t.push({ t: 'ch', v: ch }); i += ch.length; }
+  }
+  return t;
+}
+
+function parseLatex(src) {
+  const toks = tokenize(src); let p = 0;
+  const issues = [];
+  const peek = () => { while (toks[p] && toks[p].t === 'ws') p++; return toks[p]; };
+  const next = () => { const t = peek(); p++; return t; };
+  const run = (txt, o = {}) => ({ k: 'r', t: txt, ...o });
+  function rawGroup() { // læs {...} som rå tekst
+    const t = peek(); if (!t || t.t !== '{') { const x = next(); return x ? (x.v || '') : ''; }
+    p++; let depth = 1, out = '';
+    while (p < toks.length) {
+      const x = toks[p++];
+      if (x.t === '{') { depth++; out += '{'; } else if (x.t === '}') { if (--depth === 0) break; out += '}'; }
+      else if (x.t === 'ws') out += ' '; else if (x.t === 'cmd') out += (SPACES[x.v] !== undefined ? ' ' : (CMD_SYM[x.v] || '\\' + x.v)); else out += x.v || x.t;
+    }
+    return out;
+  }
+  function arg() {
+    const t = peek();
+    if (!t) { issues.push('Et argument mangler i formlen.'); return []; }
+    if (t.t === '{') { p++; const e = list(x => x.t === '}'); if (peek() && peek().t === '}') p++; else issues.push('En krøllet parentes { mangler sin afslutning }.'); return e; }
+    if (t.t === 'cmd') { const n = atom(); return n ? [n] : []; }
+    p++;
+    return t.t === 'ch' ? [charNode(t.v)] : [];
+  }
+  function delimTok() {
+    const t = next(); if (!t) return '';
+    if (t.t === 'ch') return t.v === '.' ? '' : t.v;
+    if (t.t === 'cmd') return t.v === '{' ? '{' : t.v === '}' ? '}' : t.v === '|' ? '‖' : (CMD_SYM[t.v] || '');
+    return '';
+  }
+  function charNode(c) {
+    if (c === '-') c = '−';
+    if (c === '*') c = '⋅';
+    if (c === "'") c = '′';
+    return run(c);
+  }
+  function env(name) {
+    const rows = [[[]]];
+    for (;;) {
+      const t = peek();
+      if (!t) { issues.push('\\end{' + name + '} mangler.'); break; }
+      if (t.t === 'cmd' && t.v === 'end') { p++; rawGroup(); break; }
+      if (t.t === '&') { p++; rows[rows.length - 1].push([]); continue; }
+      if (t.t === 'cmd' && t.v === '\\') { p++; rows.push([[]]); continue; }
+      const e = list(x => x.t === '&' || (x.t === 'cmd' && (x.v === '\\' || x.v === 'end')));
+      const row = rows[rows.length - 1]; row[row.length - 1].push(...e);
+    }
+    while (rows.length > 1 && rows[rows.length - 1].length === 1 && !rows[rows.length - 1][0].length) rows.pop();
+    return rows;
+  }
+  function atom() {
+    const t = next();
+    if (!t) return null;
+    if (t.t === '{') { const e = list(x => x.t === '}'); if (peek() && peek().t === '}') p++; return { k: 'grp', e }; }
+    if (t.t === 'ch') return charNode(t.v);
+    if (t.t !== 'cmd') return null;
+    const v = t.v;
+    if (v === 'frac' || v === 'dfrac' || v === 'tfrac' || v === 'cfrac') { const n = arg(), d = arg(); return { k: 'f', num: n, den: d }; }
+    if (v === 'binom' || v === 'dbinom') { const n = arg(), d = arg(); return { k: 'd', beg: '(', end: ')', e: [{ k: 'f', num: n, den: d, noBar: true }] }; }
+    if (v === 'sqrt') {
+      let deg = null;
+      const q = peek();
+      if (q && q.t === 'ch' && q.v === '[') { p++; deg = list(x => x.t === 'ch' && x.v === ']'); p++; }
+      return { k: 'rad', deg, e: arg() };
+    }
+    if (v === 'left') { const beg = delimTok(); const e = list(x => x.t === 'cmd' && x.v === 'right'); let end = ''; if (peek()) { p++; end = delimTok(); } else issues.push('\\right mangler.'); return { k: 'd', beg, end, e }; }
+    if (v === 'right' || v === 'end') { issues.push('\\' + v + ' står uden modpart.'); return null; }
+    if (v === 'big' || v === 'Big' || v === 'bigg' || v === 'Bigg' || v === 'bigl' || v === 'bigr' || v === 'Bigl' || v === 'Bigr') { const d = delimTok(); return run(d); }
+    if (v === 'begin') {
+      const name = rawGroup().trim();
+      if (/^(array)$/.test(name)) rawGroup();
+      const rows = env(name);
+      const mat = { k: 'm', rows };
+      if (name === 'cases') return { k: 'd', beg: '{', end: '', e: [{ k: 'eqArr', rows: rows.map(r => r.reduce((a, c, i) => a.concat(i ? [run(' ')] : [], c), [])) }] };
+      if (/^(aligned|align|gathered|split|eqnarray)$/.test(name)) return { k: 'eqArr', rows: rows.map(r => r.reduce((a, c) => a.concat(c), [])) };
+      const dl = { pmatrix: ['(', ')'], bmatrix: ['[', ']'], Bmatrix: ['{', '}'], vmatrix: ['|', '|'], Vmatrix: ['‖', '‖'] }[name];
+      return dl ? { k: 'd', beg: dl[0], end: dl[1], e: [mat] } : mat;
+    }
+    if (v === 'operatorname' || v === 'mathrm' || v === 'textrm' || v === 'rm' || v === 'mathup') { const txt = rawGroup(); return run(txt, { sty: 'p', fn: v === 'operatorname' }); }
+    if (v === 'text' || v === 'mbox' || v === 'textnormal' || v === 'textit' || v === 'textbf') return run(rawGroup(), { nor: true });
+    if (v === 'mathbf' || v === 'boldsymbol' || v === 'bm') return { k: 'grp', e: arg().map(n => n.k === 'r' ? { ...n, sty: 'b' } : n) };
+    if (v === 'mathit') return { k: 'grp', e: arg() };
+    if (v === 'mathbb') { const txt = rawGroup(); return run([...txt].map(c => BB[c] || c).join('')); }
+    if (v === 'mathcal' || v === 'mathscr') return { k: 'grp', e: arg() };
+    if (FN.has(v)) return run(v, { sty: 'p', fn: true, lim: v === 'lim' });
+    if (NARY[v]) return { k: 'nary', chr: NARY[v], sub: null, sup: null, e: [] };
+    if (ACC_CHR[v]) { const e = arg(); return v === 'bar' && e.length > 1 ? { k: 'bar', e } : { k: 'acc', chr: ACC_CHR[v], e }; }
+    if (v === 'overline') return { k: 'bar', e: arg() };
+    if (v === 'underline') return { k: 'bar', pos: 'bot', e: arg() };
+    if (v === 'overset' || v === 'stackrel') { const top = arg(), b = arg(); return { k: 'limUpp', e: b, lim: top }; }
+    if (v === 'underset') { const bot = arg(), b = arg(); return { k: 'limLow', e: b, lim: bot }; }
+    if (v === 'color' || v === 'textcolor') { rawGroup(); return v === 'textcolor' ? { k: 'grp', e: arg() } : null; }
+    if (/^(displaystyle|textstyle|scriptstyle|limits|nolimits|left\.|middle|,?)$/.test(v) || v === 'nonumber' || v === 'notag') return null;
+    if (v in SPACES) return SPACES[v] ? run(SPACES[v], { sp: true }) : null;
+    if (v === '\\') return run(' ');
+    if (v === 'not') { const n = atom(); return n && n.k === 'r' ? run(n.t + '̸') : n; }
+    if (CMD_SYM[v] !== undefined) return run(CMD_SYM[v]);
+    issues.push('Ukendt kommando \\' + v + '.');
+    return run('\\' + v, { unknown: true });
+  }
+  function list(stop) {
+    const out = [];
+    for (;;) {
+      const t = peek();
+      if (!t || stop(t)) break;
+      if (t.t === '}') { p++; issues.push('Der er en } for meget.'); continue; }
+      if (t.t === '^' || t.t === '_') { p++; out.push({ k: 'script', type: t.t, e: arg() }); continue; }
+      if (t.t === '&') { p++; out.push(run(' ')); continue; }
+      const n = atom();
+      if (n) out.push(n);
+    }
+    return post(out);
+  }
+  function post(nodes) {
+    // flad grupper ud, men behold dem som base for hævet/sænket skrift
+    let a = [];
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      if (n.k === 'grp' && !(nodes[i + 1] && nodes[i + 1].k === 'script')) a.push(...n.e); else a.push(n);
+    }
+    // almindelige parenteser → afgrænsere
+    const stack = [];
+    const out = [];
+    for (const n of a) {
+      if (n.k === 'r' && !n.sty && !n.nor && n.t.length === 1 && OPEN[n.t]) { stack.push({ ch: n.t, at: out.length }); out.push(n); continue; }
+      if (n.k === 'r' && !n.sty && !n.nor && n.t.length === 1 && Object.values(OPEN).includes(n.t)) {
+        const o = stack.length && stack[stack.length - 1];
+        if (o && OPEN[o.ch] === n.t) { stack.pop(); const inner = out.splice(o.at); inner.shift(); out.push({ k: 'd', beg: o.ch, end: n.t, e: finish(inner) }); continue; }
+      }
+      out.push(n);
+    }
+    // |x| → afgrænser
+    const bars = out.map((n, i) => n.k === 'r' && n.t === '|' ? i : -1).filter(i => i >= 0);
+    if (bars.length >= 2 && bars.length % 2 === 0) {
+      for (let j = bars.length - 2; j >= 0; j -= 2) { const i0 = bars[j], i1 = bars[j + 1]; const inner = out.slice(i0 + 1, i1); out.splice(i0, i1 - i0 + 1, { k: 'd', beg: '|', end: '|', e: finish(inner) }); }
+    }
+    return finish(out);
+  }
+  function finish(out) {
+    // hævet/sænket skrift
+    const b = [];
+    for (const n of out) {
+      if (n.k !== 'script') { b.push(n); continue; }
+      let base = b.pop();
+      if (!base) base = run('');
+      if (base.k === 'grp') base = { k: 'grp', e: base.e };
+      if (base.k === 'nary' || (base.k === 'r' && base.lim)) {
+        if (base.k === 'r') { b.push({ k: 'limLow', e: [base], lim: n.e, isFn: true }); continue; }
+        base[n.type === '^' ? 'sup' : 'sub'] = n.e; b.push(base); continue;
+      }
+      if (base.k === 'sS' && !base[n.type === '^' ? 'sup' : 'sub']) { base[n.type === '^' ? 'sup' : 'sub'] = n.e; b.push(base); continue; }
+      b.push({ k: 'sS', e: base.k === 'grp' ? base.e : [base], sup: n.type === '^' ? n.e : null, sub: n.type === '_' ? n.e : null, fn: base.fn });
+    }
+    // n-ære operatorer tager resten frem til næste relation
+    for (let i = 0; i < b.length; i++) {
+      if (b[i].k === 'nary' && !b[i].e.length) {
+        let j = i + 1;
+        while (j < b.length && !(b[j].k === 'r' && RELCH.has(b[j].t))) j++;
+        b[i].e = funcs(b.splice(i + 1, j - i - 1));
+      }
+    }
+    return funcs(b);
+  }
+  function funcs(b) {
+    // funktioner: sin(x), cos^{-1}(...), \lim_{x\to 0} f(x)
+    for (let i = 0; i < b.length - 1; i++) {
+      const n = b[i];
+      const isFn = (n.k === 'r' && n.fn) || (n.k === 'sS' && n.fn) || (n.k === 'limLow' && n.isFn);
+      if (!isFn) continue;
+      const nx = b[i + 1];
+      if (nx.k === 'r' && (RELCH.has(nx.t) || BINCH.has(nx.t) || nx.sp)) continue;
+      b.splice(i, 2, { k: 'func', name: [n], e: [nx] });
+    }
+    return b;
+  }
+  const tree = list(() => false);
+  return { tree, issues };
+}
+
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const RPR = '<w:rPr><w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/></w:rPr>';
+function omml(nodes) {
+  let x = '', buf = null;
+  const flush = () => { if (buf) { x += mr(buf.t, buf); buf = null; } };
+  for (const n of nodes) {
+    if (n.k === 'r') {
+      if (n.t === '') continue;
+      if (buf && buf.sty === n.sty && !!buf.nor === !!n.nor && !n.fn && !buf.fn) { buf.t += n.t; continue; }
+      flush(); buf = { ...n }; continue;
+    }
+    flush();
+    x += onode(n);
+  }
+  flush();
+  return x;
+}
+function mr(t, o) {
+  let pr = '';
+  if (o.nor) pr = '<m:rPr><m:nor/></m:rPr>';
+  else if (o.sty === 'p') pr = '<m:rPr><m:sty m:val="p"/></m:rPr>';
+  else if (o.sty === 'b') pr = '<m:rPr><m:sty m:val="b"/></m:rPr>';
+  return '<m:r>' + pr + RPR + '<m:t xml:space="preserve">' + esc(t) + '</m:t></m:r>';
+}
+const E = (tag, nodes) => nodes && nodes.length ? '<m:' + tag + '>' + omml(nodes) + '</m:' + tag + '>' : '<m:' + tag + '/>';
+function onode(n) {
+  switch (n.k) {
+    case 'grp': return omml(n.e);
+    case 'f': return '<m:f>' + (n.noBar ? '<m:fPr><m:type m:val="noBar"/></m:fPr>' : '') + E('num', n.num) + E('den', n.den) + '</m:f>';
+    case 'rad': return n.deg && n.deg.length ? '<m:rad>' + E('deg', n.deg) + E('e', n.e) + '</m:rad>' : '<m:rad><m:radPr><m:degHide m:val="1"/></m:radPr><m:deg/>' + E('e', n.e) + '</m:rad>';
+    case 'sS':
+      if (n.sup && n.sub) return '<m:sSubSup>' + E('e', n.e) + E('sub', n.sub) + E('sup', n.sup) + '</m:sSubSup>';
+      if (n.sup) return '<m:sSup>' + E('e', n.e) + E('sup', n.sup) + '</m:sSup>';
+      return '<m:sSub>' + E('e', n.e) + E('sub', n.sub) + '</m:sSub>';
+    case 'd': {
+      let pr = '';
+      if (n.beg !== '(') pr += '<m:begChr m:val="' + esc(n.beg) + '"/>';
+      if (n.end !== ')') pr += '<m:endChr m:val="' + esc(n.end) + '"/>';
+      return '<m:d>' + (pr ? '<m:dPr>' + pr + '</m:dPr>' : '') + E('e', n.e) + '</m:d>';
+    }
+    case 'nary': {
+      const isInt = /[∫∬∭∮]/.test(n.chr);
+      let pr = (n.chr !== '∫' ? '<m:chr m:val="' + n.chr + '"/>' : '') + '<m:limLoc m:val="' + (isInt ? 'subSup' : 'undOvr') + '"/>';
+      if (!n.sub) pr += '<m:subHide m:val="1"/>';
+      if (!n.sup) pr += '<m:supHide m:val="1"/>';
+      return '<m:nary><m:naryPr>' + pr + '</m:naryPr>' + E('sub', n.sub) + E('sup', n.sup) + E('e', n.e) + '</m:nary>';
+    }
+    case 'func': return '<m:func>' + E('fName', n.name) + E('e', n.e) + '</m:func>';
+    case 'acc': return '<m:acc><m:accPr><m:chr m:val="' + n.chr + '"/></m:accPr>' + E('e', n.e) + '</m:acc>';
+    case 'bar': return '<m:bar><m:barPr><m:pos m:val="' + (n.pos || 'top') + '"/></m:barPr>' + E('e', n.e) + '</m:bar>';
+    case 'limLow': return '<m:limLow>' + E('e', n.e) + E('lim', n.lim) + '</m:limLow>';
+    case 'limUpp': return '<m:limUpp>' + E('e', n.e) + E('lim', n.lim) + '</m:limUpp>';
+    case 'm': {
+      const cols = Math.max(1, ...n.rows.map(r => r.length));
+      return '<m:m><m:mPr><m:mcs><m:mc><m:mcPr><m:count m:val="' + cols + '"/><m:mcJc m:val="center"/></m:mcPr></m:mc></m:mcs></m:mPr>' +
+        n.rows.map(r => '<m:mr>' + Array.from({ length: cols }, (_, i) => E('e', r[i] || [])).join('') + '</m:mr>').join('') + '</m:m>';
+    }
+    case 'eqArr': return '<m:eqArr>' + n.rows.map(r => E('e', r)).join('') + '</m:eqArr>';
+    case 'script': return '';
+  }
+  return '';
+}
+function latexToOmml(src) {
+  const { tree, issues } = parseLatex(src);
+  return { xml: '<m:oMath>' + omml(tree) + '</m:oMath>', issues };
+}
+
+/* ---------- 5. DOCX ---------- */
+const NS = 'xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+const wr = (t, rpr = '') => '<w:r>' + (rpr ? '<w:rPr>' + rpr + '</w:rPr>' : '') + '<w:t xml:space="preserve">' + esc(t) + '</w:t></w:r>';
+
+// tekst med $...$ → løbende tekst og ligninger i samme afsnit
+function inlineParts(s) {
+  const parts = []; let buf = '', i = 0;
+  while (i < s.length) {
+    if (s[i] === '\\' && s[i + 1] === '$') { buf += '$'; i += 2; continue; }
+    if (s[i] === '$') {
+      const j = s.indexOf('$', i + 1);
+      if (j > i) { if (buf) parts.push({ t: 'text', v: buf }); buf = ''; parts.push({ t: 'math', v: s.slice(i + 1, j) }); i = j + 1; continue; }
+    }
+    buf += s[i++];
+  }
+  if (buf) parts.push({ t: 'text', v: buf });
+  return parts;
+}
+
+// blocks: [{kind:'heading'|'text'|'math'|'image'|'note'|'pagebreak', text, latex, level, png, w, h}]
+async function buildDocx(JSZip, blocks, opt = {}) {
+  const zip = new JSZip();
+  const rels = [], imgs = [];
+  let body = '', id = 1;
+  const jc = opt.align === 'left' ? 'left' : 'center';
+  for (const b of blocks) {
+    if (b.kind === 'heading') {
+      body += '<w:p><w:pPr><w:pStyle w:val="' + (b.level === 0 ? 'Title' : 'Heading' + (b.level || 1)) + '"/></w:pPr>' + inlineXml(b.text) + '</w:p>';
+    } else if (b.kind === 'text') {
+      body += '<w:p>' + inlineXml(b.text) + '</w:p>';
+    } else if (b.kind === 'math') {
+      const o = latexToOmml(b.latex);
+      body += '<w:p><m:oMathPara><m:oMathParaPr><m:jc m:val="' + (jc === 'left' ? 'left' : 'centerGroup') + '"/></m:oMathParaPr>' + o.xml + '</m:oMathPara></w:p>';
+    } else if (b.kind === 'note') {
+      body += '<w:p><w:pPr><w:spacing w:before="0" w:after="120"/></w:pPr>' + wr(b.text, '<w:i/><w:color w:val="9C5700"/><w:highlight w:val="yellow"/><w:sz w:val="18"/>') + '</w:p>';
+    } else if (b.kind === 'pagebreak') {
+      body += '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
+    } else if (b.kind === 'image') {
+      const n = imgs.length + 1, rid = 'rIdImg' + n;
+      imgs.push({ name: 'media/figur' + n + '.png', data: b.png });
+      rels.push('<Relationship Id="' + rid + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/figur' + n + '.png"/>');
+      const maxW = 453;
+      let w = b.w, h = b.h; if (w > maxW) { h = h * maxW / w; w = maxW; }
+      const cxv = Math.round(w * 12700), cyv = Math.round(h * 12700), did = id++;
+      body += '<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="' + cxv + '" cy="' + cyv + '"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:docPr id="' + did + '" name="Figur ' + n + '" descr="' + esc(b.alt || 'Figur fra PDF') + '"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="' + did + '" name="figur' + n + '.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="' + rid + '"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + cxv + '" cy="' + cyv + '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>';
+    }
+  }
+  function inlineXml(s) {
+    return inlineParts(s || '').map(p => p.t === 'text' ? wr(p.v) : latexToOmml(p.v).xml).join('');
+  }
+  const doc = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:document ' + NS + '><w:body>' + (body || '<w:p/>') +
+    '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1418" w:right="1418" w:bottom="1418" w:left="1418" w:header="709" w:footer="709" w:gutter="0"/></w:sectPr></w:body></w:document>';
+  const styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+    '<w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:eastAsia="Calibri" w:cs="Calibri"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="da-DK"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="264" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>' +
+    '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>' +
+    '<w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="80"/></w:pPr><w:rPr><w:rFonts w:ascii="Calibri Light" w:hAnsi="Calibri Light"/><w:sz w:val="52"/><w:szCs w:val="52"/></w:rPr></w:style>' +
+    '<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="360" w:after="120"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:rFonts w:ascii="Calibri Light" w:hAnsi="Calibri Light"/><w:color w:val="2F5496"/><w:sz w:val="32"/><w:szCs w:val="32"/></w:rPr></w:style>' +
+    '<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="240" w:after="80"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:rFonts w:ascii="Calibri Light" w:hAnsi="Calibri Light"/><w:color w:val="2F5496"/><w:sz w:val="26"/><w:szCs w:val="26"/></w:rPr></w:style>' +
+    '</w:styles>';
+  const settings = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"><w:defaultTabStop w:val="1304"/><w:characterSpacingControl w:val="doNotCompress"/><m:mathPr><m:mathFont m:val="Cambria Math"/><m:brkBin m:val="before"/><m:brkBinSub m:val="--"/><m:smallFrac m:val="0"/><m:dispDef/><m:lMargin m:val="0"/><m:rMargin m:val="0"/><m:defJc m:val="centerGroup"/><m:wrapIndent m:val="1440"/><m:intLim m:val="subSup"/><m:naryLim m:val="undOvr"/></m:mathPr><w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/></w:compat></w:settings>';
+  zip.file('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>');
+  zip.file('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>');
+  const now = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+  zip.file('docProps/core.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>' + esc(opt.title || 'CAS-dokument') + '</dc:title><dc:creator>CAS PDF til Word</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">' + now + '</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">' + now + '</dcterms:modified></cp:coreProperties>');
+  zip.file('word/document.xml', doc);
+  zip.file('word/styles.xml', styles);
+  zip.file('word/settings.xml', settings);
+  zip.file('word/_rels/document.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rIdSettings" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/>' + rels.join('') + '</Relationships>');
+  for (const im of imgs) zip.file('word/' + im.name, im.data);
+  return zip;
+}
+
+return { extractPage, analyzePage, parseLatex, latexToOmml, buildDocx, inlineParts };
+})();
+if (typeof module !== 'undefined') module.exports = CASCore;
+window.CASCore = CASCore;
+</script>
+<script type="module">
+import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
+const C = window.CASCore;
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const CROP = 2; // opløsning for udsnit og figurer
+const KINDS = [['heading', 'Overskrift'], ['text', 'Tekst'], ['math', 'Formel'], ['figure', 'Billede'], ['skip', 'Udelad']];
+
+const S = { file: null, pdf: null, pages: [], blocks: [], cur: 1, sel: null, busy: false, opts: { align: 'center', results: true, mark: true, pagebreak: false } };
+let uid = 0;
+
+/* ---------- hjælpere ---------- */
+function toast(msg, ms = 4200) { const t = $('#toast'); t.innerHTML = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
+function alertBox(kind, html) { const d = document.createElement('div'); d.className = 'alert ' + kind; d.innerHTML = html; $('#alerts').appendChild(d); return d; }
+const isBlue = c => c && c[2] > 150 && c[2] - c[0] > 60;
+
+/* ---------- import ---------- */
+const drop = $('#drop');
+['dragenter', 'dragover'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', ev => { const f = ev.dataTransfer.files && ev.dataTransfer.files[0]; if (f) load(f); });
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => { e.preventDefault(); if (!$('#work').hidden && e.dataTransfer.files[0] && !S.busy) load(e.dataTransfer.files[0]); });
+$('#file').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) load(f); });
+
+async function load(file) {
+  if (S.busy) return;
+  await reset(false);
+  $('#intro').hidden = true; $('#work').hidden = false;
+  $('#fname').textContent = file.name; $('#fmeta').textContent = (file.size / 1024 / 1024).toFixed(1).replace('.', ',') + ' MB';
+  S.file = file;
+  const fail = html => { $('#progress').hidden = true; S.busy = false; alertBox('bad', html + ' <button class="btn sm" type="button" onclick="document.getElementById(\'reset\').click()">Vælg en anden fil</button>'); $('#panes').hidden = true; };
+  if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') return fail('<b>Filen er ikke en PDF.</b> Vælg en fil, der ender på .pdf.');
+  if (file.size > 150 * 1024 * 1024) return fail('<b>Filen er for stor</b> (over 150 MB) til at blive behandlet sikkert i browseren.');
+  let data;
+  try { data = new Uint8Array(await file.arrayBuffer()); } catch (e) { return fail('<b>Filen kunne ikke læses.</b> ' + esc(e.message)); }
+  const head = new TextDecoder('latin1').decode(data.subarray(0, 1024));
+  if (!head.includes('%PDF-')) return fail('<b>Filen er ikke en gyldig PDF.</b> Den mangler PDF-signaturen. Er det måske en anden filtype, der er omdøbt?');
+  S.busy = true;
+  $('#progress').hidden = false; $('#panes').hidden = false;
+  setProg('Åbner PDF …', 0);
+  try {
+    S.pdf = await pdfjsLib.getDocument({ data, isEvalSupported: false, fontExtraProperties: true }).promise;
+  } catch (e) {
+    S.busy = false;
+    if (e && e.name === 'PasswordException') return fail('<b>PDF\'en er beskyttet med adgangskode.</b> Gem en udgave uden adgangskode, og prøv igen.');
+    return fail('<b>PDF\'en kunne ikke åbnes.</b> Den er muligvis beskadiget. (' + esc(e && e.message || e) + ')');
+  }
+  const n = S.pdf.numPages;
+  $('#fmeta').textContent += ' · ' + n + (n === 1 ? ' side' : ' sider');
+  if (n > 120) alertBox('warn', '<b>Stor PDF (' + n + ' sider).</b> Behandlingen kan tage lidt tid og bruge meget hukommelse.');
+  let glyphTotal = 0;
+  try {
+    for (let p = 1; p <= n; p++) {
+      setProg('Analyserer side ' + p + ' af ' + n + ' …', (p - 1) / n);
+      const page = await S.pdf.getPage(p);
+      const P = await C.extractPage(page, pdfjsLib.OPS);
+      glyphTotal += P.glyphs.length;
+      const r = C.analyzePage(P, p);
+      const blocks = r.blocks;
+      const scanned = P.glyphs.length === 0 && P.images.length > 0;
+      if (scanned) blocks.length = 0;
+      if (scanned) blocks.push({ page: p, kind: 'figure', bbox: [0, 0, P.w, P.h], src: '', warnings: ['Siden består kun af billeder (fx en scanning). Tekst og formler kan ikke genkendes sikkert her. Behold siden som billede, eller skriv formlerne ind med "Indsæt formel".'], scanned: true });
+      // udsnit af hver blok fra en skarp gengivelse af siden
+      const vp = page.getViewport({ scale: CROP });
+      const cv = document.createElement('canvas'); cv.width = Math.ceil(vp.width); cv.height = Math.ceil(vp.height);
+      await page.render({ canvasContext: cv.getContext('2d'), viewport: vp, background: '#ffffff' }).promise;
+      for (const b of blocks) {
+        b.id = ++uid; b.orig = b.src; b.reviewed = false; b.result = b.kind === 'math' && isBlue(b.color);
+        b.crop = crop(cv, b.bbox, b.kind === 'figure' ? 2 : 4);
+      }
+      S.pages[p] = { w: P.w, h: P.h };
+      S.blocks.push(...blocks);
+      cv.width = cv.height = 0;
+      page.cleanup();
+      if (p === 1) { S.cur = 1; renderList(); await showPage(1); }
+    }
+  } catch (e) {
+    console.error(e);
+    S.busy = false;
+    return fail('<b>Analysen stoppede på grund af en fejl:</b> ' + esc(e && e.message || e) + '. Hvis PDF\'en er meget stor, kan browseren være løbet tør for hukommelse.');
+  }
+  setProg('Færdig', 1);
+  setTimeout(() => { $('#progress').hidden = true; }, 500);
+  S.busy = false;
+  renderList(); await showPage(S.cur);
+  const nMath = S.blocks.filter(b => b.kind === 'math').length;
+  if (!glyphTotal) alertBox('warn', '<b>PDF\'en indeholder ingen udtrækkelig tekst.</b> Den består sandsynligvis af billeder eller er scannet. Siderne er bevaret som billeder. Automatisk genkendelse af matematik i billeder (OCR) er ikke pålidelig nok til formler, så skriv dem ind med <b>Indsæt formel</b>, hvis de skal være redigerbare.');
+  else if (!nMath) alertBox('warn', '<b>Der blev ikke fundet matematiske udtryk.</b> Teksten er udtrukket. Du kan gøre en linje til en formel ved at ændre typen til <b>Formel</b>.');
+}
+function setProg(t, f) { $('#ptext').textContent = t; $('#pbar').style.width = Math.round(f * 100) + '%'; $('#pnum').textContent = Math.round(f * 100) + ' %'; }
+function crop(cv, bb, pad) {
+  const x = Math.max(0, Math.floor((bb[0] - pad) * CROP)), y = Math.max(0, Math.floor((bb[1] - pad) * CROP));
+  const w = Math.min(cv.width - x, Math.ceil((bb[2] - bb[0] + 2 * pad) * CROP)), h = Math.min(cv.height - y, Math.ceil((bb[3] - bb[1] + 2 * pad) * CROP));
+  if (w < 2 || h < 2) return null;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  c.getContext('2d').drawImage(cv, x, y, w, h, 0, 0, w, h);
+  return { url: c.toDataURL('image/png'), w: w / CROP, h: h / CROP };
+}
+
+/* ---------- side-visning ---------- */
+let renderTask = null;
+async function showPage(p) {
+  if (!S.pdf) return;
+  p = Math.max(1, Math.min(S.pdf.numPages, p)); S.cur = p;
+  $('#pinfo').textContent = 'Side ' + p + ' af ' + S.pdf.numPages;
+  $('#prev').disabled = p <= 1; $('#next').disabled = p >= S.pdf.numPages;
+  const page = await S.pdf.getPage(p);
+  const box = $('#stage').clientWidth - 28;
+  const base = page.getViewport({ scale: 1 });
+  const scale = Math.max(0.4, box / base.width);
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const vp = page.getViewport({ scale: scale * dpr });
+  const cv = $('#pcanvas');
+  if (renderTask) { try { renderTask.cancel(); } catch {} }
+  cv.width = Math.ceil(vp.width); cv.height = Math.ceil(vp.height);
+  $('#pagewrap').style.width = Math.ceil(base.width * scale) + 'px';
+  renderTask = page.render({ canvasContext: cv.getContext('2d'), viewport: vp, background: '#ffffff' });
+  try { await renderTask.promise; } catch (e) { if (e && e.name === 'RenderingCancelledException') return; }
+  drawOverlays(scale);
+}
+function drawOverlays(scale) {
+  const wrap = $('#pagewrap');
+  wrap.querySelectorAll('.ov').forEach(o => o.remove());
+  for (const b of S.blocks.filter(b => b.page === S.cur)) {
+    const st = status(b);
+    const o = document.createElement('div');
+    o.className = 'ov ' + b.kind + (st.cls === 'warn' || st.cls === 'bad' ? ' ' + st.cls : '') + (b.kind === 'skip' ? ' skip' : '') + (S.sel === b.id ? ' sel' : '');
+    o.dataset.id = b.id;
+    o.title = KINDS.find(k => k[0] === b.kind)[1] + ': ' + st.text;
+    o.style.left = (b.bbox[0] - 2) * scale + 'px'; o.style.top = (b.bbox[1] - 2) * scale + 'px';
+    o.style.width = (b.bbox[2] - b.bbox[0] + 4) * scale + 'px'; o.style.height = (b.bbox[3] - b.bbox[1] + 4) * scale + 'px';
+    wrap.appendChild(o);
+  }
+  wrap.dataset.scale = scale;
+}
+$('#pagewrap').addEventListener('click', e => { const o = e.target.closest('.ov'); if (o) select(+o.dataset.id, true); });
+$('#prev').addEventListener('click', () => showPage(S.cur - 1));
+$('#next').addEventListener('click', () => showPage(S.cur + 1));
+let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => S.pdf && showPage(S.cur), 200); });
+
+function select(id, fromPdf) {
+  S.sel = id;
+  document.querySelectorAll('.card.sel').forEach(c => c.classList.remove('sel'));
+  const card = document.querySelector('.card[data-id="' + id + '"]');
+  if (card) { card.classList.add('sel'); if (fromPdf) card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  const b = S.blocks.find(b => b.id === id);
+  if (b && b.page !== S.cur) showPage(b.page); else drawOverlays(+$('#pagewrap').dataset.scale || 1);
+}
+
+/* ---------- status for en blok ---------- */
+function latexIssues(src) {
+  const out = [];
+  try { out.push(...C.parseLatex(src).issues); } catch (e) { out.push('Formlen kan ikke læses: ' + e.message); }
+  try { katex.renderToString(src, { throwOnError: true, displayMode: true, strict: 'ignore' }); } catch (e) { out.push(String(e.message || e).replace(/^KaTeX parse error: /, 'Fejl i LaTeX: ')); }
+  return [...new Set(out)];
+}
+function status(b) {
+  if (b.kind === 'skip') return { cls: 'skip', text: 'Udelades' };
+  if (b.kind === 'math') {
+    if (!b.src.trim()) return { cls: 'bad', text: 'Tom formel', errs: ['Formlen er tom. Skriv den, eller vælg "Udelad".'] };
+    const errs = latexIssues(b.src);
+    if (errs.length) return { cls: 'bad', text: 'Fejl', errs };
+    if (b.warnings && b.warnings.length && !b.reviewed) return { cls: 'warn', text: 'Kontrollér', warns: b.warnings };
+    return { cls: 'ok', text: b.reviewed ? 'Kontrolleret' : (b.manual ? 'Indtastet' : 'Genkendt') };
+  }
+  if (b.kind === 'text' || b.kind === 'heading') {
+    const errs = [];
+    for (const p of C.inlineParts(b.src)) if (p.t === 'math') errs.push(...latexIssues(p.v).map(m => '$' + p.v + '$: ' + m));
+    if (errs.length) return { cls: 'bad', text: 'Fejl', errs };
+    return { cls: 'ok', text: 'Tekst' };
+  }
+  if (b.kind === 'figure') {
+    if (!b.crop) return { cls: 'bad', text: 'Mangler billede', errs: ['Området kunne ikke gemmes som billede.'] };
+    if (b.warnings && b.warnings.length && !b.reviewed) return { cls: 'warn', text: 'Kontrollér', warns: b.warnings };
+    return { cls: 'ok', text: 'Billede' };
+  }
+  return { cls: 'ok', text: '' };
+}
+
+/* ---------- liste ---------- */
+const ICON = {
+  pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
+  del: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'
+};
+function renderList() {
+  const L = $('#list');
+  if (!S.blocks.length) { L.innerHTML = '<div class="empty">Intet indhold endnu.</div>'; updateStats(); return; }
+  let html = '', lastPage = 0, i = 0;
+  for (const b of S.blocks) {
+    if (b.page !== lastPage) { html += '<div class="pagehead">Side ' + b.page + '</div>'; lastPage = b.page; }
+    html += cardHTML(b, ++i);
+  }
+  L.innerHTML = html;
+  for (const b of S.blocks) paintPreview(b);
+  updateStats();
+}
+function cardHTML(b, i) {
+  const st = status(b);
+  const opts = KINDS.map(([v, t]) => '<option value="' + v + '"' + (v === b.kind ? ' selected' : '') + '>' + t + '</option>').join('');
+  const editable = b.kind === 'math' || b.kind === 'text' || b.kind === 'heading';
+  const showOrig = b.crop && !b.manual;
+  return '<article class="card ' + (b.kind === 'skip' ? 'skip' : st.cls) + (S.sel === b.id ? ' sel' : '') + '" data-id="' + b.id + '">' +
+    '<div class="ch"><span class="no">' + i + '</span><select class="kind" aria-label="Type">' + opts + '</select>' +
+    '<span class="badge ' + st.cls + '">' + esc(st.text) + '</span>' + (b.result ? '<span class="badge res" title="Blå linje i CAS-udskriften">Resultat</span>' : '') +
+    '<span class="sp"></span>' +
+    (b.manual ? '' : '<button class="ib" data-a="pin" type="button" title="Vis i PDF" aria-label="Vis i PDF">' + ICON.pin + '</button>') +
+    (b.src !== b.orig && !b.manual ? '<button class="ib" data-a="undo" type="button" title="Gendan genkendt version" aria-label="Gendan">' + ICON.undo + '</button>' : '') +
+    '<button class="ib" data-a="add" type="button" title="Indsæt formel under" aria-label="Indsæt formel under">' + ICON.plus + '</button>' +
+    (b.manual ? '<button class="ib" data-a="del" type="button" title="Slet" aria-label="Slet">' + ICON.del + '</button>' : '') +
+    '</div>' +
+    (b.kind === 'skip' ? '' : '<div class="cb">' +
+      (b.kind === 'figure' ? '' : '<div class="prev ' + b.kind + '" data-prev></div>') +
+      (showOrig ? '<div class="orig' + (b.kind === 'figure' ? ' fig' : '') + '">' + (b.kind === 'figure' ? '' : '<span class="lbl">Original</span>') + '<img alt="Udsnit af originalen" style="width:' + Math.round(b.crop.w * (b.kind === 'figure' ? 1 : 1.25)) + 'px" src="' + b.crop.url + '"></div>' : '') +
+      (editable ? '<textarea class="src" spellcheck="false" rows="' + Math.min(6, Math.max(1, Math.ceil(b.src.length / 70))) + '" aria-label="' + (b.kind === 'math' ? 'LaTeX-kilde' : 'Tekst') + '">' + esc(b.src) + '</textarea>' : '') +
+      '<div data-iss>' + issuesHTML(st) + '</div>' +
+      (st.warns || b.reviewed ? '<div class="foot"><label><input type="checkbox" data-a="rev"' + (b.reviewed ? ' checked' : '') + '> Jeg har kontrolleret ' + (b.kind === 'figure' ? 'siden' : 'formlen') + '</label></div>' : '') +
+    '</div>') +
+  '</article>';
+}
+function issuesHTML(st) {
+  if (st.errs) return '<ul class="issues bad">' + st.errs.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>';
+  if (st.warns) return '<ul class="issues warn">' + st.warns.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>';
+  return '';
+}
+function paintPreview(b) {
+  const card = document.querySelector('.card[data-id="' + b.id + '"]'); if (!card) return;
+  const el = card.querySelector('[data-prev]'); if (!el) return;
+  if (b.kind === 'math') {
+    try { katex.render(b.src || '\\square', el, { throwOnError: true, displayMode: true, strict: 'ignore' }); }
+    catch (e) { el.innerHTML = '<span class="err">' + esc(e.message || e) + '</span>'; }
+  } else {
+    el.innerHTML = C.inlineParts(b.src).map(p => {
+      if (p.t === 'text') return esc(p.v);
+      try { return katex.renderToString(p.v, { throwOnError: true, strict: 'ignore' }); } catch (e) { return '<span class="err">$' + esc(p.v) + '$</span>'; }
+    }).join('') || '&nbsp;';
+  }
+}
+function refreshCard(b, full) {
+  const card = document.querySelector('.card[data-id="' + b.id + '"]'); if (!card) return;
+  const st = status(b);
+  if (full) {
+    const i = card.querySelector('.no').textContent;
+    const tmp = document.createElement('div'); tmp.innerHTML = cardHTML(b, i);
+    const nc = tmp.firstChild; card.replaceWith(nc); paintPreview(b);
+  } else {
+    card.className = 'card ' + (b.kind === 'skip' ? 'skip' : st.cls) + (S.sel === b.id ? ' sel' : '');
+    const badge = card.querySelector('.badge'); badge.className = 'badge ' + st.cls; badge.textContent = st.text;
+    card.querySelector('[data-iss]').innerHTML = issuesHTML(st);
+    paintPreview(b);
+  }
+  updateStats();
+  if (b.page === S.cur) drawOverlays(+$('#pagewrap').dataset.scale || 1);
+}
+const list = $('#list');
+const debounced = new Map();
+list.addEventListener('input', e => {
+  const ta = e.target.closest('.src'); if (!ta) return;
+  const b = blockOf(ta); b.src = ta.value;
+  clearTimeout(debounced.get(b.id));
+  debounced.set(b.id, setTimeout(() => {
+    const hadUndo = !!ta.closest('.card').querySelector('[data-a="undo"]');
+    refreshCard(b, hadUndo !== (b.src !== b.orig && !b.manual));
+  }, 160));
+});
+list.addEventListener('change', e => {
+  const t = e.target, b = blockOf(t); if (!b) return;
+  if (t.classList.contains('kind')) {
+    const from = b.kind, to = t.value;
+    if (from === 'math' && (to === 'text' || to === 'heading')) b.src = '$' + b.src + '$';
+    else if ((from === 'text' || from === 'heading') && to === 'math') { const m = /^\s*\$([^$]*)\$\s*$/.exec(b.src); b.src = m ? m[1] : textToLatex(b.src); }
+    else if (from === 'figure' && (to === 'math' || to === 'text' || to === 'heading') && !b.src) b.src = '';
+    if (to === 'figure' && !b.crop) { toast('Dette område har intet billedudsnit.'); t.value = from; return; }
+    b.kind = to; refreshCard(b, true);
+  }
+  if (t.dataset.a === 'rev') { b.reviewed = t.checked; refreshCard(b, true); }
+});
+list.addEventListener('click', e => {
+  const btn = e.target.closest('[data-a]'); if (!btn || btn.tagName === 'INPUT') { const c = e.target.closest('.card'); if (c && !e.target.closest('textarea,select,button,input,label')) select(+c.dataset.id, false); return; }
+  const b = blockOf(btn);
+  const a = btn.dataset.a;
+  if (a === 'pin') select(b.id, false);
+  if (a === 'undo') { b.src = b.orig; refreshCard(b, true); }
+  if (a === 'add') {
+    const nb = { id: ++uid, page: b.page, row: b.row, kind: 'math', bbox: b.bbox, src: '', orig: '', warnings: [], reviewed: false, manual: true, crop: null };
+    S.blocks.splice(S.blocks.indexOf(b) + 1, 0, nb);
+    renderList(); select(nb.id, false);
+    const ta = document.querySelector('.card[data-id="' + nb.id + '"] .src'); if (ta) { ta.focus(); ta.scrollIntoView({ block: 'center' }); }
+  }
+  if (a === 'del') { S.blocks.splice(S.blocks.indexOf(b), 1); renderList(); }
+});
+const blockOf = el => { const c = el.closest('.card'); return c && S.blocks.find(b => b.id === +c.dataset.id); };
+function textToLatex(t) {
+  return t.replace(/²/g, '^{2}').replace(/³/g, '^{3}').replace(/·|⋅/g, '\\cdot ').replace(/−/g, '-').replace(/≤/g, '\\le ').replace(/≥/g, '\\ge ').replace(/≈/g, '\\approx ').replace(/π/g, '\\pi ').replace(/√/g, '\\sqrt ');
+}
+
+function exported() { return S.blocks.filter(b => b.kind !== 'skip' && !(b.result && !S.opts.results)); }
+function updateStats() {
+  const ex = exported();
+  const st = ex.map(b => [b, status(b)]);
+  const math = ex.filter(b => b.kind === 'math').length;
+  const warn = st.filter(([, s]) => s.cls === 'warn'), bad = st.filter(([, s]) => s.cls === 'bad');
+  const figs = ex.filter(b => b.kind === 'figure').length;
+  $('#stats').innerHTML = '<span class="chip ok"><span class="d"></span>' + math + ' formler</span>' + (figs ? '<span class="chip">' + figs + ' billeder</span>' : '') +
+    (warn.length ? '<span class="chip warn" data-go="' + warn[0][0].id + '" title="Gå til den første"><span class="d"></span>' + warn.length + ' skal kontrolleres</span>' : '') +
+    (bad.length ? '<span class="chip bad" data-go="' + bad[0][0].id + '" title="Gå til den første"><span class="d"></span>' + bad.length + ' med fejl</span>' : '');
+  $('#dlDocx').disabled = S.busy || !ex.length || bad.length > 0;
+  $('#dlDocx').title = bad.length ? 'Ret de ' + bad.length + ' formler med fejl først, eller vælg "Billede" eller "Udelad" for dem.' : '';
+}
+$('#stats').addEventListener('click', e => { const c = e.target.closest('[data-go]'); if (c) select(+c.dataset.go, true); });
+
+/* ---------- indstillinger ---------- */
+$('#align').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.opts.align = b.dataset.v; $('#align').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
+$('#optRes').addEventListener('change', e => { S.opts.results = e.target.checked; updateStats(); });
+$('#optMark').addEventListener('change', e => { S.opts.mark = e.target.checked; });
+$('#optPage').addEventListener('change', e => { S.opts.pagebreak = e.target.checked; });
+
+/* ---------- eksport ---------- */
+function dataUrlBytes(u) { const b = atob(u.split(',')[1]); const a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
+function docBlocks() {
+  const out = []; let titleDone = false, lastPage = 0;
+  for (const b of exported()) {
+    if (S.opts.pagebreak && lastPage && b.page !== lastPage) out.push({ kind: 'pagebreak' });
+    lastPage = b.page;
+    const st = status(b);
+    if (b.kind === 'heading') { out.push({ kind: 'heading', level: !titleDone && b.page === 1 ? 0 : (b.level || 1), text: b.src }); titleDone = true; }
+    else if (b.kind === 'text') out.push({ kind: 'text', text: b.src });
+    else if (b.kind === 'math') out.push({ kind: 'math', latex: b.src });
+    else if (b.kind === 'figure') out.push({ kind: 'image', png: dataUrlBytes(b.crop.url), w: b.crop.w, h: b.crop.h, alt: 'Figur fra side ' + b.page });
+    if (S.opts.mark && st.cls === 'warn') out.push({ kind: 'note', text: 'Kontrollér: ' + st.warns.join(' ') });
+  }
+  return out;
+}
+$('#dlDocx').addEventListener('click', async () => {
+  const ex = exported();
+  const bad = ex.filter(b => status(b).cls === 'bad');
+  if (bad.length) { select(bad[0].id, true); toast('Ret formlerne med fejl først.'); return; }
+  try {
+    const blocks = docBlocks();
+    const zip = await C.buildDocx(JSZip, blocks, { align: S.opts.align, title: S.file.name.replace(/\.pdf$/i, '') });
+    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', compression: 'DEFLATE' });
+    save(blob, S.file.name.replace(/\.pdf$/i, '') + '.docx');
+    const nm = blocks.filter(b => b.kind === 'math').length + blocks.filter(b => b.kind === 'text' || b.kind === 'heading').reduce((a, b) => a + C.inlineParts(b.text).filter(p => p.t === 'math').length, 0);
+    const warn = ex.filter(b => status(b).cls === 'warn').length;
+    toast('<b>Word-filen er hentet</b> med ' + nm + ' redigerbare ligninger.' + (warn ? ' ' + warn + (warn === 1 ? ' er' : ' er') + ' ikke kontrolleret' + (S.opts.mark ? ' og står markeret med gult i dokumentet.' : '.') : ''), 6500);
+  } catch (e) {
+    console.error(e);
+    alertBox('bad', '<b>Dokumentet kunne ikke laves:</b> ' + esc(e.message || e) + '. Prøv at hente teksten (.txt) i stedet, og meld gerne fejlen.');
+  }
+});
+$('#dlTxt').addEventListener('click', () => {
+  let t = '', lastPage = 0;
+  for (const b of exported()) {
+    if (b.page !== lastPage) { t += (lastPage ? '\n' : '') + '--- Side ' + b.page + ' ---\n'; lastPage = b.page; }
+    if (b.kind === 'heading') t += '# ' + b.src + '\n';
+    else if (b.kind === 'text') t += b.src + '\n';
+    else if (b.kind === 'math') t += '$$ ' + b.src + ' $$\n';
+    else if (b.kind === 'figure') t += '[Billede fra side ' + b.page + ']\n';
+  }
+  save(new Blob(['﻿' + t], { type: 'text/plain;charset=utf-8' }), S.file.name.replace(/\.pdf$/i, '') + '.txt');
+});
+function save(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+/* ---------- nulstil ---------- */
+async function reset(toIntro = true) {
+  if (S.pdf) { try { await S.pdf.destroy(); } catch {} }
+  S.pdf = null; S.file = null; S.pages = []; S.blocks = []; S.sel = null; S.busy = false;
+  $('#list').innerHTML = ''; $('#alerts').innerHTML = ''; $('#stats').innerHTML = '';
+  const cv = $('#pcanvas'); cv.width = cv.height = 0;
+  $('#pagewrap').querySelectorAll('.ov').forEach(o => o.remove());
+  $('#panes').hidden = false;
+  if (toIntro) { $('#work').hidden = true; $('#intro').hidden = false; window.scrollTo(0, 0); }
+}
+$('#reset').addEventListener('click', () => reset(true));
+addEventListener('pagehide', () => { if (S.pdf) S.pdf.destroy(); });
+window.__cas = S;
+</script>
+</body>
+</html>
