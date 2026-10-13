@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#141026">
+  <meta name="description" content="GrejsAlley Lemmings — led de små grejser sikkert til udgangen. 20 baner i 5 verdener med klatrere, byggere, gravere og bomber.">
+  <title>GrejsAlley Lemmings</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/icon.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Icon sprite (skills + UI). Referenced with <svg><use href="#i-..."/></svg> -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="g-star" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0a8"/><stop offset=".5" stop-color="#ffcf3a"/><stop offset="1" stop-color="#f09a10"/></linearGradient>
+    </defs>
+    <!-- skills -->
+    <symbol id="i-climber" viewBox="0 0 24 24"><path d="M19 2v20"/><path d="M19 6l3-2M19 11l3-2M19 16l3-2"/><circle cx="12" cy="5" r="2.2"/><path d="M12 7.5v6l-3 5M12 13.5l3 4.5M12 9.5l4-2.5M12 9.5 8.5 7"/></symbol>
+    <symbol id="i-floater" viewBox="0 0 24 24"><path d="M3 11a9 8 0 0 1 18 0c-1.5-1.2-3-1.2-4.5 0-1.5-1.2-3-1.2-4.5 0-1.5-1.2-3-1.2-4.5 0-1.5-1.2-3-1.2-4.5 0z"/><path d="M12 11v8.5a2 2 0 0 1-4 0"/></symbol>
+    <symbol id="i-bomber" viewBox="0 0 24 24"><circle cx="10" cy="14.5" r="6.5"/><path d="M14.6 9.9 17 7.5"/><path d="M19.5 2.5l.8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8z"/><path d="M7.5 12.5a3 3 0 0 1 2.5-1.5"/></symbol>
+    <symbol id="i-blocker" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2.4"/><path d="M2.5 9.5h19M12 7.5v8M12 15.5l-4 6M12 15.5l4 6"/><path d="M2.5 7v5M21.5 7v5"/></symbol>
+    <symbol id="i-builder" viewBox="0 0 24 24"><path d="M2.5 20.5h19"/><path d="M4 20.5v-3.5h4.5v-3.5H13V10h4.5V6.5H21"/><path d="M8.5 17v3.5M13 13.5v7M17.5 10v10.5"/></symbol>
+    <symbol id="i-basher" viewBox="0 0 24 24"><path d="M15.5 3v18M19.5 3v18M15.5 8h4M15.5 16h4"/><path d="M2.5 12h10M9 8.5l3.5 3.5L9 15.5"/></symbol>
+    <symbol id="i-miner" viewBox="0 0 24 24"><path d="M5 19.5 14.5 10"/><path d="M8.5 4.5c4.5-2 9.5-.5 12 4-3-1.5-6.5-1.5-10 .5"/><path d="M13 17l4 4M17 17v4h-4"/></symbol>
+    <symbol id="i-digger" viewBox="0 0 24 24"><path d="M12 2.5v9"/><path d="M9 2.5h6"/><path d="M7.5 11.5h9v3.5a4.5 4.5 0 0 1-9 0z"/><path d="M4 21.5h4M16 21.5h4"/></symbol>
+    <!-- ui -->
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.6v14.8a1 1 0 0 0 1.53.85l11.6-7.4a1 1 0 0 0 0-1.7L8.53 3.75A1 1 0 0 0 7 4.6z" fill="currentColor"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4.5" width="4" height="15" rx="1.2" fill="currentColor"/><rect x="14" y="4.5" width="4" height="15" rx="1.2" fill="currentColor"/></symbol>
+    <symbol id="i-restart" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 3.5V8h4.5"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6 9 4z"/><path d="M9 4v14M15 6v14"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+    <symbol id="i-fast" viewBox="0 0 24 24"><path d="M3 5.5v13l8-6.5zM12 5.5v13l8-6.5z" fill="currentColor"/></symbol>
+    <symbol id="i-nuke" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><path d="M12 9.8 9.3 5a8 8 0 0 1 5.4 0zM14 13.1l5.4.1a8 8 0 0 1-2.7 4.7zM10 13.1l-2.7 4.8a8 8 0 0 1-2.7-4.7z" fill="currentColor"/></symbol>
+    <symbol id="i-hatch" viewBox="0 0 24 24"><rect x="3" y="3.5" width="18" height="7" rx="2"/><path d="M7 10.5 4.5 15M17 10.5l2.5 4.5"/><circle cx="12" cy="18" r="2.2"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 4.8 4.8L19.5 7"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.6l2.85 5.95 6.55.85-4.8 4.55 1.2 6.5L12 17.3l-5.8 3.15 1.2-6.5-4.8-4.55 6.55-.85z" fill="currentColor"/></symbol>
+    <symbol id="i-star-g" viewBox="0 0 24 24"><path d="M12 2.6l2.85 5.95 6.55.85-4.8 4.55 1.2 6.5L12 17.3l-5.8 3.15 1.2-6.5-4.8-4.55 6.55-.85z" fill="url(#g-star)" stroke="#a35f00" stroke-width="1" stroke-linejoin="round"/></symbol>
+    <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="7.5" r="3"/><path d="M3.5 20v-1.5A4.5 4.5 0 0 1 8 14h2a4.5 4.5 0 0 1 4.5 4.5V20"/><circle cx="17" cy="8.5" r="2.4"/><path d="M16 14h1.5a3.5 3.5 0 0 1 3.5 3.5V20"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><rect x="3.5" y="3" width="17" height="6" rx="1.5"/><path d="M12 9v9M8.5 14.5 12 18l3.5-3.5"/></symbol>
+    <symbol id="i-walk" viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="2.2"/><path d="M12.5 7.5 10 14l-3 6.5M10 14l4 2.5 1 4.5M11.5 9 16 11.5M11.5 9 7.5 11"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 21V9.5a8 8 0 0 1 16 0V21z"/><path d="M9.5 21v-5a2.5 2.5 0 0 1 5 0v5"/></symbol>
+    <symbol id="i-skull" viewBox="0 0 24 24"><path d="M12 3a8 8 0 0 0-8 8c0 2.6 1.3 4.6 3 5.8V20h10v-3.2c1.7-1.2 3-3.2 3-5.8a8 8 0 0 0-8-8z"/><circle cx="9" cy="11.5" r="1.6" fill="currentColor"/><circle cx="15" cy="11.5" r="1.6" fill="currentColor"/><path d="M10 20v-2.5M14 20v-2.5"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8" fill="currentColor"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4.5l3 2M9.5 2.5h5"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5M8 10.5h5M10.5 8v5"/></symbol>
+  </svg>
+
+  <div id="app">
+    <!-- ============================== START MENU ============================== -->
+    <section id="scr-menu" class="screen active" aria-label="Startmenu">
+      <canvas id="menu-bg" aria-hidden="true"></canvas>
+      <div class="menu-wrap">
+        <a class="alley-back" href="../GREJSALLEY.html"><svg class="ico"><use href="#i-back"/></svg>Grejs Alley</a>
+        <div class="menu-card">
+          <h1 class="logo">
+            <span class="logo-top">GrejsAlley</span>
+            <span class="logo-main">Lemmings</span>
+          </h1>
+          <p class="tagline">Red de små grejser! De går helt af sig selv — du giver dem evner, så de når sikkert hjem.</p>
+          <div class="menu-buttons">
+            <button id="btn-continue" class="btn primary big" hidden>
+              <svg class="ico"><use href="#i-play"/></svg><span>Fortsæt</span><small id="continue-info"></small>
+            </button>
+            <button id="btn-play" class="btn primary big"><svg class="ico"><use href="#i-play"/></svg><span>Spil</span></button>
+            <button id="btn-levels" class="btn big"><svg class="ico"><use href="#i-map"/></svg><span>Vælg bane</span></button>
+            <button id="btn-settings" class="btn big"><svg class="ico"><use href="#i-gear"/></svg><span>Indstillinger</span></button>
+          </div>
+          <ul class="howto">
+            <li><svg class="ico"><use href="#i-walk"/></svg><span>Grejserne går fremad og vender ved vægge.</span></li>
+            <li><svg class="ico"><use href="#i-builder"/></svg><span>Vælg en evne nederst og klik på en grejs for at give den evnen.</span></li>
+            <li><svg class="ico"><use href="#i-home"/></svg><span>Få nok grejser hen til udgangen for at klare banen.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== LEVEL SELECT ============================== -->
+    <section id="scr-levels" class="screen" aria-label="Banevalg">
+      <header class="page-bar">
+        <button class="btn ghost" data-nav="menu"><svg class="ico"><use href="#i-back"/></svg><span>Menu</span></button>
+        <h2>Vælg bane</h2>
+        <div class="star-total" title="Stjerner i alt"><svg class="ico"><use href="#i-star-g"/></svg><span id="star-total">0</span></div>
+      </header>
+      <div id="world-list" class="world-list"></div>
+    </section>
+
+    <!-- ================================== GAME ================================== -->
+    <section id="scr-game" class="screen" aria-label="Spil">
+      <header class="topbar">
+        <div class="tb-left">
+          <button id="g-levels" class="icon-btn" title="Tilbage til banevalg (Esc)" aria-label="Banevalg"><svg class="ico"><use href="#i-map"/></svg></button>
+          <div class="brand"><span>GrejsAlley</span> <b>Lemmings</b></div>
+        </div>
+        <div class="tb-mid">
+          <span id="g-levelnum" class="chip"></span>
+          <span id="g-levelname" class="lvl-name"></span>
+        </div>
+        <div class="tb-right">
+          <span id="g-status" class="status-pill" role="status"></span>
+          <button id="g-pause" class="icon-btn" title="Pause (Space)" aria-label="Pause"><svg class="ico"><use href="#i-pause"/></svg></button>
+          <button id="g-restart" class="icon-btn" title="Genstart (R)" aria-label="Genstart"><svg class="ico"><use href="#i-restart"/></svg></button>
+        </div>
+      </header>
+
+      <div id="stage" class="stage">
+        <canvas id="game-canvas" aria-label="Spilområde"></canvas>
+        <div id="banner" class="banner" aria-live="polite"></div>
+        <div id="lem-tip" class="lem-tip"></div>
+        <canvas id="minimap" class="minimap" title="Klik for at flytte kameraet"></canvas>
+      </div>
+
+      <footer class="hud">
+        <div id="stats" class="stats"></div>
+        <div class="controls">
+          <div class="rate-ctrl" title="Frigivelseshastighed (Z / X)">
+            <span class="rate-label">Frigivelse</span>
+            <div class="rate-row">
+              <button id="rate-down" class="mini-btn" aria-label="Langsommere frigivelse"><svg class="ico"><use href="#i-minus"/></svg></button>
+              <span id="rate-val" class="rate-val">50</span>
+              <button id="rate-up" class="mini-btn" aria-label="Hurtigere frigivelse"><svg class="ico"><use href="#i-plus"/></svg></button>
+            </div>
+          </div>
+          <div id="skills" class="skills" role="toolbar" aria-label="Evner"></div>
+          <div class="sys-ctrl">
+            <button id="c-pause" class="sys-btn" title="Pause / fortsæt (Space)"><svg class="ico"><use href="#i-pause"/></svg><span>Pause</span></button>
+            <button id="c-speed" class="sys-btn" title="Spilhastighed (+ / −)"><svg class="ico"><use href="#i-fast"/></svg><span id="speed-val">1×</span></button>
+            <button id="c-release" class="sys-btn" title="Start / stop frigivelse (F)"><svg class="ico"><use href="#i-hatch"/></svg><span id="release-val">Frigiver</span></button>
+            <button id="c-nuke" class="sys-btn danger" title="Atombombe — alle eksploderer (N to gange)"><svg class="ico"><use href="#i-nuke"/></svg><span id="nuke-val">Bombe alle</span></button>
+          </div>
+        </div>
+      </footer>
+    </section>
+
+    <!-- dialogs (pause, intro, results, settings, confirm) are rendered into here -->
+    <div id="overlay" class="overlay" hidden>
+      <div id="dialog" class="dialog" role="dialog" aria-modal="true"></div>
+    </div>
+    <div id="toast" class="toast" aria-live="polite"></div>
+  </div>
+
+  <!-- Engine (no DOM) -->
+  <script src="js/level.js"></script>
+  <script src="js/lemming.js"></script>
+  <script src="js/abilities.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/levels-data.js"></script>
+  <!-- Presentation -->
+  <script src="js/themes.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/save.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -7,7 +7,7 @@
 //   caches ALDRIG - et spil må ikke få en gammel cloud-save serveret, når man er offline.
 
 // <precache> (genereret af tools/update-sw.js - rediger ikke i hånden)
-const VERSION = '46a9dc1546';
+const VERSION = 'b326fdbd8d';
 const PRECACHE = [
   "/",
   "/Automatikteknikker.ico",
@@ -73,6 +73,23 @@ const PRECACHE = [
   "/grejsalley/GrejsVSZombies/js/worlds.js",
   "/grejsalley/GrejsVSZombies/js/zombies.js",
   "/grejsalley/Grejs_Heroes.html",
+  "/grejsalley/Lemmings/assets/images/icon.svg",
+  "/grejsalley/Lemmings/css/style.css",
+  "/grejsalley/Lemmings/index.html",
+  "/grejsalley/Lemmings/",
+  "/grejsalley/Lemmings/js/abilities.js",
+  "/grejsalley/Lemmings/js/audio.js",
+  "/grejsalley/Lemmings/js/game.js",
+  "/grejsalley/Lemmings/js/input.js",
+  "/grejsalley/Lemmings/js/lemming.js",
+  "/grejsalley/Lemmings/js/level.js",
+  "/grejsalley/Lemmings/js/levels-data.js",
+  "/grejsalley/Lemmings/js/main.js",
+  "/grejsalley/Lemmings/js/render.js",
+  "/grejsalley/Lemmings/js/save.js",
+  "/grejsalley/Lemmings/js/themes.js",
+  "/grejsalley/Lemmings/js/ui.js",
+  "/grejsalley/Lemmings/tools/verify.js",
   "/grejsalley/SuperGrejs/assets/images/icon.svg",
   "/grejsalley/SuperGrejs/css/game.css",
   "/grejsalley/SuperGrejs/css/menu.css",
@@ -112,6 +129,7 @@ const PRECACHE = [
   "/grejsalley/grejs-sport.html",
   "/grejsalley/grejsman-2d-kombat.html",
   "/grejsalley/img/grejs-base-builder.jpg",
+  "/grejsalley/img/grejs-lemmings.svg",
   "/grejsalley/img/grejs-tanks-logo-neon.png",
   "/grejsalley/img/grejs-tanks-logo.png",
   "/grejsalley/img/grejs-vs-zombies.jpg",
