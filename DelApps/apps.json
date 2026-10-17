@@ -15,5 +15,40 @@
       "Viser Windows \"Windows beskyttede din pc\", så klik \"Flere oplysninger\" og derefter \"Kør alligevel\".",
       "Følg installationen. Der kommer en genvej på skrivebordet."
     ]
+  },
+  {
+    "file": "GrejsCast-1.0.0.zip",
+    "name": "GrejsCast",
+    "version": "1.0.0",
+    "bytes": 80242450,
+    "size": "77 MB",
+    "url": "https://github.com/Satisbuild/automaticdoc/releases/download/grejscast-v1.0.0/GrejsCast-1.0.0.zip",
+    "latest": true,
+    "platform": "Windows 10 (2004+)/11 (64-bit)",
+    "description": "Vis computerens skærm – eller et enkelt vindue – trådløst med lyd på Apple TV, Chromecast/Google TV eller en iPad. Der skal ikke installeres noget på TV'et. Computer og TV skal være på samme netværk.",
+    "steps": [
+      "Pak zip-filen ud (højreklik → \"Udpak alle\").",
+      "Dobbeltklik på GrejsCast.exe – der skal ikke installeres noget.",
+      "Viser Windows \"Windows beskyttede din pc\", så klik \"Flere oplysninger\" og derefter \"Kør alligevel\".",
+      "Første gang du caster, spørger Windows Firewall om adgang: sæt flueben ved \"Private netværk\" og klik \"Tillad adgang\".",
+      "Vælg dit TV i listen og tryk \"Start casting\". Driller det, så læs Startguide.txt i mappen."
+    ]
+  },
+  {
+    "file": "GrejsIndtaling-1.0.0.zip",
+    "name": "GrejsIndtaling",
+    "version": "1.0.0",
+    "bytes": 53028714,
+    "size": "51 MB",
+    "url": "https://github.com/Satisbuild/automaticdoc/releases/download/grejsindtaling-v1.0.0/GrejsIndtaling-1.0.0.zip",
+    "latest": true,
+    "platform": "Windows 10/11 (64-bit)",
+    "description": "Tal i stedet for at skrive: tryk Ctrl+Alt+Space, tal, og teksten indsættes dér hvor markøren står – i Word, Outlook, browseren og alle andre programmer. Dansk og engelsk. Talen behandles lokalt på computeren, og der kræves ingen konto.",
+    "steps": [
+      "Pak zip-filen ud (højreklik → \"Udpak alle\").",
+      "Dobbeltklik på GrejsIndtaling-1.0.0-setup.exe og følg guiden (kræver ikke administrator).",
+      "Viser Windows \"Windows beskyttede din pc\", så klik \"Flere oplysninger\" og derefter \"Kør alligevel\".",
+      "Første gang skal talemodellen hentes én gang – vælg den anbefalede og klik \"Hent\" (ca. 574 MB)."
+    ]
   }
 ]
