@@ -1,0 +1,71 @@
+/* Tilpasning til tablet og mobil. */
+
+@media (max-width: 1180px) {
+  .grid-main { grid-template-columns: minmax(0, 1fr); }
+  .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 960px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; width: min(300px, 86vw);
+    transform: translateX(-102%); transition: transform .22s ease; box-shadow: var(--shadow-lg);
+  }
+  .sidebar.open { transform: none; }
+  .sb-overlay.open { display: block; position: fixed; inset: 0; background: rgba(7, 17, 31, .5); z-index: 45; }
+  .topbar .tb-menu { display: inline-flex; }
+  .topbar { padding: 10px 16px; gap: 10px; }
+  .topbar h1 { font-size: 18px; }
+  .banners { padding: 0 16px; }
+  #view { padding: 18px 16px calc(96px + env(safe-area-inset-bottom)); }
+  .bottom-nav {
+    display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    background: var(--brand-navy); border-top: 1px solid rgba(255, 255, 255, .08);
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+  }
+  .bottom-nav a, .bottom-nav button {
+    flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0;
+    padding: 6px 2px; border-radius: 10px; color: rgba(245, 249, 252, .7); text-decoration: none;
+    font: inherit; font-size: 11px; font-weight: 600; background: none; border: 0; cursor: pointer; min-height: 48px; justify-content: center;
+  }
+  .bottom-nav [aria-current="page"] { color: var(--brand-green); background: rgba(53, 233, 154, .1); }
+  .bottom-nav .icon { width: 21px; height: 21px; }
+  .toasts { left: 16px; right: 16px; bottom: calc(80px + env(safe-area-inset-bottom)); max-width: none; }
+  .welcome { grid-template-columns: minmax(0, 1fr); padding: 26px 22px; text-align: left; }
+  .welcome .logo { max-width: 220px; order: -1; justify-self: start; }
+  .welcome h2 { font-size: 24px; }
+}
+
+@media (max-width: 720px) {
+  body { font-size: 14.5px; }
+  .grid-2, .grid-3 { grid-template-columns: minmax(0, 1fr); }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .kpi { padding: 13px 14px; }
+  .kpi-value { font-size: 19px; }
+  .cat-row .name { flex-wrap: wrap; gap: 2px 8px; }
+  .card { padding: 16px; }
+  .tb-filters { width: 100%; }
+  .tb-filters select { flex: 1 1 140px; }
+  .tb-custom { width: 100%; }
+  .donut-wrap { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .donut-wrap > :last-child { width: 100%; }
+  .dialog { border-radius: 18px 18px 0 0; max-height: 92vh; align-self: end; }
+  .dialog-backdrop { padding: 0; place-items: end center; }
+  .dialog-foot .btn { flex: 1 1 auto; }
+  /* Transaktioner som kort i stedet for en bred tabel */
+  .tx-table { display: none; }
+  .tx-cards { display: block; list-style: none; margin: 0; padding: 0; }
+  .tx-cards li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .tx-cards li.selected { background: var(--primary-soft); }
+  .tx-cards .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tx-cards .m { font-size: 12.5px; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
+  .tx-cards .a { font-weight: 700; text-align: right; }
+  .stepper li { font-size: 0; padding: 4px; gap: 0; }
+  .stepper li[aria-current="step"] { font-size: 13px; padding-right: 12px; gap: 8px; }
+  .status-pill .lbl { display: none; }
+  .report { padding: 18px; }
+}
+
+@media (max-width: 380px) {
+  .kpis { grid-template-columns: minmax(0, 1fr); }
+}

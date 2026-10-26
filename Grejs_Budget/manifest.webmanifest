@@ -1,0 +1,16 @@
+{
+  "name": "Grejs Budget",
+  "short_name": "Grejs Budget",
+  "description": "Overblik over din private økonomi. Importér bankudtog, kategorisér, læg budget og følg udviklingen. Alle data bliver på din enhed.",
+  "lang": "da",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07111F",
+  "theme_color": "#07111F",
+  "icons": [
+    { "src": "assets/icons/app-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

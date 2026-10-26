@@ -1,0 +1,5 @@
+pdf.js 6.4.299 (Mozilla, Apache-2.0) – https://github.com/mozilla/pdf.js
+Kopieret uændret fra npm-pakken pdfjs-dist@6.4.299 (integritet sha512-AVl138zALtfaAPvADulE0PZThbYzCBS79nL4pOSL/6Sm/4AH5A21BD9VHt97OlCuzJuCpmeZtAtkinisF4Vb1g==).
+Der bruges "legacy"-udgaven (legacy/build/), som har indbyggede polyfills, så PDF-import også virker i lidt ældre browsere (fx Safari på en Mac, der ikke er helt opdateret).
+Filerne pdf.min.js og pdf.worker.min.js er legacy/build/pdf.min.mjs og legacy/build/pdf.worker.min.mjs, kun omdøbt til .js, så alle webservere sender dem med en JavaScript-MIME-type.
+Bruges kun lokalt til at læse tekst fra PDF-kontoudtog. Sender intet ud af enheden.

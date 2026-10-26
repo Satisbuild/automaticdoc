@@ -2,3 +2,10 @@
 DelApps/*.zip
 DelApps/*.exe
 DelApps/*.msi
+
+# Grejs_Food: private opskrifter må aldrig udgives (scripts/validate-recipes.js stopper
+# også en commit, hvis private data dukker op i data/).
+Grejs_Food/private-imports/*
+!Grejs_Food/private-imports/NOT_FOR_PUBLIC_DEPLOYMENT.md
+# Hentede kildedata – genskabes af build-scriptet.
+Grejs_Food/scripts/staging/

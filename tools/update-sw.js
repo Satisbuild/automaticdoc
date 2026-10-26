@@ -12,7 +12,8 @@ const root = path.resolve(__dirname, '..');
 const swPath = path.join(root, 'sw.js');
 
 // Store downloads (zip/exe) skal ikke gemmes offline hos alle besøgende.
-const SKIP = [/^\./, /^tools\//, /(^|\/)README\.md$/, /^CNAME$/, /^sw\.js$/, /\.(zip|exe|msi)$/i];
+// Grejs_Food og Grejs_Budget har hver deres egen service worker (service-worker.js i mappen) og caches af den.
+const SKIP = [/^\./, /^tools\//, /(^|\/)README\.md$/, /^CNAME$/, /^sw\.js$/, /\.(zip|exe|msi)$/i, /^Grejs_Food\//, /^Grejs_Budget\//];
 
 const files = execSync('git ls-files -z --cached --others --exclude-standard', { cwd: root })
   .toString('utf8')

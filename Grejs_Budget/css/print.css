@@ -1,0 +1,24 @@
+/* Udskrift / "Gem som PDF" i browseren: kun selve indholdet, lyse farver. */
+@media print {
+  :root, :root[data-theme="dark"] {
+    --bg: #fff; --panel: #fff; --panel-2: #f6f7f9; --panel-3: #eef1f4; --text: #000; --text-2: #222; --muted: #555;
+    --border: #d5dbe3; --border-strong: #b9c2ce; --chart-grid: #e3e7ec; --shadow: none; --shadow-lg: none;
+    color-scheme: light;
+  }
+  @page { margin: 14mm 12mm; }
+  body { background: #fff; font-size: 11.5pt; }
+  .app { display: block; }
+  .sidebar, .topbar, .bottom-nav, .banners, .toasts, .no-print, .sb-overlay, .dialog-backdrop { display: none !important; }
+  #view { padding: 0; max-width: none; animation: none; }
+  .card, .kpi, .report { box-shadow: none; break-inside: avoid; border-color: #ccc; }
+  .report { border: 0; padding: 0; }
+  .kpi.accent { background: #fff; color: #000; border: 1px solid #ccc; }
+  .kpi.accent .kpi-label, .kpi.accent .kpi-sub { color: #555; }
+  .kpi.accent .kpi-value.pos { color: #0b7f55; }
+  table { font-size: 10pt; }
+  th { position: static; }
+  tr, .cat-row, li { break-inside: avoid; }
+  a { color: inherit; text-decoration: none; }
+  details > summary { display: none; }
+  details[open] > :not(summary), details > :not(summary) { display: block; }
+}

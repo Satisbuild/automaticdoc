@@ -5,3 +5,23 @@ node tools/publish-apps.js
 [ -f DelApps/apps.json ] && git add DelApps/apps.json
 node tools/update-sw.js || exit 1
 git add sw.js
+
+# Grejs_Food: bygger opskriftsdatabasen igen, hvis kilder, ordbog eller rettighedsregister
+# er ændret, og stopper commit'en, hvis noget ikke-godkendt kunne blive offentliggjort.
+if [ -d Grejs_Food ]; then
+  if git diff --cached --name-only | grep -q '^Grejs_Food/scripts/\(sources\|lib\)/\|^Grejs_Food/scripts/build-public-dataset.js'; then
+    node Grejs_Food/scripts/build-public-dataset.js || exit 1
+    git add Grejs_Food/data Grejs_Food/scripts/logs
+  fi
+  node Grejs_Food/scripts/validate-recipes.js || exit 1
+  node Grejs_Food/scripts/run-tests.js > /dev/null || { node Grejs_Food/scripts/run-tests.js; exit 1; }
+  node Grejs_Food/scripts/stamp-service-worker.js || exit 1
+  git add Grejs_Food/index.html Grejs_Food/service-worker.js
+fi
+
+# Grejs_Budget: kører testene og versionerer appens filer til offline-brug.
+if [ -d Grejs_Budget ]; then
+  node Grejs_Budget/scripts/run-tests.js > /dev/null || { node Grejs_Budget/scripts/run-tests.js; exit 1; }
+  node Grejs_Budget/scripts/stamp-service-worker.js || exit 1
+  git add Grejs_Budget/index.html Grejs_Budget/service-worker.js
+fi
