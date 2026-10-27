@@ -8,7 +8,7 @@
 // - Der hentes aldrig noget fra andre servere.
 
 // <precache> (genereret af scripts/stamp-service-worker.js - rediger ikke i hånden)
-const VERSION = '975164a3eb';
+const VERSION = '24c657c06e';
 const SHELL = [
   "./",
   "index.html",
@@ -20,7 +20,7 @@ const SHELL = [
   "js/util.js?v=3714e01d23",
   "js/import.js?v=7179eb4ccb",
   "js/pdf-import.js?v=67aea17a37",
-  "js/categorization.js?v=06f494b2d7",
+  "js/categorization.js?v=9351dddc4d",
   "js/transactions.js?v=cc017cced4",
   "js/analytics.js?v=149d1eca18",
   "js/budgets.js?v=0ba083192e",
@@ -28,7 +28,7 @@ const SHELL = [
   "js/insights.js?v=6d851271d1",
   "js/export.js?v=c0c23884d7",
   "js/sample-data.js?v=67bc009a96",
-  "js/storage.js?v=b32eec458a",
+  "js/storage.js?v=17b757e423",
   "js/ui.js?v=67e17b7292",
   "js/charts.js?v=d69cfafc98",
   "js/actions.js?v=2f2ca40a1c",

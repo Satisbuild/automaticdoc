@@ -13,7 +13,7 @@
 
   const DB_NAME = 'grejsbudget';
   const DB_VERSION = 1;
-  const SCHEMA = 5;
+  const SCHEMA = 6;
   const STORES = ['transactions', 'accounts', 'categories', 'rules', 'budgets', 'periodBudgets', 'recurring', 'goals', 'batches'];
 
   const DEFAULT_SETTINGS = {
@@ -74,6 +74,12 @@
       }
       // Normaliseringen af banktekst er rettet ("MC DONALDS" mistede før "MC"), så den beregnes igen.
       for (const t of d.transactions) t.descriptionNormalized = C.normalizeDescription(t.description);
+      reapplyBuiltin(d, s, ['unknown', 'suggested', 'default']);
+    },
+    // 6: Mange flere danske butikker og betalingsnavne i de indbyggede regler (fx byggemarkeder,
+    //    elektronik, apoteker, fastfood, tankstationers bilvask, el-selskaber). Transaktioner, som
+    //    appen selv har kategoriseret, kategoriseres igen. Manuelle valg og egne regler røres ikke.
+    6(d, s) {
       reapplyBuiltin(d, s, ['unknown', 'suggested', 'default']);
     },
   };

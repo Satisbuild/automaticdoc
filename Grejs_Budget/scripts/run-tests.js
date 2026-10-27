@@ -283,6 +283,46 @@ const tests = {
       assert.strictEqual(t.categorySource, 'default', desc + ' skal være et sikkert match');
     }
   },
+  'Danske butikker fra navneordbogen kategoriseres – sikre automatisk, tvetydige kun som forslag': () => {
+    const sure = [
+      ['365discount Aarhus', 'food-groceries'], ['BRUGSEN HAMMEL', 'food-groceries'], ['WOLT MARKET', 'food-groceries'], ['HelloFresh', 'food-groceries'], ['COOP.DK', 'food-groceries'],
+      ['Burger King Viby', 'food-takeaway'], ['KFC', 'food-takeaway'], ['Too Good To Go', 'food-takeaway'], ['WOLT AARHUS', 'food-takeaway'],
+      ['Jensens Bøfhus', 'food-restaurant'], ['Sticks\'n\'Sushi', 'food-restaurant'], ['ESPRESSO HOUSE', 'food-restaurant'],
+      ['Q8 CARWASH', 'transport-carwash'], ['OK BILVASK', 'transport-carwash'], ['Q8 EASY 1234', 'transport-fuel'], ['GO\'ON VIBY', 'transport-fuel'], ['FASTNED', 'transport-fuel'], ['NORLYS OPLADNING', 'transport-fuel'],
+      ['OK EL', 'housing-electricity'], ['NORLYS ENERGI', 'housing-electricity'], ['Modstrøm', 'housing-electricity'], ['KREDSLØB', 'housing-heating'], ['VandCenter Syd', 'housing-water'],
+      ['Q-PARK', 'transport-parking'], ['FLIXBUS', 'transport-public'], ['AutoMester', 'transport-repair'], ['Thansen', 'transport-repair'], ['FDM FORSIKRING', 'transport-carins'],
+      ['AMAZON PRIME', 'subs-streaming'], ['GREENTEL', 'subs-phone'], ['DISCORD NITRO', 'subs-software'],
+      ['BYGMA', 'housing-maintenance'], ['Bauhaus', 'housing-maintenance'], ['Sadolin Farveland', 'housing-maintenance'], ['HTH KØKKEN', 'housing-maintenance'],
+      ['Humac', 'shopping-electronics'], ['Computersalg', 'shopping-electronics'], ['Lenovo', 'shopping-electronics'],
+      ['ABOUT YOU', 'shopping-clothes'], ['Nike Store', 'shopping-clothes'], ['Foot Locker', 'shopping-clothes'], ['ILLUM', 'shopping-clothes'],
+      ['Kop & Kande', 'shopping-home'], ['Plantorama', 'shopping-home'], ['Sephora', 'shopping-care'], ['NiceHair', 'shopping-care'],
+      ['Webapoteket', 'family-pharmacy'], ['Specsavers', 'family-dental'], ['Louis Nielsen', 'family-dental'], ['FitnessX', 'family-sport'],
+      ['Djurs Sommerland', 'travel-experiences'], ['Eventim', 'travel-cinema'], ['Eventyrsport', 'other-outdoor'], ['Spejder Sport', 'other-outdoor'],
+      ['SAXO.COM', 'shopping-hobby'], ['SAXO BANK', 'finance-investment'], ['PANDURO', 'shopping-hobby'],
+    ];
+    for (const [desc, cat] of sure) {
+      const t = tx({ description: desc, amount: -100 });
+      assert.strictEqual(t.categoryId, cat, desc + ' gav ' + t.categoryId);
+      assert.strictEqual(t.categorySource, 'default', desc + ' skal være et sikkert match');
+    }
+    const maybe = [['AMAZON', 'other-misc'], ['TEMU', 'other-misc'], ['VILA', 'shopping-clothes'], ['FOG', 'housing-maintenance'], ['BONES', 'food-restaurant'], ['MUSEUM', 'travel-experiences'], ['KØBMAND JENSEN', 'food-groceries']];
+    for (const [desc, cat] of maybe) {
+      const t = tx({ description: desc, amount: -100 });
+      assert.strictEqual(t.categoryId, cat, desc + ' gav ' + t.categoryId);
+      assert.strictEqual(t.categorySource, 'suggested', desc + ' skal kun være et forslag');
+    }
+    // Ting, der IKKE må rammes ved et uheld
+    assert.strictEqual(tx({ description: 'VILLA RENOVERING', amount: -100 }).categorySource, 'unknown');
+    assert.strictEqual(tx({ description: '3', amount: -100 }).categorySource, 'unknown', '"3" er for tvetydigt');
+    assert.strictEqual(tx({ description: 'SUNSET BOULEVARD', amount: -100 }).categoryId, 'food-restaurant', 'brugerens valg for SUNSET bevares');
+    assert.strictEqual(tx({ description: 'NEMBILVASK MY GARA', amount: -100 }).categoryId, 'transport-fuel', 'brugerens valg for NemBilvask bevares');
+  },
+  'Migration 6: automatisk kategoriserede transaktioner får de nye butiksregler': () => {
+    const mk = (desc, cat, source) => Object.assign(tx({ description: desc, amount: -100 }), { categoryId: cat, categorySource: source, categoryRuleId: null });
+    const d = { categories: C.defaultCategories(), transactions: [mk('BYGMA', C.UNKNOWN_ID, 'unknown'), mk('SAXO.COM', 'finance-investment', 'default'), mk('Q8 CARWASH', 'transport-fuel', 'default'), mk('BYGMA', 'shopping-gifts', 'manual')] };
+    S.runMigrations(d, 5, {});
+    assert.deepStrictEqual(d.transactions.map((t) => t.categoryId + '/' + t.categorySource), ['housing-maintenance/default', 'shopping-hobby/default', 'transport-carwash/default', 'shopping-gifts/manual']);
+  },
   'Indbyggede regler har faste, unikke id\'er': () => {
     const ids = C.BUILTIN_RULES.map((r) => r.id);
     assert.strictEqual(new Set(ids).size, ids.length);
