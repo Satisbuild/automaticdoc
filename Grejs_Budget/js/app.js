@@ -29,7 +29,7 @@
   let ready = false;
 
   function rebuildCalc() {
-    calc = A.makeCalc(S.data.categories, S.settings.calcRules, (id) => S.byId.transactions.get(id));
+    calc = A.makeCalc(S.data.categories, S.settings.calcRules, (id) => S.byId.transactions.get(id), () => S.data.transactions);
     U.setNumberFormat(S.settings.numberFormat);
     return calc;
   }

@@ -281,6 +281,10 @@
       (S.data.accounts.length > 1 ? ' · ' + esc(UI.accountName(x.accountId)) : '') + '</span></span><span class="amount">' + UI.txAmount(x) + '</span>' + btn + '</li>';
   }
 
+  const shareTile = (sh) => (sh.profit > 0.005
+    ? '<div class="s"><b class="pos">' + esc(U.fmtMoney(sh.profit, { sign: true })) + '</b><span>Overskud – tæller som indtægt</span></div>'
+    : '<div class="s"><b>' + esc(U.fmtMoney(sh.own)) + '</b><span>Din egen andel</span></div>');
+
   // Afsnittet i transaktionsdialogen.
   // view.more: vis alle forslag i stedet for de nærmeste 5. view.all: vis alle indbetalinger, ikke kun MobilePay.
   function splitSection(t, view) {
@@ -304,8 +308,6 @@
         list = '<p class="small" style="margin:12px 0 4px"><b>' + (v.all ? 'Alle indbetalinger' : 'Forslag') + ':</b> ' + what + ' fra ' + period + '. Tryk <b>Kobl på</b> ved dem, der hører til købet.</p>' +
           '<ul class="list">' + shown.map((x) => moneyRow(x, linkBtn(x))).join('') + '</ul>' +
           (cand.length > shown.length ? '<button type="button" class="link-btn small" data-split-more>Vis alle ' + cand.length + '</button> ' : '');
-      } else if (sh.own <= 0.005) {
-        list = '<p class="small muted mt-s">Hele udgiften er dækket af andre.</p>';
       } else {
         list = '<p class="small muted mt-s">Ingen forslag: der er ikke ' + what + ' fra ' + period + ', som kan kobles på.' +
           (v.all ? '' : ' Står pengene ikke som MobilePay i banken, eller kom de senere, så tryk <b>Vis alle indbetalinger</b>.') + '</p>';
@@ -313,21 +315,18 @@
       // Beløb fra perioden, der ikke kan kobles på – med grunden, så det er tydeligt, hvorfor de ikke er forslag.
       if (blocked.length) {
         const reason = (x) => {
-          if (x.status === 'linked') {
-            const other = S.byId.transactions.get(x.t.linkedTo);
-            return 'koblet til ' + (other ? other.description + ' (' + U.fmtDate(other.date, { short: true }) + ')' : 'et andet køb');
-          }
-          return 'større end din resterende andel (' + U.fmtMoney(sh.own) + ')';
+          const other = S.byId.transactions.get(x.t.linkedTo);
+          return 'koblet til ' + (other ? other.description + ' (' + U.fmtDate(other.date, { short: true }) + ')' : 'et andet køb');
         };
         list += '<details class="mt-s"' + (cand.length ? '' : ' open') + '><summary class="small">' + blocked.length + ' andre ' + (v.all ? 'indbetalinger' : 'MobilePay') + ' fra perioden kan ikke kobles på</summary>' +
           '<ul class="list" style="opacity:.65">' + blocked.map((x) => moneyRow(x.t, '<span class="small muted" style="max-width:220px;text-align:right">' + esc(reason(x)) + '</span>')).join('') + '</ul></details>';
       }
       return '<hr><h3 class="row" style="gap:8px">' + icon('swap') + 'Penge fra andre</h3>' +
-        '<p class="small muted" style="margin:4px 0 10px">Har du lagt ud, og har andre sendt penge tilbage (fx med MobilePay)? Kobl beløbene på, så de ikke tæller som indtægt, og så udgiften kun viser din egen andel.</p>' +
-        (linked.length ? '<div class="summary-grid"><div class="s"><b>' + esc(U.fmtMoney(sh.paid)) + '</b><span>Du betalte</span></div><div class="s"><b class="pos">' + esc(U.fmtMoney(sh.back, { sign: true })) + '</b><span>Fra andre (' + linked.length + ')</span></div><div class="s"><b>' + esc(U.fmtMoney(sh.own)) + '</b><span>Din egen andel</span></div></div>' +
+        '<p class="small muted" style="margin:4px 0 10px">Har du lagt ud, og har andre sendt penge (fx med MobilePay)? Kobl beløbene på: det, der dækker købet, trækkes fra udgiften, så den kun viser din egen andel. Får du mere, end købet kostede, tæller resten som overskud (indtægt).</p>' +
+        (linked.length ? '<div class="summary-grid"><div class="s"><b>' + esc(U.fmtMoney(sh.paid)) + '</b><span>Du betalte</span></div><div class="s"><b class="pos">' + esc(U.fmtMoney(sh.back, { sign: true })) + '</b><span>Fra andre (' + linked.length + ')</span></div>' + shareTile(sh) + '</div>' +
           '<ul class="list mt-s">' + linked.map((x) => moneyRow(x, '<button type="button" class="btn sm ghost" data-unlink="' + esc(x.id) + '">' + icon('x') + 'Fjern</button>')).join('') + '</ul>' : '') +
         list +
-        (sh.own > 0.005 ? '<div class="mt-s"><button type="button" class="btn sm ghost" data-split-all>' + icon(v.all ? 'phone' : 'list') + (v.all ? 'Vis kun MobilePay-forslag' : 'Vis alle indbetalinger') + '</button></div>' : '');
+        '<div class="mt-s"><button type="button" class="btn sm ghost" data-split-all>' + icon(v.all ? 'phone' : 'list') + (v.all ? 'Vis kun MobilePay-forslag' : 'Vis alle indbetalinger') + '</button></div>';
     }
     const loose = k.type === 'income' && ['other-unknown', 'income-other', 'other-mobilepay'].includes(t.categoryId);
     if (t.amount > 0 && (t.linkedTo || T.isMobilePay(t) || loose)) {
@@ -336,7 +335,9 @@
         const sh = T.ownShare(target, all);
         return '<hr><h3 class="row" style="gap:8px">' + icon('swap') + 'Hører til udgiften</h3><ul class="list">' +
           moneyRow(target, '<button type="button" class="btn sm ghost" data-unlink="' + esc(t.id) + '">' + icon('x') + 'Fjern kobling</button>') + '</ul>' +
-          '<p class="small muted">Beløbet tæller ikke som indtægt, men trækkes fra udgiften i ' + esc(UI.catName(target.categoryId)) + '. Din egen andel af udgiften: <b>' + esc(U.fmtMoney(sh.own)) + '</b>.</p>';
+          '<p class="small muted">Beløbet trækkes fra udgiften i ' + esc(UI.catName(target.categoryId)) + '. ' + (sh.profit > 0.005
+            ? 'Der er kommet <b>' + esc(U.fmtMoney(sh.profit)) + ' mere</b> ind, end købet kostede – det overskydende er overskud og tæller som indtægt.'
+            : 'Din egen andel af udgiften: <b>' + esc(U.fmtMoney(sh.own)) + '</b>.') + '</p>';
       }
       const cand = T.expenseCandidates(t, all, classify);
       const shown = v.more ? cand.slice(0, 50) : cand.slice(0, 5);

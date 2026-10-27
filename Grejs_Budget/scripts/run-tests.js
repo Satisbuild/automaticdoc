@@ -504,7 +504,7 @@ const tests = {
     const other = tx({ description: 'MobilePay fra Ole', amount: 150, date: '2026-10-12' });
     const list = [buy, m1, m2, other];
     const byId = new Map(list.map((t) => [t.id, t]));
-    const lc = An.makeCalc(cats, {}, (id) => byId.get(id));
+    const lc = An.makeCalc(cats, {}, (id) => byId.get(id), () => [...byId.values()]);
     // Før kobling: modtaget MobilePay er indtægt
     let s = lc.summarize(list);
     assert.strictEqual(s.income, 750);
@@ -523,8 +523,8 @@ const tests = {
     assert.strictEqual(s.byCategory.get('other-outdoor'), 300, 'Outdoor viser kun egen andel');
     assert.strictEqual(lc.spentIn(list, 'other-outdoor'), 300);
     assert.strictEqual(lc.spentIn(list, 'other'), 300);
-    assert.deepStrictEqual(T.ownShare(buy, list), { paid: 900, back: 600, own: 300 });
-    // Der kan ikke kobles mere på, end der mangler: 150 kr. passer stadig, men ikke beløb over 300 kr.
+    assert.deepStrictEqual(T.ownShare(buy, list), { paid: 900, back: 600, own: 300, profit: 0 });
+    // Ukoblede beløb foreslås stadig – også selvom de er større end det, der mangler
     assert.deepStrictEqual(T.reimbursementCandidates(buy, list).map((t) => t.id), [other.id]);
     // "Vis alle indbetalinger": også penge uden MobilePay-tekst og senere end 45 dage – men ikke overførsler eller løn over beløbet
     const late = tx({ description: 'Overførsel fra Søren H', amount: 100, date: '2026-12-20' });
@@ -541,7 +541,7 @@ const tests = {
     const lastMonth = tx({ description: 'MobilePay fra Kim', amount: 50, date: '2026-10-31' });
     assert.deepStrictEqual(T.reimbursementWindow(exp2), { from: '2026-11-01', to: '2027-01-04' });
     const opt = T.reimbursementOptions(exp2, [exp2, early, tooBig, taken, lastMonth]);
-    assert.deepStrictEqual(opt.map((x) => x.t.description + ':' + x.status).sort(), ['MobilePay fra Al:linked', 'MobilePay fra Bo:tooBig', 'MobilePay fra Ib:ok']);
+    assert.deepStrictEqual(opt.map((x) => x.t.description + ':' + x.status).sort(), ['MobilePay fra Al:linked', 'MobilePay fra Bo:ok', 'MobilePay fra Ib:ok'], 'også beløb større end købet kan kobles på');
     // Koblede beløb vises, når man ser udgiftens kategori
     const shown = T.filterTransactions(list, { categoryIds: new Set(['other-outdoor']) }, { classify: lc.classify });
     assert.deepStrictEqual(shown.map((t) => t.id).sort(), [buy.id, m1.id, m2.id].sort());
@@ -550,6 +550,32 @@ const tests = {
     assert.strictEqual(lc.classify(m1).type, 'income');
     // Uden opslag (fx gamle kald) ændres intet
     assert.strictEqual(An.makeCalc(cats, {}).classify(m2).type, 'income');
+  },
+  'Penge fra andre: mere ind end købet kostede giver overskud (indtægt), og kategorien går ikke under 0': () => {
+    const buy = tx({ description: 'LAND OG FRITID', amount: -600, date: '2026-10-10' });
+    const a = Object.assign(tx({ description: 'MobilePay fra Søren', amount: 400, date: '2026-10-11' }), { linkedTo: buy.id });
+    const b = Object.assign(tx({ description: 'MobilePay fra Mette', amount: 500, date: '2026-10-12' }), { linkedTo: buy.id });
+    const c2 = Object.assign(tx({ description: 'MobilePay fra Ole', amount: 100, date: '2026-10-13' }), { linkedTo: buy.id });
+    const list = [buy, a, b, c2];
+    const byId = new Map(list.map((t) => [t.id, t]));
+    const lc = An.makeCalc(cats, {}, (id) => byId.get(id), () => list);
+    // I datoorden: Søren dækker 400, Mette dækker de sidste 200 (+300 overskud), Ole er ren overskud.
+    assert.deepStrictEqual(lc.classify(a), { income: 0, expense: -400, savings: 0, type: 'reimbursement', categoryId: 'other-outdoor' });
+    assert.deepStrictEqual(lc.classify(b), { income: 300, expense: -200, savings: 0, type: 'reimbursement', categoryId: 'other-outdoor' });
+    assert.strictEqual(lc.classify(c2).type, 'income');
+    const s = lc.summarize(list);
+    assert.strictEqual(s.byCategory.get('other-outdoor'), 0, 'kategorien går ikke under 0');
+    assert.strictEqual(s.expense, 0);
+    assert.strictEqual(s.income, 400, 'overskuddet (1.000 − 600) er indtægt');
+    assert.strictEqual(s.incomeByCategory.get('other-mobilepay'), 400);
+    assert.deepStrictEqual(T.ownShare(buy, list), { paid: 600, back: 1000, own: 0, profit: 400 });
+    // Et beløb kan foreslås, selvom købet allerede er dækket
+    const extra = tx({ description: 'MobilePay fra Kim', amount: 250, date: '2026-10-14' });
+    assert.deepStrictEqual(T.reimbursementCandidates(buy, list.concat(extra)).map((t) => t.id), [extra.id]);
+    assert.ok(T.expenseCandidates(extra, list.concat(extra)).some((t) => t.id === buy.id));
+    // Løn foreslås aldrig som penge fra andre
+    const salary = tx({ description: 'Lønoverførsel', amount: 25000, date: '2026-10-28', patch: { categoryId: 'income-salary' } });
+    assert.ok(!T.reimbursementCandidates(buy, list.concat(salary), { all: true, classify: lc.classify }).some((t) => t.id === salary.id));
   },
   'Perioder beregnes korrekt': () => {
     assert.deepStrictEqual(An.periodRange('this-month', '2026-10-26'), { from: '2026-10-01', to: '2026-10-31' });

@@ -155,10 +155,12 @@
   // Beløb, der er koblet til udgiften.
   const reimbursementsOf = (expense, txs) => txs.filter((t) => t.linkedTo === expense.id && t.amount > 0);
 
-  // Udgiften minus det, andre har betalt tilbage (aldrig under 0).
+  // Udgiften minus det, andre har betalt tilbage. own går ikke under 0; får man mere tilbage,
+  // end købet kostede, er det overskydende profit (tæller som indtægt, se analytics.js).
   function ownShare(expense, txs) {
     const back = U.sumAmounts(reimbursementsOf(expense, txs), (t) => t.amount);
-    return { paid: -expense.amount, back, own: Math.max(0, U.round2(-expense.amount - back)) };
+    const diff = U.round2(-expense.amount - back);
+    return { paid: -expense.amount, back, own: Math.max(0, diff), profit: Math.max(0, -diff) };
   }
 
   // Tidsrummet, der ledes i: fra starten af købsmåneden (eller 3 dage før købet, hvis det er tidligere)
@@ -170,23 +172,23 @@
   }
 
   // Alle penge ind i tidsrummet – MobilePay, eller alle indbetalinger med opts.all – med en status:
-  //   ok          – kan kobles på
+  //   ok          – kan kobles på (også beløb, der er større end købet – det overskydende er overskud)
   //   linked      – allerede koblet til et andet køb (linkedTo peger på det)
-  //   tooBig      – større end det, der mangler at blive dækket
   // classify udelukker opsparing, refusioner fra butikker og overførsler – dog ikke overførsler,
   // appen kun har gættet på (fx "Overførsel fra Søren"), for det er ofte netop penge fra andre.
   function reimbursementOptions(expense, txs, opts) {
     const o = opts || {};
-    const left = ownShare(expense, txs).own;
     const win = reimbursementWindow(expense, o.all);
     const excluded = (t) => {
+      // Løn, pension, ydelser og renter er aldrig penge fra andre.
+      if (['income-salary', 'income-benefits', 'income-pension', 'income-interest'].includes(t.categoryId)) return true;
       if (!o.classify) return false;
       const type = o.classify(t).type;
       return ['savings', 'foreign', 'refund'].includes(type) || (type === 'transfer' && t.categorySource !== 'suggested');
     };
     return txs.filter((t) => t.amount > 0 && t.linkedTo !== expense.id && t.id !== expense.id && !t.isInternalTransfer && (o.all || isMobilePay(t)) &&
         t.date >= win.from && t.date <= win.to && !(o.classify && !t.linkedTo && excluded(t)))
-      .map((t) => ({ t, status: t.linkedTo ? 'linked' : t.amount > left + 0.005 ? 'tooBig' : 'ok' }))
+      .map((t) => ({ t, status: t.linkedTo ? 'linked' : 'ok' }))
       .sort((a, b) => Math.abs(U.daysBetween(expense.date, a.t.date)) - Math.abs(U.daysBetween(expense.date, b.t.date)) || b.t.amount - a.t.amount);
   }
 
@@ -195,15 +197,15 @@
     return reimbursementOptions(expense, txs, opts).filter((x) => x.status === 'ok').map((x) => x.t);
   }
 
-  // Forslag til hvilken udgift et modtaget beløb hører til: udgifter fra 45 dage før til 3 dage efter,
-  // hvor der stadig mangler mindst beløbet at blive dækket. classify sikrer, at det er rigtige udgifter.
+  // Forslag til hvilken udgift et modtaget beløb hører til: udgifter fra 45 dage før til 3 dage efter.
+  // Beløbet må gerne være større end købet (så er resten overskud). classify sikrer, at det er rigtige udgifter.
   // Rækkefølge: udgifter, andre allerede har betalt til (delte køb), derefter de nærmeste dage
   // (i bidder af 4 dage), og inden for samme bid de største køb – dem lægger man oftest ud for.
   function expenseCandidates(money, txs, classify) {
     const shared = new Set(txs.filter((t) => t.linkedTo).map((t) => t.linkedTo));
     const near = (t) => Math.floor(Math.abs(U.daysBetween(money.date, t.date)) / 4);
     return txs.filter((t) => t.amount < 0 && t.id !== money.id && t.categoryId !== 'other-mobilepay' && (!classify || classify(t).type === 'expense') &&
-        t.date >= U.addDays(money.date, -45) && t.date <= U.addDays(money.date, 3) && ownShare(t, txs).own >= money.amount - 0.005)
+        t.date >= U.addDays(money.date, -45) && t.date <= U.addDays(money.date, 3))
       .sort((a, b) => (shared.has(b.id) - shared.has(a.id)) || near(a) - near(b) || a.amount - b.amount);
   }
 

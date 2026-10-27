@@ -15,7 +15,9 @@
 //   - Beløb i fremmed valuta tælles kun med, når brugeren har angivet en kurs (tx.exchangeRate).
 //   - Penge fra andre (fx MobilePay), som brugeren har koblet til en udgift (tx.linkedTo), er ikke
 //     indtægt: de trækkes fra forbruget i udgiftens kategori på den dato, pengene kom ind.
-//     Udgiften viser derfor kun brugerens egen andel. Er udgiften slettet, tæller beløbet som normalt.
+//     Udgiften viser derfor kun brugerens egen andel. Får brugeren mere tilbage, end købet kostede,
+//     er det overskydende et overskud og tæller som indtægt – kategorien går aldrig under 0.
+//     Beløbene fylder købet op i datoorden. Er udgiften slettet, tæller beløbet som normalt.
 //   Netto = indtægter − forbrug. Opsparing trækkes ikke fra netto.
 
 (function () {
@@ -30,8 +32,24 @@
     reimbursement: 'Penge fra andre (trækkes fra udgiften)',
   };
 
-  // lookup(id) finder en transaktion – bruges til penge fra andre, der er koblet til en udgift.
-  function makeCalc(categories, rules, lookup) {
+  // Fordeler penge fra andre på et køb: i datoorden dækker de købet, indtil det er betalt; resten
+  // er overskud. Returnerer Map: id → { offset (trækkes fra udgiften), excess (overskud = indtægt) }.
+  function reimbursementSplit(paid, linked) {
+    let left = U.toOre(paid);
+    const out = new Map();
+    const sorted = linked.slice().sort((a, b) => a.date.localeCompare(b.date) || String(a.createdAt).localeCompare(String(b.createdAt)) || a.id.localeCompare(b.id));
+    for (const t of sorted) {
+      const amt = U.toOre(t.amount);
+      const offset = Math.max(0, Math.min(amt, left));
+      left -= offset;
+      out.set(t.id, { offset: U.fromOre(offset), excess: U.fromOre(amt - offset) });
+    }
+    return out;
+  }
+
+  // lookup(id) finder en transaktion, allTxs() giver alle transaktioner – bruges til penge fra andre,
+  // der er koblet til en udgift.
+  function makeCalc(categories, rules, lookup, allTxs) {
     const r = Object.assign({}, DEFAULT_RULES, rules || {});
     const cats = new Map(categories.map((c) => [c.id, c]));
 
@@ -51,7 +69,14 @@
       if (a == null) return Object.assign(z, { type: 'foreign' });
       const target = a > 0 && tx.linkedTo && lookup ? lookup(tx.linkedTo) : null;
       if (target && target.id !== tx.id && !target.linkedTo && classify(target).type === 'expense') {
-        return Object.assign(z, { type: 'reimbursement', expense: -a, categoryId: target.categoryId });
+        // Uden overblik over alle transaktioner modregnes hele beløbet (som før).
+        let part = { offset: a, excess: 0 };
+        if (allTxs) {
+          const linked = allTxs().filter((t) => t.linkedTo === target.id && t.amount > 0);
+          part = reimbursementSplit(-dkk(target), linked).get(tx.id) || part;
+        }
+        if (!part.offset) return Object.assign(z, { type: 'income', income: part.excess });
+        return Object.assign(z, { type: 'reimbursement', expense: -part.offset, income: part.excess, categoryId: target.categoryId });
       }
       if (tx.isInternalTransfer) return Object.assign(z, { type: 'transfer' });
       const c = cats.get(tx.categoryId);
@@ -248,5 +273,5 @@
     return { from, to };
   }
 
-  GB.analytics = { DEFAULT_RULES, TYPE_LABEL, PERIODS, makeCalc, periodRange, periodLabel, monthCoverage, change, findTransferPairs, dataRange, accountCoverage };
+  GB.analytics = { DEFAULT_RULES, TYPE_LABEL, PERIODS, makeCalc, reimbursementSplit, periodRange, periodLabel, monthCoverage, change, findTransferPairs, dataRange, accountCoverage };
 })();

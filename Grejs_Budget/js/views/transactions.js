@@ -128,7 +128,13 @@
     const multiAcc = S.data.accounts.length > 1;
     const back = new Map();
     for (const x of S.data.transactions) if (x.linkedTo && x.amount > 0) back.set(x.linkedTo, (back.get(x.linkedTo) || 0) + x.amount);
-    const amountCell = (t) => UI.txAmount(t) + (back.has(t.id) && t.amount < 0 ? '<div class="small muted num" title="Udgiften minus penge fra andre">din andel ' + esc(U.fmtMoney(Math.max(0, -t.amount - back.get(t.id)))) + '</div>' : '');
+    const amountCell = (t) => {
+      if (!back.has(t.id) || t.amount >= 0) return UI.txAmount(t);
+      const diff = U.round2(-t.amount - back.get(t.id));
+      return UI.txAmount(t) + (diff >= 0
+        ? '<div class="small muted num" title="Udgiften minus penge fra andre">din andel ' + esc(U.fmtMoney(diff)) + '</div>'
+        : '<div class="small num pos" title="Der er kommet mere ind fra andre, end købet kostede – tæller som indtægt">overskud ' + esc(U.fmtMoney(-diff, { sign: true })) + '</div>');
+    };
     const sortBtn = (key, label) => '<button type="button" class="sort" data-sort="' + key + '" aria-label="Sortér efter ' + esc(label.toLowerCase()) + '">' + esc(label) + (st.sort === key ? icon(st.dir === 'asc' ? 'up' : 'down') : '') + '</button>';
     const aria = (k) => (st.sort === k ? ' aria-sort="' + (st.dir === 'asc' ? 'ascending' : 'descending') + '"' : '');
     const allOnPage = pageList.length && pageList.every((t) => st.selected.has(t.id));
