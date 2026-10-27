@@ -8,7 +8,7 @@
 // - Der hentes aldrig noget fra andre servere.
 
 // <precache> (genereret af scripts/stamp-service-worker.js - rediger ikke i hånden)
-const VERSION = 'c7fe56752c';
+const VERSION = '40f66f1374';
 const SHELL = [
   "./",
   "index.html",
@@ -21,8 +21,8 @@ const SHELL = [
   "js/import.js?v=7179eb4ccb",
   "js/pdf-import.js?v=67aea17a37",
   "js/categorization.js?v=06f494b2d7",
-  "js/transactions.js?v=ba8836995a",
-  "js/analytics.js?v=41e930f832",
+  "js/transactions.js?v=9a46582154",
+  "js/analytics.js?v=149d1eca18",
   "js/budgets.js?v=0ba083192e",
   "js/recurring.js?v=ab0c72fa2a",
   "js/insights.js?v=6d851271d1",
@@ -31,9 +31,9 @@ const SHELL = [
   "js/storage.js?v=b32eec458a",
   "js/ui.js?v=67e17b7292",
   "js/charts.js?v=d69cfafc98",
-  "js/actions.js?v=3c641858a6",
-  "js/views/overview.js?v=90c8726e29",
-  "js/views/transactions.js?v=1f1d5638db",
+  "js/actions.js?v=76644e442e",
+  "js/views/overview.js?v=a12721d126",
+  "js/views/transactions.js?v=5e6a9b2e24",
   "js/views/insights.js?v=91e9f6e0c7",
   "js/views/categories.js?v=bcd4b699e3",
   "js/views/budgets.js?v=f6adc2ada7",
@@ -43,7 +43,7 @@ const SHELL = [
   "js/views/import.js?v=7a6c19b17e",
   "js/views/reports.js?v=3a4c29e5a5",
   "js/views/settings.js?v=53e1754f19",
-  "js/app.js?v=7d6262318b",
+  "js/app.js?v=f4ff8563db",
   "assets/grejs-budget-logo.png",
   "assets/icons/app-icon-192.png",
   "assets/icons/app-icon-512.png",

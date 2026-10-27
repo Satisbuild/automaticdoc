@@ -90,12 +90,16 @@
       (sum.foreign ? ' ' + sum.foreign + ' transaktioner i fremmed valuta uden kurs er ikke medregnet.' : '') + '</p>';
 
     if (S.data.transactions.some((x) => x.categoryId === MP)) {
-      const nIn = mp.txs.filter((x) => x.amount > 0).length, nOut = mp.txs.filter((x) => x.amount < 0).length;
+      // Penge fra andre, der er koblet til en udgift, er ikke indtægt – de vises for sig.
+      const linked = c.periodTxs.filter((x) => x.linkedTo && GB.tx.isMobilePay(x) && c.calc.classify(x).type === 'reimbursement');
+      const linkedSum = U.sumAmounts(linked, (x) => x.amount);
+      const nIn = mp.txs.filter((x) => x.amount > 0 && c.calc.classify(x).type === 'income').length, nOut = mp.txs.filter((x) => x.amount < 0).length;
       html += '<section class="card mt"><div class="card-head"><h2>' + icon('phone') + 'MobilePay</h2><span class="sub">' + esc(c.label) + '</span></div><div class="summary-grid">' +
         '<button type="button" class="s insight" data-mp="income" style="display:block"><b class="pos">' + esc(U.fmtMoney(mp.in, { decimals: 0, sign: true })) + '</b><span>Indtægt · ' + nIn + ' modtaget</span></button>' +
+        '<button type="button" class="s insight" data-mp="reimbursement" style="display:block"><b>' + esc(U.fmtMoney(linkedSum, { decimals: 0 })) + '</b><span>Penge fra andre · ' + linked.length + ' koblet til udgifter</span></button>' +
         '<button type="button" class="s insight" data-mp="expense" style="display:block"><b>' + esc(U.fmtMoney(-mp.out, { decimals: 0 })) + '</b><span>Udgift · ' + nOut + ' sendt</span></button>' +
-        '<div class="s"><b class="' + (mp.in - mp.out >= 0 ? 'pos' : 'neg') + '">' + esc(U.fmtMoney(mp.in - mp.out, { decimals: 0, sign: true })) + '</b><span>Netto (ind minus ud)</span></div>' +
-        '</div><p class="small muted mt-s">Modtaget MobilePay tæller som indtægt, og sendt MobilePay tæller som udgift. Køb i butikker betalt med MobilePay står under butikkens egen kategori.</p></section>';
+        '<div class="s"><b class="' + (mp.in - mp.out >= 0 ? 'pos' : 'neg') + '">' + esc(U.fmtMoney(mp.in - mp.out, { decimals: 0, sign: true })) + '</b><span>Netto (indtægt minus udgift)</span></div>' +
+        '</div><p class="small muted mt-s">Har du lagt ud for andre, og har de sendt deres andel med MobilePay? Åbn udgiften (fx Land og Fritid) eller beløbet og kobl dem sammen under <b>Penge fra andre</b>. Så tæller pengene ikke som indtægt, men trækkes fra udgiften, så du kan se, hvad du selv har brugt.</p></section>';
     }
 
     // Grafer

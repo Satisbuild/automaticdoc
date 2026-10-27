@@ -6,7 +6,7 @@
   const U = GB.util, UI = GB.ui, S = GB.store, T = GB.tx, A = GB.actions;
   const { $, $$, esc, icon } = UI;
 
-  const TYPES = [['', 'Alle typer'], ['expense', 'Udgifter'], ['income', 'Indtægter'], ['refund', 'Refusioner'], ['savings', 'Opsparing'], ['transfer', 'Interne overførsler'], ['foreign', 'Fremmed valuta uden kurs']];
+  const TYPES = [['', 'Alle typer'], ['expense', 'Udgifter'], ['income', 'Indtægter'], ['refund', 'Refusioner'], ['reimbursement', 'Penge fra andre (koblet til udgift)'], ['savings', 'Opsparing'], ['transfer', 'Interne overførsler'], ['foreign', 'Fremmed valuta uden kurs']];
   const emptyFilter = () => ({ text: '', categoryId: '', type: '', min: '', max: '', tag: '', batchId: '', review: false, recurring: false });
 
   const st = { f: emptyFilter(), override: null, sort: 'date', dir: 'desc', page: 0, selected: new Set(), showFilters: false };
@@ -110,6 +110,8 @@
     if (t.duplicateOf && t.needsReview) f.push('<span class="badge warn" title="Mulig dublet">' + icon('copy') + '</span>');
     if (t.edited && Object.keys(t.edited).length) f.push('<span class="badge info" title="Ændret af dig – bankens værdi er gemt">' + icon('edit') + '</span>');
     if (t.isRecurring) f.push('<span class="badge" title="Fast betaling">' + icon('repeat') + '</span>');
+    const target = t.linkedTo && calc.classify(t).type === 'reimbursement' ? S.byId.transactions.get(t.linkedTo) : null;
+    if (target) f.push('<span class="badge brand" title="Penge fra andre – trækkes fra udgiften ' + esc(target.description) + ' (' + esc(U.fmtDate(target.date, { short: true })) + ')">' + icon('swap') + esc(target.description.slice(0, 18)) + '</span>');
     if (calc.classify(t).type === 'transfer') f.push('<span class="badge" title="Intern overførsel – tæller ikke som indtægt eller forbrug">' + icon('swap') + '</span>');
     if (t.notes) f.push('<span class="badge" title="' + esc(t.notes.slice(0, 120)) + '">' + icon('note') + '</span>');
     return f.length ? '<span class="tx-flags">' + f.join('') + '</span>' : '';
@@ -124,6 +126,9 @@
     for (const id of [...st.selected]) if (!S.byId.transactions.has(id)) st.selected.delete(id);
     const sum = c.calc.summarize(list);
     const multiAcc = S.data.accounts.length > 1;
+    const back = new Map();
+    for (const x of S.data.transactions) if (x.linkedTo && x.amount > 0) back.set(x.linkedTo, (back.get(x.linkedTo) || 0) + x.amount);
+    const amountCell = (t) => UI.txAmount(t) + (back.has(t.id) && t.amount < 0 ? '<div class="small muted num" title="Udgiften minus penge fra andre">din andel ' + esc(U.fmtMoney(Math.max(0, -t.amount - back.get(t.id)))) + '</div>' : '');
     const sortBtn = (key, label) => '<button type="button" class="sort" data-sort="' + key + '" aria-label="Sortér efter ' + esc(label.toLowerCase()) + '">' + esc(label) + (st.sort === key ? icon(st.dir === 'asc' ? 'up' : 'down') : '') + '</button>';
     const aria = (k) => (st.sort === k ? ' aria-sort="' + (st.dir === 'asc' ? 'ascending' : 'descending') + '"' : '');
     const allOnPage = pageList.length && pageList.every((t) => st.selected.has(t.id));
@@ -160,12 +165,12 @@
           '<td class="desc"><div class="t">' + esc(t.description) + flags(t, c.calc) + '</div>' + (t.description !== t.descriptionOriginal ? '<div class="o">Bank: ' + esc(t.descriptionOriginal) + '</div>' : (t.tags && t.tags.length ? '<div class="o">' + t.tags.map((x) => '<span class="tag">' + esc(x) + '</span>').join(' ') + '</div>' : '')) + '</td>' +
           '<td>' + UI.catChip(t.categoryId, { button: 'cat', txId: t.id }) + '</td>' +
           (multiAcc ? '<td class="small muted">' + esc(UI.accountName(t.accountId)) + '</td>' : '') +
-          '<td class="r">' + UI.txAmount(t) + '</td></tr>').join('') +
+          '<td class="r">' + amountCell(t) + '</td></tr>').join('') +
         '</tbody></table></div>' +
         '<ul class="tx-cards">' + pageList.map((t) => '<li data-open="' + esc(t.id) + '" class="' + (st.selected.has(t.id) ? 'selected' : '') + '" tabindex="0">' +
           '<input type="checkbox" data-sel="' + esc(t.id) + '" aria-label="Vælg ' + esc(t.description) + '"' + (st.selected.has(t.id) ? ' checked' : '') + '>' +
           '<div style="min-width:0"><div class="t">' + esc(t.description) + '</div><div class="m"><span>' + esc(U.fmtDate(t.date, { short: true })) + '</span>' + UI.catChip(t.categoryId, { button: 'cat', txId: t.id }) + flags(t, c.calc) + '</div></div>' +
-          '<div class="a">' + UI.txAmount(t) + '</div></li>').join('') + '</ul>';
+          '<div class="a">' + amountCell(t) + '</div></li>').join('') + '</ul>';
       if (pages > 1) {
         html += '<div class="pager"><span>Viser ' + U.fmtNumber(st.page * size + 1) + '–' + U.fmtNumber(Math.min(list.length, st.page * size + size)) + ' af ' + U.fmtNumber(list.length) + '</span><span class="row">' +
           '<button type="button" class="btn sm" data-page="-1"' + (st.page === 0 ? ' disabled' : '') + '>' + icon('left') + 'Forrige</button><span>Side ' + (st.page + 1) + ' af ' + pages + '</span>' +

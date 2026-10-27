@@ -119,7 +119,7 @@
 
   // --- Redigering --------------------------------------------------------------
 
-  const TRACKED = ['date', 'description', 'amount', 'currency', 'accountId', 'categoryId', 'isInternalTransfer', 'exchangeRate'];
+  const TRACKED = ['date', 'description', 'amount', 'currency', 'accountId', 'categoryId', 'isInternalTransfer', 'exchangeRate', 'linkedTo'];
 
   // Retter felter og logger ændringerne. Returnerer listen af ændrede felter.
   function applyEdit(tx, changes, now) {
@@ -148,6 +148,40 @@
     return applyEdit(tx, { date: tx.original.date, description: tx.original.description, amount: tx.original.amount, currency: tx.original.currency }, now);
   }
 
+  // --- Penge fra andre (fx MobilePay, når man har lagt ud) ---------------------
+
+  const isMobilePay = (t) => t.categoryId === 'other-mobilepay' || /(^|[^A-ZÆØÅ])MOBILE ?PAY/.test(t.descriptionNormalized || C.normalizeDescription(t.description));
+
+  // Beløb, der er koblet til udgiften.
+  const reimbursementsOf = (expense, txs) => txs.filter((t) => t.linkedTo === expense.id && t.amount > 0);
+
+  // Udgiften minus det, andre har betalt tilbage (aldrig under 0).
+  function ownShare(expense, txs) {
+    const back = U.sumAmounts(reimbursementsOf(expense, txs), (t) => t.amount);
+    return { paid: -expense.amount, back, own: Math.max(0, U.round2(-expense.amount - back)) };
+  }
+
+  // Forslag til penge fra andre: modtaget MobilePay fra 3 dage før til 45 dage efter købet,
+  // som ikke er koblet til noget og ikke er større end det, der mangler at blive dækket.
+  function reimbursementCandidates(expense, txs) {
+    const left = ownShare(expense, txs).own;
+    return txs.filter((t) => t.amount > 0 && !t.linkedTo && t.id !== expense.id && !t.isInternalTransfer && isMobilePay(t) &&
+        t.date >= U.addDays(expense.date, -3) && t.date <= U.addDays(expense.date, 45) && t.amount <= left + 0.005)
+      .sort((a, b) => Math.abs(U.daysBetween(expense.date, a.date)) - Math.abs(U.daysBetween(expense.date, b.date)) || b.amount - a.amount);
+  }
+
+  // Forslag til hvilken udgift et modtaget beløb hører til: udgifter fra 45 dage før til 3 dage efter,
+  // hvor der stadig mangler mindst beløbet at blive dækket. classify sikrer, at det er rigtige udgifter.
+  // Rækkefølge: udgifter, andre allerede har betalt til (delte køb), derefter de nærmeste dage
+  // (i bidder af 4 dage), og inden for samme bid de største køb – dem lægger man oftest ud for.
+  function expenseCandidates(money, txs, classify) {
+    const shared = new Set(txs.filter((t) => t.linkedTo).map((t) => t.linkedTo));
+    const near = (t) => Math.floor(Math.abs(U.daysBetween(money.date, t.date)) / 4);
+    return txs.filter((t) => t.amount < 0 && t.id !== money.id && t.categoryId !== 'other-mobilepay' && (!classify || classify(t).type === 'expense') &&
+        t.date >= U.addDays(money.date, -45) && t.date <= U.addDays(money.date, 3) && ownShare(t, txs).own >= money.amount - 0.005)
+      .sort((a, b) => (shared.has(b.id) - shared.has(a.id)) || near(a) - near(b) || a.amount - b.amount);
+  }
+
   // --- Søgning, filtre og sortering --------------------------------------------
 
   // f: { from, to, accountIds, categoryIds (Set), types (Set: income|expense|transfer|savings|refund),
@@ -162,7 +196,8 @@
       if (f.from && t.date < f.from) return false;
       if (f.to && t.date > f.to) return false;
       if (f.accountIds && f.accountIds.size && !f.accountIds.has(t.accountId)) return false;
-      if (f.categoryIds && f.categoryIds.size && !f.categoryIds.has(t.categoryId)) return false;
+      // Penge fra andre, der er koblet til en udgift, vises sammen med udgiftens kategori.
+      if (f.categoryIds && f.categoryIds.size && !f.categoryIds.has(t.categoryId) && !(t.linkedTo && h.classify && f.categoryIds.has(h.classify(t).categoryId))) return false;
       if (f.batchId && t.importBatchId !== f.batchId) return false;
       if (f.review && !(t.needsReview || t.categorySource === 'suggested' || t.categorySource === 'unknown')) return false;
       if (f.recurring && !t.isRecurring) return false;
@@ -194,5 +229,6 @@
   GB.tx = {
     makeTransaction, signature, txSignature, referencesReliable, makeDuplicateIndex, addToIndex, markDuplicates,
     applyEdit, restoreOriginal, filterTransactions, sortTransactions,
+    isMobilePay, reimbursementsOf, ownShare, reimbursementCandidates, expenseCandidates,
   };
 })();

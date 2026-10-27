@@ -13,6 +13,9 @@
 //   - Penge ind uden kategori tælles som indtægt.
 //   - En "blandet" kategori (kind "mixed", fx MobilePay) tæller penge ud som forbrug og penge ind som indtægt.
 //   - Beløb i fremmed valuta tælles kun med, når brugeren har angivet en kurs (tx.exchangeRate).
+//   - Penge fra andre (fx MobilePay), som brugeren har koblet til en udgift (tx.linkedTo), er ikke
+//     indtægt: de trækkes fra forbruget i udgiftens kategori på den dato, pengene kom ind.
+//     Udgiften viser derfor kun brugerens egen andel. Er udgiften slettet, tæller beløbet som normalt.
 //   Netto = indtægter − forbrug. Opsparing trækkes ikke fra netto.
 
 (function () {
@@ -24,9 +27,11 @@
 
   const TYPE_LABEL = {
     income: 'Indtægt', expense: 'Udgift', refund: 'Refusion', transfer: 'Intern overførsel', savings: 'Opsparing', foreign: 'Fremmed valuta uden kurs',
+    reimbursement: 'Penge fra andre (trækkes fra udgiften)',
   };
 
-  function makeCalc(categories, rules) {
+  // lookup(id) finder en transaktion – bruges til penge fra andre, der er koblet til en udgift.
+  function makeCalc(categories, rules, lookup) {
     const r = Object.assign({}, DEFAULT_RULES, rules || {});
     const cats = new Map(categories.map((c) => [c.id, c]));
 
@@ -39,10 +44,15 @@
     }
 
     // Returnerer { type, income, expense, savings } i kroner (bidrag til summerne).
+    // Ved penge fra andre er categoryId udgiftens kategori, som beløbet modregnes i.
     function classify(tx) {
       const a = dkk(tx);
       const z = { income: 0, expense: 0, savings: 0 };
       if (a == null) return Object.assign(z, { type: 'foreign' });
+      const target = a > 0 && tx.linkedTo && lookup ? lookup(tx.linkedTo) : null;
+      if (target && target.id !== tx.id && !target.linkedTo && classify(target).type === 'expense') {
+        return Object.assign(z, { type: 'reimbursement', expense: -a, categoryId: target.categoryId });
+      }
       if (tx.isInternalTransfer) return Object.assign(z, { type: 'transfer' });
       const c = cats.get(tx.categoryId);
       let kind = c ? c.kind : 'expense';
@@ -72,8 +82,9 @@
         const io = U.toOre(k.income), eo = U.toOre(k.expense), so = U.toOre(k.savings);
         inc += io; exp += eo; sav += so;
         if (eo) {
-          byCat.set(t.categoryId, (byCat.get(t.categoryId) || 0) + eo);
-          const g = groupOf(t.categoryId);
+          const cid = k.categoryId || t.categoryId;
+          byCat.set(cid, (byCat.get(cid) || 0) + eo);
+          const g = groupOf(cid);
           byGroup.set(g, (byGroup.get(g) || 0) + eo);
         }
         if (io) incomeByCat.set(t.categoryId, (incomeByCat.get(t.categoryId) || 0) + io);
@@ -91,8 +102,10 @@
       const isGroup = cats.has(categoryId) && !cats.get(categoryId).parentId;
       let ore = 0;
       for (const t of txs) {
-        if (isGroup ? groupOf(t.categoryId) !== categoryId : t.categoryId !== categoryId) continue;
-        ore += U.toOre(classify(t).expense);
+        const k = classify(t);
+        const cid = k.categoryId || t.categoryId;
+        if (isGroup ? groupOf(cid) !== categoryId : cid !== categoryId) continue;
+        ore += U.toOre(k.expense);
       }
       return U.fromOre(ore);
     }
@@ -164,7 +177,7 @@
 
   // Forslag til interne overførsler: samme beløb ud af én konto og ind på en anden inden for 4 dage.
   function findTransferPairs(txs) {
-    const ins = txs.filter((t) => t.amount > 0 && !t.isInternalTransfer);
+    const ins = txs.filter((t) => t.amount > 0 && !t.isInternalTransfer && !t.linkedTo);
     const byAmount = new Map();
     for (const t of ins) {
       const k = U.toOre(t.amount);

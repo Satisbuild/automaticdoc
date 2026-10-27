@@ -451,6 +451,44 @@ const tests = {
     assert.strictEqual(cur[0].status, 'full');
     assert.strictEqual(An.accountCoverage(txs, batches, 'b', ['2026-02', '2026-03'], '2026-10-27').map((x) => x.status).join(','), 'full,none');
   },
+  'Penge fra andre: koblet MobilePay er ikke indtægt, men trækkes fra udgiftens kategori': () => {
+    const buy = tx({ description: 'LAND OG FRITID', amount: -900, date: '2026-10-10' });
+    const m1 = tx({ description: 'MobilePay fra Søren', amount: 300, date: '2026-10-11' });
+    const m2 = tx({ description: 'MobilePay fra Mette', amount: 300, date: '2026-10-12' });
+    const other = tx({ description: 'MobilePay fra Ole', amount: 150, date: '2026-10-12' });
+    const list = [buy, m1, m2, other];
+    const byId = new Map(list.map((t) => [t.id, t]));
+    const lc = An.makeCalc(cats, {}, (id) => byId.get(id));
+    // Før kobling: modtaget MobilePay er indtægt
+    let s = lc.summarize(list);
+    assert.strictEqual(s.income, 750);
+    assert.strictEqual(s.byCategory.get('other-outdoor'), 900);
+    // Forslag: de modtagne beløb fra dagene omkring købet
+    assert.deepStrictEqual(T.reimbursementCandidates(buy, list).map((t) => t.id).sort(), [m1.id, m2.id, other.id].sort());
+    assert.deepStrictEqual(T.expenseCandidates(m1, list, lc.classify).map((t) => t.id), [buy.id]);
+    // Store køb fra de samme dage foreslås før små dagligvarekøb tættere på
+    const milk = tx({ description: 'NETTO', amount: -350, date: '2026-10-11' });
+    assert.deepStrictEqual(T.expenseCandidates(m1, list.concat(milk), lc.classify).map((t) => t.description), ['LAND OG FRITID', 'NETTO']);
+    m1.linkedTo = buy.id; m2.linkedTo = buy.id;
+    s = lc.summarize(list);
+    assert.strictEqual(lc.classify(m1).type, 'reimbursement');
+    assert.strictEqual(s.income, 150, 'kun det ukoblede beløb er indtægt');
+    assert.strictEqual(s.expense, 300);
+    assert.strictEqual(s.byCategory.get('other-outdoor'), 300, 'Outdoor viser kun egen andel');
+    assert.strictEqual(lc.spentIn(list, 'other-outdoor'), 300);
+    assert.strictEqual(lc.spentIn(list, 'other'), 300);
+    assert.deepStrictEqual(T.ownShare(buy, list), { paid: 900, back: 600, own: 300 });
+    // Der kan ikke kobles mere på, end der mangler: 150 kr. passer stadig, men ikke beløb over 300 kr.
+    assert.deepStrictEqual(T.reimbursementCandidates(buy, list).map((t) => t.id), [other.id]);
+    // Koblede beløb vises, når man ser udgiftens kategori
+    const shown = T.filterTransactions(list, { categoryIds: new Set(['other-outdoor']) }, { classify: lc.classify });
+    assert.deepStrictEqual(shown.map((t) => t.id).sort(), [buy.id, m1.id, m2.id].sort());
+    // Slettes udgiften, tæller pengene som almindelig indtægt igen
+    byId.delete(buy.id);
+    assert.strictEqual(lc.classify(m1).type, 'income');
+    // Uden opslag (fx gamle kald) ændres intet
+    assert.strictEqual(An.makeCalc(cats, {}).classify(m2).type, 'income');
+  },
   'Perioder beregnes korrekt': () => {
     assert.deepStrictEqual(An.periodRange('this-month', '2026-10-26'), { from: '2026-10-01', to: '2026-10-31' });
     assert.deepStrictEqual(An.periodRange('last-month', '2026-01-15'), { from: '2025-12-01', to: '2025-12-31' });

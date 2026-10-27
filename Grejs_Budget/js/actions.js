@@ -193,7 +193,7 @@
       '<div class="field"><label for="txTags">Tags <span class="hint">(adskil med komma)</span></label><input type="text" id="txTags" maxlength="200" value="' + esc((t.tags || []).join(', ')) + '"></div>' +
       '<div class="field"><label for="txNotes">Noter</label><textarea id="txNotes" maxlength="2000">' + esc(t.notes || '') + '</textarea></div>' +
       '<label class="check"><input type="checkbox" id="txOneOff"' + (t.isOneOff ? ' checked' : '') + '> Engangsudgift <span class="muted small">(kan skjules i månedssammenligningen)</span></label>' +
-      (isNew ? '' : txInfo(t)) +
+      (isNew ? '' : '<div id="splitBox">' + splitSection(t) + '</div>' + txInfo(t)) +
       '</form>';
   }
 
@@ -274,12 +274,80 @@
     $('#txCur', dlg).addEventListener('input', upd);
   }
 
+  // --- Penge fra andre: kobl modtaget MobilePay til en udgift --------------------
+
+  function moneyRow(x, btn) {
+    return '<li><span class="grow"><span class="title" style="display:block">' + esc(x.description) + '</span><span class="meta">' + esc(U.fmtDate(x.date, { short: true })) +
+      (S.data.accounts.length > 1 ? ' · ' + esc(UI.accountName(x.accountId)) : '') + '</span></span><span class="amount">' + UI.txAmount(x) + '</span>' + btn + '</li>';
+  }
+
+  // Afsnittet i transaktionsdialogen. showAll viser alle forslag i stedet for de nærmeste 5.
+  function splitSection(t, showAll) {
+    const all = S.data.transactions;
+    const k = GB.app.calc.classify(t);
+    if (t.amount < 0 && k.type === 'expense') {
+      const linked = T.reimbursementsOf(t, all);
+      const cand = T.reimbursementCandidates(t, all);
+      const sh = T.ownShare(t, all);
+      if (!linked.length && !cand.length) return '';
+      const shown = showAll ? cand : cand.slice(0, 5);
+      return '<hr><h3 class="row" style="gap:8px">' + icon('swap') + 'Penge fra andre</h3>' +
+        '<p class="small muted" style="margin:4px 0 10px">Har du lagt ud, og har andre sendt penge tilbage (fx med MobilePay)? Kobl beløbene på, så de ikke tæller som indtægt, og så udgiften kun viser din egen andel.</p>' +
+        (linked.length ? '<div class="summary-grid"><div class="s"><b>' + esc(U.fmtMoney(sh.paid)) + '</b><span>Du betalte</span></div><div class="s"><b class="pos">' + esc(U.fmtMoney(sh.back, { sign: true })) + '</b><span>Fra andre (' + linked.length + ')</span></div><div class="s"><b>' + esc(U.fmtMoney(sh.own)) + '</b><span>Din egen andel</span></div></div>' +
+          '<ul class="list mt-s">' + linked.map((x) => moneyRow(x, '<button type="button" class="btn sm ghost" data-unlink="' + esc(x.id) + '">' + icon('x') + 'Fjern</button>')).join('') + '</ul>' : '') +
+        (cand.length ? '<p class="small" style="margin:12px 0 4px"><b>Forslag:</b> modtaget MobilePay fra dagene omkring købet</p><ul class="list">' +
+          shown.map((x) => moneyRow(x, '<button type="button" class="btn sm" data-link-money="' + esc(x.id) + '">' + icon('plus') + 'Kobl på</button>')).join('') + '</ul>' +
+          (cand.length > shown.length ? '<button type="button" class="link-btn small" data-split-more>Vis alle ' + cand.length + ' forslag</button>' : '') : '');
+    }
+    if (t.amount > 0 && (t.linkedTo || T.isMobilePay(t))) {
+      const target = t.linkedTo ? S.byId.transactions.get(t.linkedTo) : null;
+      if (target) {
+        const sh = T.ownShare(target, all);
+        return '<hr><h3 class="row" style="gap:8px">' + icon('swap') + 'Hører til udgiften</h3><ul class="list">' +
+          moneyRow(target, '<button type="button" class="btn sm ghost" data-unlink="' + esc(t.id) + '">' + icon('x') + 'Fjern kobling</button>') + '</ul>' +
+          '<p class="small muted">Beløbet tæller ikke som indtægt, men trækkes fra udgiften i ' + esc(UI.catName(target.categoryId)) + '. Din egen andel af udgiften: <b>' + esc(U.fmtMoney(sh.own)) + '</b>.</p>';
+      }
+      const cand = T.expenseCandidates(t, all, GB.app.calc.classify);
+      const shown = showAll ? cand.slice(0, 50) : cand.slice(0, 5);
+      return '<hr><h3 class="row" style="gap:8px">' + icon('swap') + 'Hører beløbet til en udgift?</h3>' +
+        '<p class="small muted" style="margin:4px 0 10px">Hvis pengene er nogens andel af noget, du har lagt ud for, så kobl dem til udgiften. Så tæller de ikke som indtægt.</p>' +
+        (cand.length ? '<ul class="list">' + shown.map((x) => moneyRow(x, '<button type="button" class="btn sm" data-link-expense="' + esc(x.id) + '">' + icon('plus') + 'Kobl til</button>')).join('') + '</ul>' +
+          (cand.length > shown.length ? '<button type="button" class="link-btn small" data-split-more>Vis flere udgifter</button>' : '')
+          : '<p class="small muted">Ingen udgifter fra de sidste 45 dage, der er store nok.</p>');
+    }
+    return '';
+  }
+
+  async function setLink(moneyId, expenseId) {
+    const money = S.byId.transactions.get(moneyId);
+    if (!money) return;
+    T.applyEdit(money, { linkedTo: expenseId || null });
+    await S.put('transactions', money).catch(fail);
+    refresh();
+  }
+
+  function bindSplit(dlg, t) {
+    let showAll = false;
+    const box = $('#splitBox', dlg);
+    if (!box) return;
+    box.addEventListener('click', async (e) => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      if (b.hasAttribute('data-split-more')) showAll = true;
+      else if (b.dataset.linkMoney) { await setLink(b.dataset.linkMoney, t.id); UI.toast('Beløbet er koblet på udgiften'); }
+      else if (b.dataset.linkExpense) { await setLink(t.id, b.dataset.linkExpense); UI.toast('Beløbet er koblet til udgiften'); }
+      else if (b.dataset.unlink) { await setLink(b.dataset.unlink, null); UI.toast('Koblingen er fjernet'); }
+      else return;
+      box.innerHTML = splitSection(t, showAll);
+    });
+  }
+
   async function openTransaction(id) {
     const t = S.byId.transactions.get(id);
     if (!t) return;
     const anyEdited = t.edited && Object.keys(t.edited).length;
     const v = await UI.dialog({
-      title: 'Transaktion', wide: true, body: txForm(t, false), onOpen: bindCurrency,
+      title: 'Transaktion', wide: true, body: txForm(t, false), onOpen: (dlg) => { bindCurrency(dlg); bindSplit(dlg, t); },
       actions: [
         { label: 'Slet', onClick: () => 'delete' },
         ...(anyEdited ? [{ label: 'Gendan bankens værdier', onClick: () => 'restore' }] : []),
@@ -335,7 +403,11 @@
     if (!ids.length) return false;
     const ok = await UI.confirm({ title: 'Slet transaktioner', message: ids.length === 1 ? 'Transaktionen slettes permanent fra Grejs Budget. Den kan hentes igen ved at importere bankfilen på ny.' : ids.length + ' transaktioner slettes permanent fra Grejs Budget.', confirmLabel: 'Slet', danger: true });
     if (!ok) return false;
-    await S.remove('transactions', ids).catch(fail);
+    // Penge fra andre, der var koblet til en slettet udgift, bliver almindelige transaktioner igen.
+    const gone = new Set(ids);
+    const unlinked = S.data.transactions.filter((t) => t.linkedTo && gone.has(t.linkedTo) && !gone.has(t.id));
+    for (const t of unlinked) T.applyEdit(t, { linkedTo: null });
+    await S.batch([{ store: 'transactions', remove: ids }, { store: 'transactions', put: unlinked }]).catch(fail);
     UI.toast(ids.length === 1 ? 'Transaktionen er slettet' : ids.length + ' transaktioner er slettet');
     refresh();
     return true;

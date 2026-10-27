@@ -44,6 +44,7 @@ Beløb gemmes med fortegn: positive tal er penge ind og negative tal er penge ud
 - Opsparing og investering vises for sig og tæller ikke som forbrug. Det kan ændres i indstillinger.
 - Refusioner, fx returvarer, trækkes fra forbruget i kategorien. De kan i stedet tælles som indtægt.
 - Kontanthævning er forbrug. Det kan ændres i indstillinger.
+- **Penge fra andre:** Har du lagt ud, og har andre sendt deres andel (fx med MobilePay), kan beløbene kobles til udgiften i transaktionens dialog under *Penge fra andre*. Koblede beløb tæller ikke som indtægt, men trækkes fra forbruget i udgiftens kategori, så den kun viser din egen andel.
 - Beløb i fremmed valuta tælles først med, når du har angivet en kurs. Der hentes ingen kurser fra internettet.
 - *Netto = indtægter − udgifter.* Tallet er beregnet ud fra de importerede data og svarer ikke nødvendigvis til saldoen på din bankkonto.
 
