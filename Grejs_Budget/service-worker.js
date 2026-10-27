@@ -8,12 +8,12 @@
 // - Der hentes aldrig noget fra andre servere.
 
 // <precache> (genereret af scripts/stamp-service-worker.js - rediger ikke i hånden)
-const VERSION = 'c04d6ca3b6';
+const VERSION = '975164a3eb';
 const SHELL = [
   "./",
   "index.html",
   "manifest.webmanifest",
-  "css/style.css?v=affcaadcaa",
+  "css/style.css?v=627ad5df9c",
   "css/responsive.css?v=c07f05756c",
   "css/print.css?v=36c54c7421",
   "js/theme-boot.js?v=486d9ce28d",
@@ -21,7 +21,7 @@ const SHELL = [
   "js/import.js?v=7179eb4ccb",
   "js/pdf-import.js?v=67aea17a37",
   "js/categorization.js?v=06f494b2d7",
-  "js/transactions.js?v=33b00a8de3",
+  "js/transactions.js?v=cc017cced4",
   "js/analytics.js?v=149d1eca18",
   "js/budgets.js?v=0ba083192e",
   "js/recurring.js?v=ab0c72fa2a",
@@ -31,16 +31,16 @@ const SHELL = [
   "js/storage.js?v=b32eec458a",
   "js/ui.js?v=67e17b7292",
   "js/charts.js?v=d69cfafc98",
-  "js/actions.js?v=c66c6da07f",
+  "js/actions.js?v=2f2ca40a1c",
   "js/views/overview.js?v=a12721d126",
   "js/views/transactions.js?v=5e6a9b2e24",
   "js/views/insights.js?v=91e9f6e0c7",
   "js/views/categories.js?v=bcd4b699e3",
   "js/views/budgets.js?v=f6adc2ada7",
-  "js/views/compare.js?v=38cadce1a5",
+  "js/views/compare.js?v=0d0b3570ef",
   "js/views/recurring.js?v=501926d68c",
   "js/views/goals.js?v=b55b89508e",
-  "js/views/import.js?v=7a6c19b17e",
+  "js/views/import.js?v=b1e1a4986a",
   "js/views/reports.js?v=3a4c29e5a5",
   "js/views/settings.js?v=53e1754f19",
   "js/app.js?v=f4ff8563db",

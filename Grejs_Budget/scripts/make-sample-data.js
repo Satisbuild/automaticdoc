@@ -27,6 +27,10 @@ function files() {
   out['lonkonto_2026-01_til_2026-03.csv'] = lon(checking.filter((r) => r.date < '2026-04-01'));
   out['lonkonto_2026-03_til_2026-04.csv'] = lon(checking.filter((r) => r.date >= '2026-03-01'));
 
+  // 2b) Et helt år (2025) i én fil – fordeles automatisk på de 12 måneder ved import.
+  const year = GB.sample.withBalance(GB.sample.generate('2025-12-31', 12, 2025).checking, 9800);
+  out['lonkonto_hele_2025.csv'] = lon(year);
+
   // 3) Kreditkort – komma som separator, decimalpunktum, ÅÅÅÅ-MM-DD, separate debet/kredit-kolonner og transaktions-ID.
   let n = 1000;
   out['kreditkort_2026.csv'] = ['"Date","Description","Debit","Credit","Currency","Transaction ID"']

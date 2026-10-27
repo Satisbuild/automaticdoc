@@ -291,20 +291,36 @@
     if (t.amount < 0 && k.type === 'expense') {
       const linked = T.reimbursementsOf(t, all);
       const sh = T.ownShare(t, all);
-      const cand = T.reimbursementCandidates(t, all, { all: !!v.all, classify });
+      const opts = T.reimbursementOptions(t, all, { all: !!v.all, classify });
+      const cand = opts.filter((x) => x.status === 'ok').map((x) => x.t);
+      const blocked = opts.filter((x) => x.status !== 'ok');
+      const win = T.reimbursementWindow(t, !!v.all);
+      const period = esc(U.fmtDate(win.from, { short: true })) + ' – ' + esc(U.fmtDate(win.to, { short: true }));
+      const what = v.all ? 'penge ind' : 'modtaget MobilePay';
       const shown = v.more ? cand.slice(0, 100) : cand.slice(0, 5);
       const linkBtn = (x) => '<button type="button" class="btn sm" data-link-money="' + esc(x.id) + '">' + icon('plus') + 'Kobl på</button>';
       let list;
       if (cand.length) {
-        list = '<p class="small" style="margin:12px 0 4px"><b>' + (v.all ? 'Alle indbetalinger' : 'Forslag') + ':</b> ' +
-          (v.all ? 'penge ind fra 14 dage før til 120 dage efter købet' : 'modtaget MobilePay fra 3 dage før til 45 dage efter købet') + '. Tryk <b>Kobl på</b> ved dem, der hører til købet.</p>' +
+        list = '<p class="small" style="margin:12px 0 4px"><b>' + (v.all ? 'Alle indbetalinger' : 'Forslag') + ':</b> ' + what + ' fra ' + period + '. Tryk <b>Kobl på</b> ved dem, der hører til købet.</p>' +
           '<ul class="list">' + shown.map((x) => moneyRow(x, linkBtn(x))).join('') + '</ul>' +
           (cand.length > shown.length ? '<button type="button" class="link-btn small" data-split-more>Vis alle ' + cand.length + '</button> ' : '');
       } else if (sh.own <= 0.005) {
         list = '<p class="small muted mt-s">Hele udgiften er dækket af andre.</p>';
       } else {
-        list = '<p class="small muted mt-s">' + (v.all ? 'Der er ingen indbetalinger på højst ' + esc(U.fmtMoney(sh.own)) + ' fra 14 dage før til 120 dage efter købet.'
-          : 'Ingen forslag: der er ikke modtaget MobilePay på højst ' + esc(U.fmtMoney(sh.own)) + ' fra 3 dage før til 45 dage efter købet. Er pengene kommet senere eller står de ikke som MobilePay i banken, så tryk <b>Vis alle indbetalinger</b>.') + '</p>';
+        list = '<p class="small muted mt-s">Ingen forslag: der er ikke ' + what + ' fra ' + period + ', som kan kobles på.' +
+          (v.all ? '' : ' Står pengene ikke som MobilePay i banken, eller kom de senere, så tryk <b>Vis alle indbetalinger</b>.') + '</p>';
+      }
+      // Beløb fra perioden, der ikke kan kobles på – med grunden, så det er tydeligt, hvorfor de ikke er forslag.
+      if (blocked.length) {
+        const reason = (x) => {
+          if (x.status === 'linked') {
+            const other = S.byId.transactions.get(x.t.linkedTo);
+            return 'koblet til ' + (other ? other.description + ' (' + U.fmtDate(other.date, { short: true }) + ')' : 'et andet køb');
+          }
+          return 'større end din resterende andel (' + U.fmtMoney(sh.own) + ')';
+        };
+        list += '<details class="mt-s"' + (cand.length ? '' : ' open') + '><summary class="small">' + blocked.length + ' andre ' + (v.all ? 'indbetalinger' : 'MobilePay') + ' fra perioden kan ikke kobles på</summary>' +
+          '<ul class="list" style="opacity:.65">' + blocked.map((x) => moneyRow(x.t, '<span class="small muted" style="max-width:220px;text-align:right">' + esc(reason(x)) + '</span>')).join('') + '</ul></details>';
       }
       return '<hr><h3 class="row" style="gap:8px">' + icon('swap') + 'Penge fra andre</h3>' +
         '<p class="small muted" style="margin:4px 0 10px">Har du lagt ud, og har andre sendt penge tilbage (fx med MobilePay)? Kobl beløbene på, så de ikke tæller som indtægt, og så udgiften kun viser din egen andel.</p>' +

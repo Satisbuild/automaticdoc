@@ -171,6 +171,12 @@ const tests = {
         assert.strictEqual(r.errors.length, 3, name);
         assert.strictEqual(r.rows.find((x) => x.description.startsWith('Køb')).description, 'Købmand Ærø Ølstykke Å');
       } else assert.strictEqual(r.errors.length, 0, name + ': ' + JSON.stringify(r.errors[0]));
+      if (name.includes('hele_2025')) {
+        const months = new Set(r.rows.map((x) => U.monthKey(x.date)));
+        assert.deepStrictEqual([...months].sort(), U.monthRange('2025-01', '2025-12'), 'et helt år skal fordeles på alle 12 måneder');
+        const s = calc.byMonth(toTxs(r.rows, 'y'), U.monthRange('2025-01', '2025-12'));
+        assert.ok(s.every((m) => m.count > 10 && m.expense > 0), 'hver måned har sine egne transaktioner');
+      }
     }
   },
 
@@ -487,6 +493,15 @@ const tests = {
     const wide = list.concat(late, own, salary);
     assert.ok(!T.reimbursementCandidates(buy, wide).some((t) => t.id === late.id), 'kun MobilePay som standard');
     assert.deepStrictEqual(T.reimbursementCandidates(buy, wide, { all: true, classify: lc.classify }).map((t) => t.id).sort(), [other.id, late.id].sort());
+    // Hele købsmåneden kommer med, og beløb, der ikke kan kobles på, får en grund
+    const exp2 = tx({ description: 'SUNSET', amount: -400, date: '2026-11-20' });
+    const early = tx({ description: 'MobilePay fra Ib', amount: 100, date: '2026-11-02' });
+    const tooBig = tx({ description: 'MobilePay fra Bo', amount: 500, date: '2026-11-21' });
+    const taken = Object.assign(tx({ description: 'MobilePay fra Al', amount: 50, date: '2026-11-21' }), { linkedTo: 'et-andet-køb' });
+    const lastMonth = tx({ description: 'MobilePay fra Kim', amount: 50, date: '2026-10-31' });
+    assert.deepStrictEqual(T.reimbursementWindow(exp2), { from: '2026-11-01', to: '2027-01-04' });
+    const opt = T.reimbursementOptions(exp2, [exp2, early, tooBig, taken, lastMonth]);
+    assert.deepStrictEqual(opt.map((x) => x.t.description + ':' + x.status).sort(), ['MobilePay fra Al:linked', 'MobilePay fra Bo:tooBig', 'MobilePay fra Ib:ok']);
     // Koblede beløb vises, når man ser udgiftens kategori
     const shown = T.filterTransactions(list, { categoryIds: new Set(['other-outdoor']) }, { classify: lc.classify });
     assert.deepStrictEqual(shown.map((t) => t.id).sort(), [buy.id, m1.id, m2.id].sort());

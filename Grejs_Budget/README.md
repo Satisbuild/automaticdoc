@@ -65,6 +65,7 @@ Mappen `eksempeldata/` indeholder opdigtede bankfiler i forskellige formater til
 |---|---|
 | `lonkonto_2026-01_til_2026-03.csv` | Semikolon, decimalkomma, `DD.MM.ÅÅÅÅ`, UTF-8 med BOM |
 | `lonkonto_2026-03_til_2026-04.csv` | Overlapper marts, så dubletkontrollen kan afprøves |
+| `lonkonto_hele_2025.csv` | Et helt år i én fil – fordeles automatisk på de 12 måneder |
 | `kreditkort_2026.csv` | Komma, decimalpunktum, `ÅÅÅÅ-MM-DD`, separate debet- og kreditkolonner og transaktions-ID |
 | `opsparing_2026.xlsx` | Excel med rigtige datoceller |
 | `aeldre_bankfil_ansi_med_fejl.csv` | Windows-1252, tabulator, æ/ø/å og tre bevidst fejlbehæftede rækker |

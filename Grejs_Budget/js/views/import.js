@@ -23,7 +23,8 @@
       html += '<ol class="stepper" aria-label="Trin i importen">' + STEPS.map((s, i) => '<li class="' + (i + 1 < imp.step ? 'done' : '') + '"' + (i + 1 === imp.step ? ' aria-current="step"' : '') + '>' + esc(s) + '</li>').join('') + '</ol>';
       html += '<div class="card">' + [null, step1, step2, step3, step4, step5, step6][imp.step](c) + '</div>';
     }
-    if (imp.step === 1 && !imp.done) html += coverageView(c, null) + historyView();
+    if (imp.done) html += coverageView(c, [...new Set(imp.done.batches.map((x) => x.accountId))]);
+    else if (imp.step === 1) html += coverageView(c, null) + historyView();
     if (imp.step === 2 && !imp.done) {
       const chosen = [...new Set(okFiles().map(accountOf).filter(Boolean))];
       if (chosen.length) html += coverageView(c, chosen);
@@ -104,7 +105,7 @@
   // --- Trin 1: filer -----------------------------------------------------------
 
   function step1() {
-    return '<h2>Vælg bankfiler</h2><p class="muted">Hent dine posteringer i netbanken som <b>CSV</b> (eller Excel/XLSX, PDF, OFX, QIF). Du kan vælge flere filer og flere måneder på én gang – også filer, der overlapper. Dubletter findes automatisk.</p>' +
+    return '<h2>Vælg bankfiler</h2><p class="muted">Hent dine posteringer i netbanken som <b>CSV</b> (eller Excel/XLSX, PDF, OFX, QIF). Du kan vælge flere filer og flere måneder på én gang – også <b>et helt år i én fil</b>, og også filer, der overlapper. Hver transaktion placeres automatisk i den måned, den har dato i, og dubletter findes automatisk.</p>' +
       '<label class="dropzone mt" id="drop" tabindex="0">' + icon('upload') + '<h3>Træk filer hertil, eller klik for at vælge</h3><span class="small muted">CSV, TXT, XLSX, PDF, OFX, QFX og QIF · filerne læses kun i din browser</span>' +
       '<input type="file" id="fileInput" multiple accept="' + ACCEPT + '" class="sr-only"></label>' +
       (imp.files.length ? '<div class="file-list">' + imp.files.map((f, i) => '<div class="file-item' + (f.status === 'error' ? ' error' : '') + '"><span class="fi-icon">' + icon(f.status === 'error' ? 'alert' : 'file') + '</span>' +
@@ -313,6 +314,7 @@
       '<div class="s"><b>' + skipped + '</b><span>dubletter springes over</span></div>' +
       '<div class="s"><b>' + errors + '</b><span>rækker med fejl springes over</span></div></div>' +
       '<ul class="list mt">' + files.map((f) => '<li>' + icon('file') + '<span class="grow">' + esc(f.name) + ' → <b>' + esc(UI.accountName(accountOf(f))) + '</b></span><span class="num">' + f.result.rows.filter((r) => r.decision === 'import').length + ' stk.</span></li>').join('') + '</ul>' +
+      monthDistribution(all, c) +
       (forced ? '<div class="note warn mt">' + icon('alert') + '<p>' + forced + ' mulige dubletter importeres efter dit valg. De markeres, så du kan kontrollere dem bagefter.</p></div>' : '') +
       (unknown ? '<div class="note mt">' + icon('info') + '<p>' + unknown + ' transaktioner kunne ikke kategoriseres sikkert og markeres til kontrol.</p></div>' : '') +
       (sum.foreign ? '<div class="note warn mt">' + icon('alert') + '<p>' + sum.foreign + ' transaktioner er i fremmed valuta. De tælles ikke med i summerne, før du angiver en kurs.</p></div>' : '') +
@@ -321,10 +323,32 @@
       '<div class="row between mt"><button type="button" class="btn" data-act="back">' + icon('left') + 'Tilbage</button><button type="button" class="btn primary" data-act="commit"' + (all.length && !imp.busy ? '' : ' disabled') + '>' + (imp.busy ? 'Gemmer …' : icon('check') + 'Importér ' + U.fmtNumber(all.length) + ' transaktioner') + '</button></div>';
   }
 
+  // Hvordan fordeler de nye transaktioner sig på månederne? (Hver transaktion placeres efter sin egen dato.)
+  function monthDistribution(all, c) {
+    if (!all.length) return '';
+    const accounts = new Set(all.map((t) => t.accountId));
+    const byMonth = new Map();
+    for (const t of all) { const mk = U.monthKey(t.date); if (!byMonth.has(mk)) byMonth.set(mk, []); byMonth.get(mk).push(t); }
+    const months = [...byMonth.keys()].sort();
+    const existing = new Map();
+    for (const t of S.data.transactions) if (accounts.has(t.accountId)) existing.set(U.monthKey(t.date), (existing.get(U.monthKey(t.date)) || 0) + 1);
+    const rows = months.map((mk) => {
+      const s = c.calc.summarize(byMonth.get(mk));
+      const ex = existing.get(mk) || 0;
+      return '<tr><td>' + esc(U.capitalize(U.fmtMonth(mk))) + '</td><td class="r num">' + byMonth.get(mk).length + '</td><td class="r num pos">' + esc(U.fmtMoney(s.income, { decimals: 0 })) + '</td><td class="r num">' + esc(U.fmtMoney(s.expense, { decimals: 0 })) + '</td>' +
+        '<td>' + (ex ? '<span class="cov-chip partial">' + icon('plus') + 'Supplerer ' + ex + ' eksisterende</span>' : '<span class="cov-chip none">' + icon('plus') + 'Ny måned</span>') + '</td></tr>';
+    }).join('');
+    return '<h3 class="mt">Fordeling på måneder</h3><p class="small muted" style="margin:4px 0 8px">Hver transaktion placeres i den måned, den har dato i – så en fil med et helt år fordeles automatisk på ' + months.length + ' måned' + (months.length === 1 ? '' : 'er') + '.</p>' +
+      '<div class="table-wrap" style="max-height:420px;border:1px solid var(--border);border-radius:10px"><table class="compact"><thead><tr><th>Måned</th><th class="r">Transaktioner</th><th class="r">Ind</th><th class="r">Ud</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
   function doneView() {
     const d = imp.done;
-    return '<div class="card">' + UI.empty('check', 'Importen er gennemført', U.fmtNumber(d.count) + ' transaktioner er gemt fra ' + d.batches.length + ' fil' + (d.batches.length === 1 ? '' : 'er') + '.' + (d.skipped ? ' ' + d.skipped + ' dubletter blev sprunget over.' : ''),
-      '<a class="btn primary" href="#/overblik">Se overblikket</a><button type="button" class="btn" data-act="show-imported">Se de importerede</button><button type="button" class="btn" data-act="again">' + icon('upload') + 'Importér flere</button>') + '</div>';
+    const m = d.months || [];
+    const spread = m.length > 1 ? ' Fordelt på ' + m.length + ' måneder (' + U.fmtMonth(m[0]) + ' – ' + U.fmtMonth(m[m.length - 1]) + ').' : m.length ? ' Alle i ' + U.fmtMonth(m[0]) + '.' : '';
+    return '<div class="card">' + UI.empty('check', 'Importen er gennemført', U.fmtNumber(d.count) + ' transaktioner er gemt fra ' + d.batches.length + ' fil' + (d.batches.length === 1 ? '' : 'er') + '.' + spread + (d.skipped ? ' ' + d.skipped + ' dubletter blev sprunget over.' : ''),
+      '<a class="btn primary" href="#/overblik">Se overblikket</a>' + (m.length > 1 ? '<button type="button" class="btn" data-act="show-months">' + icon('chart') + 'Se måned for måned</button>' : '') +
+      '<button type="button" class="btn" data-act="show-imported">Se de importerede</button><button type="button" class="btn" data-act="again">' + icon('upload') + 'Importér flere</button>') + '</div>';
   }
 
   function historyView() {
@@ -431,6 +455,7 @@
         const a = await GB.actions.accountDialog();
         if (a) { if (imp.perFile) okFiles().forEach((f) => { if (!f.accountId) f.accountId = a.id; }); else imp.accountId = a.id; GB.app.render(); }
       }
+      if (act === 'show-months') { const m = imp.done.months; GB.app.go('compare', { fromMonth: m[0], toMonth: m[m.length - 1] }); return; }
       if (act === 'show-imported') GB.app.go('transactions', { ids: S.data.transactions.filter((t) => imp.done.batches.some((x) => x.id === t.importBatchId)).map((t) => t.id) });
       if (act === 'commit') {
         if (imp.busy) return;
@@ -441,8 +466,9 @@
           const files = okFiles().filter((f) => f.result.rows.length).map((f) => ({ name: f.name, format: f.format, size: f.size, accountId: accountOf(f), rows: f.result.rows, errors: f.result.errors }));
           const res = await GB.actions.commitImport(files);
           const skipped = res.batches.reduce((s, x) => s + x.skippedDuplicates, 0);
+          const months = [...new Set(files.flatMap((f) => f.rows.filter((r) => r.decision === 'import').map((r) => U.monthKey(r.date))))].sort();
           imp = fresh();
-          imp.done = { count: res.count, batches: res.batches, skipped };
+          imp.done = { count: res.count, batches: res.batches, skipped, months };
           await S.saveSettings({ onboarded: true }).catch(() => {});
           UI.toast(res.count + ' transaktioner er importeret');
           GB.app.refresh();

@@ -161,24 +161,38 @@
     return { paid: -expense.amount, back, own: Math.max(0, U.round2(-expense.amount - back)) };
   }
 
-  // Forslag til penge fra andre: modtaget MobilePay fra 3 dage før til 45 dage efter købet,
-  // som ikke er koblet til noget og ikke er større end det, der mangler at blive dækket.
-  // opts.all: alle indbetalinger (ikke kun MobilePay) fra 14 dage før til 120 dage efter –
-  // til når pengene står med en anden tekst i banken eller kom senere. classify udelukker
-  // opsparing, refusioner fra butikker og overførsler – dog ikke overførsler, appen kun har
-  // gættet på (fx "Overførsel fra Søren"), for det er ofte netop penge fra andre.
-  function reimbursementCandidates(expense, txs, opts) {
+  // Tidsrummet, der ledes i: fra starten af købsmåneden (eller 3 dage før købet, hvis det er tidligere)
+  // til 45 dage efter. opts.all: fra 14 dage før / månedens start til 120 dage efter.
+  function reimbursementWindow(expense, all) {
+    const monthStart = U.monthStart(U.monthKey(expense.date));
+    const early = U.addDays(expense.date, all ? -14 : -3);
+    return { from: early < monthStart ? early : monthStart, to: U.addDays(expense.date, all ? 120 : 45) };
+  }
+
+  // Alle penge ind i tidsrummet – MobilePay, eller alle indbetalinger med opts.all – med en status:
+  //   ok          – kan kobles på
+  //   linked      – allerede koblet til et andet køb (linkedTo peger på det)
+  //   tooBig      – større end det, der mangler at blive dækket
+  // classify udelukker opsparing, refusioner fra butikker og overførsler – dog ikke overførsler,
+  // appen kun har gættet på (fx "Overførsel fra Søren"), for det er ofte netop penge fra andre.
+  function reimbursementOptions(expense, txs, opts) {
     const o = opts || {};
     const left = ownShare(expense, txs).own;
-    const [before, after] = o.all ? [14, 120] : [3, 45];
+    const win = reimbursementWindow(expense, o.all);
     const excluded = (t) => {
       if (!o.classify) return false;
       const type = o.classify(t).type;
       return ['savings', 'foreign', 'refund'].includes(type) || (type === 'transfer' && t.categorySource !== 'suggested');
     };
-    return txs.filter((t) => t.amount > 0 && !t.linkedTo && t.id !== expense.id && !t.isInternalTransfer && (o.all || isMobilePay(t)) && !excluded(t) &&
-        t.date >= U.addDays(expense.date, -before) && t.date <= U.addDays(expense.date, after) && t.amount <= left + 0.005)
-      .sort((a, b) => Math.abs(U.daysBetween(expense.date, a.date)) - Math.abs(U.daysBetween(expense.date, b.date)) || b.amount - a.amount);
+    return txs.filter((t) => t.amount > 0 && t.linkedTo !== expense.id && t.id !== expense.id && !t.isInternalTransfer && (o.all || isMobilePay(t)) &&
+        t.date >= win.from && t.date <= win.to && !(o.classify && !t.linkedTo && excluded(t)))
+      .map((t) => ({ t, status: t.linkedTo ? 'linked' : t.amount > left + 0.005 ? 'tooBig' : 'ok' }))
+      .sort((a, b) => Math.abs(U.daysBetween(expense.date, a.t.date)) - Math.abs(U.daysBetween(expense.date, b.t.date)) || b.t.amount - a.t.amount);
+  }
+
+  // Forslag, der kan kobles på (se reimbursementOptions).
+  function reimbursementCandidates(expense, txs, opts) {
+    return reimbursementOptions(expense, txs, opts).filter((x) => x.status === 'ok').map((x) => x.t);
   }
 
   // Forslag til hvilken udgift et modtaget beløb hører til: udgifter fra 45 dage før til 3 dage efter,
@@ -240,6 +254,6 @@
   GB.tx = {
     makeTransaction, signature, txSignature, referencesReliable, makeDuplicateIndex, addToIndex, markDuplicates,
     applyEdit, restoreOriginal, filterTransactions, sortTransactions,
-    isMobilePay, reimbursementsOf, ownShare, reimbursementCandidates, expenseCandidates,
+    isMobilePay, reimbursementsOf, ownShare, reimbursementWindow, reimbursementOptions, reimbursementCandidates, expenseCandidates,
   };
 })();

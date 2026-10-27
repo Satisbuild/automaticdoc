@@ -21,6 +21,9 @@
       return;
     }
     const lastMk = U.monthKey(range.to < c.today ? range.to : c.today);
+    // Kommer man fra importen, vises netop de importerede måneder.
+    const p = c.state.params || {};
+    if (p.fromMonth && p.toMonth) { Object.assign(st, { mode: 'months', from: p.fromMonth, to: p.toMonth }); c.state.params = {}; }
     if (!st.to) { st.to = lastMk; st.from = U.monthKey(range.from) > U.addMonthKey(lastMk, -5) ? U.monthKey(range.from) : U.addMonthKey(lastMk, -5); }
     if (!st.a) { st.a = lastMk; st.b = U.addMonthKey(lastMk, -1); }
     const groups = S.data.categories.filter((x) => !x.parentId).sort((a, b) => a.order - b.order);
