@@ -13,7 +13,7 @@
 
   const DB_NAME = 'grejsbudget';
   const DB_VERSION = 1;
-  const SCHEMA = 3;
+  const SCHEMA = 4;
   const STORES = ['transactions', 'accounts', 'categories', 'rules', 'budgets', 'periodBudgets', 'recurring', 'goals', 'batches'];
 
   const DEFAULT_SETTINGS = {
@@ -51,6 +51,24 @@
       if (!cat) return;
       if (cat.kind === 'expense') cat.kind = 'mixed';
       moveMobilePay(d, (t) => t.amount > 0);
+    },
+    // 4: Indbyggede regler får faste id'er (før: placering i listen), og nye sikre regler
+    //    (fx SUNSET, COCCO BELLO, LEGO, NemBilvask) bruges på transaktioner, der var ukendte
+    //    eller kun havde et forslag. Manuelle valg og egne regler røres ikke.
+    4(d, s, from) {
+      const C = GB.categories;
+      const map = (id) => C.legacyRuleId(id, from);
+      if (Array.isArray(s.disabledBuiltinRules)) s.disabledBuiltinRules = s.disabledBuiltinRules.map(map).filter(Boolean);
+      for (const t of d.transactions) if (t.categoryRuleId && /^builtin-\d+$/.test(t.categoryRuleId)) t.categoryRuleId = map(t.categoryRuleId);
+      if (!d.categories.length) return;
+      const ctx = C.makeContext([], d.categories, s.disabledBuiltinRules);
+      for (const t of d.transactions) {
+        if (t.categorySource !== 'unknown' && t.categorySource !== 'suggested') continue;
+        const sg = C.suggest(t, ctx);
+        if (sg.categorySource !== 'default') continue;
+        Object.assign(t, sg, { categoryReason: sg.reason });
+        delete t.reason;
+      }
     },
   };
 
@@ -132,7 +150,7 @@
       const stored = m.get('schema') || (results.some((r) => r.length) ? 1 : SCHEMA);
       if (stored > SCHEMA) throw new Error('Dine data er gemt af en nyere version af Grejs Budget. Genindlæs siden for at hente den nyeste version.');
       if (stored < SCHEMA) {
-        runMigrations(data, stored);
+        runMigrations(data, stored, settings);
         for (const s of STORES) setStore(s, data[s]);
         await writeAll();
       }
@@ -149,8 +167,9 @@
     return { backend, error: lastError };
   }
 
-  function runMigrations(d, from) {
-    for (let v = from + 1; v <= SCHEMA; v++) if (MIGRATIONS[v]) MIGRATIONS[v](d);
+  // d: alle data, from: version de blev gemt med, s: indstillingerne (kan også ændres af en migration).
+  function runMigrations(d, from, s) {
+    for (let v = from + 1; v <= SCHEMA; v++) if (MIGRATIONS[v]) MIGRATIONS[v](d, s || {}, from);
   }
 
   function mergeSettings(s) {

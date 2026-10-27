@@ -260,6 +260,45 @@ const tests = {
     assert.strictEqual(d2.categories.find((c) => c.id === 'other-mobilepay').kind, 'income');
     assert.strictEqual(d2.transactions[0].categoryId, 'income-other');
   },
+  'Brugerens ønskede butikker får de rigtige kategorier': () => {
+    const cases = [
+      ['BRF BR HAMMERSHØJ', 'food-groceries'], ['Dankort-køb BRF BR HAMMERSHØJ 8830', 'food-groceries'],
+      ['SUNSET', 'food-restaurant'], ['SUNSET BOULEVARD AARHUS', 'food-restaurant'], ['COCCO BELLO', 'food-restaurant'],
+      ['LAND OG FRITID', 'other-misc'], ['Land & Fritid Randers', 'other-misc'], ['LEGO', 'other-misc'], ['LEGO STORE AARHUS', 'other-misc'],
+      ['Forretning: Jack', 'shopping-clothes'], ['Forretning: Jack & Jones', 'shopping-clothes'],
+      ['NEMBILVASK MY GARA', 'transport-fuel'], ['Almindelig BILVASK', 'transport-carwash'],
+      ['BRF KREDIT', 'housing-mortgage'], ['LEGOLAND', 'travel-experiences'],
+    ];
+    for (const [desc, cat] of cases) {
+      const t = tx({ description: desc, amount: -100 });
+      assert.strictEqual(t.categoryId, cat, desc + ' gav ' + t.categoryId);
+      assert.strictEqual(t.categorySource, 'default', desc + ' skal være et sikkert match');
+    }
+  },
+  'Indbyggede regler har faste, unikke id\'er': () => {
+    const ids = C.BUILTIN_RULES.map((r) => r.id);
+    assert.strictEqual(new Set(ids).size, ids.length);
+    assert.ok(ids.every((id) => /^builtin:[a-z-]+:.+/.test(id)));
+    assert.strictEqual(C.legacyRuleId('builtin-6', 3), 'builtin:food-groceries:NETTO');
+    assert.strictEqual(C.legacyRuleId('builtin-56', 3), 'builtin:other-mobilepay:MOBILEPAY');
+    assert.strictEqual(C.legacyRuleId('builtin-56', 1), 'builtin:other-cash:HÆVNING', 'version 1 havde ikke MobilePay-reglen');
+    for (const old of ['builtin-0', 'builtin-30', 'builtin-59']) assert.ok(ids.includes(C.legacyRuleId(old, 3)), old);
+  },
+  'Migration 4: gamle regel-id\'er oversættes, og nye sikre regler bruges kun på ukendte/forslag': () => {
+    const mk = (desc, cat, source, ruleId) => Object.assign(tx({ description: desc, amount: -100 }), { categoryId: cat, categorySource: source, categoryRuleId: ruleId });
+    const d = {
+      categories: C.defaultCategories(),
+      transactions: [mk('SUNSET', C.UNKNOWN_ID, 'unknown', null), mk('SUNSET BOULEVARD', 'food-restaurant', 'suggested', 'builtin-8'),
+        mk('LEGO', 'shopping-gifts', 'manual', null), mk('COCCO BELLO', 'food-takeaway', 'rule', 'rule_x'), mk('NETTO', 'food-groceries', 'default', 'builtin-6'), mk('Ukendt butik', C.UNKNOWN_ID, 'unknown', null)],
+    };
+    const s = { disabledBuiltinRules: ['builtin-12'] };
+    S.runMigrations(d, 3, s);
+    assert.deepStrictEqual(s.disabledBuiltinRules, ['builtin:transport-fuel:OK']);
+    assert.deepStrictEqual(d.transactions.map((t) => t.categoryId + '/' + t.categorySource), [
+      'food-restaurant/default', 'food-restaurant/default', 'shopping-gifts/manual', 'food-takeaway/rule', 'food-groceries/default', C.UNKNOWN_ID + '/unknown']);
+    assert.strictEqual(d.transactions[4].categoryRuleId, 'builtin:food-groceries:NETTO');
+    assert.ok(!('reason' in d.transactions[0]));
+  },
   'Brugerens regler går forud for indbyggede og respekterer prioritet og konto': () => {
     const rules = [
       { id: 'r1', active: true, keyword: 'NETTO', matchType: 'contains', categoryId: 'food-snacks', priority: 20, sign: 'any', createdAt: '1' },

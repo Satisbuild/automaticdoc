@@ -5,6 +5,7 @@
   const GB = globalThis.GB;
   const U = GB.util, UI = GB.ui, S = GB.store;
   const { esc, icon, money } = UI;
+  const MP = 'other-mobilepay';
 
   function welcome() {
     return '<section class="welcome">' +
@@ -71,11 +72,14 @@
     }
 
     const t = (a, b, inv) => (cmp ? UI.trend(GB.analytics.change(a, b), inv) : '');
+    // MobilePay vises delt op i penge ind (indtægt) og penge ud (udgift).
+    const mp = { in: sum.incomeByCategory.get(MP) || 0, out: sum.byCategory.get(MP) || 0, txs: c.periodTxs.filter((x) => x.categoryId === MP && c.calc.classify(x).type !== 'transfer') };
+    const mpNote = (v) => (v ? { after: '<div class="kpi-sub">heraf MobilePay: ' + esc(U.fmtMoney(v, { decimals: 0 })) + '</div>' } : null);
     html += '<div class="section-title"><p class="muted" style="margin:0">' + icon('calendar') + ' <b>' + esc(c.label) + '</b>' + (c.accountId ? ' · ' + esc(UI.accountName(c.accountId)) : ' · alle konti') + '</p>' +
       (cmp ? '<span class="small muted">Pile viser ændring ' + esc(cmp.label) + '</span>' : '') + '</div>';
     html += '<div class="kpis">' +
-      kpi('Indtægter', 'income', esc(U.fmtMoney(sum.income, { decimals: 0 })), t(cmp && cmp.cur.income, cmp && cmp.prev.income) || '&nbsp;') +
-      kpi('Udgifter', 'cart', esc(U.fmtMoney(sum.expense, { decimals: 0 })), t(cmp && cmp.cur.expense, cmp && cmp.prev.expense, true) || '&nbsp;') +
+      kpi('Indtægter', 'income', esc(U.fmtMoney(sum.income, { decimals: 0 })), t(cmp && cmp.cur.income, cmp && cmp.prev.income) || '&nbsp;', mpNote(mp.in)) +
+      kpi('Udgifter', 'cart', esc(U.fmtMoney(sum.expense, { decimals: 0 })), t(cmp && cmp.cur.expense, cmp && cmp.prev.expense, true) || '&nbsp;', mpNote(mp.out)) +
       kpi('Tilbage', 'wallet', esc(U.fmtMoney(sum.net, { decimals: 0, sign: true })), 'Indtægter minus udgifter', { cls: 'accent', valueCls: sum.net >= 0 ? 'pos' : 'neg' }) +
       kpi('Opsparing', 'piggy', esc(U.fmtMoney(sum.savings, { decimals: 0 })), ev.plan && ev.savingsTarget ? 'Mål: ' + esc(U.fmtMoney(ev.savingsTarget, { decimals: 0 })) + ' pr. måned' : 'Overført til opsparing og investering') +
       (ev.plan && ev.totalBudget ? kpi('Budget brugt · ' + U.MONTHS[+todayMk.slice(5, 7) - 1], 'target', esc(U.fmtPct(ev.total.pct)), esc(U.fmtMoney(ev.summary.expense, { decimals: 0 })) + ' af ' + esc(U.fmtMoney(ev.totalBudget, { decimals: 0 })), { after: UI.bar(ev.total.pct, ev.total.level, { thin: true, label: 'Budget brugt' }) })
@@ -84,6 +88,15 @@
       '</div>';
     html += '<p class="small muted mt-s">' + icon('info') + ' "Tilbage" er beregnet ud fra de transaktioner, du har importeret – det svarer ikke nødvendigvis til saldoen på din bankkonto. Interne overførsler og opsparing tæller ikke som forbrug.' +
       (sum.foreign ? ' ' + sum.foreign + ' transaktioner i fremmed valuta uden kurs er ikke medregnet.' : '') + '</p>';
+
+    if (S.data.transactions.some((x) => x.categoryId === MP)) {
+      const nIn = mp.txs.filter((x) => x.amount > 0).length, nOut = mp.txs.filter((x) => x.amount < 0).length;
+      html += '<section class="card mt"><div class="card-head"><h2>' + icon('phone') + 'MobilePay</h2><span class="sub">' + esc(c.label) + '</span></div><div class="summary-grid">' +
+        '<button type="button" class="s insight" data-mp="income" style="display:block"><b class="pos">' + esc(U.fmtMoney(mp.in, { decimals: 0, sign: true })) + '</b><span>Indtægt · ' + nIn + ' modtaget</span></button>' +
+        '<button type="button" class="s insight" data-mp="expense" style="display:block"><b>' + esc(U.fmtMoney(-mp.out, { decimals: 0 })) + '</b><span>Udgift · ' + nOut + ' sendt</span></button>' +
+        '<div class="s"><b class="' + (mp.in - mp.out >= 0 ? 'pos' : 'neg') + '">' + esc(U.fmtMoney(mp.in - mp.out, { decimals: 0, sign: true })) + '</b><span>Netto (ind minus ud)</span></div>' +
+        '</div><p class="small muted mt-s">Modtaget MobilePay tæller som indtægt, og sendt MobilePay tæller som udgift. Køb i butikker betalt med MobilePay står under butikkens egen kategori.</p></section>';
+    }
 
     // Grafer
     // Grafen slutter ved periodens slutning – eller ved de seneste data, hvis perioden ligger efter dem.
@@ -148,9 +161,10 @@
   }
 
   function onClick(e, c, ins) {
-    const el = e.target.closest('[data-tx],[data-go-cat],[data-insight],[data-action]');
+    const el = e.target.closest('[data-tx],[data-go-cat],[data-insight],[data-action],[data-mp]');
     if (!el) return;
-    if (el.dataset.tx) GB.actions.openTransaction(el.dataset.tx);
+    if (el.dataset.mp) GB.app.go('transactions', { categoryId: MP, type: el.dataset.mp, from: c.range.from, to: c.range.to });
+    else if (el.dataset.tx) GB.actions.openTransaction(el.dataset.tx);
     else if (el.dataset.goCat) GB.app.go('transactions', { categoryId: el.dataset.goCat, from: c.range.from, to: c.range.to });
     else if (el.dataset.insight) { const a = ins[+el.dataset.insight].action; GB.app.go(a.route, a.params); }
     else if (el.dataset.action === 'jump') {

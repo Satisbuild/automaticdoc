@@ -73,13 +73,16 @@
     ['income-refunds', 'high', 'in', 'OVERSKYDENDE SKAT|SKATTESTYRELSEN|SKAT|REFUSION|TILBAGEBETALING'],
     ['income-interest', 'high', 'in', 'RENTE|RENTER|UDBYTTE'],
     ['finance-tax', 'high', 'out', 'RESTSKAT|SKATTESTYRELSEN|SKAT'],
-    ['food-groceries', 'high', 'out', 'NETTO|REMA 1000|REMA1000|FØTEX|FOETEX|BILKA|LIDL|ALDI|MENY|SPAR|KVICKLY|SUPERBRUGSEN|DAGLI\'BRUGSEN|DAGLI BRUGSEN|COOP 365|COOP365|IRMA|LØVBJERG|ABC LAVPRIS|MIN KØBMAND|NEMLIG|NEMLIG.COM|LETKØB|FAKTA|SALLING'],
+    ['food-groceries', 'high', 'out', 'NETTO|REMA 1000|REMA1000|FØTEX|FOETEX|BILKA|LIDL|ALDI|MENY|SPAR|KVICKLY|SUPERBRUGSEN|DAGLI\'BRUGSEN|DAGLI BRUGSEN|COOP 365|COOP365|IRMA|LØVBJERG|ABC LAVPRIS|MIN KØBMAND|NEMLIG|NEMLIG.COM|LETKØB|FAKTA|SALLING|BRF BR|BRUGSFORENINGEN|BRUGSFORENING'],
     ['food-takeaway', 'high', 'out', 'WOLT|JUST EAT|JUSTEAT|HUNGRY|FOODORA|DOMINOS|DOMINO\'S|PIZZA HUT'],
-    ['food-restaurant', 'low', 'out', 'MCDONALDS|MC DONALDS|MCDONALD\'S|BURGER KING|SUNSET BOULEVARD|MAX BURGERS|STARBUCKS|JOE & THE JUICE|JOE AND THE JUICE|LAGKAGEHUSET|BAGERI|RESTAURANT|CAFE|CAFÉ|ESPRESSO HOUSE|BAREN'],
+    ['food-restaurant', 'high', 'out', 'SUNSET|SUNSET BOULEVARD|COCCO BELLO|COCCOBELLO'],
+    ['food-restaurant', 'low', 'out', 'MCDONALDS|MC DONALDS|MCDONALD\'S|BURGER KING|MAX BURGERS|STARBUCKS|JOE & THE JUICE|JOE AND THE JUICE|LAGKAGEHUSET|BAGERI|RESTAURANT|CAFE|CAFÉ|ESPRESSO HOUSE|BAREN'],
     ['food-canteen', 'high', 'out', 'KANTINE|CANTEEN'],
     ['food-snacks', 'low', 'out', '7-ELEVEN|7 ELEVEN|KIOSK'],
     ['transport-fuel', 'high', 'out', 'CIRCLE K|Q8|SHELL|INGO|UNO-X|F24|OK PLUS|IONITY|CLEVER|E.ON DRIVE|TESLA SUPERCHARGER|SPIRII|MONTA|ALLEGO'],
     ['transport-fuel', 'low', 'out', 'OK|BENZIN|TANKSTATION'],
+    // Ønsket af brugeren: NemBilvask hører under Brændstof og opladning (står før den generelle BILVASK-regel).
+    ['transport-fuel', 'high', 'out', 'NEMBILVASK|NEM BILVASK'],
     ['transport-parking', 'high', 'out', 'EASYPARK|PARKMAN|APCOA|ONEPARK|BROBIZZ|STOREBÆLT|STOREBAELT|ØRESUNDSBRON|SUND & BÆLT|PARKERING'],
     ['transport-public', 'high', 'out', 'DSB|REJSEKORT|MOVIA|MIDTTRAFIK|FYNBUS|METRO|NT NORDJYLLANDS|ARRIVA|SYDTRAFIK|LETBANEN'],
     ['transport-taxi', 'high', 'out', 'UBER|TAXA|DANTAXI|BOLT|TAXI'],
@@ -106,7 +109,7 @@
     ['finance-debt', 'low', 'out', 'AFDRAG|ANYDAY|VIABILL|KLARNA|RESURS'],
     ['shopping-care', 'high', 'out', 'MATAS|NORMAL|SAVERS'],
     ['shopping-hair', 'high', 'out', 'FRISØR|FRISOR|BARBER|HAIR'],
-    ['shopping-clothes', 'high', 'out', 'H&M|ZALANDO|ZARA|BOOZT|VERO MODA|JACK & JONES|ONLY|DEICHMANN|SKORINGEN|NAME IT|BESTSELLER|UNIQLO|PRIMARK'],
+    ['shopping-clothes', 'high', 'out', 'H&M|ZALANDO|ZARA|BOOZT|VERO MODA|JACK & JONES|ONLY|DEICHMANN|SKORINGEN|NAME IT|BESTSELLER|UNIQLO|PRIMARK|FORRETNING: JACK|JACK&JONES|JACK AND JONES'],
     ['shopping-clothes', 'low', 'out', 'MAGASIN|INTERSPORT|SPORT 24|SPORTMASTER'],
     ['shopping-electronics', 'high', 'out', 'ELGIGANTEN|POWER|PROSHOP|KOMPLETT|APPLE STORE|FONA|EXPERT'],
     ['shopping-home', 'high', 'out', 'IKEA|JYSK|SØSTRENE GRENE|FLYING TIGER|TIGER|ILVA|BOLIA|IMERCO|BAHNE'],
@@ -123,6 +126,7 @@
     ['travel-flights', 'high', 'out', 'SAS|NORWEGIAN|RYANAIR|EASYJET|LUFTHANSA|KLM|WIZZ AIR|FLYBILLET|SJ AB'],
     ['travel-experiences', 'high', 'out', 'TIVOLI|LEGOLAND|BAKKEN|ZOOLOGISK HAVE|KØBENHAVNS ZOO|DEN BLÅ PLANET|LALANDIA|EXPERIMENTARIUM'],
     ['travel-cinema', 'high', 'out', 'NORDISK FILM|BIOGRAF|KINO|CINEMAXX|TICKETMASTER|BILLETLUGEN|BILLETNET|BIO '],
+    ['other-misc', 'high', 'out', 'LAND OG FRITID|LAND & FRITID|LAND&FRITID|LEGO'],
     // MobilePay – både betalinger ud og penge ind. Står efter butiksreglerne, så "MobilePay NETTO" stadig
     // bliver Supermarked, men før overførselsreglerne, så "MobilePay Overførsel" ikke bliver en intern overførsel.
     ['other-mobilepay', 'high', 'any', 'MOBILEPAY|MOBILE PAY|MOBILEPAY MYSHOP|MOBILEPAY BOX'],
@@ -137,8 +141,33 @@
     return new RegExp('(?:^|[^' + WORD + '])' + reEsc(kw) + '(?=$|[^' + WORD + '])');
   }
 
-  const BUILTIN_RULES = BUILTIN.map(([categoryId, confidence, sign, words], i) => ({
-    id: 'builtin-' + i, categoryId, confidence, sign, keywords: words.split('|'),
+  // Faste id'er (kategori + første nøgleord), så nye regler kan indsættes hvor som helst i listen,
+  // uden at fravalgte regler eller "hvilken regel ramte" på gemte transaktioner peger forkert.
+  // Første nøgleord på en eksisterende linje må derfor ikke ændres.
+  const ruleId = (categoryId, firstKeyword) => 'builtin:' + categoryId + ':' + firstKeyword;
+  // Rækkefølgen af indbyggede regler i datamodel version 2–3, hvor id'et var "builtin-<plads>".
+  // (Version 1 er den samme liste uden MobilePay.) Bruges kun af migrationen til faste id'er.
+  const LEGACY_ORDER = ['income-salary:LØN', 'income-benefits:SU', 'income-pension:PENSION', 'income-refunds:OVERSKYDENDE SKAT', 'income-interest:RENTE', 'finance-tax:RESTSKAT',
+    'food-groceries:NETTO', 'food-takeaway:WOLT', 'food-restaurant:MCDONALDS', 'food-canteen:KANTINE', 'food-snacks:7-ELEVEN', 'transport-fuel:CIRCLE K', 'transport-fuel:OK',
+    'transport-parking:EASYPARK', 'transport-public:DSB', 'transport-taxi:UBER', 'transport-carwash:BILVASK', 'transport-repair:AUTOVÆRKSTED', 'subs-streaming:NETFLIX',
+    'subs-phone:TELMORE', 'subs-internet:STOFA', 'subs-internet:YOUSEE', 'subs-software:MICROSOFT', 'subs-software:APPLE.COM/BILL', 'housing-electricity:ANDEL ENERGI',
+    'housing-heating:FJERNVARME', 'housing-water:VANDVÆRK', 'housing-water:HOFOR', 'housing-rent:HUSLEJE', 'housing-mortgage:TOTALKREDIT', 'housing-maintenance:BAUHAUS',
+    'finance-insurance:TRYG', 'finance-fees:GEBYR', 'finance-interest:RENTE', 'finance-savings:OPSPARING', 'finance-investment:NORDNET', 'finance-debt:AFDRAG',
+    'shopping-care:MATAS', 'shopping-hair:FRISØR', 'shopping-clothes:H&M', 'shopping-clothes:MAGASIN', 'shopping-electronics:ELGIGANTEN', 'shopping-home:IKEA',
+    'shopping-games:STEAM', 'shopping-hobby:PANDURO', 'shopping-gifts:GAVE', 'family-kids:BR LEGETØJ', 'family-pets:MAXI ZOO', 'family-pharmacy:APOTEK', 'family-dental:TANDLÆGE',
+    'family-sport:FITNESS WORLD', 'travel-hotels:HOTEL', 'travel-holiday:SPIES', 'travel-flights:SAS', 'travel-experiences:TIVOLI', 'travel-cinema:NORDISK FILM',
+    'other-mobilepay:MOBILEPAY', 'other-cash:HÆVNING', 'other-creditcard:KREDITKORT', 'other-transfer:OVERFØRSEL'];
+  // Oversætter et gammelt id ("builtin-12") til det faste id. schema = datamodellens version, data blev gemt med.
+  function legacyRuleId(oldId, schema) {
+    const m = /^builtin-(\d+)$/.exec(oldId || '');
+    if (!m) return oldId;
+    const order = schema <= 1 ? LEGACY_ORDER.filter((x) => x !== 'other-mobilepay:MOBILEPAY') : LEGACY_ORDER;
+    const key = order[+m[1]];
+    return key ? 'builtin:' + key : null;
+  }
+
+  const BUILTIN_RULES = BUILTIN.map(([categoryId, confidence, sign, words]) => ({
+    id: ruleId(categoryId, words.split('|')[0]), categoryId, confidence, sign, keywords: words.split('|'),
     re: new RegExp(words.split('|').map((w) => '(?:^|[^' + WORD + '])' + reEsc(w) + '(?=$|[^' + WORD + '])').join('|')),
   }));
 
@@ -245,7 +274,7 @@
   };
 
   GB.categories = {
-    UNKNOWN_ID, GROUPS, ICONS, COLORS, BUILTIN_RULES, SOURCE_LABEL,
+    UNKNOWN_ID, GROUPS, ICONS, COLORS, BUILTIN_RULES, SOURCE_LABEL, legacyRuleId,
     defaultCategories, normalizeDescription, merchantKey, suggestKeyword,
     ruleMatches, sortRules, suggest, categorize, makeContext,
   };

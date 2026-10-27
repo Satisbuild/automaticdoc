@@ -160,7 +160,7 @@
     if (choice !== 'go') return;
     try {
       const data = obj.data;
-      if (obj.schema < S.SCHEMA) S.runMigrations(data, obj.schema);
+      if (obj.schema < S.SCHEMA) { obj.settings = obj.settings || {}; S.runMigrations(data, obj.schema, obj.settings); }
       await S.replaceAll(data, obj.settings);
       if (!S.data.categories.length) await S.put('categories', GB.categories.defaultCategories());
       GB.theme.apply(S.settings.theme);

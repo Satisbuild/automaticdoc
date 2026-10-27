@@ -24,6 +24,7 @@
     if (p.categoryId) { st.f.categoryId = p.categoryId; st.showFilters = true; }
     if (p.review) st.f.review = true;
     if (p.batchId) { st.f.batchId = p.batchId; st.showFilters = true; }
+    if (p.type) { st.f.type = p.type; st.showFilters = true; }
     c.state.params = {};
   }
 
