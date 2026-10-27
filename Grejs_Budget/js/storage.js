@@ -13,7 +13,7 @@
 
   const DB_NAME = 'grejsbudget';
   const DB_VERSION = 1;
-  const SCHEMA = 2;
+  const SCHEMA = 3;
   const STORES = ['transactions', 'accounts', 'categories', 'rules', 'budgets', 'periodBudgets', 'recurring', 'goals', 'batches'];
 
   const DEFAULT_SETTINGS = {
@@ -40,18 +40,32 @@
       const cat = C.defaultCategories().find((c) => c.id === 'other-mobilepay');
       const group = d.categories.find((c) => c.id === 'other');
       if (!group) return;
-      d.categories.push(Object.assign({}, cat, { color: group.color }));
-      const rule = C.BUILTIN_RULES.find((r) => r.categoryId === 'other-mobilepay');
-      for (const t of d.transactions) {
-        if (t.amount >= 0 || !['unknown', 'suggested', 'default'].includes(t.categorySource)) continue;
-        const text = t.descriptionNormalized || C.normalizeDescription(t.description);
-        if (!/(^|[^A-ZÆØÅ])MOBILE ?PAY/.test(text)) continue;
-        // Butikskøb via MobilePay, der allerede har en sikker kategori (fx Supermarked), beholder den.
-        if (t.categorySource === 'default') continue;
-        Object.assign(t, { categoryId: 'other-mobilepay', categorySource: 'default', categoryRuleId: rule.id, categoryReason: 'Indbygget regel: teksten indeholder "MOBILEPAY"' });
-      }
+      d.categories.push(Object.assign({}, cat, { color: group.color, kind: 'expense' }));
+      moveMobilePay(d, (t) => t.amount < 0);
+    },
+    // 3: MobilePay bliver en blandet kategori: penge ud er forbrug, penge ind er indtægt.
+    //    Modtaget MobilePay, som appen selv har kategoriseret, flyttes også til den.
+    //    Har brugeren selv ændret kategoriens type, røres typen ikke.
+    3(d) {
+      const cat = d.categories.find((c) => c.id === 'other-mobilepay');
+      if (!cat) return;
+      if (cat.kind === 'expense') cat.kind = 'mixed';
+      moveMobilePay(d, (t) => t.amount > 0);
     },
   };
+
+  // Flytter MobilePay-transaktioner, som appen selv har kategoriseret, til kategorien MobilePay.
+  // Manuelle valg, egne regler og sikre indbyggede match (fx "MobilePay NETTO" = Supermarked) bevares.
+  function moveMobilePay(d, which) {
+    const C = GB.categories;
+    const rule = C.BUILTIN_RULES.find((r) => r.categoryId === 'other-mobilepay');
+    for (const t of d.transactions) {
+      if (!which(t) || !['unknown', 'suggested'].includes(t.categorySource)) continue;
+      const text = t.descriptionNormalized || C.normalizeDescription(t.description);
+      if (!/(^|[^A-ZÆØÅ])MOBILE ?PAY/.test(text)) continue;
+      Object.assign(t, { categoryId: 'other-mobilepay', categorySource: 'default', categoryRuleId: rule.id, categoryReason: 'Indbygget regel: teksten indeholder "MOBILEPAY"' });
+    }
+  }
 
   const data = {};
   const byId = {};

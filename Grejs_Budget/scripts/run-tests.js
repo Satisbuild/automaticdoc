@@ -225,16 +225,22 @@ const tests = {
     assert.strictEqual(tx({ description: 'H&M Retur', amount: 299 }).categoryId, 'shopping-clothes');
     assert.strictEqual(tx({ description: 'Helt ukendt butik' }).categorySource, 'unknown');
   },
-  'MobilePay-udgifter får kategorien MobilePay (butikskøb via MobilePay beholder butikkens kategori)': () => {
+  'MobilePay (ud og ind) får kategorien MobilePay (butikskøb via MobilePay beholder butikkens kategori)': () => {
     const mp = tx({ description: 'MobilePay Overførsel', amount: -150 });
     assert.strictEqual(mp.categoryId, 'other-mobilepay');
     assert.strictEqual(mp.categorySource, 'default');
     assert.strictEqual(tx({ description: 'MobilePay: Søren Hansen', amount: -75 }).categoryId, 'other-mobilepay');
     assert.strictEqual(tx({ description: 'MOBILEPAY NETTO 4512', amount: -89 }).categoryId, 'food-groceries');
-    assert.notStrictEqual(tx({ description: 'MobilePay fra Søren', amount: 150 }).categoryId, 'other-mobilepay', 'penge ind er ikke en udgift');
+    const inn = tx({ description: 'MobilePay fra Søren', amount: 200 });
+    assert.strictEqual(inn.categoryId, 'other-mobilepay');
     const cat = cats.find((c) => c.id === 'other-mobilepay');
-    assert.ok(cat && cat.kind === 'expense' && cat.parentId === 'other' && cat.icon === 'phone');
-    assert.strictEqual(calc.summarize([mp]).expense, 150);
+    assert.ok(cat && cat.kind === 'mixed' && cat.parentId === 'other' && cat.icon === 'phone');
+    // Blandet kategori: penge ud er forbrug, penge ind er indtægt (ikke en refusion, der trækkes fra forbruget).
+    const s = calc.summarize([mp, inn]);
+    assert.strictEqual(s.expense, 150);
+    assert.strictEqual(s.income, 200);
+    assert.strictEqual(s.incomeByCategory.get('other-mobilepay'), 200);
+    assert.strictEqual(calc.classify(inn).type, 'income');
   },
   'Migration: ældre data får MobilePay-kategorien, og kun automatiske kategorier flyttes': () => {
     const old = C.defaultCategories().filter((c) => c.id !== 'other-mobilepay');
@@ -244,10 +250,15 @@ const tests = {
     const t4 = Object.assign(tx({ description: 'MobilePay fra Peter', amount: 50 }), { categoryId: C.UNKNOWN_ID, categorySource: 'unknown' });
     const d = { categories: old, transactions: [t1, t2, t3, t4] };
     S.runMigrations(d, 1);
-    assert.ok(d.categories.some((c) => c.id === 'other-mobilepay'));
-    assert.deepStrictEqual([t1, t2, t3, t4].map((t) => t.categoryId), ['other-mobilepay', 'shopping-gifts', 'other-mobilepay', C.UNKNOWN_ID]);
+    assert.strictEqual(d.categories.find((c) => c.id === 'other-mobilepay').kind, 'mixed');
+    assert.deepStrictEqual([t1, t2, t3, t4].map((t) => t.categoryId), ['other-mobilepay', 'shopping-gifts', 'other-mobilepay', 'other-mobilepay']);
     S.runMigrations(d, 1);
     assert.strictEqual(d.categories.filter((c) => c.id === 'other-mobilepay').length, 1, 'må ikke tilføjes to gange');
+    // Fra version 2: har brugeren selv valgt typen, bevares den – og manuelle valg røres ikke.
+    const d2 = { categories: C.defaultCategories().map((c) => (c.id === 'other-mobilepay' ? Object.assign({}, c, { kind: 'income' }) : c)), transactions: [Object.assign(tx({ description: 'MobilePay fra Ole', amount: 80 }), { categoryId: 'income-other', categorySource: 'manual' })] };
+    S.runMigrations(d2, 2);
+    assert.strictEqual(d2.categories.find((c) => c.id === 'other-mobilepay').kind, 'income');
+    assert.strictEqual(d2.transactions[0].categoryId, 'income-other');
   },
   'Brugerens regler går forud for indbyggede og respekterer prioritet og konto': () => {
     const rules = [

@@ -11,6 +11,7 @@
 //   - Penge ind i en udgiftskategori (fx returvarer) er en refusion: den modregnes i kategoriens
 //     forbrug (refundsOffset = true) eller tælles som indtægt (false).
 //   - Penge ind uden kategori tælles som indtægt.
+//   - En "blandet" kategori (kind "mixed", fx MobilePay) tæller penge ud som forbrug og penge ind som indtægt.
 //   - Beløb i fremmed valuta tælles kun med, når brugeren har angivet en kurs (tx.exchangeRate).
 //   Netto = indtægter − forbrug. Opsparing trækkes ikke fra netto.
 
@@ -52,6 +53,8 @@
         kind = 'expense';
       }
       if (kind === 'income') return Object.assign(z, { type: 'income', income: a });
+      // Blandet kategori (fx MobilePay): penge ud er forbrug, penge ind er indtægt.
+      if (kind === 'mixed') return a < 0 ? Object.assign(z, { type: 'expense', expense: -a }) : Object.assign(z, { type: 'income', income: a });
       if (a < 0) return Object.assign(z, { type: 'expense', expense: -a });
       if (tx.categoryId === 'other-unknown' || !c) return Object.assign(z, { type: 'income', income: a });
       if (r.refundsOffset) return Object.assign(z, { type: 'refund', expense: -a });

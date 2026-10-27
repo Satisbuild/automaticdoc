@@ -6,7 +6,7 @@
   const U = GB.util, UI = GB.ui, S = GB.store, C = GB.categories, A = GB.actions;
   const { $, $$, esc, icon } = UI;
 
-  const KINDS = [['expense', 'Udgift'], ['income', 'Indtægt'], ['savings', 'Opsparing (tæller ikke som forbrug)'], ['transfer', 'Overførsel (tæller ikke)']];
+  const KINDS = [['expense', 'Udgift'], ['income', 'Indtægt'], ['savings', 'Opsparing (tæller ikke som forbrug)'], ['transfer', 'Overførsel (tæller ikke)'], ['mixed', 'Blandet (ud = udgift, ind = indtægt)']];
   const PROTECTED = new Set([C.UNKNOWN_ID, 'other-transfer']);
   const st = { tab: 'categories' };
   const fail = (e) => UI.toast(e.message, 'error');
@@ -29,22 +29,25 @@
     const counts = new Map();
     for (const t of S.data.transactions) counts.set(t.categoryId, (counts.get(t.categoryId) || 0) + 1);
     const groups = S.data.categories.filter((x) => !x.parentId).sort((a, b) => a.order - b.order);
+    // Forbrug vises som beløb; penge ind (indtægter og fx modtaget MobilePay) vises med "+".
     const amountOf = (id, isGroup) => {
-      const g = isGroup ? sum.byGroup.get(id) : sum.byCategory.get(id);
-      if (g) return g;
-      return sum.incomeByCategory.get(id) || (isGroup ? [...sum.incomeByCategory].filter(([k]) => (S.byId.categories.get(k) || {}).parentId === id).reduce((s, [, v]) => s + v, 0) : 0);
+      const exp = (isGroup ? sum.byGroup.get(id) : sum.byCategory.get(id)) || 0;
+      const inc = isGroup ? [...sum.incomeByCategory].filter(([k]) => k === id || (S.byId.categories.get(k) || {}).parentId === id).reduce((s, [, v]) => s + v, 0) : sum.incomeByCategory.get(id) || 0;
+      const fmtInc = '<span class="pos">' + esc(U.fmtMoney(inc, { decimals: 0, sign: true })) + '</span>';
+      if (!exp && inc) return fmtInc;
+      return esc(U.fmtMoney(exp, { decimals: 0 })) + (inc ? ' / ' + fmtInc : '');
     };
     let html = '<div class="row between"><p class="lead" style="margin:0">Beløb vises for <b>' + esc(c.label.toLowerCase()) + '</b>. Skjulte kategorier kan ikke vælges, men eksisterende transaktioner beholder dem.</p>' +
       '<button type="button" class="btn primary" data-act="new-group">' + icon('plus') + 'Ny hovedkategori</button></div><div class="stack mt">';
     for (const g of groups) {
       const subs = S.data.categories.filter((x) => x.parentId === g.id).sort((a, b) => a.order - b.order);
       html += '<section class="cat-group"><div class="cat-group-head">' + UI.catIcon(g.id) + '<h3>' + esc(g.name) + (g.hidden ? ' <span class="badge">skjult</span>' : '') + ' <span class="badge">' + esc(KINDS.find((k) => k[0] === g.kind)[1].split(' (')[0]) + '</span></h3>' +
-        '<span class="num">' + esc(U.fmtMoney(amountOf(g.id, true), { decimals: 0 })) + '</span>' +
+        '<span class="num">' + amountOf(g.id, true) + '</span>' +
         '<button type="button" class="btn sm ghost" data-act="add-sub" data-id="' + esc(g.id) + '" title="Tilføj underkategori">' + icon('plus') + '<span class="sr-only">Tilføj underkategori</span></button>' +
         '<button type="button" class="btn sm ghost" data-act="edit" data-id="' + esc(g.id) + '" title="Redigér">' + icon('edit') + '<span class="sr-only">Redigér ' + esc(g.name) + '</span></button></div><ul class="cat-subs">' +
         subs.map((s) => '<li class="' + (s.hidden ? 'is-hidden' : '') + '"><span class="grow">' + esc(s.name) + (s.hidden ? ' <span class="badge">skjult</span>' : '') + (s.kind !== g.kind ? ' <span class="badge info">' + esc(KINDS.find((k) => k[0] === s.kind)[1].split(' (')[0]) + '</span>' : '') + '</span>' +
           '<button type="button" class="link-btn small" data-act="show-tx" data-id="' + esc(s.id) + '">' + (counts.get(s.id) || 0) + ' transaktioner</button>' +
-          '<span class="num small" style="min-width:90px;text-align:right">' + esc(U.fmtMoney(amountOf(s.id), { decimals: 0 })) + '</span>' +
+          '<span class="num small" style="min-width:90px;text-align:right">' + amountOf(s.id) + '</span>' +
           '<button type="button" class="btn sm ghost icon-only" data-act="edit" data-id="' + esc(s.id) + '" aria-label="Redigér ' + esc(s.name) + '">' + icon('edit') + '</button>' +
           '<button type="button" class="btn sm ghost icon-only" data-act="toggle" data-id="' + esc(s.id) + '" aria-label="' + (s.hidden ? 'Vis ' : 'Skjul ') + esc(s.name) + '">' + icon(s.hidden ? 'eye' : 'eye-off') + '</button>' +
           (PROTECTED.has(s.id) ? '' : '<button type="button" class="btn sm ghost icon-only" data-act="delete" data-id="' + esc(s.id) + '" aria-label="Slet ' + esc(s.name) + '">' + icon('trash') + '</button>') + '</li>').join('') +

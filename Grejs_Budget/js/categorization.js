@@ -4,6 +4,7 @@
 //   income   – indtægt          expense – forbrug
 //   savings  – opsparing/investering (tælles ikke som forbrug som standard)
 //   transfer – intern overførsel/kreditkortbetaling (udelukkes fra indtægt og forbrug)
+//   mixed    – blandet (fx MobilePay): penge ud er forbrug, penge ind er indtægt
 //
 // Rækkefølge ved kategorisering:
 //   1. Manuelt valgt kategori røres aldrig automatisk.
@@ -45,7 +46,7 @@
     ['travel', 'Rejser og oplevelser', 'expense', '#f97316', 'plane', [
       ['holiday', 'Ferie'], ['hotels', 'Hoteller'], ['flights', 'Fly og tog'], ['experiences', 'Oplevelser'], ['cinema', 'Biograf og koncerter']]],
     ['other', 'Andre poster', 'expense', '#94a3b8', 'dots', [
-      ['cash', 'Kontanthævning'], ['mobilepay', 'MobilePay', null, 'phone'], ['transfer', 'Interne overførsler', 'transfer'], ['creditcard', 'Betaling af kreditkort', 'transfer'],
+      ['cash', 'Kontanthævning'], ['mobilepay', 'MobilePay', 'mixed', 'phone'], ['transfer', 'Interne overførsler', 'transfer'], ['creditcard', 'Betaling af kreditkort', 'transfer'],
       ['unknown', 'Ukendt / skal kategoriseres'], ['misc', 'Diverse']]],
   ];
 
@@ -122,9 +123,9 @@
     ['travel-flights', 'high', 'out', 'SAS|NORWEGIAN|RYANAIR|EASYJET|LUFTHANSA|KLM|WIZZ AIR|FLYBILLET|SJ AB'],
     ['travel-experiences', 'high', 'out', 'TIVOLI|LEGOLAND|BAKKEN|ZOOLOGISK HAVE|KØBENHAVNS ZOO|DEN BLÅ PLANET|LALANDIA|EXPERIMENTARIUM'],
     ['travel-cinema', 'high', 'out', 'NORDISK FILM|BIOGRAF|KINO|CINEMAXX|TICKETMASTER|BILLETLUGEN|BILLETNET|BIO '],
-    // MobilePay-betalinger ud. Står efter butiksreglerne, så "MobilePay NETTO" stadig bliver Supermarked,
-    // men før overførselsreglerne, så "MobilePay Overførsel" ikke bliver en intern overførsel.
-    ['other-mobilepay', 'high', 'out', 'MOBILEPAY|MOBILE PAY|MOBILEPAY MYSHOP|MOBILEPAY BOX'],
+    // MobilePay – både betalinger ud og penge ind. Står efter butiksreglerne, så "MobilePay NETTO" stadig
+    // bliver Supermarked, men før overførselsreglerne, så "MobilePay Overførsel" ikke bliver en intern overførsel.
+    ['other-mobilepay', 'high', 'any', 'MOBILEPAY|MOBILE PAY|MOBILEPAY MYSHOP|MOBILEPAY BOX'],
     ['other-cash', 'high', 'out', 'HÆVNING|HAEVNING|KONTANTHÆVNING|PENGEAUTOMAT|GELDAUTOMAT|ATM|KONTANT'],
     ['other-creditcard', 'low', 'any', 'KREDITKORT|MASTERCARD BETALING|BETALING AF KORT|KORTAFREGNING|AFREGNING KREDITKORT'],
     ['other-transfer', 'low', 'any', 'OVERFØRSEL|OVERFORSEL|OVERF.|EGEN KONTO|FRA KONTO|TIL KONTO|EGENOVERFØRSEL'],
