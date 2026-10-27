@@ -430,6 +430,27 @@ const tests = {
     assert.strictEqual(An.monthCoverage('2026-04', range, '2026-10-01').complete, false);
     assert.strictEqual(An.monthCoverage('2026-10', { from: '2026-01-01', to: '2026-10-20' }, '2026-10-20').reason, 'Måneden er ikke slut');
   },
+  'Måneder med data: importeret, delvis, mangler og fremtid pr. konto': () => {
+    const batches = [
+      { accountId: 'a', imported: 10, firstDate: '2026-01-02', lastDate: '2026-03-30' },
+      { accountId: 'a', imported: 4, firstDate: '2026-05-01', lastDate: '2026-05-14' },
+      { accountId: 'b', imported: 3, firstDate: '2026-02-01', lastDate: '2026-02-28' },
+      { accountId: 'a', imported: 0, firstDate: '2026-06-01', lastDate: '2026-06-30' },
+    ];
+    const txs = [tx({ accountId: 'a', date: '2026-01-02' }), tx({ accountId: 'a', date: '2026-02-10' }), tx({ accountId: 'a', date: '2026-07-04' }), tx({ accountId: 'a', date: '2026-10-20' })];
+    const months = U.monthRange('2026-01', '2026-12');
+    const cov = An.accountCoverage(txs, batches, 'a', months, '2026-10-27');
+    const st = Object.fromEntries(cov.map((x) => [x.month, x.status]));
+    assert.deepStrictEqual([st['2026-01'], st['2026-02'], st['2026-03'], st['2026-04'], st['2026-05'], st['2026-06'], st['2026-07'], st['2026-11']],
+      ['full', 'full', 'full', 'none', 'partial', 'none', 'partial', 'future'], 'en import med 0 rækker tæller ikke som dækning');
+    assert.strictEqual(cov.find((x) => x.month === '2026-02').txCount, 1);
+    assert.strictEqual(cov.find((x) => x.month === '2026-05').missingDays, 17);
+    assert.ok(cov.find((x) => x.month === '2026-10').current);
+    // Den igangværende måned er "importeret", når data går til (næsten) i dag.
+    const cur = An.accountCoverage([], [{ accountId: 'a', imported: 5, firstDate: '2026-10-01', lastDate: '2026-10-26' }], 'a', ['2026-10'], '2026-10-27');
+    assert.strictEqual(cur[0].status, 'full');
+    assert.strictEqual(An.accountCoverage(txs, batches, 'b', ['2026-02', '2026-03'], '2026-10-27').map((x) => x.status).join(','), 'full,none');
+  },
   'Perioder beregnes korrekt': () => {
     assert.deepStrictEqual(An.periodRange('this-month', '2026-10-26'), { from: '2026-10-01', to: '2026-10-31' });
     assert.deepStrictEqual(An.periodRange('last-month', '2026-01-15'), { from: '2025-12-01', to: '2025-12-31' });

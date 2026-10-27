@@ -23,9 +23,82 @@
       html += '<ol class="stepper" aria-label="Trin i importen">' + STEPS.map((s, i) => '<li class="' + (i + 1 < imp.step ? 'done' : '') + '"' + (i + 1 === imp.step ? ' aria-current="step"' : '') + '>' + esc(s) + '</li>').join('') + '</ol>';
       html += '<div class="card">' + [null, step1, step2, step3, step4, step5, step6][imp.step](c) + '</div>';
     }
-    if (imp.step === 1 && !imp.done) html += historyView();
+    if (imp.step === 1 && !imp.done) html += coverageView(c, null) + historyView();
+    if (imp.step === 2 && !imp.done) {
+      const chosen = [...new Set(okFiles().map(accountOf).filter(Boolean))];
+      if (chosen.length) html += coverageView(c, chosen);
+    }
     root.innerHTML = html;
     bind(root, c);
+  }
+
+  // --- Måneder med data --------------------------------------------------------
+
+  const COV = {
+    full: { label: 'Importeret', icon: 'check' },
+    partial: { label: 'Delvis', icon: 'alert' },
+    none: { label: 'Mangler', icon: 'plus' },
+    future: { label: 'Ikke begyndt', icon: '' },
+  };
+
+  // Hele kalenderår fra de ældste data (højst 4 år tilbage) til og med i år.
+  function coverageMonths(today) {
+    const range = GB.analytics.dataRange(S.data.transactions);
+    const y = +today.slice(0, 4);
+    const first = Math.max(y - 3, range.from ? Math.min(y, +range.from.slice(0, 4)) : y);
+    return U.monthRange(first + '-01', y + '-12');
+  }
+
+  function covTitle(x) {
+    const m = U.capitalize(U.fmtMonth(x.month));
+    const span = x.from ? U.fmtDate(x.from, { short: true, noYear: true }) + ' – ' + U.fmtDate(x.to, { short: true, noYear: true }) : '';
+    if (x.status === 'full') return m + ': importeret' + (x.current ? ' indtil i dag' : '') + ' – ' + x.txCount + ' transaktioner (' + span + ')';
+    if (x.status === 'partial') return m + ': delvis – data fra ' + span + ', ca. ' + x.missingDays + ' dage mangler. Importér hele måneden; det, du allerede har, springes over som dubletter.';
+    if (x.status === 'none') return m + ': ingen data – kan importeres';
+    return m + ': måneden er ikke begyndt';
+  }
+
+  function coverageView(c, accountIds) {
+    const accs = S.data.accounts.filter((a) => !accountIds || accountIds.includes(a.id));
+    if (!accs.length) return '';
+    const months = coverageMonths(c.today);
+    let html = '<section class="card mt" id="coverage"><div class="card-head"><h2>' + icon('calendar') + 'Måneder med data</h2><span class="sub">' + (accountIds ? 'For den valgte konto' : 'Hvad du har importeret – og hvad du mangler') + '</span></div>' +
+      '<div class="legend" style="margin:0 0 12px">' + ['full', 'partial', 'none'].map((s) => '<span><span class="cov-cell ' + s + ' cov-key">' + icon(COV[s].icon) + '</span>' + esc(COV[s].label) + (s === 'none' ? ' – kan importeres' : s === 'partial' ? ' – kan fyldes ud' : '') + '</span>').join('') + '</div>';
+    for (const a of accs) {
+      const cov = GB.analytics.accountCoverage(S.data.transactions, S.data.batches, a.id, months, c.today);
+      const withData = cov.filter((x) => x.status === 'full' || x.status === 'partial');
+      const firstData = withData.length ? withData[0].month : null;
+      const gaps = firstData ? cov.filter((x) => x.month > firstData && (x.status === 'none' || x.status === 'partial')) : [];
+      let summary;
+      if (!firstData) summary = 'Ingen data endnu – alle måneder kan importeres.';
+      else {
+        const lastData = withData[withData.length - 1].month;
+        summary = 'Data fra ' + U.fmtMonth(firstData) + ' til ' + U.fmtMonth(lastData) + '. ' +
+          (gaps.length ? 'Mangler eller er delvise: ' + gaps.slice(0, 8).map((x) => U.fmtMonth(x.month, true) + (x.status === 'partial' ? ' (delvis)' : '')).join(', ') + (gaps.length > 8 ? ' og ' + (gaps.length - 8) + ' flere' : '') + '.' : 'Ingen huller i perioden.');
+      }
+      const years = [...new Set(months.map((m) => m.slice(0, 4)))];
+      html += '<div class="cov-acc"><div class="row between"><h3>' + esc(a.name) + (a.isSample ? ' <span class="badge">eksempel</span>' : '') + '</h3><span class="small muted">' + esc(summary) + '</span></div>' +
+        years.map((y) => '<div class="cov-year"><span class="cov-yl">' + y + '</span>' + cov.filter((x) => x.month.startsWith(y)).map((x) => {
+          const t = covTitle(x);
+          return '<button type="button" class="cov-cell ' + x.status + '" data-cov-acc="' + esc(a.id) + '" data-cov-month="' + x.month + '" data-status="' + x.status + '" title="' + esc(t) + '" aria-label="' + esc(t) + '"' + (x.status === 'future' ? ' disabled' : '') + '>' +
+            '<span class="cov-m">' + esc(U.MONTHS_SHORT[+x.month.slice(5, 7) - 1].replace('.', '')) + '</span>' + (COV[x.status].icon ? icon(COV[x.status].icon) : '') + '</button>';
+        }).join('') + '</div>').join('') + '</div>';
+    }
+    return html + '<p class="small muted mt-s">Klik på en måned med data for at se transaktionerne. Det er helt i orden at importere en fil, der overlapper – det, du allerede har, springes over som dubletter.</p></section>';
+  }
+
+  // Hvilke måneder dækker en fil – og er de nye eller allerede importeret på kontoen?
+  function fileMonths(f, c) {
+    const acc = accountOf(f);
+    const counts = new Map();
+    for (const r of f.result.rows) counts.set(U.monthKey(r.date), (counts.get(U.monthKey(r.date)) || 0) + 1);
+    const months = [...counts.keys()].sort();
+    if (!months.length) return '';
+    const cov = GB.analytics.accountCoverage(S.data.transactions, S.data.batches, acc, months, c.today);
+    const LABEL = { none: 'ny måned', partial: 'delvis – resten fyldes ud', full: 'allerede importeret – dubletter springes over', future: 'i fremtiden?' };
+    const cls = { none: 'none', partial: 'partial', full: 'full', future: 'future' };
+    return '<p class="small mt-s" style="margin-bottom:6px"><b>Måneder i filen</b> sammenlignet med det, du har på ' + esc(UI.accountName(acc)) + ':</p><div class="row" style="gap:6px">' +
+      cov.map((x) => '<span class="cov-chip ' + cls[x.status] + '">' + (COV[x.status].icon ? icon(COV[x.status].icon) : '') + esc(U.capitalize(U.fmtMonth(x.month, true))) + ': ' + esc(LABEL[x.status]) + ' <span class="muted">(' + counts.get(x.month) + ')</span></span>').join('') + '</div>';
   }
 
   // --- Trin 1: filer -----------------------------------------------------------
@@ -164,7 +237,7 @@
       html += '<section class="mt"><h3>' + esc(f.name) + ' <span class="muted small">→ ' + esc(UI.accountName(accountOf(f))) + '</span></h3>' +
         '<div class="summary-grid mt-s"><div class="s"><b>' + U.fmtNumber(r.rows.length + r.errors.length) + '</b><span>rækker læst</span></div><div class="s"><b>' + U.fmtNumber(r.rows.length) + '</b><span>klar til import</span></div>' +
         '<div class="s"><b style="color:' + (r.errors.length ? 'var(--danger)' : 'inherit') + '">' + r.errors.length + '</b><span>springes over pga. fejl</span></div>' +
-        '<div class="s"><b>' + (dates.length ? esc(U.fmtDate(dates[0], { short: true })) : '–') + '</b><span>til ' + (dates.length ? esc(U.fmtDate(dates[dates.length - 1], { short: true })) : '–') + '</span></div></div>';
+        '<div class="s"><b>' + (dates.length ? esc(U.fmtDate(dates[0], { short: true })) : '–') + '</b><span>til ' + (dates.length ? esc(U.fmtDate(dates[dates.length - 1], { short: true })) : '–') + '</span></div></div>' + fileMonths(f, c);
       if (r.errors.length) html += '<details class="note warn mt-s" open style="display:block"><summary>' + icon('alert') + ' <b>' + r.errors.length + ' rækker kan ikke læses og bliver ikke importeret</b></summary><ul class="history">' + r.errors.slice(0, 30).map((e) => '<li>Række ' + e.rowNo + ': ' + esc(e.reason) + ' <span class="muted">(' + esc(e.raw.join(' | ').slice(0, 90)) + ')</span></li>').join('') + (r.errors.length > 30 ? '<li>… og ' + (r.errors.length - 30) + ' flere</li>' : '') + '</ul></details>';
       if (r.ambiguous) html += '<div class="note warn mt-s">' + icon('alert') + '<p><b>' + r.ambiguous + ' beløb kan læses på to måder</b> (fx "1.234" kan være 1.234 kr. eller 1,234 kr.). De er læst med <b>' + (f.setup.decimalMode === 'comma' ? 'dansk format' : 'punktum som decimaltegn') + '</b>. Kontrollér herunder, og ret decimaltegnet i forrige trin, hvis det er forkert.</p></div>';
       if (future) html += '<div class="note warn mt-s">' + icon('alert') + '<p>' + future + ' transaktioner har en dato i fremtiden. Kontrollér datoformatet.</p></div>';
@@ -334,6 +407,18 @@
     root.addEventListener('click', async (e) => {
       const b = e.target.closest('button');
       if (!b) return;
+      if (b.dataset.covMonth) {
+        const mk = b.dataset.covMonth;
+        if (b.dataset.status === 'full' || b.dataset.status === 'partial') {
+          GB.app.state.account = b.dataset.covAcc;
+          GB.app.go('transactions', { from: U.monthStart(mk), to: U.monthEnd(mk) });
+        } else if (b.dataset.status === 'none' && $('#drop', root)) {
+          $('#drop', root).scrollIntoView({ behavior: 'smooth', block: 'center' });
+          $('#drop', root).focus({ preventScroll: true });
+          UI.toast('Vælg bankfilen for ' + U.fmtMonth(mk) + ' herover');
+        }
+        return;
+      }
       if (b.dataset.remove != null) { imp.files.splice(+b.dataset.remove, 1); GB.app.render(); return; }
       if (b.dataset.alldup) { okFiles().forEach((f) => f.result.rows.forEach((r) => { if (r.dupStatus !== 'new') r.decision = b.dataset.alldup; })); GB.app.render(); return; }
       if (b.dataset.delbatch) { GB.actions.deleteBatch(b.dataset.delbatch); return; }

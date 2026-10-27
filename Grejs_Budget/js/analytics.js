@@ -182,6 +182,50 @@
     return pairs;
   }
 
+  // Hvilke måneder har en konto data for? Bruges på importsiden.
+  // Dækning = perioderne fra hver importeret fil (første til sidste dato) + datoerne for alle
+  // transaktioner på kontoen. En måned er:
+  //   'full'    – dækket (højst 3 dage mangler; for den igangværende måned: indtil i dag)
+  //   'partial' – noget af måneden er dækket
+  //   'none'    – ingen data – kan importeres
+  //   'future'  – måneden er ikke begyndt endnu
+  function accountCoverage(txs, batches, accountId, months, today) {
+    const iv = [];
+    const count = new Map();
+    for (const b of batches) if (b.accountId === accountId && b.imported > 0 && U.isValidISO(b.firstDate) && U.isValidISO(b.lastDate)) iv.push([U.dayNum(b.firstDate), U.dayNum(b.lastDate)]);
+    for (const t of txs) {
+      if (t.accountId !== accountId) continue;
+      const d = U.dayNum(t.date);
+      iv.push([d, d]);
+      const mk = U.monthKey(t.date);
+      count.set(mk, (count.get(mk) || 0) + 1);
+    }
+    iv.sort((a, b) => a[0] - b[0]);
+    const merged = [];
+    for (const [a, b] of iv) {
+      const last = merged[merged.length - 1];
+      if (last && a <= last[1] + 1) last[1] = Math.max(last[1], b); else merged.push([a, b]);
+    }
+    const todayN = U.dayNum(today);
+    return months.map((mk) => {
+      const start = U.dayNum(U.monthStart(mk)), end = U.dayNum(U.monthEnd(mk));
+      const current = todayN >= start && todayN <= end;
+      if (start > todayN) return { month: mk, status: 'future', txCount: 0, current: false };
+      const limit = Math.min(end, todayN);
+      let covered = 0, first = null, lastDay = null;
+      for (const [a, b] of merged) {
+        const lo = Math.max(a, start), hi = Math.min(b, limit);
+        if (lo > hi) continue;
+        covered += hi - lo + 1;
+        if (first == null) first = lo;
+        lastDay = hi;
+      }
+      const total = limit - start + 1;
+      const status = !covered ? 'none' : covered >= total - 3 ? 'full' : 'partial';
+      return { month: mk, status, txCount: count.get(mk) || 0, current, from: first != null ? U.fromDayNum(first) : null, to: lastDay != null ? U.fromDayNum(lastDay) : null, missingDays: total - covered };
+    });
+  }
+
   function dataRange(txs) {
     let from = null, to = null;
     for (const t of txs) {
@@ -191,5 +235,5 @@
     return { from, to };
   }
 
-  GB.analytics = { DEFAULT_RULES, TYPE_LABEL, PERIODS, makeCalc, periodRange, periodLabel, monthCoverage, change, findTransferPairs, dataRange };
+  GB.analytics = { DEFAULT_RULES, TYPE_LABEL, PERIODS, makeCalc, periodRange, periodLabel, monthCoverage, change, findTransferPairs, dataRange, accountCoverage };
 })();

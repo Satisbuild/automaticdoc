@@ -63,6 +63,8 @@
   .stepper li { font-size: 0; padding: 4px; gap: 0; }
   .stepper li[aria-current="step"] { font-size: 13px; padding-right: 12px; gap: 8px; }
   .status-pill .lbl { display: none; }
+  .cov-year { grid-template-columns: 38px repeat(6, minmax(0, 1fr)); }
+  .cov-yl { grid-row: span 2; }
   .report { padding: 18px; }
 }
 

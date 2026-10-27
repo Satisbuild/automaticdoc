@@ -8,13 +8,13 @@
 // - Der hentes aldrig noget fra andre servere.
 
 // <precache> (genereret af scripts/stamp-service-worker.js - rediger ikke i hånden)
-const VERSION = 'd608624275';
+const VERSION = 'c7fe56752c';
 const SHELL = [
   "./",
   "index.html",
   "manifest.webmanifest",
-  "css/style.css?v=97a03ff24a",
-  "css/responsive.css?v=c567d8f0fb",
+  "css/style.css?v=affcaadcaa",
+  "css/responsive.css?v=c07f05756c",
   "css/print.css?v=36c54c7421",
   "js/theme-boot.js?v=486d9ce28d",
   "js/util.js?v=3714e01d23",
@@ -22,7 +22,7 @@ const SHELL = [
   "js/pdf-import.js?v=67aea17a37",
   "js/categorization.js?v=06f494b2d7",
   "js/transactions.js?v=ba8836995a",
-  "js/analytics.js?v=dbedc89bc0",
+  "js/analytics.js?v=41e930f832",
   "js/budgets.js?v=0ba083192e",
   "js/recurring.js?v=ab0c72fa2a",
   "js/insights.js?v=6d851271d1",
@@ -40,7 +40,7 @@ const SHELL = [
   "js/views/compare.js?v=38cadce1a5",
   "js/views/recurring.js?v=501926d68c",
   "js/views/goals.js?v=b55b89508e",
-  "js/views/import.js?v=d5260ba55b",
+  "js/views/import.js?v=7a6c19b17e",
   "js/views/reports.js?v=3a4c29e5a5",
   "js/views/settings.js?v=53e1754f19",
   "js/app.js?v=7d6262318b",
