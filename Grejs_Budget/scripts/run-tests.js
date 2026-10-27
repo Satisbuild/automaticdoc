@@ -480,6 +480,13 @@ const tests = {
     assert.deepStrictEqual(T.ownShare(buy, list), { paid: 900, back: 600, own: 300 });
     // Der kan ikke kobles mere på, end der mangler: 150 kr. passer stadig, men ikke beløb over 300 kr.
     assert.deepStrictEqual(T.reimbursementCandidates(buy, list).map((t) => t.id), [other.id]);
+    // "Vis alle indbetalinger": også penge uden MobilePay-tekst og senere end 45 dage – men ikke overførsler eller løn over beløbet
+    const late = tx({ description: 'Overførsel fra Søren H', amount: 100, date: '2026-12-20' });
+    const own = Object.assign(tx({ description: 'Fra egen opsparing', amount: 100, date: '2026-10-15' }), { isInternalTransfer: true });
+    const salary = tx({ description: 'Lønoverførsel', amount: 25000, date: '2026-10-28', patch: { categoryId: 'income-salary' } });
+    const wide = list.concat(late, own, salary);
+    assert.ok(!T.reimbursementCandidates(buy, wide).some((t) => t.id === late.id), 'kun MobilePay som standard');
+    assert.deepStrictEqual(T.reimbursementCandidates(buy, wide, { all: true, classify: lc.classify }).map((t) => t.id).sort(), [other.id, late.id].sort());
     // Koblede beløb vises, når man ser udgiftens kategori
     const shown = T.filterTransactions(list, { categoryIds: new Set(['other-outdoor']) }, { classify: lc.classify });
     assert.deepStrictEqual(shown.map((t) => t.id).sort(), [buy.id, m1.id, m2.id].sort());

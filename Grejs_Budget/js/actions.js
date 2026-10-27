@@ -281,25 +281,40 @@
       (S.data.accounts.length > 1 ? ' · ' + esc(UI.accountName(x.accountId)) : '') + '</span></span><span class="amount">' + UI.txAmount(x) + '</span>' + btn + '</li>';
   }
 
-  // Afsnittet i transaktionsdialogen. showAll viser alle forslag i stedet for de nærmeste 5.
-  function splitSection(t, showAll) {
+  // Afsnittet i transaktionsdialogen.
+  // view.more: vis alle forslag i stedet for de nærmeste 5. view.all: vis alle indbetalinger, ikke kun MobilePay.
+  function splitSection(t, view) {
+    const v = view || {};
     const all = S.data.transactions;
-    const k = GB.app.calc.classify(t);
+    const classify = GB.app.calc.classify;
+    const k = classify(t);
     if (t.amount < 0 && k.type === 'expense') {
       const linked = T.reimbursementsOf(t, all);
-      const cand = T.reimbursementCandidates(t, all);
       const sh = T.ownShare(t, all);
-      if (!linked.length && !cand.length) return '';
-      const shown = showAll ? cand : cand.slice(0, 5);
+      const cand = T.reimbursementCandidates(t, all, { all: !!v.all, classify });
+      const shown = v.more ? cand.slice(0, 100) : cand.slice(0, 5);
+      const linkBtn = (x) => '<button type="button" class="btn sm" data-link-money="' + esc(x.id) + '">' + icon('plus') + 'Kobl på</button>';
+      let list;
+      if (cand.length) {
+        list = '<p class="small" style="margin:12px 0 4px"><b>' + (v.all ? 'Alle indbetalinger' : 'Forslag') + ':</b> ' +
+          (v.all ? 'penge ind fra 14 dage før til 120 dage efter købet' : 'modtaget MobilePay fra 3 dage før til 45 dage efter købet') + '. Tryk <b>Kobl på</b> ved dem, der hører til købet.</p>' +
+          '<ul class="list">' + shown.map((x) => moneyRow(x, linkBtn(x))).join('') + '</ul>' +
+          (cand.length > shown.length ? '<button type="button" class="link-btn small" data-split-more>Vis alle ' + cand.length + '</button> ' : '');
+      } else if (sh.own <= 0.005) {
+        list = '<p class="small muted mt-s">Hele udgiften er dækket af andre.</p>';
+      } else {
+        list = '<p class="small muted mt-s">' + (v.all ? 'Der er ingen indbetalinger på højst ' + esc(U.fmtMoney(sh.own)) + ' fra 14 dage før til 120 dage efter købet.'
+          : 'Ingen forslag: der er ikke modtaget MobilePay på højst ' + esc(U.fmtMoney(sh.own)) + ' fra 3 dage før til 45 dage efter købet. Er pengene kommet senere eller står de ikke som MobilePay i banken, så tryk <b>Vis alle indbetalinger</b>.') + '</p>';
+      }
       return '<hr><h3 class="row" style="gap:8px">' + icon('swap') + 'Penge fra andre</h3>' +
         '<p class="small muted" style="margin:4px 0 10px">Har du lagt ud, og har andre sendt penge tilbage (fx med MobilePay)? Kobl beløbene på, så de ikke tæller som indtægt, og så udgiften kun viser din egen andel.</p>' +
         (linked.length ? '<div class="summary-grid"><div class="s"><b>' + esc(U.fmtMoney(sh.paid)) + '</b><span>Du betalte</span></div><div class="s"><b class="pos">' + esc(U.fmtMoney(sh.back, { sign: true })) + '</b><span>Fra andre (' + linked.length + ')</span></div><div class="s"><b>' + esc(U.fmtMoney(sh.own)) + '</b><span>Din egen andel</span></div></div>' +
           '<ul class="list mt-s">' + linked.map((x) => moneyRow(x, '<button type="button" class="btn sm ghost" data-unlink="' + esc(x.id) + '">' + icon('x') + 'Fjern</button>')).join('') + '</ul>' : '') +
-        (cand.length ? '<p class="small" style="margin:12px 0 4px"><b>Forslag:</b> modtaget MobilePay fra dagene omkring købet</p><ul class="list">' +
-          shown.map((x) => moneyRow(x, '<button type="button" class="btn sm" data-link-money="' + esc(x.id) + '">' + icon('plus') + 'Kobl på</button>')).join('') + '</ul>' +
-          (cand.length > shown.length ? '<button type="button" class="link-btn small" data-split-more>Vis alle ' + cand.length + ' forslag</button>' : '') : '');
+        list +
+        (sh.own > 0.005 ? '<div class="mt-s"><button type="button" class="btn sm ghost" data-split-all>' + icon(v.all ? 'phone' : 'list') + (v.all ? 'Vis kun MobilePay-forslag' : 'Vis alle indbetalinger') + '</button></div>' : '');
     }
-    if (t.amount > 0 && (t.linkedTo || T.isMobilePay(t))) {
+    const loose = k.type === 'income' && ['other-unknown', 'income-other', 'other-mobilepay'].includes(t.categoryId);
+    if (t.amount > 0 && (t.linkedTo || T.isMobilePay(t) || loose)) {
       const target = t.linkedTo ? S.byId.transactions.get(t.linkedTo) : null;
       if (target) {
         const sh = T.ownShare(target, all);
@@ -307,8 +322,8 @@
           moneyRow(target, '<button type="button" class="btn sm ghost" data-unlink="' + esc(t.id) + '">' + icon('x') + 'Fjern kobling</button>') + '</ul>' +
           '<p class="small muted">Beløbet tæller ikke som indtægt, men trækkes fra udgiften i ' + esc(UI.catName(target.categoryId)) + '. Din egen andel af udgiften: <b>' + esc(U.fmtMoney(sh.own)) + '</b>.</p>';
       }
-      const cand = T.expenseCandidates(t, all, GB.app.calc.classify);
-      const shown = showAll ? cand.slice(0, 50) : cand.slice(0, 5);
+      const cand = T.expenseCandidates(t, all, classify);
+      const shown = v.more ? cand.slice(0, 50) : cand.slice(0, 5);
       return '<hr><h3 class="row" style="gap:8px">' + icon('swap') + 'Hører beløbet til en udgift?</h3>' +
         '<p class="small muted" style="margin:4px 0 10px">Hvis pengene er nogens andel af noget, du har lagt ud for, så kobl dem til udgiften. Så tæller de ikke som indtægt.</p>' +
         (cand.length ? '<ul class="list">' + shown.map((x) => moneyRow(x, '<button type="button" class="btn sm" data-link-expense="' + esc(x.id) + '">' + icon('plus') + 'Kobl til</button>')).join('') + '</ul>' +
@@ -327,18 +342,19 @@
   }
 
   function bindSplit(dlg, t) {
-    let showAll = false;
+    const view = { more: false, all: false };
     const box = $('#splitBox', dlg);
     if (!box) return;
     box.addEventListener('click', async (e) => {
       const b = e.target.closest('button');
       if (!b) return;
-      if (b.hasAttribute('data-split-more')) showAll = true;
+      if (b.hasAttribute('data-split-more')) view.more = true;
+      else if (b.hasAttribute('data-split-all')) { view.all = !view.all; view.more = false; }
       else if (b.dataset.linkMoney) { await setLink(b.dataset.linkMoney, t.id); UI.toast('Beløbet er koblet på udgiften'); }
       else if (b.dataset.linkExpense) { await setLink(t.id, b.dataset.linkExpense); UI.toast('Beløbet er koblet til udgiften'); }
       else if (b.dataset.unlink) { await setLink(b.dataset.unlink, null); UI.toast('Koblingen er fjernet'); }
       else return;
-      box.innerHTML = splitSection(t, showAll);
+      box.innerHTML = splitSection(t, view);
     });
   }
 

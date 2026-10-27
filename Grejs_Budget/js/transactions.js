@@ -163,10 +163,21 @@
 
   // Forslag til penge fra andre: modtaget MobilePay fra 3 dage før til 45 dage efter købet,
   // som ikke er koblet til noget og ikke er større end det, der mangler at blive dækket.
-  function reimbursementCandidates(expense, txs) {
+  // opts.all: alle indbetalinger (ikke kun MobilePay) fra 14 dage før til 120 dage efter –
+  // til når pengene står med en anden tekst i banken eller kom senere. classify udelukker
+  // opsparing, refusioner fra butikker og overførsler – dog ikke overførsler, appen kun har
+  // gættet på (fx "Overførsel fra Søren"), for det er ofte netop penge fra andre.
+  function reimbursementCandidates(expense, txs, opts) {
+    const o = opts || {};
     const left = ownShare(expense, txs).own;
-    return txs.filter((t) => t.amount > 0 && !t.linkedTo && t.id !== expense.id && !t.isInternalTransfer && isMobilePay(t) &&
-        t.date >= U.addDays(expense.date, -3) && t.date <= U.addDays(expense.date, 45) && t.amount <= left + 0.005)
+    const [before, after] = o.all ? [14, 120] : [3, 45];
+    const excluded = (t) => {
+      if (!o.classify) return false;
+      const type = o.classify(t).type;
+      return ['savings', 'foreign', 'refund'].includes(type) || (type === 'transfer' && t.categorySource !== 'suggested');
+    };
+    return txs.filter((t) => t.amount > 0 && !t.linkedTo && t.id !== expense.id && !t.isInternalTransfer && (o.all || isMobilePay(t)) && !excluded(t) &&
+        t.date >= U.addDays(expense.date, -before) && t.date <= U.addDays(expense.date, after) && t.amount <= left + 0.005)
       .sort((a, b) => Math.abs(U.daysBetween(expense.date, a.date)) - Math.abs(U.daysBetween(expense.date, b.date)) || b.amount - a.amount);
   }
 
