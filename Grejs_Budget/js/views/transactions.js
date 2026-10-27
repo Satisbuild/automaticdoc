@@ -106,7 +106,7 @@
   function flags(t, calc) {
     const f = [];
     if (t.categorySource === 'unknown') f.push('<span class="badge warn" title="Ikke kategoriseret">' + icon('alert') + '</span>');
-    else if (t.categorySource === 'suggested') f.push('<span class="badge notice" title="Kategorien er et forslag – kontrollér">?</span>');
+    else if (t.categorySource === 'suggested') f.push('<button type="button" class="badge notice badge-btn" data-action="accept" data-id="' + esc(t.id) + '" title="Kategorien ' + esc(UI.catName(t.categoryId)) + ' er et forslag – klik for at godkende den">? Godkend</button>');
     if (t.duplicateOf && t.needsReview) f.push('<span class="badge warn" title="Mulig dublet">' + icon('copy') + '</span>');
     if (t.edited && Object.keys(t.edited).length) f.push('<span class="badge info" title="Ændret af dig – bankens værdi er gemt">' + icon('edit') + '</span>');
     if (t.isRecurring) f.push('<span class="badge" title="Fast betaling">' + icon('repeat') + '</span>');
@@ -188,6 +188,8 @@
     }
     const pg = t.closest('[data-page]');
     if (pg) { st.page += +pg.dataset.page; renderDyn(root, c); window.scrollTo({ top: 0 }); return; }
+    const acc = t.closest('[data-action="accept"]');
+    if (acc) { e.stopPropagation(); A.acceptTransactions([acc.dataset.id]); return; }
     const chip = t.closest('[data-action="cat"]');
     if (chip) {
       e.stopPropagation();
@@ -223,11 +225,7 @@
       const cat = await A.pickCategory(null, 'Ny kategori til ' + ids.length + ' transaktioner');
       if (cat) { await A.setCategory(ids, cat); UI.toast(ids.length + ' transaktioner har fået ny kategori'); }
     } else if (kind === 'accept') {
-      const list = ids.map((id) => S.byId.transactions.get(id)).filter(Boolean);
-      for (const x of list) { x.categorySource = 'manual'; x.categoryReason = 'Godkendt af dig'; x.needsReview = false; x.updatedAt = new Date().toISOString(); }
-      await S.put('transactions', list).catch((e) => UI.toast(e.message, 'error'));
-      UI.toast(list.length + ' transaktioner er markeret som kontrolleret');
-      GB.app.refresh();
+      await A.acceptTransactions(ids);
     } else if (kind === 'tag') {
       const tag = await UI.dialog({
         title: 'Tilføj tag', body: '<div class="field"><label for="bTag">Tag</label><input type="text" id="bTag" maxlength="40" autofocus placeholder="Fx ferie2026"></div>',

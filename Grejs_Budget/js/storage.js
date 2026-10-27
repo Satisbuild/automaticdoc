@@ -13,7 +13,7 @@
 
   const DB_NAME = 'grejsbudget';
   const DB_VERSION = 1;
-  const SCHEMA = 4;
+  const SCHEMA = 5;
   const STORES = ['transactions', 'accounts', 'categories', 'rules', 'budgets', 'periodBudgets', 'recurring', 'goals', 'batches'];
 
   const DEFAULT_SETTINGS = {
@@ -60,17 +60,37 @@
       const map = (id) => C.legacyRuleId(id, from);
       if (Array.isArray(s.disabledBuiltinRules)) s.disabledBuiltinRules = s.disabledBuiltinRules.map(map).filter(Boolean);
       for (const t of d.transactions) if (t.categoryRuleId && /^builtin-\d+$/.test(t.categoryRuleId)) t.categoryRuleId = map(t.categoryRuleId);
-      if (!d.categories.length) return;
-      const ctx = C.makeContext([], d.categories, s.disabledBuiltinRules);
-      for (const t of d.transactions) {
-        if (t.categorySource !== 'unknown' && t.categorySource !== 'suggested') continue;
-        const sg = C.suggest(t, ctx);
-        if (sg.categorySource !== 'default') continue;
-        Object.assign(t, sg, { categoryReason: sg.reason });
-        delete t.reason;
+      reapplyBuiltin(d, s, ['unknown', 'suggested']);
+    },
+    // 5: Ny underkategori "Outdoor" under Andre poster (JAFI, Land og Fritid), og McDonald's flyttes
+    //    til Takeaway og levering. Transaktioner, som appen selv har kategoriseret, følger med.
+    5(d, s) {
+      const C = GB.categories;
+      const group = d.categories.find((c) => c.id === 'other');
+      if (group && !d.categories.some((c) => c.id === 'other-outdoor')) {
+        const cat = C.defaultCategories().find((c) => c.id === 'other-outdoor');
+        const order = Math.max(0, ...d.categories.filter((c) => c.parentId === 'other').map((c) => c.order + 1));
+        d.categories.push(Object.assign({}, cat, { color: group.color, order }));
       }
+      // Normaliseringen af banktekst er rettet ("MC DONALDS" mistede før "MC"), så den beregnes igen.
+      for (const t of d.transactions) t.descriptionNormalized = C.normalizeDescription(t.description);
+      reapplyBuiltin(d, s, ['unknown', 'suggested', 'default']);
     },
   };
+
+  // Kører de indbyggede regler igen på transaktioner med de angivne kilder og bruger kun resultatet,
+  // hvis det er et sikkert match. Manuelle valg og brugerens egne regler røres aldrig.
+  function reapplyBuiltin(d, s, sources) {
+    const C = GB.categories;
+    if (!d.categories.length) return;
+    const ctx = C.makeContext([], d.categories, s.disabledBuiltinRules);
+    for (const t of d.transactions) {
+      if (!sources.includes(t.categorySource)) continue;
+      const sg = C.suggest(t, ctx);
+      if (sg.categorySource !== 'default' || (sg.categoryId === t.categoryId && sg.categorySource === t.categorySource && sg.categoryRuleId === t.categoryRuleId)) continue;
+      Object.assign(t, { categoryId: sg.categoryId, categorySource: sg.categorySource, categoryRuleId: sg.categoryRuleId, categoryReason: sg.reason });
+    }
+  }
 
   // Flytter MobilePay-transaktioner, som appen selv har kategoriseret, til kategorien MobilePay.
   // Manuelle valg, egne regler og sikre indbyggede match (fx "MobilePay NETTO" = Supermarked) bevares.

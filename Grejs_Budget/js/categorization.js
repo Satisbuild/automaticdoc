@@ -47,10 +47,10 @@
       ['holiday', 'Ferie'], ['hotels', 'Hoteller'], ['flights', 'Fly og tog'], ['experiences', 'Oplevelser'], ['cinema', 'Biograf og koncerter']]],
     ['other', 'Andre poster', 'expense', '#94a3b8', 'dots', [
       ['cash', 'Kontanthævning'], ['mobilepay', 'MobilePay', 'mixed', 'phone'], ['transfer', 'Interne overførsler', 'transfer'], ['creditcard', 'Betaling af kreditkort', 'transfer'],
-      ['unknown', 'Ukendt / skal kategoriseres'], ['misc', 'Diverse']]],
+      ['unknown', 'Ukendt / skal kategoriseres'], ['misc', 'Diverse'], ['outdoor', 'Outdoor', null, 'tent']]],
   ];
 
-  const ICONS = ['income', 'home', 'cart', 'car', 'bag', 'play', 'heart', 'bank', 'plane', 'dots', 'gift', 'paw', 'bolt', 'phone', 'coffee', 'piggy', 'tag', 'star'];
+  const ICONS = ['income', 'home', 'cart', 'car', 'bag', 'play', 'heart', 'bank', 'plane', 'dots', 'gift', 'paw', 'bolt', 'phone', 'coffee', 'piggy', 'tag', 'star', 'tent'];
   const COLORS = ['#16a34a', '#6366f1', '#f59e0b', '#0ea5e9', '#ec4899', '#8b5cf6', '#14b8a6', '#64748b', '#f97316', '#94a3b8', '#ef4444', '#84cc16', '#06b6d4', '#a855f7', '#eab308', '#0f766e'];
 
   function defaultCategories() {
@@ -64,7 +64,7 @@
     return out;
   }
 
-  // [kategori, sikkerhed, fortegn, nøgleord adskilt af |]
+  // [kategori, sikkerhed, fortegn, nøgleord adskilt af |, idKey?]
   //  sikkerhed: high = sikkert match, low = kun forslag.   fortegn: out = udgift, in = indtægt, any
   const BUILTIN = [
     ['income-salary', 'high', 'in', 'LØN|LOEN|LØNOVERFØRSEL|LØNINDBETALING|LØNUDBETALING|SALARY|PAYROLL'],
@@ -74,9 +74,9 @@
     ['income-interest', 'high', 'in', 'RENTE|RENTER|UDBYTTE'],
     ['finance-tax', 'high', 'out', 'RESTSKAT|SKATTESTYRELSEN|SKAT'],
     ['food-groceries', 'high', 'out', 'NETTO|REMA 1000|REMA1000|FØTEX|FOETEX|BILKA|LIDL|ALDI|MENY|SPAR|KVICKLY|SUPERBRUGSEN|DAGLI\'BRUGSEN|DAGLI BRUGSEN|COOP 365|COOP365|IRMA|LØVBJERG|ABC LAVPRIS|MIN KØBMAND|NEMLIG|NEMLIG.COM|LETKØB|FAKTA|SALLING|BRF BR|BRUGSFORENINGEN|BRUGSFORENING'],
-    ['food-takeaway', 'high', 'out', 'WOLT|JUST EAT|JUSTEAT|HUNGRY|FOODORA|DOMINOS|DOMINO\'S|PIZZA HUT'],
+    ['food-takeaway', 'high', 'out', 'WOLT|JUST EAT|JUSTEAT|HUNGRY|FOODORA|DOMINOS|DOMINO\'S|PIZZA HUT|MCDONALDS|MC DONALDS|MCDONALD\'S|MCD'],
     ['food-restaurant', 'high', 'out', 'SUNSET|SUNSET BOULEVARD|COCCO BELLO|COCCOBELLO'],
-    ['food-restaurant', 'low', 'out', 'MCDONALDS|MC DONALDS|MCDONALD\'S|BURGER KING|MAX BURGERS|STARBUCKS|JOE & THE JUICE|JOE AND THE JUICE|LAGKAGEHUSET|BAGERI|RESTAURANT|CAFE|CAFÉ|ESPRESSO HOUSE|BAREN'],
+    ['food-restaurant', 'low', 'out', 'BURGER KING|MAX BURGERS|STARBUCKS|JOE & THE JUICE|JOE AND THE JUICE|LAGKAGEHUSET|BAGERI|RESTAURANT|CAFE|CAFÉ|ESPRESSO HOUSE|BAREN', 'MCDONALDS'],
     ['food-canteen', 'high', 'out', 'KANTINE|CANTEEN'],
     ['food-snacks', 'low', 'out', '7-ELEVEN|7 ELEVEN|KIOSK'],
     ['transport-fuel', 'high', 'out', 'CIRCLE K|Q8|SHELL|INGO|UNO-X|F24|OK PLUS|IONITY|CLEVER|E.ON DRIVE|TESLA SUPERCHARGER|SPIRII|MONTA|ALLEGO'],
@@ -126,7 +126,8 @@
     ['travel-flights', 'high', 'out', 'SAS|NORWEGIAN|RYANAIR|EASYJET|LUFTHANSA|KLM|WIZZ AIR|FLYBILLET|SJ AB'],
     ['travel-experiences', 'high', 'out', 'TIVOLI|LEGOLAND|BAKKEN|ZOOLOGISK HAVE|KØBENHAVNS ZOO|DEN BLÅ PLANET|LALANDIA|EXPERIMENTARIUM'],
     ['travel-cinema', 'high', 'out', 'NORDISK FILM|BIOGRAF|KINO|CINEMAXX|TICKETMASTER|BILLETLUGEN|BILLETNET|BIO '],
-    ['other-misc', 'high', 'out', 'LAND OG FRITID|LAND & FRITID|LAND&FRITID|LEGO'],
+    ['other-outdoor', 'high', 'out', 'JAFI|LAND OG FRITID|LAND & FRITID|LAND&FRITID|LAND OG FRITID A/S'],
+    ['other-misc', 'high', 'out', 'LEGO', 'LAND OG FRITID'],
     // MobilePay – både betalinger ud og penge ind. Står efter butiksreglerne, så "MobilePay NETTO" stadig
     // bliver Supermarked, men før overførselsreglerne, så "MobilePay Overførsel" ikke bliver en intern overførsel.
     ['other-mobilepay', 'high', 'any', 'MOBILEPAY|MOBILE PAY|MOBILEPAY MYSHOP|MOBILEPAY BOX'],
@@ -166,14 +167,16 @@
     return key ? 'builtin:' + key : null;
   }
 
-  const BUILTIN_RULES = BUILTIN.map(([categoryId, confidence, sign, words]) => ({
-    id: ruleId(categoryId, words.split('|')[0]), categoryId, confidence, sign, keywords: words.split('|'),
+  // Et femte felt (idKey) bevarer en linjes id, hvis dens første nøgleord er flyttet til en anden regel.
+  const BUILTIN_RULES = BUILTIN.map(([categoryId, confidence, sign, words, idKey]) => ({
+    id: ruleId(categoryId, idKey || words.split('|')[0]), categoryId, confidence, sign, keywords: words.split('|'),
     re: new RegExp(words.split('|').map((w) => '(?:^|[^' + WORD + '])' + reEsc(w) + '(?=$|[^' + WORD + '])').join('|')),
   }));
 
   // --- Normalisering af bankens tekst ------------------------------------------
 
-  const PREFIXES = /^(?:(?:DANKORT|VISA|MASTERCARD|MC|MAESTRO)(?:[-/ ](?:DANKORT|KØB|KOB|NOTA))*|KORTKØB|KØB|NOTA|DK-NOTA|DANKORT-NOTA|VISA\/DANKORT|BS BETALING|BETALINGSSERVICE|PBS|LS BETALING)[\s:-]+/;
+  // "MC" er kun et kortpræfiks, når det står som "MC/…", "MC-…" eller "MC KØB" – ellers ville "MC DONALDS" miste "MC".
+  const PREFIXES = /^(?:(?:DANKORT|VISA|MASTERCARD|MAESTRO|MC(?=[-/]|\s+(?:KØB|KOB|NOTA)\b))(?:[-/ ](?:DANKORT|KØB|KOB|NOTA))*|KORTKØB|KØB|NOTA|DK-NOTA|DANKORT-NOTA|VISA\/DANKORT|BS BETALING|BETALINGSSERVICE|PBS|LS BETALING)[\s:-]+/;
   function normalizeDescription(s) {
     let t = String(s == null ? '' : s).toUpperCase().replace(/\s+/g, ' ').trim();
     for (let i = 0; i < 3; i++) { const n = t.replace(PREFIXES, ''); if (n === t) break; t = n; }

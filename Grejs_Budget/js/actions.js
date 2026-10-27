@@ -177,7 +177,7 @@
     const foreign = t.currency && t.currency !== 'DKK';
     const typeSel = t.isInternalTransfer ? 'transfer' : 'auto';
     const edited = (f) => (t.edited && t.edited[f] ? ' <span class="badge info" title="Bankens værdi: ' + esc(f === 'amount' ? U.fmtMoney(t.original[f]) : f === 'date' ? U.fmtDate(t.original[f]) : t.original[f]) + '">ændret af dig</span>' : '');
-    return '<form class="stack" id="txForm">' +
+    return '<form class="stack" id="txForm">' + (isNew ? '' : reviewNote(t)) +
       '<div class="fields">' +
       '<div class="field"><label for="txDate">Dato' + edited('date') + '</label><input type="date" id="txDate" required value="' + esc(t.date || U.todayISO()) + '"></div>' +
       '<div class="field"><label for="txAmount">Beløb <span class="hint">(minus = penge ud)</span>' + edited('amount') + '</label><input type="text" inputmode="decimal" id="txAmount" required value="' + esc(UI.amountInputValue(t.amount)) + '" placeholder="-125,50"></div>' +
@@ -195,6 +195,39 @@
       '<label class="check"><input type="checkbox" id="txOneOff"' + (t.isOneOff ? ' checked' : '') + '> Engangsudgift <span class="muted small">(kan skjules i månedssammenligningen)</span></label>' +
       (isNew ? '' : txInfo(t)) +
       '</form>';
+  }
+
+  // Skal transaktionen kontrolleres? (kategori er kun et forslag, mangler, eller mulig dublet)
+  const isDuplicateCheck = (t) => !!(t.duplicateOf && t.needsReview);
+  const canAccept = (t) => t.categorySource === 'suggested' || isDuplicateCheck(t);
+
+  function reviewNote(t) {
+    if (isDuplicateCheck(t)) {
+      return '<div class="note warn">' + icon('copy') + '<p><b>Mulig dublet.</b> En transaktion med samme dato, beløb og tekst fandtes allerede, da filen blev importeret. Er det et rigtigt, separat køb, så tryk <b>Godkend</b>. Er det en dublet, så tryk <b>Slet</b>.</p></div>';
+    }
+    if (t.categorySource === 'suggested') {
+      return '<div class="note warn">' + icon('info') + '<p><b>Kategorien er kun et forslag:</b> ' + esc(UI.catName(t.categoryId, true)) + (t.categoryReason ? ' <span class="muted">(' + esc(t.categoryReason.replace(/^Usikkert forslag: /, '')) + ')</span>' : '') +
+        '. Er den rigtig, så tryk <b>Godkend kategori</b>. Ellers vælg en anden kategori herunder og tryk <b>Gem ændringer</b>.</p></div>';
+    }
+    if (t.categorySource === 'unknown') {
+      return '<div class="note warn">' + icon('tag') + '<p><b>Transaktionen har ingen kategori endnu.</b> Vælg en kategori herunder og tryk <b>Gem ændringer</b>.</p></div>';
+    }
+    return '';
+  }
+
+  // Godkender appens forslag (kategori og/eller "ikke en dublet"), så transaktionen ikke længere skal kontrolleres.
+  function markAccepted(t) {
+    if (t.categorySource === 'suggested') { t.categorySource = 'manual'; t.categoryReason = 'Godkendt af dig'; }
+    t.needsReview = false;
+    t.updatedAt = new Date().toISOString();
+  }
+
+  async function acceptTransactions(ids) {
+    const list = ids.map((id) => S.byId.transactions.get(id)).filter(Boolean);
+    list.forEach(markAccepted);
+    await S.put('transactions', list).catch(fail);
+    UI.toast(list.length === 1 ? 'Transaktionen er godkendt' : list.length + ' transaktioner er godkendt');
+    refresh();
   }
 
   function txInfo(t) {
@@ -251,7 +284,9 @@
         { label: 'Slet', onClick: () => 'delete' },
         ...(anyEdited ? [{ label: 'Gendan bankens værdier', onClick: () => 'restore' }] : []),
         { label: 'Annullér', value: null },
-        { label: 'Gem ændringer', primary: true, onClick: (dlg) => readTxForm(dlg) || false },
+        { label: 'Gem ændringer', primary: !canAccept(t), onClick: (dlg) => readTxForm(dlg) || false },
+        // Godkend gemmer også eventuelle andre rettelser i formularen.
+        ...(canAccept(t) ? [{ label: isDuplicateCheck(t) && t.categorySource !== 'suggested' ? 'Godkend' : 'Godkend kategori', primary: true, onClick: (dlg) => { const f = readTxForm(dlg); return f ? Object.assign(f, { accept: true }) : false; } }] : []),
       ],
     });
     if (!v) return;
@@ -263,11 +298,16 @@
       refresh();
       return;
     }
+    const accept = !!v.accept;
+    delete v.accept;
     const catChanged = v.categoryId !== t.categoryId;
     T.applyEdit(t, v);
     if (catChanged) { t.categorySource = 'manual'; t.categoryRuleId = null; t.categoryReason = 'Valgt af dig'; if (!t.duplicateOf) t.needsReview = false; }
+    // "Gem" med appens forslag stående i kategorifeltet tæller også som en godkendelse af forslaget.
+    else if (t.categorySource === 'suggested') { t.categorySource = 'manual'; t.categoryReason = 'Godkendt af dig'; if (!t.duplicateOf) t.needsReview = false; }
+    if (accept) markAccepted(t);
     await S.put('transactions', t).catch(fail);
-    UI.toast('Transaktionen er gemt');
+    UI.toast(accept ? 'Transaktionen er godkendt' : 'Transaktionen er gemt');
     refresh();
     if (catChanged && S.settings.askRuleOnCategoryChange) await offerRule(t, v.categoryId);
   }
@@ -439,7 +479,7 @@
 
   GB.actions = {
     ACCOUNT_TYPES, accountDialog, pickCategory, setCategory, offerRule, newRule, ruleDialog, applyRules,
-    openTransaction, addTransaction, deleteTransactions, updateTransactions,
+    openTransaction, addTransaction, deleteTransactions, updateTransactions, acceptTransactions,
     commitImport, deleteBatch, linkRecurring, loadSample, clearSample, sampleCounts, downloadBackup, catCtx,
   };
 })();

@@ -476,3 +476,5 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 18px 0; }
 .kv dd { margin: 0; overflow-wrap: anywhere; }
 a.sr-only:focus { position: fixed; left: 12px; top: 12px; width: auto; height: auto; clip: auto; margin: 0; padding: 10px 14px; z-index: 500; background: var(--panel); border-radius: 10px; box-shadow: var(--shadow-lg); }
 .legend-list .title { white-space: normal; }
+button.badge-btn { border: 0; cursor: pointer; font-family: inherit; line-height: 1.5; }
+button.badge-btn:hover { outline: 1px solid currentColor; }

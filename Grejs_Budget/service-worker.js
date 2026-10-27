@@ -8,19 +8,19 @@
 // - Der hentes aldrig noget fra andre servere.
 
 // <precache> (genereret af scripts/stamp-service-worker.js - rediger ikke i hånden)
-const VERSION = '2153fd4a5c';
+const VERSION = 'd608624275';
 const SHELL = [
   "./",
   "index.html",
   "manifest.webmanifest",
-  "css/style.css?v=055e38d252",
+  "css/style.css?v=97a03ff24a",
   "css/responsive.css?v=c567d8f0fb",
   "css/print.css?v=36c54c7421",
   "js/theme-boot.js?v=486d9ce28d",
   "js/util.js?v=3714e01d23",
   "js/import.js?v=7179eb4ccb",
   "js/pdf-import.js?v=67aea17a37",
-  "js/categorization.js?v=35a1b19e9a",
+  "js/categorization.js?v=06f494b2d7",
   "js/transactions.js?v=ba8836995a",
   "js/analytics.js?v=dbedc89bc0",
   "js/budgets.js?v=0ba083192e",
@@ -28,12 +28,12 @@ const SHELL = [
   "js/insights.js?v=6d851271d1",
   "js/export.js?v=c0c23884d7",
   "js/sample-data.js?v=67bc009a96",
-  "js/storage.js?v=b7fbf9077e",
+  "js/storage.js?v=b32eec458a",
   "js/ui.js?v=67e17b7292",
   "js/charts.js?v=d69cfafc98",
-  "js/actions.js?v=79e6f0f32b",
+  "js/actions.js?v=3c641858a6",
   "js/views/overview.js?v=90c8726e29",
-  "js/views/transactions.js?v=3f08fe9748",
+  "js/views/transactions.js?v=1f1d5638db",
   "js/views/insights.js?v=91e9f6e0c7",
   "js/views/categories.js?v=bcd4b699e3",
   "js/views/budgets.js?v=f6adc2ada7",

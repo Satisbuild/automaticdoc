@@ -264,7 +264,9 @@ const tests = {
     const cases = [
       ['BRF BR HAMMERSHØJ', 'food-groceries'], ['Dankort-køb BRF BR HAMMERSHØJ 8830', 'food-groceries'],
       ['SUNSET', 'food-restaurant'], ['SUNSET BOULEVARD AARHUS', 'food-restaurant'], ['COCCO BELLO', 'food-restaurant'],
-      ['LAND OG FRITID', 'other-misc'], ['Land & Fritid Randers', 'other-misc'], ['LEGO', 'other-misc'], ['LEGO STORE AARHUS', 'other-misc'],
+      ['LAND OG FRITID', 'other-outdoor'], ['Land & Fritid Randers', 'other-outdoor'], ['JAFI', 'other-outdoor'], ['Dankort-køb JAFI VIBORG', 'other-outdoor'],
+      ['LEGO', 'other-misc'], ['LEGO STORE AARHUS', 'other-misc'],
+      ['MCDONALDS', 'food-takeaway'], ["McDonald's Aarhus C", 'food-takeaway'], ['MC DONALDS 1234', 'food-takeaway'],
       ['Forretning: Jack', 'shopping-clothes'], ['Forretning: Jack & Jones', 'shopping-clothes'],
       ['NEMBILVASK MY GARA', 'transport-fuel'], ['Almindelig BILVASK', 'transport-carwash'],
       ['BRF KREDIT', 'housing-mortgage'], ['LEGOLAND', 'travel-experiences'],
@@ -298,6 +300,32 @@ const tests = {
       'food-restaurant/default', 'food-restaurant/default', 'shopping-gifts/manual', 'food-takeaway/rule', 'food-groceries/default', C.UNKNOWN_ID + '/unknown']);
     assert.strictEqual(d.transactions[4].categoryRuleId, 'builtin:food-groceries:NETTO');
     assert.ok(!('reason' in d.transactions[0]));
+  },
+  'Outdoor ligger under Andre poster, og flyttede regler beholder deres id': () => {
+    const cat = cats.find((c) => c.id === 'other-outdoor');
+    assert.ok(cat && cat.name === 'Outdoor' && cat.parentId === 'other' && cat.kind === 'expense' && cat.icon === 'tent');
+    const ids = C.BUILTIN_RULES.map((r) => r.id);
+    assert.ok(ids.includes('builtin:food-restaurant:MCDONALDS'), 'restaurant-reglens id må ikke ændres');
+    assert.ok(ids.includes('builtin:other-misc:LAND OG FRITID'), 'Diverse-reglens id må ikke ændres');
+    assert.ok(C.ICONS.includes('tent'));
+    const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    for (const ic of C.ICONS) assert.ok(html.includes('id="i-' + ic + '"'), 'ikonet ' + ic + ' mangler i index.html');
+  },
+  'Migration 5: Outdoor tilføjes, og automatiske kategorier flyttes – manuelle røres ikke': () => {
+    const mk = (desc, cat, source) => Object.assign(tx({ description: desc, amount: -100 }), { categoryId: cat, categorySource: source, categoryRuleId: null });
+    const d = {
+      categories: C.defaultCategories().filter((c) => c.id !== 'other-outdoor'),
+      transactions: [mk('LAND OG FRITID', 'other-misc', 'default'), mk('JAFI', C.UNKNOWN_ID, 'unknown'), mk('MCDONALDS', 'food-restaurant', 'suggested'),
+        mk('MCDONALDS', 'food-restaurant', 'manual'), mk('JAFI', 'shopping-home', 'rule'), mk('LEGO', 'other-misc', 'default'),
+        Object.assign(mk('MC DONALDS AARHUS', C.UNKNOWN_ID, 'unknown'), { descriptionNormalized: 'DONALDS AARHUS' })],
+    };
+    S.runMigrations(d, 4, {});
+    const outdoor = d.categories.find((c) => c.id === 'other-outdoor');
+    assert.ok(outdoor && outdoor.parentId === 'other');
+    assert.deepStrictEqual(d.transactions.map((t) => t.categoryId + '/' + t.categorySource), [
+      'other-outdoor/default', 'other-outdoor/default', 'food-takeaway/default', 'food-restaurant/manual', 'shopping-home/rule', 'other-misc/default', 'food-takeaway/default']);
+    S.runMigrations(d, 4, {});
+    assert.strictEqual(d.categories.filter((c) => c.id === 'other-outdoor').length, 1);
   },
   'Brugerens regler går forud for indbyggede og respekterer prioritet og konto': () => {
     const rules = [
@@ -334,6 +362,9 @@ const tests = {
     assert.strictEqual(C.normalizeDescription('Dankort-køb NETTO 12.03 4512 VIBY'), 'NETTO 4512 VIBY');
     assert.strictEqual(C.normalizeDescription('VISA/DANKORT REMA 1000 XXXX1234 KORT 99 81234567'), 'REMA 1000');
     assert.strictEqual(C.merchantKey('Dankort-køb NETTO 12.03 4512 VIBY'), 'NETTO VIBY');
+    assert.strictEqual(C.normalizeDescription('MC/DANKORT NETTO'), 'NETTO');
+    assert.strictEqual(C.normalizeDescription('MC KØB NETTO'), 'NETTO');
+    assert.strictEqual(C.normalizeDescription('MC DONALDS AARHUS'), 'MC DONALDS AARHUS', '"MC" i et butiksnavn må ikke fjernes');
     assert.strictEqual(C.merchantKey('NETFLIX.COM 866-579-7172'), 'NETFLIX.COM');
   },
 
