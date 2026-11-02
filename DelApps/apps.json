@@ -17,6 +17,23 @@
     ]
   },
   {
+    "file": "Grejs_Læser-1.0.0.zip",
+    "name": "Grejs Læser",
+    "version": "1.0.0",
+    "bytes": 193999543,
+    "size": "185 MB",
+    "url": "https://github.com/Satisbuild/automaticdoc/releases/download/grejs-laeser-v1.0.0/Grejs_Laeser-1.0.0.zip",
+    "latest": true,
+    "platform": "Windows 10/11 (64-bit)",
+    "description": "Få tekst, Word-dokumenter, PDF-filer og billeder læst højt med en naturlig dansk stemme – også scannede sider. Du kan gemme oplæsningen som MP3 eller WAV. Alt foregår lokalt på computeren, og dine dokumenter sendes aldrig til internettet.",
+    "steps": [
+      "Pak zip-filen ud (højreklik → \"Udpak alle\").",
+      "Dobbeltklik på GrejsLaeser-1.0.0-setup.exe og følg guiden (kræver ikke administrator).",
+      "Viser Windows \"Windows beskyttede din pc\", så klik \"Flere oplysninger\" og derefter \"Kør alligevel\".",
+      "Der kommer en genvej på skrivebordet. Stemmen følger med, så der skal ikke hentes mere (fylder ca. 400 MB)."
+    ]
+  },
+  {
     "file": "GrejsCast-1.0.0.zip",
     "name": "GrejsCast",
     "version": "1.0.0",

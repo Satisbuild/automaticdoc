@@ -22,6 +22,9 @@ const dryRun = process.argv.includes('--dry-run');
 const APP_FILE = /\.(zip|exe|msi)$/i;
 const CONTENT_TYPES = { '.zip': 'application/zip', '.exe': 'application/vnd.microsoft.portable-executable', '.msi': 'application/x-msi' };
 
+// GitHub tillader kun ASCII i navne på release-filer, så æ, ø og å skrives om.
+const ascii = (s) => s.replace(/[æøåÆØÅ]/g, (c) => ({ æ: 'ae', ø: 'oe', å: 'aa', Æ: 'Ae', Ø: 'Oe', Å: 'Aa' }[c]));
+
 const readJson = (p, fallback) => (fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : fallback);
 
 function parseFileName(file) {
@@ -30,7 +33,7 @@ function parseFileName(file) {
   const rawName = m ? m[1] : base;
   const version = m ? m[2] : '1.0.0';
   const name = rawName.replace(/[-_]+/g, ' ').trim();
-  const slug = rawName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const slug = ascii(rawName).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   return { name, version, tag: `${slug}-v${version}` };
 }
 
@@ -84,11 +87,12 @@ async function upload(token, repo, file, meta) {
       body: `${meta.name} version ${meta.version}. Hentes fra Grejs Apps på automatikhelp.com.`,
     }), { 'Content-Type': 'application/json' });
   }
-  const existing = (release.assets || []).find((a) => a.name === file);
+  const assetName = ascii(file);
+  const existing = (release.assets || []).find((a) => a.name === assetName);
   if (existing) return existing.browser_download_url;
 
   const data = fs.readFileSync(path.join(appsDir, file));
-  const uploadUrl = release.upload_url.replace(/\{.*\}$/, '') + '?name=' + encodeURIComponent(file);
+  const uploadUrl = release.upload_url.replace(/\{.*\}$/, '') + '?name=' + encodeURIComponent(assetName);
   const asset = await api(token, 'POST', uploadUrl, data, {
     'Content-Type': CONTENT_TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream',
     'Content-Length': String(data.length),
