@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Hold styr på, hvilke dage du har kørt med Grejs, og hvor meget du har sparet i forhold til din egen bil.">
+  <meta name="theme-color" content="#0b1220">
+  <title>GrejsKørsel</title>
+  <link rel="icon" href="../Automatikteknikker.ico" type="image/x-icon">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="brand-row">
+        <a class="brand" href="#/kalender">Grejs<span>Kørsel</span></a>
+        <a class="portal-link" href="../index.html">← Forsiden</a>
+      </div>
+      <nav class="main-nav" aria-label="Hovedmenu">
+        <a href="#/kalender" data-nav="kalender">Kalender</a>
+        <a href="#/indstillinger" data-nav="indstillinger">Indstillinger</a>
+        <a href="#/historik" data-nav="historik">Historik</a>
+      </nav>
+    </div>
+  </header>
+
+  <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+
+  <main id="view" class="view"></main>
+
+  <dialog id="confirm-dialog" class="dialog">
+    <form method="dialog">
+      <h2 id="confirm-title"></h2>
+      <p id="confirm-text"></p>
+      <div class="dialog-actions">
+        <button class="button" value="no">Annullér</button>
+        <button id="confirm-ok" class="button button-danger" value="yes"></button>
+      </div>
+    </form>
+  </dialog>
+
+  <noscript><p class="noscript">GrejsKørsel kræver JavaScript for at virke.</p></noscript>
+
+  <script src="js/calculations.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
