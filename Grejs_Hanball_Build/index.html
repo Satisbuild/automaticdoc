@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Tegn, gem og afspil håndboldsystemer og vis dem til holdet på storskærm.">
+  <meta name="theme-color" content="#0b1220">
+  <title>Grejs_Handball_Build</title>
+  <link rel="icon" href="../Automatikteknikker.ico" type="image/x-icon">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand-block">
+        <a class="back-link" href="../index.html" title="Til forsiden" aria-label="Til forsiden">←</a>
+        <div class="brand-text">
+          <span class="brand">Grejs<em>_Handball_Build</em></span>
+          <span class="doc-line"><span id="doc-title"></span> <span id="save-status" class="save-status" role="status"></span></span>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="tbtn panel-toggle" id="btn-left" aria-controls="left-panel" aria-expanded="false">Værktøjer</button>
+
+        <div class="tgroup">
+          <button class="tbtn" id="btn-new">Nyt system</button>
+          <button class="tbtn" id="btn-open">Åbn system</button>
+          <button class="tbtn" id="btn-save">Gem</button>
+          <button class="tbtn" id="btn-saveas">Gem som</button>
+        </div>
+        <div class="tgroup">
+          <button class="tbtn" id="btn-undo" title="Fortryd (Ctrl+Z)">Fortryd</button>
+          <button class="tbtn" id="btn-redo" title="Gentag (Ctrl+Y)">Gentag</button>
+        </div>
+        <div class="segmented" role="group" aria-label="Banetype">
+          <button id="btn-half" aria-pressed="true">Halv bane</button>
+          <button id="btn-full" aria-pressed="false">Fuld bane</button>
+        </div>
+        <button class="tbtn primary" id="btn-present">Præsentation</button>
+
+        <div class="menu-wrap">
+          <button class="tbtn" id="btn-more" aria-haspopup="true" aria-expanded="false">Mere ▾</button>
+          <div class="menu" id="more-menu" hidden>
+            <button data-act="export-json">Eksportér system (JSON)</button>
+            <button data-act="import-json">Importér fra fil (JSON)</button>
+            <button data-act="export-all">Sikkerhedskopi af alle systemer</button>
+            <button data-act="export-png">Gem trin som billede (PNG)</button>
+            <button data-act="print">Print system</button>
+            <hr>
+            <button data-act="help">Hjælp og genveje</button>
+            <button data-act="clear" class="danger">Slet alt på banen</button>
+          </div>
+        </div>
+        <button class="tbtn panel-toggle" id="btn-right" aria-controls="right-panel" aria-expanded="false">Indstillinger</button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="panel left" id="left-panel" aria-label="Værktøjer"></aside>
+
+      <main class="stage" id="stage">
+        <canvas id="court" aria-label="Håndboldbane. Træk spillere og bold rundt med musen."></canvas>
+        <div class="tool-hint" id="tool-hint" role="status"></div>
+        <div class="offside-badge" id="offside-badge" hidden></div>
+        <div class="empty-hint" id="empty-hint" hidden>
+          <strong>Træk spillere ind på banen</strong>
+          <span>Brug spillerlisten til venstre, eller start fra et færdigt system.</span>
+          <button class="tbtn primary" id="btn-empty-templates">Vælg en skabelon</button>
+        </div>
+        <div class="zoom-controls" id="zoom-controls">
+          <button id="zoom-in" title="Zoom ind" aria-label="Zoom ind">+</button>
+          <button id="zoom-reset" title="Nulstil zoom">100%</button>
+          <button id="zoom-out" title="Zoom ud" aria-label="Zoom ud">−</button>
+        </div>
+        <div class="present-note" id="present-note" hidden></div>
+        <div class="present-bar" id="present-bar" hidden>
+          <button id="pr-start" title="Gå til starten (Home)" aria-label="Gå til starten"></button>
+          <button id="pr-prev" title="Forrige trin (←)" aria-label="Forrige trin"></button>
+          <button id="pr-play" class="big" title="Afspil / pause (mellemrum)" aria-label="Afspil"></button>
+          <button id="pr-next" title="Næste trin (→)" aria-label="Næste trin"></button>
+          <span id="pr-pos" class="pr-pos"></span>
+          <select id="pr-speed" aria-label="Hastighed"></select>
+          <button id="pr-lines" class="text">Skjul pile</button>
+          <button id="pr-full" class="text">Fuldskærm</button>
+          <button id="pr-exit" class="text">Afslut</button>
+        </div>
+      </main>
+
+      <aside class="panel right" id="right-panel" aria-label="Indstillinger"></aside>
+    </div>
+
+    <footer class="timeline" aria-label="Tidslinje">
+      <div class="tl-controls">
+        <button class="ic" id="tl-start" title="Gå til starten (Home)" aria-label="Gå til starten"></button>
+        <button class="ic" id="tl-prev" title="Forrige trin (←)" aria-label="Forrige trin"></button>
+        <button class="ic play" id="tl-play" title="Afspil / pause (mellemrum)" aria-label="Afspil"></button>
+        <button class="ic" id="tl-stop" title="Stop" aria-label="Stop"></button>
+        <button class="ic" id="tl-next" title="Næste trin (→)" aria-label="Næste trin"></button>
+        <label class="speed">Hastighed
+          <select id="tl-speed"></select>
+        </label>
+        <input type="range" id="tl-seek" min="0" max="1000" value="0" step="1" aria-label="Spol i sekvensen">
+        <span class="tl-time" id="tl-time">0,0 / 0,0 s</span>
+      </div>
+      <div class="tl-steps">
+        <ol class="steps" id="steps"></ol>
+        <div class="step-actions">
+          <button class="tbtn" id="step-add">+ Tilføj trin</button>
+          <button class="ic small" id="step-left" title="Flyt trin til venstre" aria-label="Flyt trin til venstre">‹</button>
+          <button class="ic small" id="step-right" title="Flyt trin til højre" aria-label="Flyt trin til højre">›</button>
+          <button class="tbtn subtle" id="step-del">Slet trin</button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <div class="drag-token" id="drag-token" hidden></div>
+  <input type="file" id="file-input" accept=".json,application/json" multiple hidden>
+
+  <dialog class="dlg" id="save-dialog">
+    <form method="dialog" id="save-form">
+      <h2 id="save-title">Gem system</h2>
+      <label>Navn <input id="save-name" required maxlength="120" autocomplete="off"></label>
+      <label>Kategori <input id="save-category" list="category-list" maxlength="40" autocomplete="off"></label>
+      <label>Beskrivelse <textarea id="save-description" rows="3" maxlength="4000"></textarea></label>
+      <div class="dlg-actions">
+        <button type="button" class="tbtn" id="save-cancel">Annullér</button>
+        <button type="submit" class="tbtn primary">Gem</button>
+      </div>
+    </form>
+  </dialog>
+  <datalist id="category-list"></datalist>
+
+  <dialog class="dlg wide" id="library-dialog">
+    <div class="lib-head">
+      <h2>Systembibliotek</h2>
+      <button class="tbtn" id="lib-close">Luk</button>
+    </div>
+    <div class="segmented lib-tabs" role="group" aria-label="Vis">
+      <button id="lib-tab-mine" aria-pressed="true">Mine systemer</button>
+      <button id="lib-tab-templates" aria-pressed="false">Skabeloner</button>
+    </div>
+    <div class="lib-filter">
+      <input type="search" id="lib-search" placeholder="Søg efter navn eller beskrivelse" aria-label="Søg">
+      <select id="lib-category" aria-label="Kategori"></select>
+      <button class="tbtn" id="lib-import">Importér fil</button>
+    </div>
+    <div class="lib-list" id="lib-list"></div>
+  </dialog>
+
+  <dialog class="dlg" id="confirm-dialog">
+    <form method="dialog">
+      <h2 id="confirm-title"></h2>
+      <p id="confirm-text"></p>
+      <div class="dlg-actions">
+        <button class="tbtn" value="no">Annullér</button>
+        <button class="tbtn danger" id="confirm-ok" value="yes"></button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="dlg wide" id="help-dialog">
+    <div class="lib-head">
+      <h2>Sådan bruger du programmet</h2>
+      <form method="dialog"><button class="tbtn">Luk</button></form>
+    </div>
+    <div class="help-body">
+      <ol>
+        <li><strong>Trin 1 er startopstillingen.</strong> Træk spillere og bold ind, og flyt dem frit. Læg bolden oven på en spiller for at give spilleren bolden.</li>
+        <li><strong>Tilføj et trin</strong> for hver ting, der sker. Vælg en pil i venstre side, og træk fra spilleren hen til målet. En træk-bevægelse i spilleren selv laver også en løbepil.</li>
+        <li><strong>Afleveringer</strong> tegnes fra den spiller, der har bolden, hen til en medspiller. Bolden følger med automatisk i de næste trin.</li>
+        <li><strong>Gør en pil buet</strong> ved at vælge den og trække i det blå håndtag på midten. Det gule håndtag flytter slutpunktet.</li>
+        <li><strong>Tryk på Afspil</strong> for at se hele spillet, eller på Næste for at se ét trin ad gangen.</li>
+      </ol>
+      <h3>Genveje</h3>
+      <dl class="keys">
+        <dt>V</dt><dd>Vælg og flyt</dd>
+        <dt>L / A / S / F / T</dt><dd>Løbebane, aflevering, skud, forsvar, fri tegning</dd>
+        <dt>Mellemrum</dt><dd>Afspil / pause</dd>
+        <dt>← / →</dt><dd>Forrige / næste trin</dd>
+        <dt>Home</dt><dd>Gå til starten</dd>
+        <dt>Shift + piletaster</dt><dd>Flyt det valgte 10 cm</dd>
+        <dt>Ctrl + Z / Y</dt><dd>Fortryd / gentag</dd>
+        <dt>Ctrl + S</dt><dd>Gem</dd>
+        <dt>Ctrl + D</dt><dd>Kopiér spiller</dd>
+        <dt>Delete</dt><dd>Slet det valgte</dd>
+        <dt>Mushjul / knib</dt><dd>Zoom på banen</dd>
+        <dt>Træk på tom bane</dt><dd>Flyt rundt, når der er zoomet ind</dd>
+        <dt>P / Esc</dt><dd>Start / afslut præsentation</dd>
+      </dl>
+      <p class="muted">Alt gemmes automatisk i denne browser på denne enhed. Lav en sikkerhedskopi under "Mere", hvis du rydder browserdata eller skifter computer.</p>
+    </div>
+  </dialog>
+
+  <div id="print-area"></div>
+  <noscript><p class="noscript">Grejs_Handball_Build kræver JavaScript for at virke.</p></noscript>
+
+  <script src="js/model.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/templates.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').catch(function (e) { console.info('service worker not registered', e); });
+      });
+    }
+  </script>
+</body>
+</html>
