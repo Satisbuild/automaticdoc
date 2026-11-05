@@ -270,8 +270,12 @@ UI.attack = function () {
 function playerRow(p) {
   const status = p.online ? '<span class="dot on"></span>Online' : '<span class="dot"></span>' + (p.lastSeen ? ago(p.lastSeen) : 'offline');
   return '<div class="prow ' + (p.self ? 'me' : '') + '" data-pid="' + p.id + '"><canvas width="96" height="96" data-av="' + p.avatar + '"></canvas><div style="flex:1;min-width:0"><div class="nm">' + esc(p.name) + (p.self ? ' (you)' : '') + '</div>' +
-    '<div class="sub"><span class="badge-th">TH' + p.th + '</span><span>' + icon('trophy') + fmt(p.trophies) + '</span><span>Lv ' + p.level + '</span><span>' + status + '</span>' + (p.shielded ? '<span>' + icon('shield') + 'shield</span>' : '') + '</div></div>' +
+    '<div class="sub"><span class="badge-th">TH' + p.th + '</span><span>' + icon('trophy') + fmt(p.trophies) + '</span><span>Lv ' + p.level + '</span><span>' + status + '</span>' + (p.shielded ? '<span>' + icon('shield') + 'shield</span>' : '') + armyLimitNote(p) + '</div></div>' +
     (p.self ? '' : '<button class="btn" style="--c1:#ff7a3a;--c2:#b0300a" data-atk="' + p.id + '" ' + (p.attackable ? '' : 'disabled title="' + esc(p.reason || '') + '"') + '>ATTACK</button>') + '</div>';
+}
+function armyLimitNote(p) {
+  const lim = !p.self && D.attackLimit && D.attackLimit(S.me.th, p.th);
+  return lim ? '<span title="You are attacking a lower Town Hall, so only part of your army can be used">Army limit ' + lim.troops + '</span>' : '';
 }
 function bindPlayerRows(box, players) {
   $$('canvas[data-av]', box).forEach(cv => drawAvatar(cv, +cv.dataset.av));
@@ -538,8 +542,8 @@ UI.help = function () {
     '<p><b style="color:var(--gold)">BUILD</b> - open the shop, place buildings (green = OK, red = blocked). Builders do one job each. Drag a selected building to move it.</p>' +
     '<p><b style="color:var(--gold)">RESOURCES</b> - mines and collectors fill your storages while you are away. Bigger storages, bigger loot for attackers too!</p>' +
     '<p><b style="color:var(--gold)">ARMY</b> - train troops in the Barracks, brew spells, research upgrades in the Laboratory.</p>' +
-    '<p><b style="color:var(--gold)">ATTACK</b> - pick a real player from the list or let FIND OPPONENT match you. Tap outside their base to deploy. 50% destruction, the Town Hall and 100% each give a star. Loot and trophies are calculated by the server.</p>' +
-    '<p><b style="color:var(--gold)">DEFENSE</b> - other players attack your saved base while you are offline. After a heavy attack you get a shield. Check the battle log to watch replays.</p>' +
+    '<p><b style="color:var(--gold)">ATTACK</b> - pick a real player from the list or let FIND OPPONENT match you. Tap outside their base to deploy. You can attack any Town Hall, but against a lower one only part of your army can be used. 50% destruction, the Town Hall and 100% each give a star. Loot and trophies are calculated by the server.</p>' +
+    '<p><b style="color:var(--gold)">DEFENSE</b> - other players attack your saved base while you are offline. After a heavy attack you get a 30 minute shield. Check the battle log to watch replays.</p>' +
     '<p><b style="color:var(--gold)">HEROES</b> - build their altars, upgrade them with Dark Elixir and forge equipment at the Blacksmith with Ore.</p>' +
     '<p><b style="color:var(--gold)">CAMPAIGN</b> - 20 worlds, 200 levels, 600 stars. Rewards for every new star.</p>' +
     '<p class="note">Mouse: drag to pan, wheel to zoom, keys 1-9 pick battle cards. Touch: drag, pinch to zoom, hold to deploy a stream of troops.</p></div>', { size: 'mid' });

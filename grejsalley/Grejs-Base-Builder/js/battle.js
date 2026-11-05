@@ -39,7 +39,7 @@ const Battle = {
     if (mode !== 'replay') {
       this.b.flushTimer = setInterval(() => this.flush(), 1000);
       // pick the first available card
-      const first = this.b.cards.find(c => c.n > 0);
+      const first = this.b.cards.find(c => c.n > 0 && !c.blocked);
       if (first) this.b.sel = first.key;
       this.renderCards();
     }
@@ -59,7 +59,7 @@ const Battle = {
     } else {
       const o = d.opponent;
       $('#bWho').innerHTML = '<span class="badge-th">TH' + o.th + '</span>' + esc(o.name);
-      $('#bSub').innerHTML = icon('trophy') + ' win: +' + d.offer.win + ' · lose: -' + d.offer.loss;
+      $('#bSub').innerHTML = icon('trophy') + ' win: +' + d.offer.win + ' · lose: -' + d.offer.loss + '<span id="bLimit"></span>';
     }
     this.renderLoot();
   },
@@ -78,8 +78,8 @@ const Battle = {
       for (const id of D.SPELLS) if (a.spells[id]) b.cards.push({ key: 's:' + id, kind: 's', id: id, lv: a.spells[id].lv });
     }
     for (const c of b.cards) {
-      if (c.kind === 't') c.n = sim.left.troops[c.id] || 0;
-      else if (c.kind === 's') c.n = sim.left.spells[c.id] || 0;
+      if (c.kind === 't') { c.n = sim.left.troops[c.id] || 0; c.blocked = c.n > 0 && !!sim.limit && !sim.fits('troops', c.id); }
+      else if (c.kind === 's') { c.n = sim.left.spells[c.id] || 0; c.blocked = c.n > 0 && !!sim.limit && !sim.fits('spells', c.id); }
       else {
         const u = sim.units.find(u => u.kind === 'hero' && u.id === c.id);
         c.n = sim.left.heroes[c.id] ? 1 : 0;
@@ -88,10 +88,12 @@ const Battle = {
         c.usedAbility = !!(u && !u.ability);
       }
     }
+    const lim = $('#bLimit');
+    if (lim && sim.limit) lim.textContent = ' · army limit: ' + sim.spent.troops + '/' + sim.limit.troops;
     const bar = $('#bBar');
     bar.innerHTML = b.cards.map((c, i) => {
       const cls = ['dcard', c.kind === 's' ? 'spell' : c.kind === 'h' ? 'hero' : '', c.key === b.sel ? 'sel' : '',
-        c.kind === 'h' && c.ability ? 'ability' : '', (c.kind !== 'h' && !c.n) || (c.kind === 'h' && !c.n && !c.ability) ? 'empty' : ''].join(' ');
+        c.kind === 'h' && c.ability ? 'ability' : '', (c.kind !== 'h' && (!c.n || c.blocked)) || (c.kind === 'h' && !c.n && !c.ability) ? 'empty' : ''].join(' ');
       return '<div class="' + cls + '" data-i="' + i + '"><canvas width="96" height="96"></canvas><span class="n">' + (c.kind === 'h' ? (c.ability ? '⚡' : c.n ? '' : c.dead ? '✖' : '') : 'x' + c.n) + '</span><span class="lv">' + (c.kind === 'h' && c.ability ? 'ABILITY' : 'LV ' + c.lv) + '</span></div>';
     }).join('');
     $$('.dcard', bar).forEach(el => {
@@ -107,6 +109,7 @@ const Battle = {
     Sound.play('click');
     if (c.kind === 'h' && c.ability) { this.command({ k: 'a', id: c.id }); return; }
     if ((c.kind !== 'h' && !c.n) || (c.kind === 'h' && !c.n)) return;
+    if (c.blocked) { Sound.play('error'); this.msg('Over the army limit against this Town Hall', 1.5); return; }
     b.sel = c.key;
     this.renderCards();
   },
@@ -145,7 +148,7 @@ const Battle = {
     // auto-advance to the next card when this one is empty
     this.renderCards();
     const cur = b.cards.find(x => x.key === b.sel);
-    if (cur && !cur.n && c.k !== 'a') { const nxt = b.cards.find(x => x.n > 0 && x.kind === cur.kind) || b.cards.find(x => x.n > 0); b.sel = nxt ? nxt.key : null; this.renderCards(); }
+    if (cur && (!cur.n || cur.blocked) && c.k !== 'a') { const nxt = b.cards.find(x => x.n > 0 && !x.blocked && x.kind === cur.kind) || b.cards.find(x => x.n > 0 && !x.blocked); b.sel = nxt ? nxt.key : null; this.renderCards(); }
     return true;
   },
   flush(final) {
