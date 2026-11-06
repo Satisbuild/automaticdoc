@@ -292,6 +292,32 @@
     setToolButtons();
   }
 
+  // Hard refresh: henter programmets filer forbi både browserens HTTP-cache og service workerens cache.
+  // Systemerne ligger i LocalStorage og bliver ikke rørt.
+  async function hardRefresh() {
+    App.flushSave();
+    App.toast('Henter nyeste version …');
+    try {
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.update().catch(() => {})));
+      }
+      if (window.caches) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+      // Genhent alle sidens egne filer med cache: 'reload', så HTTP-cachen også får de nye udgaver.
+      const urls = [location.pathname]
+        .concat([...document.querySelectorAll('script[src], link[rel="stylesheet"][href]')]
+          .map((n) => n.src || n.href)
+          .filter((u) => new URL(u, location.href).origin === location.origin));
+      await Promise.all(urls.map((u) => fetch(u, { cache: 'reload' }).catch(() => {})));
+    } catch (e) {
+      console.info('hard refresh: kunne ikke rydde alt', e);
+    }
+    location.reload();
+  }
+
   function setToolButtons() {
     document.querySelectorAll('.tool-btn').forEach((b) => {
       b.classList.toggle('active', b.dataset.tool === App.tool);
@@ -1186,6 +1212,7 @@
       } else if (act === 'export-png') exportPng();
       else if (act === 'print') printSystem();
       else if (act === 'help') $('help-dialog').showModal();
+      else if (act === 'hard-refresh') hardRefresh();
       else if (act === 'clear') {
         const yes = await confirmDialog('Slet alt på banen?', 'Alle spillere, bolden, pile og trin i dette system bliver fjernet. Du kan fortryde med Fortryd.', 'Slet alt');
         if (yes) {
