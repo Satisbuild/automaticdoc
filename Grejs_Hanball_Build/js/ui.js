@@ -158,8 +158,9 @@
   function addTeam(team) {
     if (!App.isEditable()) App.selectStep(App.stepIndex);
     App.mutate((doc) => {
-      G.PALETTE[team].concat(G.PALETTE.gk).forEach((entry, i) => {
-        const isGk = i === G.PALETTE[team].length;
+      const regular = G.PALETTE[team].filter((entry) => !entry.extra);
+      regular.concat(G.PALETTE.gk).forEach((entry, i) => {
+        const isGk = i === regular.length;
         const usedGk = isGk && doc.players.some((p) => p.team === 'gk');
         const used = doc.players.some((p) => p.label === entry.label);
         if (used || usedGk || doc.players.length >= G.LIMITS.players) return;

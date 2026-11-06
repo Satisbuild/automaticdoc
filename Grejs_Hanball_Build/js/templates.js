@@ -6,19 +6,26 @@
   const ATTACK_SPOTS = {
     LW: [36.8, 1.3, 'Venstre fløj'], LB: [29.6, 4.8, 'Venstre back'], CB: [27.6, 10, 'Playmaker / center back'],
     RB: [29.6, 15.2, 'Højre back'], RW: [36.8, 18.7, 'Højre fløj'], PV: [33.3, 10, 'Stregspiller'],
+    // 7. markspiller (målmanden er taget ud), typisk som ekstra stregspiller. Kommer ikke med i "Tilføj alle".
+    '7M': [33.6, 13.4, '7. markspiller (7 mod 6)', true],
   };
   const DEFENSE_SPOTS = {
-    VF: [34.4, 4.7, 'Venstre forsvar'], MF: [33.1, 8.6, 'Midterforsvar'], HF: [34.4, 15.3, 'Højre forsvar'], F1: [28.8, 11, 'Fremskudt forsvarer'],
+    VY: [37.4, 1.6, 'Venstre yder'], VF: [34.6, 4.6, 'Venstre forsvar'], MV: [33.3, 8.2, 'Midter venstre'],
+    MH: [33.3, 11.8, 'Midter højre'], HF: [34.6, 15.4, 'Højre forsvar'], HY: [37.4, 18.4, 'Højre yder'],
+    // Ekstra forsvarer, fx i 5-1 eller når forsvaret også spiller 7 mod 7. Kommer ikke med i "Tilføj alle".
+    F1: [28.8, 10, 'Fremskudt / 7. forsvarer', true],
   };
   const GK_SPOT = [38.9, 10, 'Målmand'];
 
+  const spots = (s) => Object.keys(s).map((k) => ({ label: k, title: s[k][2], x: s[k][0], y: s[k][1], extra: !!s[k][3] }));
   const PALETTE = {
-    attack: Object.keys(ATTACK_SPOTS).map((k) => ({ label: k, title: ATTACK_SPOTS[k][2], x: ATTACK_SPOTS[k][0], y: ATTACK_SPOTS[k][1] })),
-    defense: Object.keys(DEFENSE_SPOTS).map((k) => ({ label: k, title: DEFENSE_SPOTS[k][2], x: DEFENSE_SPOTS[k][0], y: DEFENSE_SPOTS[k][1] })),
+    attack: spots(ATTACK_SPOTS),
+    defense: spots(DEFENSE_SPOTS),
     gk: [{ label: 'GK', title: GK_SPOT[2], x: GK_SPOT[0], y: GK_SPOT[1] }],
   };
 
   const A = ATTACK_SPOTS;
+  const D = DEFENSE_SPOTS;
   const attackSix = () => ['LW', 'LB', 'CB', 'RB', 'RW', 'PV'].map((k) => ['attack', k, A[k][0], A[k][1]]);
   const gk = ['gk', 'GK', 38.9, 10];
 
@@ -64,6 +71,13 @@
           { type: 'run', player: 'RB', to: [28.5, 13] },
         ] },
       ],
+    },
+    {
+      name: '7 mod 6-angreb', category: 'Angreb',
+      description: 'Målmanden er taget ud, og 7. markspiller (7M) går ind som ekstra stregspiller mod et 6-0-forsvar.',
+      players: [gk].concat(attackSix(), [['attack', '7M', 33.6, 13.4]],
+        ['VY', 'VF', 'MV', 'MH', 'HF', 'HY'].map((k) => ['defense', k, D[k][0], D[k][1]])),
+      ball: { holder: 'CB' },
     },
     {
       name: 'Kryds mellem backs', category: 'Angreb',
