@@ -7,7 +7,7 @@
 //   caches ALDRIG - et spil må ikke få en gammel cloud-save serveret, når man er offline.
 
 // <precache> (genereret af tools/update-sw.js - rediger ikke i hånden)
-const VERSION = 'ba3778c09c';
+const VERSION = 'd8a3077d22';
 const PRECACHE = [
   "/",
   "/Automatikteknikker.ico",
@@ -15,13 +15,16 @@ const PRECACHE = [
   "/DelApps/apps.json",
   "/DelApps/index.html",
   "/DelApps/",
-  "/GrejsKoersel/css/style.css",
-  "/GrejsKoersel/index.html",
-  "/GrejsKoersel/",
-  "/GrejsKoersel/js/app.js",
-  "/GrejsKoersel/js/calculations.js",
-  "/GrejsKoersel/js/calendar.js",
-  "/GrejsKoersel/js/storage.js",
+  "/GrejsOpsparing/css/style.css",
+  "/GrejsOpsparing/icon.svg",
+  "/GrejsOpsparing/index.html",
+  "/GrejsOpsparing/",
+  "/GrejsOpsparing/js/calculations.js",
+  "/GrejsOpsparing/js/charts.js",
+  "/GrejsOpsparing/js/script.js",
+  "/GrejsOpsparing/js/storage.js",
+  "/GrejsOpsparing/manifest.webmanifest",
+  "/GrejsOpsparing/tests/tests.html",
   "/Grejs_Hanball_Build/css/style.css",
   "/Grejs_Hanball_Build/index.html",
   "/Grejs_Hanball_Build/",
@@ -46,8 +49,6 @@ const PRECACHE = [
   "/Pressure Drop/index.html",
   "/Pressure Drop/",
   "/automatikhjælpemidler.html",
-  "/cas format/index.html",
-  "/cas format/",
   "/filmguide/dc.html",
   "/filmguide/fastfurious.html",
   "/filmguide/harrypotter.html",
@@ -184,12 +185,10 @@ const CDN = [
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
-  // CAS PDF til Word
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs',
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs',
-  'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css',
+  // Konverter og PDF Konverter
   'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+  // GrejsOpsparing
+  'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
 ];
 const CDN_HOSTS = ['cdn.tailwindcss.com', 'cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 const NETWORK_TIMEOUT = 4000;

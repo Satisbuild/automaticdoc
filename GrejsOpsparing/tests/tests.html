@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <title>GrejsOpsparing – test af beregninger</title>
+  <style>
+    body { font: 14px/1.5 system-ui, sans-serif; margin: 24px; background: #fff; color: #111; }
+    .ok { color: #047857; } .fail { color: #b91c1c; font-weight: 700; }
+    #summary { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <h1>GrejsOpsparing – test af beregninger</h1>
+  <p>Åbn siden i en browser. Alle linjer skal være grønne.</p>
+  <div id="summary"></div>
+  <ol id="results"></ol>
+  <script src="../js/calculations.js"></script>
+  <script src="../js/storage.js"></script>
+  <script>
+    'use strict';
+    const C = GOCalc, S = GOStorage;
+    const results = [];
+    function test(name, fn) {
+      try { fn(); results.push([true, name]); }
+      catch (e) { results.push([false, name + ' – ' + e.message]); }
+    }
+    function eq(actual, expected, msg) {
+      if (actual !== expected) throw new Error((msg || '') + ' forventet ' + JSON.stringify(expected) + ', fik ' + JSON.stringify(actual));
+    }
+    function near(actual, expected, tol, msg) {
+      if (Math.abs(actual - expected) > tol) throw new Error((msg || '') + ' forventet ≈' + expected + ', fik ' + actual);
+    }
+    let n = 0;
+    function tx(type, kr, date, createdAt) {
+      n++;
+      return { id: 'id' + n, type, amount: Math.round(kr * 100), date, description: '', createdAt: createdAt || (date + 'T12:00:00.' + String(n).padStart(3, '0') + 'Z') };
+    }
+    function make(txs, rate, compounding, extra) {
+      const d = S.createDefaultData();
+      d.transactions = txs;
+      d.interest = { rates: [{ from: null, rate: rate || 0 }], compounding: compounding || 'monthly', startDate: null };
+      return Object.assign(d, extra || {});
+    }
+
+    // ---- Beløb ----
+    test('parseAmount: danske og engelske formater', () => {
+      eq(C.parseAmount('1.234,50'), 123450);
+      eq(C.parseAmount('2000'), 200000);
+      eq(C.parseAmount('2000,5'), 200050);
+      eq(C.parseAmount('1234.50'), 123450);
+      eq(C.parseAmount('1.000'), 100000);
+      eq(C.parseAmount('12.500.000'), 1250000000);
+      eq(C.parseAmount('2 000 kr.'), 200000);
+      eq(C.parseAmount('1,234,567.89'), 123456789);
+      eq(C.parseAmount('0,01'), 1);
+    });
+    test('parseAmount: ugyldige beløb afvises', () => {
+      for (const s of ['', 'abc', '-5', '0', '0,00', '1,234', '1.2.3', '12,345,6', '1e5', '10,999']) eq(C.parseAmount(s), null, '"' + s + '"');
+    });
+    test('parseRate', () => {
+      eq(C.parseRate('2'), 2); eq(C.parseRate('2,25'), 2.25); eq(C.parseRate('0'), 0);
+      eq(C.parseRate('101'), null); eq(C.parseRate('-1'), null); eq(C.parseRate('x'), null);
+    });
+
+    // ---- Datoer ----
+    test('addMonths klipper til månedens sidste dag', () => {
+      eq(C.dayToKey(C.addMonths(C.parseDateKey('2026-01-31'), 1)), '2026-02-28');
+      eq(C.dayToKey(C.addMonths(C.parseDateKey('2028-01-31'), 1)), '2028-02-29');
+      eq(C.dayToKey(C.addMonths(C.parseDateKey('2026-11-20'), -12)), '2025-11-20');
+    });
+    test('ugyldige datoer afvises', () => {
+      eq(C.parseDateKey('2026-02-31'), null); eq(C.parseDateKey('2026-13-01'), null); eq(C.parseDateKey('x'), null);
+    });
+    test('nextPeriodEnd', () => {
+      eq(C.dayToKey(C.nextPeriodEnd(C.parseDateKey('2026-11-20'), 'monthly')), '2026-11-30');
+      eq(C.dayToKey(C.nextPeriodEnd(C.parseDateKey('2026-11-30'), 'monthly')), '2026-12-31');
+      eq(C.dayToKey(C.nextPeriodEnd(C.parseDateKey('2026-12-31'), 'monthly')), '2027-01-31');
+      eq(C.dayToKey(C.nextPeriodEnd(C.parseDateKey('2026-12-31'), 'yearly')), '2027-12-31');
+    });
+
+    // ---- Saldo ----
+    test('saldo, indbetalt og hævet uden rente', () => {
+      const L = C.computeLedger(make([tx('deposit', 25000, '2026-01-05'), tx('deposit', 2000, '2026-02-01'), tx('withdrawal', 1500.5, '2026-03-01')]), '2026-11-20');
+      eq(L.balance, 2549950); eq(L.totalDeposits, 2700000); eq(L.totalWithdrawals, 150050); eq(L.interestEarned, 0);
+      eq(L.rows[2].balanceAfter, 2549950);
+    });
+    test('hævning større end saldoen opdages', () => {
+      const L = C.computeLedger(make([tx('deposit', 100, '2026-01-05'), tx('withdrawal', 100.01, '2026-01-06')]), '2026-11-20');
+      if (!L.negative) throw new Error('negativ saldo blev ikke fundet');
+      eq(L.negative.date, '2026-01-06');
+    });
+    test('tilbagedateret hævning før indbetaling opdages', () => {
+      const L = C.computeLedger(make([tx('deposit', 500, '2026-03-01'), tx('withdrawal', 200, '2026-02-01')]), '2026-11-20');
+      if (!L.negative) throw new Error('negativ saldo blev ikke fundet');
+    });
+
+    // ---- Renter ----
+    test('25.000 kr. til 2 % med årlig tilskrivning giver præcis 500 kr. på et år', () => {
+      const L = C.computeLedger(make([tx('deposit', 25000, '2026-01-01')], 2, 'yearly'), '2026-12-31');
+      eq(L.interestEarned, 50000);
+      eq(L.balance, 2550000);
+      eq(L.credits.length, 1); eq(L.credits[0].date, '2026-12-31');
+    });
+    test('månedlig tilskrivning giver renters rente (≈ 504,60 kr.)', () => {
+      const L = C.computeLedger(make([tx('deposit', 25000, '2026-01-01')], 2, 'monthly'), '2026-12-31');
+      eq(L.credits.length, 12);
+      eq(L.credits[0].date, '2026-01-31');
+      eq(L.credits[0].amount, Math.round(2500000 * 0.02 / 365 * 31));
+      near(L.interestEarned, 50460, 150);
+      if (L.interestEarned <= 50000) throw new Error('månedlig skal give mere end årlig');
+    });
+    test('påløbne renter tælles ikke med i saldoen før tilskrivning', () => {
+      const L = C.computeLedger(make([tx('deposit', 36500, '2026-11-01')], 1, 'monthly'), '2026-11-10');
+      eq(L.interestEarned, 0); eq(L.balance, 3650000);
+      near(L.accrued, 1000, 0.001, 'påløbet efter 10 dage');
+    });
+    test('hævning midt i måneden giver mindre rente', () => {
+      const a = C.computeLedger(make([tx('deposit', 10000, '2026-01-01')], 3), '2026-01-31');
+      const b = C.computeLedger(make([tx('deposit', 10000, '2026-01-01'), tx('withdrawal', 5000, '2026-01-16')], 3), '2026-01-31');
+      eq(a.interestEarned, Math.round(1000000 * 0.03 / 365 * 31));
+      eq(b.interestEarned, Math.round((1000000 * 15 + 500000 * 16) * 0.03 / 365));
+    });
+    test('renteændring gælder fra sin dato', () => {
+      const d = make([tx('deposit', 36500, '2026-01-01')], 1, 'yearly');
+      d.interest.rates.push({ from: '2026-07-02', rate: 2 });
+      const L = C.computeLedger(d, '2026-12-31');
+      // 182 dage til 1 % + 183 dage til 2 % af 36.500 kr. = 182 + 366 kr.
+      eq(L.interestEarned, 54800);
+    });
+    test('startdato for renter respekteres', () => {
+      const d = make([tx('deposit', 36500, '2026-01-01')], 1, 'yearly');
+      d.interest.startDate = '2026-12-22';
+      eq(C.computeLedger(d, '2026-12-31').interestEarned, 1000);
+    });
+
+    // ---- Prognose og mål ----
+    const today = '2026-11-20';
+    test('prognose uden rente: 25.000 + 2.000/md', () => {
+      const d = make([tx('deposit', 25000, '2026-01-05')]);
+      const L = C.computeLedger(d, today);
+      const p = C.project(L, d, { endDay: C.addMonths(L.todayDay, 12), monthly: 200000, dayOfMonth: 1 });
+      eq(C.projectionAt(p, L, C.addMonths(L.todayDay, 3)).balance, 2500000 + 3 * 200000);
+      eq(C.projectionAt(p, L, C.addMonths(L.todayDay, 12)).balance, 2500000 + 12 * 200000);
+    });
+    test('prognosen ændrer ikke den faktiske saldo', () => {
+      const d = make([tx('deposit', 25000, '2026-01-05')], 2);
+      d.plan = { monthlyAmount: 200000, dayOfMonth: 1 };
+      eq(C.computeLedger(d, today).balance, C.computeLedger(make([tx('deposit', 25000, '2026-01-05')], 2), today).balance);
+    });
+    test('måldato: 25.000 → 100.000 med 2.000/md uden rente = 38 indbetalinger', () => {
+      const d = make([tx('deposit', 25000, '2026-01-05')]);
+      const L = C.computeLedger(d, today);
+      const g = C.findGoalDate(L, d, 10000000, 200000, 1);
+      eq(C.dayToKey(g.day), '2030-01-01');
+    });
+    test('måldato med rente kommer før uden rente', () => {
+      const d0 = make([tx('deposit', 25000, '2026-01-05')]);
+      const d2 = make([tx('deposit', 25000, '2026-01-05')], 2);
+      const g0 = C.findGoalDate(C.computeLedger(d0, today), d0, 10000000, 200000, 1);
+      const g2 = C.findGoalDate(C.computeLedger(d2, today), d2, 10000000, 200000, 1);
+      if (!(g2.day < g0.day)) throw new Error('renten skulle give en tidligere dato');
+    });
+    test('mål nås ikke uden plan og rente', () => {
+      const d = make([tx('deposit', 1000, '2026-01-05')]);
+      eq(C.findGoalDate(C.computeLedger(d, today), d, 500000, 0, 1).day, null);
+    });
+    test('nødvendig månedlig opsparing uden rente = 75.000 / 12', () => {
+      const d = make([tx('deposit', 25000, '2026-01-05')]);
+      const r = C.requiredMonthly(C.computeLedger(d, today), d, 10000000, '2027-11-01', 1);
+      eq(r.status, 'ok'); eq(r.deposits, 12); eq(r.monthly, 625000); eq(r.withoutInterest, 625000);
+    });
+    test('nødvendig månedlig opsparing med rente er lavere og rækker', () => {
+      const d = make([tx('deposit', 25000, '2026-01-05')], 3);
+      const L = C.computeLedger(d, today);
+      const r = C.requiredMonthly(L, d, 10000000, '2027-11-01', 1);
+      if (!(r.monthly < 625000)) throw new Error('skulle være under 6.250 kr.');
+      const p = C.project(L, d, { endDay: C.parseDateKey('2027-11-01'), monthly: r.monthly, dayOfMonth: 1, record: false });
+      if (p.balance < 10000000) throw new Error('beløbet når ikke målet');
+    });
+    test('passeret slutdato', () => {
+      const d = make([tx('deposit', 100, '2026-01-05')]);
+      eq(C.requiredMonthly(C.computeLedger(d, today), d, 1000000, '2026-10-01', 1).status, 'past');
+    });
+
+    // ---- Lagring ----
+    test('backup: eksport og import giver de samme data', () => {
+      const d = make([tx('deposit', 25000, '2026-01-05'), tx('withdrawal', 100, '2026-02-05')], 2.5);
+      d.goal = { name: 'Bil', amount: 5000000, targetDate: '2028-01-01' };
+      const res = S.parseBackup(S.exportJSON(d));
+      eq(res.ok, true);
+      eq(JSON.stringify(res.data), JSON.stringify(d));
+    });
+    test('backup: forkerte filer afvises', () => {
+      eq(S.parseBackup('ikke json').ok, false);
+      eq(S.parseBackup('{"app":"Andet","format":1,"data":{}}').ok, false);
+      const bad = JSON.parse(S.exportJSON(make([tx('deposit', 1, '2026-01-01')])));
+      bad.data.transactions[0].amount = -5;
+      eq(S.parseBackup(JSON.stringify(bad)).ok, false);
+      bad.data.transactions[0].amount = 100; bad.data.transactions[0].date = '2026-02-30';
+      eq(S.parseBackup(JSON.stringify(bad)).ok, false);
+    });
+    test('CSV bruger semikolon, komma og beskytter mod formler', () => {
+      const csv = S.rowsToCSV([{ type: 'withdrawal', amount: 123456, balanceAfter: 5000, date: '2026-01-01', description: '=SUM(A1)' }], 'DKK');
+      if (!csv.includes('2026-01-01;Hævning;\'=SUM(A1);-1234,56;50,00')) throw new Error(csv);
+    });
+
+    const failed = results.filter((r) => !r[0]).length;
+    document.getElementById('summary').textContent = failed ? failed + ' af ' + results.length + ' test fejlede' : 'Alle ' + results.length + ' test bestået';
+    document.getElementById('summary').className = failed ? 'fail' : 'ok';
+    document.getElementById('results').innerHTML = results.map(([ok, name]) => '<li class="' + (ok ? 'ok' : 'fail') + '">' + (ok ? '✓ ' : '✗ ') + name.replace(/</g, '&lt;') + '</li>').join('');
+  </script>
+</body>
+</html>

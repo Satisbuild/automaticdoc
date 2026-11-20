@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="GrejsOpsparing – hold styr på din opsparing, beregn renter og følg dit opsparingsmål. Alle data gemmes lokalt i browseren.">
+  <meta name="theme-color" content="#f3f6f9">
+  <title>GrejsOpsparing</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="../Automatikteknikker.ico" type="image/x-icon">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="GrejsOpsparing">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    // Sæt temaet før siden tegnes, så den ikke blinker hvid i mørkt tema.
+    try {
+      var saved = JSON.parse(localStorage.getItem('grejsOpsparing') || 'null');
+      var theme = saved && saved.settings && saved.settings.theme;
+      if (theme === 'light' || theme === 'dark') document.documentElement.setAttribute('data-theme', theme);
+    } catch (e) { /* ignoreres */ }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#view">Spring til indhold</a>
+
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="brand-row">
+        <a class="brand" href="#/oversigt" aria-label="GrejsOpsparing – oversigt">
+          <img src="icon.svg" alt="" width="32" height="32">
+          <span>Grejs<strong>Opsparing</strong></span>
+        </a>
+        <div class="header-tools">
+          <span class="header-balance" title="Nuværende opsparing"><span class="sr-only">Saldo: </span><span id="header-balance">–</span></span>
+          <button type="button" id="theme-toggle" class="icon-btn" aria-label="Skift tema"></button>
+          <a class="portal-link" href="../index.html">← Forsiden</a>
+        </div>
+      </div>
+      <nav class="main-nav" aria-label="Hovedmenu">
+        <a href="#/oversigt" data-nav="oversigt">Oversigt</a>
+        <a href="#/transaktioner" data-nav="transaktioner">Transaktioner</a>
+        <a href="#/renter" data-nav="renter">Renter</a>
+        <a href="#/maal" data-nav="maal">Mål &amp; plan</a>
+        <a href="#/grafer" data-nav="grafer">Grafer</a>
+        <a href="#/indstillinger" data-nav="indstillinger">Indstillinger</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="view" class="view" tabindex="-1"></main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <!-- Bekræftelse (slet, import, fjern mål) -->
+  <dialog id="confirm-dialog" class="dialog" aria-labelledby="confirm-title">
+    <div class="dialog-body">
+      <h2 id="confirm-title"></h2>
+      <p id="confirm-text"></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-ghost" data-action="confirm-cancel">Annullér</button>
+        <button type="button" id="confirm-ok" class="btn btn-primary">OK</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Ret transaktion -->
+  <dialog id="edit-dialog" class="dialog" aria-labelledby="edit-title">
+    <form id="edit-form" class="dialog-body" novalidate>
+      <h2 id="edit-title">Ret transaktion</h2>
+      <div class="field">
+        <span class="field-label">Type</span>
+        <div class="radio-pills">
+          <label><input type="radio" name="type" value="deposit"><span>Indbetaling</span></label>
+          <label><input type="radio" name="type" value="withdrawal"><span>Hævning</span></label>
+        </div>
+      </div>
+      <label class="field" for="edit-amount"><span class="field-label">Beløb</span>
+        <span class="input-affix"><input id="edit-amount" name="amount" inputmode="decimal" autocomplete="off"><span class="affix" id="edit-affix">kr.</span></span>
+        <small class="field-error" data-error-for="amount"></small>
+      </label>
+      <label class="field" for="edit-date"><span class="field-label">Dato</span>
+        <input id="edit-date" type="date" name="date">
+        <small class="field-error" data-error-for="date"></small>
+      </label>
+      <label class="field" for="edit-desc"><span class="field-label">Beskrivelse <em>valgfri</em></span>
+        <input id="edit-desc" name="description" maxlength="120" autocomplete="off">
+      </label>
+      <p class="form-error" role="alert"></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-ghost" data-action="edit-cancel">Annullér</button>
+        <button type="submit" class="btn btn-primary">Gem ændringer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Nulstil: kræver at man skriver NULSTIL -->
+  <dialog id="reset-dialog" class="dialog" aria-labelledby="reset-title">
+    <form id="reset-form" class="dialog-body" novalidate>
+      <h2 id="reset-title">Nulstil hele opsparingen?</h2>
+      <p>Alle transaktioner, renter, mål og indstillinger i denne browser bliver slettet permanent. Overvej at downloade en backup først.</p>
+      <button type="button" class="btn btn-soft" data-action="reset-export">Download backup først</button>
+      <label class="field" for="reset-input"><span class="field-label">Skriv <strong>NULSTIL</strong> for at bekræfte</span>
+        <input id="reset-input" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      </label>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-ghost" data-action="reset-cancel">Annullér</button>
+        <button type="submit" id="reset-ok" class="btn btn-danger" disabled>Slet alle data</button>
+      </div>
+    </form>
+  </dialog>
+
+  <noscript><p class="noscript">GrejsOpsparing kræver JavaScript for at virke.</p></noscript>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="js/calculations.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/script.js"></script>
+</body>
+</html>
