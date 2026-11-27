@@ -78,6 +78,10 @@ svg { display: block; }
   position: sticky; top: 0; z-index: 30;
   border-bottom: 1px solid rgba(30, 41, 59, 0.8);
   background: rgba(15, 23, 42, 0.7);
+  /* Som app på hjemmeskærmen ligger siden helt op under statuslinjen/notchen – skub headeren ned under den. */
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
