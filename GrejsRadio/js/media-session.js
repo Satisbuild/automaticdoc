@@ -57,20 +57,28 @@
   function init(handlers) {
     if (!supported) return { update: function () {} };
 
-    setHandler('play', function () { handlers.play(); });
-    setHandler('pause', function () { handlers.pause(); });
-    setHandler('stop', function () { handlers.pause(); });
-    setHandler('nexttrack', function () { handlers.next(); });
-    setHandler('previoustrack', function () { handlers.previous(); });
-    // Live-radio kan ikke spoles. Uden disse viser nogle telefoner ±10 sek. i stedet for næste/forrige.
-    setHandler('seekbackward', null);
-    setHandler('seekforward', null);
-    setHandler('seekto', null);
+    function register() {
+      setHandler('play', function () { handlers.play(); });
+      setHandler('pause', function () { handlers.pause(); });
+      setHandler('stop', function () { handlers.pause(); });
+      setHandler('nexttrack', function () { handlers.next(); });
+      setHandler('previoustrack', function () { handlers.previous(); });
+      // Live-radio kan ikke spoles. Uden disse viser nogle telefoner ±10 sek. i stedet for næste/forrige.
+      setHandler('seekbackward', null);
+      setHandler('seekforward', null);
+      setHandler('seekto', null);
+    }
+    register();
 
     var lastId = null;
+    var lastState = null;
     return {
       update: function (station, subtitle, state) {
         if (!station) return;
+        // Nogle telefoner (især iPhone) nulstiller knapperne, når en ny stream starter.
+        // Registrér dem igen, så låseskærmen viser næste/forrige i stedet for spol ±10 sek.
+        if (state === 'playing' && lastState !== 'playing') register();
+        lastState = state;
         var key = station.id + '|' + subtitle;
         if (key !== lastId && typeof window.MediaMetadata === 'function') {
           lastId = key;

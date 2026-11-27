@@ -335,6 +335,21 @@
     else if (k === '-' || k === '−') setVolume(settings.volume - 5);
   });
 
+  // Sikkerhedsnet: hvis telefonen alligevel viser "spol ±10 sek." på låseskærmen,
+  // forsøger den at spole i streamen. Live-radio kan ikke spoles, så et spol frem
+  // tolkes som "næste station" og et spol tilbage som "forrige station".
+  var lastTime = 0;
+  var seekLock = 0;
+  audio.addEventListener('loadstart', function () { lastTime = 0; });
+  audio.addEventListener('timeupdate', function () { if (!audio.seeking) lastTime = audio.currentTime; });
+  audio.addEventListener('seeking', function () {
+    if (!player.isActive()) return;
+    var now = Date.now();
+    if (now < seekLock) return;
+    seekLock = now + 1500;
+    step(audio.currentTime >= lastTime ? 1 : -1);
+  });
+
   // Afspilleren ligger fast i bunden på mobil – sørg for, at listen ikke gemmer sig bag den.
   if ('ResizeObserver' in window) {
     new ResizeObserver(function () {

@@ -5,7 +5,7 @@
   "lang": "da",
   "id": "/GrejsRadio/",
   "start_url": "/GrejsRadio/",
-  "scope": "/GrejsRadio/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#020617",
   "theme_color": "#020617",
