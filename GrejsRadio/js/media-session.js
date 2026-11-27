@@ -47,7 +47,7 @@
     var art = makeArtwork(station);
     var list = [];
     if (art) list.push({ src: art, sizes: '512x512', type: 'image/png' });
-    list.push({ src: new URL('/icons/icon-512.png', location.href).href, sizes: '512x512', type: 'image/png' });
+    list.push({ src: new URL('icons/icon-512.png', location.href).href, sizes: '512x512', type: 'image/png' });
     return list;
   }
 
