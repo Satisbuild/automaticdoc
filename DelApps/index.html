@@ -24,6 +24,235 @@
             }
         }
     </script>
+    <style>
+        /*
+         * From Uiverse.io by nazar-gavrylyk - https://uiverse.io/nazar-gavrylyk/evil-dragon-24
+         * MIT License, Copyright (c) nazar-gavrylyk (Nazar)
+         *
+         * Download-knap: klik starter download og afspiller animationen.
+         * Klasser og keyframes har prefix "dl-switch" så de ikke støder sammen med andet.
+         */
+        .dl-switch {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dl-switch__label {
+            background-color: transparent;
+            border: 2px solid rgb(91, 91, 240);
+            display: flex;
+            align-items: center;
+            border-radius: 50px;
+            width: 160px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            padding: 5px;
+            position: relative;
+        }
+
+        .dl-switch__label::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            width: 8px;
+            height: 8px;
+            transition: all 0.4s ease;
+            border-radius: 100%;
+            margin: auto;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Skjult visuelt, men stadig tilgængelig med tastatur (originalen brugte display: none) */
+        .dl-switch__input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            border: 0;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+        }
+
+        .dl-switch__label:has(.dl-switch__input:focus-visible) {
+            outline: 2px solid #fff;
+            outline-offset: 3px;
+        }
+
+        .dl-switch__title {
+            font-size: 17px;
+            color: #fff;
+            transition: all 0.4s ease;
+            position: absolute;
+            right: 18px;
+            bottom: 14px;
+            margin: 0;
+            text-align: center;
+        }
+
+        .dl-switch__title--done {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .dl-switch__circle {
+            height: 45px;
+            width: 45px;
+            border-radius: 50%;
+            background-color: rgb(91, 91, 240);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.4s ease;
+            position: relative;
+            box-shadow: 0 0 0 0 rgb(255, 255, 255);
+            overflow: hidden;
+        }
+
+        .dl-switch__icon {
+            color: #fff;
+            width: 30px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.4s ease;
+        }
+
+        .dl-switch__square {
+            aspect-ratio: 1;
+            width: 15px;
+            border-radius: 2px;
+            background-color: #fff;
+            opacity: 0;
+            visibility: hidden;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.4s ease;
+        }
+
+        .dl-switch__circle::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            background-color: #3333a8;
+            width: 100%;
+            height: 0;
+            transition: all 0.4s ease;
+        }
+
+        .dl-switch__label:has(.dl-switch__input:checked) {
+            width: 57px;
+            animation: dl-switch-installed 0.4s ease 3.5s forwards;
+        }
+
+        .dl-switch__label:has(.dl-switch__input:checked)::before {
+            animation: dl-switch-rotate 3s ease-in-out 0.4s forwards;
+        }
+
+        .dl-switch__input:checked + .dl-switch__circle {
+            animation:
+                dl-switch-pulse 1s forwards,
+                dl-switch-circle-delete 0.2s ease 3.5s forwards;
+            rotate: 180deg;
+        }
+
+        .dl-switch__input:checked + .dl-switch__circle::before {
+            animation: dl-switch-installing 3s ease-in-out forwards;
+        }
+
+        .dl-switch__input:checked + .dl-switch__circle .dl-switch__icon {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .dl-switch__input:checked ~ .dl-switch__circle .dl-switch__square {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .dl-switch__input:checked ~ .dl-switch__title {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .dl-switch__input:checked ~ .dl-switch__title--done {
+            animation: dl-switch-show-done 0.4s ease 3.5s forwards;
+        }
+
+        @keyframes dl-switch-pulse {
+            0% {
+                scale: 0.95;
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+            }
+            70% {
+                scale: 1;
+                box-shadow: 0 0 0 16px rgba(255, 255, 255, 0);
+            }
+            100% {
+                scale: 0.95;
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            }
+        }
+
+        @keyframes dl-switch-installing {
+            from { height: 0; }
+            to { height: 100%; }
+        }
+
+        @keyframes dl-switch-rotate {
+            0% {
+                transform: rotate(-90deg) translate(27px) rotate(0);
+                opacity: 1;
+                visibility: visible;
+            }
+            99% {
+                transform: rotate(270deg) translate(27px) rotate(270deg);
+                opacity: 1;
+                visibility: visible;
+            }
+            100% {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        @keyframes dl-switch-installed {
+            100% {
+                width: 150px;
+                border-color: rgb(35, 174, 35);
+            }
+        }
+
+        @keyframes dl-switch-circle-delete {
+            100% {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        @keyframes dl-switch-show-done {
+            100% {
+                opacity: 1;
+                visibility: visible;
+                right: 56px;
+            }
+        }
+    </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-orange-500 selection:text-white">
 
@@ -117,14 +346,36 @@
                         </ol>
                     </details>` : ''}
                 </div>
-                <a href="${esc(app.url)}" download class="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 font-semibold text-sm px-4 py-2.5 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg>
-                    Download
-                </a>
+                <!-- From Uiverse.io by nazar-gavrylyk - https://uiverse.io/nazar-gavrylyk/evil-dragon-24
+                     MIT License, Copyright (c) nazar-gavrylyk (Nazar) -->
+                <div class="dl-switch mt-6">
+                    <label class="dl-switch__label">
+                        <input type="checkbox" class="dl-switch__input" data-url="${esc(app.url)}" aria-label="Download ${esc(app.name)}" />
+                        <span class="dl-switch__circle">
+                            <svg class="dl-switch__icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 19V5m0 14-4-4m4 4 4-4"></path>
+                            </svg>
+                            <span class="dl-switch__square"></span>
+                        </span>
+                        <p class="dl-switch__title">Download</p>
+                        <p class="dl-switch__title dl-switch__title--done">Hentet</p>
+                    </label>
+                </div>
             </div>
         `).join('');
+
+        // Download-knappen er en checkbox: når den slås til, starter downloaden.
+        // Slås den fra igen, nulstilles knappen, så man kan hente filen igen.
+        grid.addEventListener('change', (e) => {
+            const input = e.target;
+            if (!input.matches('.dl-switch__input') || !input.checked) return;
+            const link = document.createElement('a');
+            link.href = input.dataset.url;
+            link.download = '';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        });
     </script>
 
 </body>
