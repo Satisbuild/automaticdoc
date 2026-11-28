@@ -7,7 +7,7 @@
 //   caches ALDRIG - et spil må ikke få en gammel cloud-save serveret, når man er offline.
 
 // <precache> (genereret af tools/update-sw.js - rediger ikke i hånden)
-const VERSION = 'd8a3077d22';
+const VERSION = '2fdbece3e0';
 const PRECACHE = [
   "/",
   "/Automatikteknikker.ico",
@@ -25,6 +25,19 @@ const PRECACHE = [
   "/GrejsOpsparing/js/storage.js",
   "/GrejsOpsparing/manifest.webmanifest",
   "/GrejsOpsparing/tests/tests.html",
+  "/GrejsRadio/css/grejsradio.css",
+  "/GrejsRadio/icon.svg",
+  "/GrejsRadio/icons/apple-touch-icon.png",
+  "/GrejsRadio/icons/icon-192.png",
+  "/GrejsRadio/icons/icon-512.png",
+  "/GrejsRadio/index.html",
+  "/GrejsRadio/",
+  "/GrejsRadio/js/app.js",
+  "/GrejsRadio/js/media-session.js",
+  "/GrejsRadio/js/player.js",
+  "/GrejsRadio/js/stations.js",
+  "/GrejsRadio/js/storage.js",
+  "/GrejsRadio/manifest.webmanifest",
   "/Grejs_Hanball_Build/css/style.css",
   "/Grejs_Hanball_Build/index.html",
   "/Grejs_Hanball_Build/",
